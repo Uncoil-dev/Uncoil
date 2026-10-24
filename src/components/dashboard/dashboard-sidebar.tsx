@@ -45,6 +45,25 @@ type NavSection = { id: string; label: string; rows: NavRow[] };
 
 const COLLAPSED_WIDTH = 64;
 const EXPANDED_WIDTH = 280;
+const DETAIL_NOUNS: Record<string, string> = {
+  runs: "Run",
+  traces: "Trace",
+  sessions: "Session",
+  users: "User",
+  prompts: "Prompt",
+  "prompt-management": "Prompt",
+  datasets: "Dataset",
+  experiments: "Experiment",
+  evaluators: "Evaluator",
+  alerts: "Alert",
+  dashboards: "Dashboard",
+};
+
+function titleCase(segment: string) {
+  const words = decodeURIComponent(segment).replace(/[-_]+/g, " ").trim();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Page";
+}
+
 const MARKETING_ORIGIN = process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech";
 
 function isActivePath(pathname: string, href: string, projectId: string, isPreview = false, currentSearch = "") {
@@ -241,22 +260,33 @@ export function DashboardSidebar({
     [currentSearch, pathname, projectId, projectIdOverride],
   );
 
-  // The page you are on, as a recents entry (Home is the always-visible row, so it is not recorded).
+  // The page you are on, as a recents entry. Menu pages keep their menu name; anything deeper
+  // (a single trace, session, prompt…) is named from its address so you can jump back to it.
+  const dashboardBase = isSynthetic ? "/playground" : projectDashboardHref;
   const activeEntry = useMemo(() => {
-    let best: { href: string; title: string; section: string } | null = null;
+    const here = pathname.replace(/\/$/, "");
+    let exact: { href: string; title: string; section: string } | null = null;
     const consider = (leaf: NavLeaf, section: string) => {
-      if (leaf.external || !isLeafActive(leaf.href)) return;
-      if (!best || leaf.href.length > best.href.length) best = { href: leaf.href, title: leaf.title, section };
+      if (leaf.external || here !== leaf.href.split("?")[0] || !isLeafActive(leaf.href)) return;
+      if (!exact || leaf.href.length > exact.href.length) exact = { href: leaf.href, title: leaf.title, section };
     };
+    for (const row of home) if (row.href) consider({ title: row.title, href: row.href }, "Overview");
     for (const section of sections) {
       for (const row of section.rows) {
         if (row.children) row.children.forEach((child) => consider(child, row.title));
         else if (row.href) consider({ title: row.title, href: row.href, external: row.external }, section.label);
       }
     }
-    for (const row of home.slice(1)) if (row.href) consider({ title: row.title, href: row.href }, "Home");
-    return best as { href: string; title: string; section: string } | null;
-  }, [home, isLeafActive, sections]);
+    if (exact) return exact as { href: string; title: string; section: string };
+    if (!here.startsWith(`${dashboardBase}/`)) return null;
+    const [first, ...rest] = here.slice(dashboardBase.length + 1).split("/");
+    const noun = DETAIL_NOUNS[first];
+    if (noun && rest.length) {
+      const id = decodeURIComponent(rest[0]);
+      return { href: here, title: `${noun} ${id.length > 14 ? `${id.slice(0, 12)}…` : id}`, section: titleCase(first) };
+    }
+    return { href: here, title: titleCase(rest.length ? rest[rest.length - 1] : first), section: titleCase(first) };
+  }, [dashboardBase, home, isLeafActive, pathname, sections]);
   const activeHref = activeEntry?.href;
   const activeTitle = activeEntry?.title;
   const activeSection = activeEntry?.section;

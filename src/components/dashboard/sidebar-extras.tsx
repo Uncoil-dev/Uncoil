@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 const EVENT = "tracify:sidebar-extras";
 const pinsKey = (projectId: string) => `tracify.sidebar.pins.${projectId}`;
+const recentsKey = (projectId: string) => `tracify.sidebar.recents.${projectId || "none"}`;
 const setupKey = (projectId: string) => `tracify.sidebar.setupDismissed.${projectId}`;
 
 function read(key: string) {
@@ -62,6 +63,36 @@ export function usePins(projectId: string) {
     write(pinsKey(projectId), next.length ? JSON.stringify(next) : "");
   }
   return { pins, toggle, isPinned: (href: string) => pins.some((p) => p.href === href) };
+}
+
+/** The pages visited most recently in this project, newest first, remembered in this browser. */
+export type Recent = { href: string; title: string; section: string };
+const MAX_RECENTS = 5;
+
+function parseRecents(raw: string): Recent[] {
+  try {
+    const list = JSON.parse(raw || "[]");
+    if (!Array.isArray(list)) return [];
+    return list
+      .filter((r): r is Recent => typeof r?.href === "string" && typeof r?.title === "string" && typeof r?.section === "string")
+      .slice(0, MAX_RECENTS);
+  } catch {
+    return [];
+  }
+}
+
+export function useRecents(projectId: string) {
+  const raw = useStored(recentsKey(projectId));
+  const recents = parseRecents(raw);
+  return { recents };
+}
+
+/** Puts a page at the top of the project's recents; reads storage fresh so callers never act on stale lists. */
+export function recordRecent(projectId: string, entry: Recent) {
+  const current = parseRecents(read(recentsKey(projectId)));
+  if (current[0]?.href === entry.href) return;
+  const next = [entry, ...current.filter((r) => r.href !== entry.href)].slice(0, MAX_RECENTS);
+  write(recentsKey(projectId), JSON.stringify(next));
 }
 
 const sectionLabel = "px-4 pb-1 pt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-white/35";

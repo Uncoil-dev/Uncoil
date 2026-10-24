@@ -11,9 +11,33 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type CommandMenuProps = { projectId?: string; showTrigger?: boolean };
+type CommandMenuProps = { projectId?: string; showTrigger?: boolean; basePath?: string };
 
-export function DashboardCommandMenu({ projectId, showTrigger = true }: CommandMenuProps) {
+/**
+ * The dialog lives in the sidebar (one per page, so Ctrl K never opens two). Everything else that
+ * wants search renders `showTrigger`, which only asks that dialog to open.
+ */
+export function DashboardCommandMenu({ projectId, showTrigger = true, basePath }: CommandMenuProps) {
+  if (showTrigger) return <CommandTrigger />;
+  return <CommandDialog projectId={projectId} basePath={basePath} />;
+}
+
+function CommandTrigger() {
+  return (
+    <button
+      type="button"
+      onClick={() => window.dispatchEvent(new Event("tracify:open-command"))}
+      aria-label="Open command menu"
+      className="hidden h-8 items-center gap-2 border border-black/15 bg-white px-3 font-mono text-[10px] uppercase tracking-widest text-black/55 transition-colors hover:border-black hover:text-black md:flex"
+    >
+      <Command className="size-3" aria-hidden="true" />
+      <span>Command</span>
+      <kbd className="border border-black/25 px-1.5 py-0.5 text-[9px] text-black/55">⌘K</kbd>
+    </button>
+  );
+}
+
+function CommandDialog({ projectId, basePath }: { projectId?: string; basePath?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -31,7 +55,7 @@ export function DashboardCommandMenu({ projectId, showTrigger = true }: CommandM
   }, []);
 
   const items = useMemo(() => {
-    const base = projectId ? `/dashboard/${projectId}` : "/dashboard";
+    const base = basePath ?? (projectId ? `/dashboard/${projectId}` : "/dashboard");
     const destinations = [
       ["Overview", base],
       ["Dashboards", `${base}/dashboards`],
@@ -64,7 +88,7 @@ export function DashboardCommandMenu({ projectId, showTrigger = true }: CommandM
       );
     }
     return destinations.filter(([label]) => label.toLowerCase().includes(lookup.toLowerCase()));
-  }, [projectId, query]);
+  }, [basePath, projectId, query]);
 
   function close() {
     setOpen(false);
@@ -73,16 +97,6 @@ export function DashboardCommandMenu({ projectId, showTrigger = true }: CommandM
 
   return (
     <>
-      {showTrigger ? <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open command menu"
-        className="hidden h-8 items-center gap-2 border border-black/15 bg-white px-3 font-mono text-[10px] uppercase tracking-widest text-black/55 transition-colors hover:border-black hover:text-black md:flex"
-      >
-        <Command className="size-3" aria-hidden="true" />
-        <span>Command</span>
-        <kbd className="border border-black/25 px-1.5 py-0.5 text-[9px] text-black/55">⌘K</kbd>
-      </button> : null}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl gap-0 overflow-hidden border-black/25 bg-white p-0 shadow-2xl" showCloseButton={false}>
           <DialogTitle className="sr-only">Dashboard command menu</DialogTitle>

@@ -31,7 +31,7 @@ import { DashboardCommandMenu } from "@/components/dashboard/dashboard-command-m
 import { usePathname, useParams, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DEMO_BASE_PATH } from "@/lib/demo/demo-config";
-import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useRecents, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
+import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useClosedSections, useRecents, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
 
 type Icon = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
@@ -132,6 +132,7 @@ export function DashboardSidebar({
   const savedViews = useSavedViews(projectId, liveProject && showPanel);
   const recentsKey = projectId || (isSynthetic ? "playground" : demo ? "demo" : "");
   const recents = useRecents(recentsKey).recents;
+  const closedSections = useClosedSections();
 
   const home = useMemo<NavRow[]>(
     () => [
@@ -415,18 +416,29 @@ export function DashboardSidebar({
 
         {liveProject && showPanel ? <PinnedSection pins={pins} pathname={pathname} onToggle={togglePin} onNavClick={close} /> : null}
 
-        {sections.map((section) => (
-          <div key={section.id}>
-            {showPanel ? (
-              <div className="px-5 pb-1 pt-5 font-mono text-[11px] !text-white/40">{section.label}</div>
-            ) : (
-              <div className="mx-3 my-3 border-t !border-white/10" aria-hidden />
-            )}
-            {section.rows.map((row) => (
-              <SidebarRow key={row.id} row={row} ctx={ctx} />
-            ))}
-          </div>
-        ))}
+        {sections.map((section) => {
+          // A folded group still shows the page you are on, so the current page never disappears.
+          const holdsActive = section.rows.some((row) => (row.children ?? [{ href: row.href ?? "" }]).some((leaf) => leaf.href && isLeafActive(leaf.href)));
+          const folded = closedSections.closed.includes(section.id) && !holdsActive;
+          return (
+            <div key={section.id}>
+              {showPanel ? (
+                <button
+                  type="button"
+                  aria-expanded={!folded}
+                  onClick={() => closedSections.toggle(section.id)}
+                  className="mt-3 flex h-8 w-full items-center gap-1 px-5 text-left font-mono text-[11px] !text-white/40 outline-none transition-colors hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
+                >
+                  <span>{section.label}</span>
+                  {folded ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                </button>
+              ) : (
+                <div className="mx-3 my-3 border-t !border-white/10" aria-hidden />
+              )}
+              {folded && showPanel ? null : section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
+            </div>
+          );
+        })}
       </nav>
 
       {liveProject && showPanel ? (

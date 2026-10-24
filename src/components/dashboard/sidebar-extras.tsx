@@ -95,6 +95,31 @@ export function recordRecent(projectId: string, entry: Recent) {
   write(recentsKey(projectId), JSON.stringify(next));
 }
 
+const closedSectionsKey = "tracify.sidebar.closedSections";
+
+/** Sidebar groups the person folded shut, remembered in this browser. */
+export function useClosedSections() {
+  const raw = useStored(closedSectionsKey);
+  let closed: string[] = [];
+  try {
+    const list = JSON.parse(raw || "[]");
+    if (Array.isArray(list)) closed = list.filter((id): id is string => typeof id === "string");
+  } catch {}
+  function toggle(id: string) {
+    const current = (() => {
+      try {
+        const list = JSON.parse(read(closedSectionsKey) || "[]");
+        return Array.isArray(list) ? (list as string[]) : [];
+      } catch {
+        return [];
+      }
+    })();
+    const next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
+    write(closedSectionsKey, next.length ? JSON.stringify(next) : "");
+  }
+  return { closed, toggle };
+}
+
 const sectionLabel = "px-4 pb-1 pt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-white/35";
 const rowClass =
   "relative flex h-8 items-center gap-2 px-4 font-mono text-[12px] !text-[#a0a0a0] outline-none transition-colors hover:!bg-[#181818] hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";

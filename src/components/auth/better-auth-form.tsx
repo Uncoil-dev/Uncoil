@@ -42,9 +42,6 @@ export function BetterAuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         ? await authClient.signUp.email({ name: name.trim(), email: email.trim(), password, callbackURL: absolute(callbackPath) })
         : await authClient.signIn.email({ email: email.trim(), password, callbackURL: absolute(callbackPath) });
       if (result.error) return setError(result.error.message || "Authentication failed.");
-      if (mode === "sign-up") {
-        await fetch("/api/lifecycle/welcome", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim(), name: name.trim() }) }).catch(() => undefined);
-      }
       const callback = new URL(callbackPath, window.location.origin);
       if (intent) callback.searchParams.set("intent", intent);
       window.location.assign(`/auth/callback?redirect_url=${encodeURIComponent(`${callback.pathname}${callback.search}${callback.hash}`)}`);

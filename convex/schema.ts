@@ -773,6 +773,12 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_userKey", ["userKey"]),
 
+  // One row per address already welcomed, so the welcome email is never sent twice.
+  welcomeEmails: defineTable({
+    email: v.string(),
+    sentAt: v.number(),
+  }).index("by_email", ["email"]),
+
   auditLogs: defineTable({
     projectId: v.id("projects"),
     actorId: v.string(),

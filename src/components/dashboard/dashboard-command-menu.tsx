@@ -98,20 +98,20 @@ function CommandDialog({ projectId, basePath }: { projectId?: string; basePath?:
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-xl gap-0 overflow-hidden border-black/25 bg-white p-0 shadow-2xl" showCloseButton={false}>
+        <DialogContent className="max-w-xl gap-0 overflow-hidden !border-white/20 !bg-[#0b0b0b] p-0 shadow-2xl" showCloseButton={false}>
           <DialogTitle className="sr-only">Dashboard command menu</DialogTitle>
           <DialogDescription className="sr-only">Navigate to a dashboard surface.</DialogDescription>
-          <div className="flex items-center gap-3 border-b border-black/15 px-4">
-            <Search className="size-4 text-black/55" aria-hidden="true" />
+          <div className="flex items-center gap-3 border-b !border-white/10 px-4">
+            <Search className="size-4 !text-white/55" aria-hidden="true" />
             <input
               autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search dashboard…"
               aria-label="Search dashboard destinations"
-              className="h-14 min-w-0 flex-1 bg-transparent font-mono text-sm text-black outline-none placeholder:text-black/55"
+              className="h-14 min-w-0 flex-1 bg-transparent font-mono text-sm !text-white outline-none placeholder:!text-white/45"
             />
-            <kbd className="border border-black/25 px-1.5 py-0.5 font-mono text-[9px] text-black/55">ESC</kbd>
+            <kbd className="border !border-white/25 px-1.5 py-0.5 font-mono text-[9px] !text-white/55">ESC</kbd>
           </div>
           <div className="max-h-[420px] overflow-y-auto p-2">
             {items.length ? items.map(([label, href]) => (
@@ -119,16 +119,16 @@ function CommandDialog({ projectId, basePath }: { projectId?: string; basePath?:
                 key={href}
                 href={href}
                 onClick={close}
-                className="flex items-center justify-between border border-transparent px-3 py-3 font-mono text-xs text-black/70 transition-colors hover:border-black/25 hover:bg-[#f3f2ed] hover:text-black focus-visible:outline focus-visible:outline-1 focus-visible:outline-white"
+                className="flex items-center justify-between relative border border-transparent px-3 py-3 font-mono text-xs !text-[#b4b4b4] transition-colors hover:!bg-[#181818] hover:!text-white hover:before:absolute hover:before:inset-y-0 hover:before:left-0 hover:before:w-[3px] hover:before:bg-[#f4d44d] focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
               >
                 <span>{label}</span>
-                <ArrowUpRight className="size-3 text-black/55" aria-hidden="true" />
+                <ArrowUpRight className="size-3 !text-white/45" aria-hidden="true" />
               </Link>
             )) : (
-              <div className="p-8 text-center font-mono text-[10px] uppercase tracking-widest text-black/55">No destinations found</div>
+              <div className="p-8 text-center font-mono text-[10px] uppercase tracking-widest !text-white/55">No destinations found</div>
             )}
           </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-black/15 px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-black/55"><span>Navigate workspace surfaces</span><span>⌘K / Ctrl+I assistant</span><span>Ctrl+\ sidebar</span></div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 border-t !border-white/10 px-4 py-2 font-mono text-[9px] uppercase tracking-widest !text-white/45"><span>Navigate workspace surfaces</span><span>⌘K / Ctrl+I assistant</span><span>Ctrl+\ sidebar</span></div>
         </DialogContent>
       </Dialog>
     </>

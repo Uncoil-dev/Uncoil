@@ -3,7 +3,6 @@
 import {
   Activity,
   BookOpen,
-  ChevronDown,
   ChevronRight,
   FlaskConical,
   History,
@@ -340,7 +339,7 @@ export function DashboardSidebar({
   return (
     <aside
       className={cn(
-        "tracify-shell-sidebar fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-[#0b0b0b] text-white transition-[width,transform] duration-150 ease-out motion-reduce:transition-none",
+        "tracify-shell-sidebar fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-[#0b0b0b] text-white overflow-hidden transition-[width,transform] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
         isMobileOpen && "is-mobile-open",
       )}
       style={{ width: showPanel ? EXPANDED_WIDTH : COLLAPSED_WIDTH }}
@@ -390,7 +389,7 @@ export function DashboardSidebar({
         </button>
       </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto pb-3 scrollbar-hide" aria-label="Dashboard">
+      <nav key={showPanel ? "open" : "rail"} className="min-h-0 flex-1 animate-in fade-in-0 slide-in-from-left-1 overflow-y-auto pb-3 duration-200 scrollbar-hide motion-reduce:animate-none" aria-label="Dashboard">
         {home.map((row) => (
           <SidebarRow key={row.id} row={row} ctx={ctx} />
         ))}
@@ -406,9 +405,9 @@ export function DashboardSidebar({
               >
                 <History className="size-[17px] shrink-0" strokeWidth={1.7} />
                 <span className="truncate">Recents</span>
-                {recentsOpen ? <ChevronDown className="ml-auto size-4 shrink-0 opacity-60" /> : <ChevronRight className="ml-auto size-4 shrink-0 opacity-60" />}
+                <Chevron open={recentsOpen} className="ml-auto size-4" />
               </button>
-              {recentsOpen ? (
+              <Collapsible open={recentsOpen}>
                 <div className="mx-2 ml-[27px] border-l !border-white/15">
                   {recents.map((recent) => {
                     const active = isLeafActive(recent.href);
@@ -426,7 +425,7 @@ export function DashboardSidebar({
                     );
                   })}
                 </div>
-              ) : null}
+              </Collapsible>
             </>
           ) : (
             <button
@@ -457,14 +456,14 @@ export function DashboardSidebar({
                   className="mt-3 flex h-8 w-full items-center gap-1 px-5 text-left font-mono text-[11px] !text-white/40 outline-none transition-colors hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
                 >
                   <span>{section.label}</span>
-                  {folded ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                  <Chevron open={!folded} className="size-3.5" />
                 </button>
               ) : (
                 <div className="mx-3 my-3 border-t !border-white/10" aria-hidden />
               )}
-              {folded && showPanel ? null : (
-                section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)
-              )}
+              <Collapsible open={!folded || !showPanel}>
+                {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
+              </Collapsible>
             </div>
           );
         })}
@@ -518,6 +517,23 @@ type RowContext = {
   expandRow: (id: string) => void;
 };
 
+/** Opens and closes by animating the height from and to zero, so folding is as smooth as unfolding. */
+function Collapsible({ open, children }: { open: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className={cn("grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none", open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}
+      aria-hidden={!open}
+      inert={!open}
+    >
+      <div className="min-h-0 overflow-hidden">{children}</div>
+    </div>
+  );
+}
+
+function Chevron({ open, className }: { open: boolean; className?: string }) {
+  return <ChevronRight className={cn("shrink-0 opacity-60 transition-transform duration-200 motion-reduce:transition-none", open && "rotate-90", className)} />;
+}
+
 function NewBadge() {
   return <span className="shrink-0 border border-dashed !border-white/45 px-1.5 font-mono text-[10px] leading-[16px] !text-white">New</span>;
 }
@@ -564,9 +580,9 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
       <>
         <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowState, "text-left", )}>
           {label}
-          {open ? <ChevronDown className="ml-auto size-4 shrink-0 opacity-60" /> : <ChevronRight className="ml-auto size-4 shrink-0 opacity-60" />}
+          <Chevron open={open} className="ml-auto size-4" />
         </button>
-        {open ? (
+        <Collapsible open={open}>
           <div className="mx-2 ml-[27px] border-l !border-white/15">
             {row.children!.map((child) => {
               const leafOn = ctx.isLeafActive(child.href);
@@ -590,7 +606,7 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
               );
             })}
           </div>
-        ) : null}
+        </Collapsible>
       </>
     );
   }

@@ -139,7 +139,19 @@ export function DashboardSidebar({
   );
 
   const hasProject = isSynthetic || demo || Boolean(projectId);
-  const showPanel = !isCollapsed || isMobileOpen;
+  // While collapsed, pointing at the sidebar opens it over the page and moving away closes it again.
+  const [peeking, setPeeking] = useState(false);
+  const [pointerInside, setPointerInside] = useState(false);
+  const showPanel = !isCollapsed || isMobileOpen || peeking;
+  const peekOverlay = isCollapsed && !isMobileOpen && peeking;
+  useEffect(() => {
+    if (!peeking || pointerInside) return;
+    // Menus (project switcher, account) live outside the sidebar; keep it open until they close.
+    const timer = window.setInterval(() => {
+      if (!document.querySelector('[role="menu"][data-state="open"]')) setPeeking(false);
+    }, 150);
+    return () => window.clearInterval(timer);
+  }, [peeking, pointerInside]);
   const liveProject = !isSynthetic && !demo && !projectIdOverride && Boolean(projectId);
   const { pins, toggle: togglePin, isPinned } = usePins(projectId);
   const savedViews = useSavedViews(projectId, liveProject && showPanel);
@@ -341,8 +353,15 @@ export function DashboardSidebar({
       className={cn(
         "tracify-shell-sidebar fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-[#0b0b0b] text-white overflow-hidden transition-[width,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
         isMobileOpen && "is-mobile-open",
+        peekOverlay && "shadow-[12px_0_32px_rgb(0_0_0/0.45)]",
       )}
       style={{ width: showPanel ? EXPANDED_WIDTH : COLLAPSED_WIDTH }}
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "mouse") return;
+        setPointerInside(true);
+        if (isCollapsed) setPeeking(true);
+      }}
+      onPointerLeave={() => setPointerInside(false)}
     >
       <DashboardCommandMenu projectId={projectId} showTrigger={false} basePath={demo ? DEMO_BASE_PATH : isSynthetic ? "/playground" : undefined} />
 
@@ -486,7 +505,11 @@ export function DashboardSidebar({
             type="button"
             aria-label={showPanel ? "Collapse sidebar (Ctrl+\\)" : "Open sidebar (Ctrl+\\)"}
             title={showPanel ? "Collapse sidebar · Ctrl+\\" : "Open sidebar · Ctrl+\\"}
-            onClick={() => (isMobileOpen ? onMobileClose?.() : onCollapsedChange(!isCollapsed))}
+            onClick={() => {
+              setPeeking(false);
+              if (isMobileOpen) onMobileClose?.();
+              else onCollapsedChange(!isCollapsed);
+            }}
             className="flex size-8 items-center justify-center !text-[#8d8d8d] outline-none transition-colors hover:!bg-[#181818] hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
           >
             {showPanel ? <PanelLeftClose className="size-4" /> : <PanelLeftOpen className="size-4" />}

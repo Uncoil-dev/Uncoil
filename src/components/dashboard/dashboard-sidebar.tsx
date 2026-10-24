@@ -339,7 +339,7 @@ export function DashboardSidebar({
   return (
     <aside
       className={cn(
-        "tracify-shell-sidebar fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-[#0b0b0b] text-white overflow-hidden transition-[width,transform] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
+        "tracify-shell-sidebar fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-[#0b0b0b] text-white overflow-hidden transition-[width,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
         isMobileOpen && "is-mobile-open",
       )}
       style={{ width: showPanel ? EXPANDED_WIDTH : COLLAPSED_WIDTH }}
@@ -389,7 +389,7 @@ export function DashboardSidebar({
         </button>
       </div>
 
-      <nav key={showPanel ? "open" : "rail"} className="min-h-0 flex-1 animate-in fade-in-0 slide-in-from-left-1 overflow-y-auto pb-3 duration-200 scrollbar-hide motion-reduce:animate-none" aria-label="Dashboard">
+      <nav key={showPanel ? "open" : "rail"} className="min-h-0 flex-1 animate-in fade-in-0 overflow-y-auto pb-3 duration-300 scrollbar-hide motion-reduce:animate-none" aria-label="Dashboard">
         {home.map((row) => (
           <SidebarRow key={row.id} row={row} ctx={ctx} />
         ))}
@@ -521,7 +521,7 @@ type RowContext = {
 function Collapsible({ open, children }: { open: boolean; children: React.ReactNode }) {
   return (
     <div
-      className={cn("grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none", open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}
+      className={cn("grid transition-[grid-template-rows,opacity] duration-250 ease-out motion-reduce:transition-none", open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}
       aria-hidden={!open}
       inert={!open}
     >
@@ -531,7 +531,7 @@ function Collapsible({ open, children }: { open: boolean; children: React.ReactN
 }
 
 function Chevron({ open, className }: { open: boolean; className?: string }) {
-  return <ChevronRight className={cn("shrink-0 opacity-60 transition-transform duration-200 motion-reduce:transition-none", open && "rotate-90", className)} />;
+  return <ChevronRight className={cn("shrink-0 opacity-60 transition-transform duration-250 motion-reduce:transition-none", open && "rotate-90", className)} />;
 }
 
 function NewBadge() {

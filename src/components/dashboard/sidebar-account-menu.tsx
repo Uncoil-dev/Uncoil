@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronUp, CreditCard, Gauge, Globe2, LogOut, ShieldCheck, Sparkles, UserPen } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight, CreditCard, Gauge, Globe2, LogOut, ShieldCheck, Sparkles, UserPen } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -21,6 +22,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const MARKETING_ORIGIN = process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech";
+
+/** The person's profile picture, or their initial on yellow when they have none (or it fails to load). */
+function Avatar({ image, name }: { image?: string | null; name: string }) {
+  const [failed, setFailed] = useState(false);
+  if (image && !failed) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={image} alt="" width={28} height={28} referrerPolicy="no-referrer" onError={() => setFailed(true)} className="block size-7 shrink-0 object-cover" />;
+  }
+  return <span className="flex size-7 shrink-0 items-center justify-center bg-[#f4d44d] text-[12px] font-semibold !text-[#090909]">{name.slice(0, 1).toUpperCase()}</span>;
+}
 
 export function SidebarAccountMenu({
   isCollapsed = false,
@@ -48,7 +59,6 @@ export function SidebarAccountMenu({
   const user = session?.user;
   const name = synthetic ? "Demo viewer" : user?.name || "Account";
   const email = synthetic ? "Sign in to use your own data" : user?.email || "";
-  const initials = (user?.name || user?.email || "T").slice(0, 1).toUpperCase();
   const billingHref = projectId ? `/dashboard/${projectId}/billing` : "/dashboard/billing";
 
   return (
@@ -56,25 +66,26 @@ export function SidebarAccountMenu({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={`Account menu for ${name}`}
+          aria-label={`Manage account: ${name}`}
+          title={isCollapsed ? `Manage account · ${name}` : undefined}
           className={cn(
             "flex items-center font-mono outline-none transition-colors hover:!bg-[#181818] focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55",
-            isCollapsed ? "size-10 justify-center border border-white/15 text-[13px] font-semibold !text-[#dedede]" : "h-14 w-full gap-3 px-4 text-left !text-[#dedede]",
+            isCollapsed ? "mx-auto size-10 justify-center" : "mx-2 h-12 w-[calc(100%-1rem)] gap-3 px-3 text-left",
           )}
         >
-          <span className="flex size-7 shrink-0 items-center justify-center bg-[#f4d44d] text-[12px] font-semibold !text-[#090909]">{initials}</span>
+          <Avatar image={synthetic ? null : user?.image} name={name} />
           {isCollapsed ? null : (
             <>
               <span className="flex min-w-0 flex-col">
-                <span className="truncate text-[12px]">{name}</span>
-                <span className="truncate text-[10px] !text-[#8d8d8d]">{email}</span>
+                <span className="truncate text-[12px] !text-[#dedede]">{name}</span>
+                <span className="truncate text-[10px] !text-[#8d8d8d]">Manage account</span>
               </span>
-              <ChevronUp className="ml-auto size-4 shrink-0 opacity-60" />
+              <ChevronRight className="ml-auto size-4 shrink-0 opacity-60" />
             </>
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align={isCollapsed ? "end" : "start"} side={isCollapsed ? "right" : "top"} collisionPadding={8} sideOffset={8} className="w-64">
+      <DropdownMenuContent align="end" side="right" collisionPadding={8} sideOffset={8} className="w-64">
         <DropdownMenuLabel className="flex flex-col gap-0.5 px-2 py-2 normal-case !text-[#dedede]">
           <span className="truncate text-[12px]">{name}</span>
           <span className="truncate text-[10px] opacity-55">{email}</span>

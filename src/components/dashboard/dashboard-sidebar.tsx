@@ -435,7 +435,11 @@ export function DashboardSidebar({
               ) : (
                 <div className="mx-3 my-3 border-t !border-white/10" aria-hidden />
               )}
-              {folded && showPanel ? null : section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
+              {folded && showPanel ? null : (
+                <div className={cn(showPanel && "ml-3 border-l !border-white/15")}>
+                  {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
+                </div>
+              )}
             </div>
           );
         })}

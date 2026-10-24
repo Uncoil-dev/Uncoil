@@ -3,10 +3,8 @@
 import {
   Activity,
   BookOpen,
-  Bell,
   ChevronDown,
   ChevronRight,
-  Database,
   FlaskConical,
   History,
   House,
@@ -19,9 +17,6 @@ import {
   Settings2,
   ShieldCheck,
   Terminal,
-  Users,
-  Zap,
-  BarChart3,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -35,7 +30,7 @@ import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useClosedSecti
 
 type Icon = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
-type NavLeaf = { title: string; href: string; external?: boolean };
+type NavLeaf = { title: string; href: string; external?: boolean; badge?: "New" };
 type NavRow = {
   id: string;
   title: string;
@@ -162,21 +157,23 @@ export function DashboardSidebar({
     return [
       {
         id: "observe",
-        label: "Observe",
+        label: "",
         rows: [
-          liveProject
-            ? {
-                id: "tracing",
-                title: "Tracing",
-                icon: Activity,
-                children: [{ title: "Traces", href: workspaceHref("tracing") }, { title: "Steps", href: workspaceHref("steps") }, ...savedViewLeaves],
-              }
-            : { id: "tracing", title: "Tracing", icon: Activity, href: workspaceHref("tracing") },
-          ...(demo ? [{ id: "costs", title: "Costs", icon: BarChart3, href: workspaceHref("costs") }] : []),
-          ...(isSynthetic || demo ? [{ id: "explore", title: "Explore", icon: Zap, href: workspaceHref("explore") }] : []),
-          ...(showSessions ? [{ id: "sessions", title: "Sessions", icon: Database, href: workspaceHref("sessions") }] : []),
-          { id: "users", title: "Users", icon: Users, href: workspaceHref("users") },
-          { id: "alerts", title: "Alerts", icon: Bell, href: workspaceHref("alerts"), badge: "New" as const },
+          {
+            id: "observe",
+            title: "Observe",
+            icon: Activity,
+            children: [
+              { title: "Tracing", href: workspaceHref("tracing") },
+              ...(liveProject ? [{ title: "Steps", href: workspaceHref("steps") }] : []),
+              ...(demo ? [{ title: "Costs", href: workspaceHref("costs") }] : []),
+              ...(isSynthetic || demo ? [{ title: "Explore", href: workspaceHref("explore") }] : []),
+              ...(showSessions ? [{ title: "Sessions", href: workspaceHref("sessions") }] : []),
+              { title: "Users", href: workspaceHref("users") },
+              { title: "Alerts", href: workspaceHref("alerts"), badge: "New" as const },
+              ...savedViewLeaves,
+            ],
+          },
         ],
       },
       {
@@ -422,7 +419,7 @@ export function DashboardSidebar({
           const folded = closedSections.closed.includes(section.id) && !holdsActive;
           return (
             <div key={section.id}>
-              {showPanel ? (
+              {!section.label ? null : showPanel ? (
                 <button
                   type="button"
                   aria-expanded={!folded}
@@ -436,9 +433,7 @@ export function DashboardSidebar({
                 <div className="mx-3 my-3 border-t !border-white/10" aria-hidden />
               )}
               {folded && showPanel ? null : (
-                <div className={cn(showPanel && "ml-3 border-l !border-white/15")}>
-                  {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
-                </div>
+                section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)
               )}
             </div>
           );
@@ -501,8 +496,9 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   const Icon = row.icon;
   const hasChildren = Boolean(row.children?.length);
   const childActive = hasChildren && row.children!.some((child) => ctx.isLeafActive(child.href));
-  const active = hasChildren ? childActive : row.href ? ctx.isLeafActive(row.href) : false;
   const open = hasChildren && ctx.rowOpen(row);
+  // An open row shows its active page below it, so only a folded row carries the highlight.
+  const active = hasChildren ? childActive && !open : row.href ? ctx.isLeafActive(row.href) : false;
 
   if (!ctx.expanded) {
     const state = cn(rowClass, "mx-auto w-10 justify-center px-0", active ? rowActive : rowIdle);
@@ -536,7 +532,7 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   if (hasChildren) {
     return (
       <>
-        <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowState, "text-left", childActive && !open && "!bg-[#141414]")}>
+        <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowState, "text-left", )}>
           {label}
           {open ? <ChevronDown className="ml-auto size-4 shrink-0 opacity-60" /> : <ChevronRight className="ml-auto size-4 shrink-0 opacity-60" />}
         </button>
@@ -552,6 +548,7 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
                   className={cn(leafClass, ctx.pin && "pr-9", leafOn ? leafActive : leafIdle)}
                 >
                   <span className="truncate">{child.title}</span>
+                  {child.badge ? <span className="ml-2"><NewBadge /></span> : null}
                 </Link>
               );
               if (!ctx.pin || child.href.includes("savedView=")) return <div key={child.href}>{link}</div>;

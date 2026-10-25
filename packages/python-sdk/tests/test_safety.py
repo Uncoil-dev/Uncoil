@@ -109,7 +109,23 @@ def test_custom_redaction():
     import re
     redact = build_redactor(patterns=[re.compile(r"ACME-\d+"), "secret.word"], fn=str.upper, replacement="X")
     assert redact("ACME-99 and secret.word") == "X AND X"
-    assert build_redactor() is None
+    assert build_redactor(pii=False) is None
+
+
+def test_masking_is_on_by_default():
+    client = Recorder()
+    client.ingest(spanType="llm_call", runId="r", input="bob@example.com paid with 4242 4242 4242 4242")
+    assert client.sent[0]["input"] == "[redacted] paid with [redacted]"
+
+
+def test_long_numbers_that_are_not_cards_are_kept():
+    assert build_redactor()("order 1761400000000 shipped") == "order 1761400000000 shipped"
+
+
+def test_masking_can_be_turned_off():
+    client = Recorder(redact={"pii": False})
+    client.ingest(spanType="llm_call", runId="r", input="bob@example.com")
+    assert client.sent[0]["input"] == "bob@example.com"
 
 
 def test_redaction_applies_to_what_is_sent():

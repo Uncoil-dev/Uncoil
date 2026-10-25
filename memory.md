@@ -41,3 +41,6 @@
 - Four-parameter URL: the demo overview's "See the failing traces" link dropped `errors=1` (`status=error` already shows only failing traces).
 ## 2026-10-25 Ahrefs audit: titles, descriptions, share tags
 - `pageMetadata` (`src/lib/seo.ts`) now runs every title and description through `fitTitle` / `fitDescription`: full title kept to 60 characters (brand suffix dropped, or cut at a colon/dash, when needed) and descriptions kept to 110-160 (long ones trimmed at a sentence, short ones topped up with a Tracify line). Blog posts use the same helpers and now also send `og:url` (same as canonical) and `og:site_name`. Docs pages render one H1 (the body's own `# Title` is skipped). Home and Norwegian/English home descriptions adjusted. A local crawl of all 312 sitemap pages is clean for these checks; German/Norwegian pricing text and legal/docs guide copy were not touched.
+
+## Crash tracking (Oct 25)
+- Server errors (`onRequestError` in `src/instrumentation.ts`) and browser error screens (`/api/crash`) email `CRASH_ALERT_EMAIL` (default `EMAIL_REPLY_TO`/kb@tracify.tech) via Resend. One email per distinct error per hour, max 20/hour, emails and keys scrubbed. Also logged as `[crash]` JSON in the Coolify container log. No new vendor.

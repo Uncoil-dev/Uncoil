@@ -20,3 +20,7 @@
 - Sidebar is now one column (280px, 64px icon-only when collapsed) instead of rail + panel: project switcher and "Quick search… Ctrl K" on top, Home, Dashboards, Recents (last 5 pages, localStorage `tracify.sidebar.recents.<projectId>`), then small-heading groups Observe / Improve / Manage / Help. Rows have icons; Tracing, Prompt management, Evaluation and Settings expand in place (auto-open on the page you are on). Alerts carries a dashed "New" badge. "Manage account" row (opens the account menu) and the collapse toggle sit at the bottom. Pins, saved views (under Tracing) and Finish setup are kept; the old "New alert" footer link is gone (Alerts page has the button).
 - The Ctrl K dialog now lives in the sidebar only; `DashboardCommandMenu showTrigger` is a plain button that fires `tracify:open-command`. The in-page sidebar toggle in the shell shows only on phones.
 - Recents follow the last 5 pages you opened (menu pages by menu name; a single trace/session/prompt page is named from its address, e.g. "Session sess_8f2a…"), per project, in this browser only.
+
+## 2026-10-25 — PR previews on Coolify
+- Every PR gets a preview at `<PR number>.preview.tracify.tech` (Coolify preview deployments on tracify-cloud-eu, wildcard DNS `*.preview` + Caddy on-demand TLS). Previews use the staging Convex deployment and share the live trace database.
+- Auth: `*.preview.tracify.tech` is in Better Auth `allowedHosts`/`trustedOrigins`; the staging Convex backend must be deployed with this for preview sign-in to work.

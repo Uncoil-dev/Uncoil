@@ -189,9 +189,19 @@ OpenAI (`wrapOpenAI`), Anthropic (`wrapAnthropic`) and LangGraph (`TracifyLangGr
 ```ts
 const tracify = new TracifyClient({
   sampleRate: 0.1,                 // record about 1 in 10 runs; each run is kept or dropped whole
-  redact: { pii: true, patterns: [/ACME-\d{6}/] },   // mask emails, phones, card numbers and your own patterns
+  redact: { patterns: [/ACME-\d{6}/] },   // emails, phones and card numbers are masked by default; add your own patterns
   onError: (error) => log(error.message),            // problems come with a plain-language fix (error.hint)
 });
 ```
 
-Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed.
+Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, set `redact: { pii: false }`.
+
+## Setup checker
+
+Not seeing traces? One command checks your key, region and network, then sends a test trace:
+
+```bash
+npx tracify-sdk doctor
+```
+
+It reads `TRACIFY_API_KEY` (and `TRACIFY_REGION` / `TRACIFY_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Tracify setup check" and tagged `tracify-doctor`; it counts as one trace on your plan.

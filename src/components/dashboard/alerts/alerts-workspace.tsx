@@ -10,6 +10,7 @@ import { AlertChart } from "./alert-chart";
 import { AlertRuleForm } from "./alert-rule-form";
 import { METRICS } from "./alert-metrics";
 import { DeliveryLine, SendTest } from "./delivery-status";
+import { QuietHoursBar } from "./quiet-hours-bar";
 
 type Status = "all" | "firing" | "ok" | "paused";
 type View = "cards" | "list";
@@ -45,6 +46,7 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
   const setEnabled = useMutation(api.alertRules.setEnabled);
   const setTags = useMutation(api.alertRules.setTags);
   const remove = useMutation(api.alertRules.remove);
+  const snooze = useMutation(api.alertRules.snooze);
   const { data: session } = authClient.useSession();
   const [status, setStatus] = useState<Status>("all");
   const stored = useSyncExternalStore(subscribeView, readView, () => "cards" as View);
@@ -107,6 +109,8 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
           <button type="button" onClick={() => setCreating(true)} className="h-7 bg-[#F4D44D] px-3 font-bold text-[#090909]">+ New rule</button>
         </div>
       </header>
+
+      {data ? <QuietHoursBar key={`${data.quietHours?.startMinute}-${data.quietHours?.endMinute}-${data.quietHours?.timezone}-${data.quietHours?.enabled}`} projectId={projectId} quiet={data.quietHours} /> : null}
 
       {data && rules.length > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5 border-b border-[#1F242C] px-4 py-2 text-[12px]" aria-label="Tags and saved views">
@@ -181,7 +185,7 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
                         ) : null}
                         <div className="mt-2 flex items-center justify-between text-[11px] text-[#6B7380]">
                           <span className="font-mono">{destinations(rule)}</span>
-                          <RuleActions rule={rule} confirming={confirmingDelete === rule._id} onToggle={() => void setEnabled({ ruleId: rule._id, enabled: !rule.enabled })} onAskDelete={() => setConfirmingDelete(rule._id)} onCancelDelete={() => setConfirmingDelete(null)} onDelete={() => { void remove({ ruleId: rule._id }); setConfirmingDelete(null); }} />
+                          <RuleActions rule={rule} now={data.now} onSnooze={(minutes) => void snooze({ ruleId: rule._id, minutes })} confirming={confirmingDelete === rule._id} onToggle={() => void setEnabled({ ruleId: rule._id, enabled: !rule.enabled })} onAskDelete={() => setConfirmingDelete(rule._id)} onCancelDelete={() => setConfirmingDelete(null)} onDelete={() => { void remove({ ruleId: rule._id }); setConfirmingDelete(null); }} />
                         </div>
                       </article>
                     );
@@ -201,7 +205,7 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
                         <td className="px-3 text-[#8B93A1]">{rule.environment ?? "all"}</td>
                         <td className="w-[130px] px-3"><AlertChart series={rule.series} threshold={rule.threshold} color={color} height={22} label={`${rule.name}, last 24 hours`} /></td>
                         <td className="px-3 font-mono text-[12px]" style={{ color: rule.status === "firing" ? color : "#E6E9EE" }}>{config.format(rule.value)}</td>
-                        <td className="px-3 text-right"><RuleActions rule={rule} confirming={confirmingDelete === rule._id} onToggle={() => void setEnabled({ ruleId: rule._id, enabled: !rule.enabled })} onAskDelete={() => setConfirmingDelete(rule._id)} onCancelDelete={() => setConfirmingDelete(null)} onDelete={() => { void remove({ ruleId: rule._id }); setConfirmingDelete(null); }} /></td>
+                        <td className="px-3 text-right"><RuleActions rule={rule} now={data.now} onSnooze={(minutes) => void snooze({ ruleId: rule._id, minutes })} confirming={confirmingDelete === rule._id} onToggle={() => void setEnabled({ ruleId: rule._id, enabled: !rule.enabled })} onAskDelete={() => setConfirmingDelete(rule._id)} onCancelDelete={() => setConfirmingDelete(null)} onDelete={() => { void remove({ ruleId: rule._id }); setConfirmingDelete(null); }} /></td>
                       </tr>
                     );
                   })}</tbody>
@@ -209,11 +213,11 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
               )}
             </div>
             <aside className="border-t border-[#1F242C] p-4 lg:border-l lg:border-t-0" aria-label="Alert history">
-              <div className="mb-2 text-[11px] tracking-[0.08em] text-[#6B7380]">HISTORY</div>
+              <div className="mb-2 text-[11px] tracking-[0.08em] text-[#6B7380]">RECENT · SEE HISTORY TAB FOR ALL</div>
               {data.history.length === 0 ? <p className="text-[12px] text-[#6B7380]">Nothing has fired yet.</p> : data.history.slice(0, 12).map((item) => (
                 <div key={item._id} className="grid grid-cols-[8px_1fr_auto] items-start gap-2.5 border-t border-[#1F242C] py-2 text-[12px]">
                   <i className="mt-1.5 block size-1.5" style={{ background: item.state === "resolved" ? "#5BE3A0" : item.state === "muted" ? "#6B7380" : "#FF6B6B" }} />
-                  <span>{item.message}</span>
+                  <span>{item.message}{item.silencedBy ? <span className="ml-1.5 text-[11px] text-[#6B7380]">(held back)</span> : null}</span>
                   <span className="font-mono text-[11px] text-[#6B7380]" title={new Date(item.triggeredAt).toLocaleString()}>{relativeTime(item.triggeredAt, data.now)}</span>
                 </div>
               ))}
@@ -262,10 +266,31 @@ function destinations(rule: { emailTo: string[]; hasSlack: boolean; webhookHost?
   return parts.join(" · ") || "No destination";
 }
 
-function RuleActions({ rule, confirming, onToggle, onAskDelete, onCancelDelete, onDelete }: { rule: { name: string; enabled: boolean }; confirming: boolean; onToggle: () => void; onAskDelete: () => void; onCancelDelete: () => void; onDelete: () => void }) {
+const SNOOZE_CHOICES = [{ label: "1 hour", minutes: 60 }, { label: "4 hours", minutes: 240 }, { label: "24 hours", minutes: 1440 }, { label: "7 days", minutes: 10080 }];
+
+/** Mutes a rule for a while. While snoozed the rule still records alerts but sends nothing. */
+function SnoozeControl({ name, until, onSnooze }: { name: string; until: number | undefined; onSnooze: (minutes: number | null) => void }) {
+  const [open, setOpen] = useState(false);
+  const button = "h-6 border border-[#262C35] px-2 text-[11px] text-[#8B93A1] hover:border-[#4A5260] hover:text-[#E6E9EE]";
+  if (until !== undefined) {
+    const when = new Date(until);
+    const label = when.toDateString() === new Date().toDateString() ? when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : when.toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" });
+    return <button type="button" onClick={() => onSnooze(null)} aria-label={`Wake ${name} now`} title="Wake it now" className="h-6 border border-[#F4D44D] px-2 text-[11px] text-[#F4D44D]">Snoozed until {label} · Wake</button>;
+  }
+  if (!open) return <button type="button" onClick={() => setOpen(true)} aria-label={`Snooze ${name}`} className={button}>Snooze</button>;
+  return (
+    <span className="flex flex-wrap gap-1" role="group" aria-label={`Snooze ${name} for`}>
+      {SNOOZE_CHOICES.map((choice) => <button key={choice.minutes} type="button" onClick={() => { onSnooze(choice.minutes); setOpen(false); }} className={button}>{choice.label}</button>)}
+      <button type="button" onClick={() => setOpen(false)} aria-label="Cancel snooze" className={button}>×</button>
+    </span>
+  );
+}
+
+function RuleActions({ rule, now, onSnooze, confirming, onToggle, onAskDelete, onCancelDelete, onDelete }: { rule: { name: string; enabled: boolean; snoozedUntil?: number }; now: number; onSnooze: (minutes: number | null) => void; confirming: boolean; onToggle: () => void; onAskDelete: () => void; onCancelDelete: () => void; onDelete: () => void }) {
   const button = "h-6 border border-[#262C35] px-2 text-[11px] text-[#8B93A1] hover:border-[#4A5260] hover:text-[#E6E9EE]";
   if (confirming) {
     return <span className="flex gap-1.5"><button type="button" onClick={onDelete} className="h-6 border border-[#FF6B6B] px-2 text-[11px] text-[#FF8A8A]">Delete {rule.name}?</button><button type="button" onClick={onCancelDelete} className={button}>Keep</button></span>;
   }
-  return <span className="flex gap-1.5"><button type="button" onClick={onToggle} aria-label={`${rule.enabled ? "Pause" : "Resume"} ${rule.name}`} className={button}>{rule.enabled ? "Pause" : "Resume"}</button><button type="button" onClick={onAskDelete} aria-label={`Delete ${rule.name}`} className={button}>Delete</button></span>;
+  const snoozed = rule.snoozedUntil !== undefined && rule.snoozedUntil > now;
+  return <span className="flex flex-wrap justify-end gap-1.5">{rule.enabled ? <SnoozeControl name={rule.name} until={snoozed ? rule.snoozedUntil : undefined} onSnooze={onSnooze} /> : null}<button type="button" onClick={onToggle} aria-label={`${rule.enabled ? "Pause" : "Resume"} ${rule.name}`} className={button}>{rule.enabled ? "Pause" : "Resume"}</button><button type="button" onClick={onAskDelete} aria-label={`Delete ${rule.name}`} className={button}>Delete</button></span>;
 }

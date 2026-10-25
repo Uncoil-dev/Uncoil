@@ -6,6 +6,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { canAccessProject } from "./alerts";
 import { escapeHtml, postJson, sendEmail, type DeliveryResult } from "./notify";
 import { slackPayload, webhookPayload, type AlertEvent } from "./alertMessages";
+import { inQuietHours, isValidTimezone } from "./quietHours";
 import { describeBreach, metricAt, metricSeries } from "./alertMetrics";
 
 const metricValidator = v.union(
@@ -73,8 +74,10 @@ export const overview = query({
       const found = deliveries.find((item) => item.ruleId === ruleId && item.channel === channel);
       return found ? { ok: found.ok, kind: found.kind, error: found.error, at: found.at } : undefined;
     };
+    const quiet = await ctx.db.query("alertQuietHours").withIndex("by_projectId", (q) => q.eq("projectId", projectId)).unique();
     return {
       now,
+      quietHours: quiet ? { enabled: quiet.enabled, startMinute: quiet.startMinute, endMinute: quiet.endMinute, timezone: quiet.timezone, activeNow: inQuietHours(quiet, now) } : null,
       rules: rules.map(({ slackUrl, webhookUrl, ...rule }) => ({
         ...rule,
         slackDelivery: latest(rule._id, "slack"),
@@ -84,7 +87,7 @@ export const overview = query({
         value: metricAt(runs, rule.metric, rule.windowMinutes, now, rule.environment),
         series: metricSeries(runs, rule.metric, rule.windowMinutes, now, rule.environment),
       })),
-      history: history.map((alert) => ({ _id: alert._id, message: alert.message, triggeredAt: alert.triggeredAt, state: alert.state ?? "active", ruleId: alert.ruleId })),
+      history: history.map((alert) => ({ _id: alert._id, silencedBy: alert.silencedBy, message: alert.message, triggeredAt: alert.triggeredAt, state: alert.state ?? "active", ruleId: alert.ruleId })),
     };
   },
 });
@@ -184,6 +187,70 @@ export const setTags = mutation({
   },
 });
 
+const SNOOZE_MAX_MINUTES = 7 * 24 * 60;
+
+/** Mutes a rule for a while: it keeps checking and recording alerts, but sends nothing. Pass null to wake it now. */
+export const snooze = mutation({
+  args: { ruleId: v.id("alertRules"), minutes: v.union(v.number(), v.null()) },
+  handler: async (ctx, { ruleId, minutes }) => {
+    const rule = await ctx.db.get(ruleId);
+    if (!rule) throw new Error("Rule not found");
+    await requireProject(ctx, rule.projectId);
+    if (minutes === null) {
+      await ctx.db.patch(ruleId, { snoozedUntil: undefined, updatedAt: Date.now() });
+      return null;
+    }
+    if (!Number.isFinite(minutes) || minutes < 1) throw new Error("Pick how long to snooze for");
+    const until = Date.now() + Math.min(Math.round(minutes), SNOOZE_MAX_MINUTES) * 60_000;
+    await ctx.db.patch(ruleId, { snoozedUntil: until, updatedAt: Date.now() });
+    return until;
+  },
+});
+
+/** The daily window when no alert messages go out. One setting per project. */
+export const setQuietHours = mutation({
+  args: { projectId: v.id("projects"), enabled: v.boolean(), startMinute: v.number(), endMinute: v.number(), timezone: v.string() },
+  handler: async (ctx, args) => {
+    await requireProject(ctx, args.projectId);
+    const whole = (n: number) => Number.isInteger(n) && n >= 0 && n < 1440;
+    if (!whole(args.startMinute) || !whole(args.endMinute)) throw new Error("Pick a start and end time");
+    if (args.enabled && args.startMinute === args.endMinute) throw new Error("Start and end can't be the same time");
+    if (!isValidTimezone(args.timezone)) throw new Error("That time zone isn't recognised");
+    const row = { projectId: args.projectId, enabled: args.enabled, startMinute: args.startMinute, endMinute: args.endMinute, timezone: args.timezone, updatedAt: Date.now() };
+    const existing = await ctx.db.query("alertQuietHours").withIndex("by_projectId", (q) => q.eq("projectId", args.projectId)).unique();
+    if (existing) await ctx.db.patch(existing._id, row);
+    else await ctx.db.insert("alertQuietHours", row);
+  },
+});
+
+/** Everything that fired for this project, newest first, with the rule it came from and whether messages were held back. */
+export const history = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, { projectId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const project = await ctx.db.get(projectId);
+    if (!project || !canAccessProject(project, identity)) return null;
+    const alerts = await ctx.db.query("alertRules").withIndex("by_projectId", (q) => q.eq("projectId", projectId)).take(MAX_RULES_PER_PROJECT);
+    const names = new Map(alerts.map((rule) => [rule._id as string, rule.name]));
+    const rows = await ctx.db.query("alerts").withIndex("by_projectId", (q) => q.eq("projectId", projectId)).order("desc").take(200);
+    return {
+      now: Date.now(),
+      items: rows.map((alert) => ({
+        _id: alert._id,
+        ruleId: alert.ruleId,
+        ruleName: alert.ruleId ? names.get(alert.ruleId) ?? "Deleted rule" : "Run alert",
+        type: alert.type,
+        message: alert.message,
+        triggeredAt: alert.triggeredAt,
+        state: alert.state ?? "active",
+        silencedBy: alert.silencedBy,
+        resolvedAt: alert.resolvedAt,
+      })),
+    };
+  },
+});
+
 export const remove = mutation({
   args: { ruleId: v.id("alertRules") },
   handler: async (ctx, { ruleId }) => {
@@ -202,7 +269,7 @@ export const enabledRuleIds = internalQuery({
 /** Checks one rule. Opens an alert when it first goes over its limit and closes it when it recovers. */
 export const evaluate = internalMutation({
   args: { ruleId: v.id("alertRules") },
-  handler: async (ctx, { ruleId }): Promise<{ fired: true; message: string; emailTo: string[]; slackUrl?: string; webhookUrl?: string; name: string; metric: string; value: number; threshold: number; projectId: string } | { fired: false; resolved?: { message: string; slackUrl?: string; webhookUrl?: string; name: string; metric: string; value: number; threshold: number; projectId: string } }> => {
+  handler: async (ctx, { ruleId }): Promise<{ fired: true; silenced?: "snoozed" | "quiet_hours"; message: string; emailTo: string[]; slackUrl?: string; webhookUrl?: string; name: string; metric: string; value: number; threshold: number; projectId: string } | { fired: false; resolved?: { silent?: boolean; message: string; slackUrl?: string; webhookUrl?: string; name: string; metric: string; value: number; threshold: number; projectId: string } }> => {
     const rule = await ctx.db.get(ruleId);
     if (!rule || !rule.enabled) return { fired: false };
     const now = Date.now();
@@ -210,17 +277,24 @@ export const evaluate = internalMutation({
     const value = metricAt(runs, rule.metric, rule.windowMinutes, now, rule.environment);
     const over = value > rule.threshold;
     await ctx.db.patch(ruleId, { lastValue: value, lastCheckedAt: now });
+    const quiet = await ctx.db.query("alertQuietHours").withIndex("by_projectId", (q) => q.eq("projectId", rule.projectId)).unique();
+    const silenced = rule.snoozedUntil !== undefined && rule.snoozedUntil > now ? ("snoozed" as const) : inQuietHours(quiet, now) ? ("quiet_hours" as const) : undefined;
     if (over && rule.state === "ok") {
       const message = describeBreach(rule, value);
       await ctx.db.patch(ruleId, { state: "firing", lastFiredAt: now });
-      await ctx.db.insert("alerts", { projectId: rule.projectId, ruleId, runId: `rule:${ruleId}:${now}`, type: rule.metric, message, triggeredAt: new Date(now).toISOString(), state: "active" });
-      return { fired: true, message, emailTo: rule.emailTo, slackUrl: rule.slackUrl, webhookUrl: rule.webhookUrl, name: rule.name, metric: rule.metric, value, threshold: rule.threshold, projectId: rule.projectId };
+      await ctx.db.insert("alerts", { projectId: rule.projectId, ruleId, runId: `rule:${ruleId}:${now}`, type: rule.metric, message, triggeredAt: new Date(now).toISOString(), state: "active", silencedBy: silenced });
+      return { fired: true, silenced, message, emailTo: rule.emailTo, slackUrl: rule.slackUrl, webhookUrl: rule.webhookUrl, name: rule.name, metric: rule.metric, value, threshold: rule.threshold, projectId: rule.projectId };
     }
     if (!over && rule.state === "firing") {
       await ctx.db.patch(ruleId, { state: "ok" });
       const open = await ctx.db.query("alerts").withIndex("by_ruleId", (q) => q.eq("ruleId", ruleId)).order("desc").take(20);
-      for (const alert of open) if ((alert.state ?? "active") === "active") await ctx.db.patch(alert._id, { state: "resolved" });
-      return { fired: false, resolved: { message: `Back under its limit. ${describeBreach(rule, value)}`, slackUrl: rule.slackUrl, webhookUrl: rule.webhookUrl, name: rule.name, metric: rule.metric, value, threshold: rule.threshold, projectId: rule.projectId } };
+      let silent = silenced !== undefined;
+      for (const alert of open) {
+        if ((alert.state ?? "active") !== "active") continue;
+        if (alert.silencedBy) silent = true;
+        await ctx.db.patch(alert._id, { state: "resolved", resolvedAt: now });
+      }
+      return { fired: false, resolved: { silent, message: `Back under its limit. ${describeBreach(rule, value)}`, slackUrl: rule.slackUrl, webhookUrl: rule.webhookUrl, name: rule.name, metric: rule.metric, value, threshold: rule.threshold, projectId: rule.projectId } };
     }
     return { fired: false };
   },
@@ -267,9 +341,10 @@ export const checkAll = internalAction({
         const result = await ctx.runMutation(internal.alertRules.evaluate, { ruleId });
         if (!result.fired) {
           const back = result.resolved;
-          if (back && (back.slackUrl || back.webhookUrl)) await sendToDestinations(ctx, ruleId, "resolved", back, back.message, back.value, { slack: back.slackUrl, webhook: back.webhookUrl });
+          if (back && !back.silent && (back.slackUrl || back.webhookUrl)) await sendToDestinations(ctx, ruleId, "resolved", back, back.message, back.value, { slack: back.slackUrl, webhook: back.webhookUrl });
           continue;
         }
+        if (result.silenced) continue;
         const sends: Promise<unknown>[] = [];
         if (result.emailTo.length > 0) {
           sends.push(sendEmail({

@@ -400,13 +400,18 @@ export type TraceListRow = {
 /** A step that failed; the same rule as a trace's errorCount. */
 export const IS_ERROR = `(spanType = 'error' OR errorType != '')`;
 const ERROR_TOOL = `if(toolName != '', toolName, modelId)`;
-// The first 120 characters of the error message with ids, paths and numbers replaced, so the same failure with
-// different ids groups together. Regexes avoid backslashes so they read the same in JS and ClickHouse literals.
-const ERROR_MESSAGE_KEY = `leftUTF8(trimBoth(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(
+// The first 120 characters of the error message with the parts that change between occurrences (urls, emails, ids,
+// paths, quoted values, long tokens, numbers) replaced, so similar failures group together. Regexes avoid backslashes
+// so they read the same in JS and ClickHouse literals.
+const ERROR_MESSAGE_KEY = `leftUTF8(trimBoth(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(
   substring(errorMessage, 1, 600),
+  '[a-zA-Z][a-zA-Z0-9+.-]*://[^[:space:]"<>]+', '<url>'),
+  '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+[.][A-Za-z]{2,}', '<email>'),
   '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<id>'),
   '(~|[.]{1,2})?(/[^/[:space:]"(),:;<>]+){2,}/?', '<path>'),
+  '(sk|pk|rk|ghp|xox[a-z])[-_][A-Za-z0-9_-]{10,}', '<token>'),
   '[0-9a-fA-F]{8,}', '<id>'),
+  '"[^"]*"|[\\x27][^\\x27]*[\\x27]', '<value>'),
   '[0-9]+([.][0-9]+)?', '<n>'),
   '[[:space:]]+', ' ')), 120)`;
 const ERROR_GROUP_ID = `lower(hex(cityHash64(${ERROR_TOOL}, errorType, ${ERROR_MESSAGE_KEY})))`;

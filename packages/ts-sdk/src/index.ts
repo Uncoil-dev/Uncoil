@@ -21,14 +21,14 @@ export interface TracifyConfig {
   sampleRate?: number;
   /** Keep spans that report an error even when their run was not sampled. Defaults to true. */
   keepErrors?: boolean;
-  /** Extra clean-up of prompts and answers before they leave your app. Built-in secret removal always runs. */
+  /** Extra clean-up of prompts and answers before they leave your app. Secret removal always runs, and emails, phone numbers and card numbers are masked unless you set `pii: false`. */
   redact?: RedactionOptions;
   /** Called instead of printing a warning when the SDK has a problem sending data. */
   onError?: (error: TracifyError) => void;
 }
 
 export interface RedactionOptions {
-  /** Mask emails, phone numbers and card numbers. */
+  /** Mask emails, phone numbers and card numbers. On by default; set to false to send them as they are. */
   pii?: boolean;
   /** Extra patterns to mask. Strings are matched as plain text. */
   patterns?: Array<RegExp | string>;
@@ -177,25 +177,39 @@ function payload(value: unknown): string {
 
 const PII_PATTERNS: RegExp[] = [
   /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g,
-  /\b(?:\d[ -]?){13,19}\b/g,
   /(?<![\w.])\+?\d{1,3}[\s.-]?\(?\d{2,4}\)?[\s.-]\d{3,4}[\s.-]\d{3,4}\b/g,
 ];
 
-/** Build a function that applies the extra clean-up asked for in `redact`. Returns undefined when nothing is asked. */
+const CARD_NUMBER = /\b(?:\d[ -]?){13,19}\b/g;
+
+/** Card-number check, so long ids and timestamps are left alone. */
+function passesLuhn(digits: string): boolean {
+  let sum = 0;
+  for (let i = 0; i < digits.length; i++) {
+    let d = Number(digits[digits.length - 1 - i]);
+    if (i % 2 === 1) { d *= 2; if (d > 9) d -= 9; }
+    sum += d;
+  }
+  return sum % 10 === 0;
+}
+
+/** Build the clean-up for `redact`. Emails, phone numbers and card numbers are masked unless `pii: false`. */
 export function buildRedactor(options?: RedactionOptions): ((text: string) => string) | undefined {
-  if (!options) return undefined;
-  const replacement = options.replacement ?? "[redacted]";
+  const replacement = options?.replacement ?? "[redacted]";
   const patterns: RegExp[] = [];
-  if (options.pii) patterns.push(...PII_PATTERNS);
+  const maskPii = options?.pii !== false;
+  if (maskPii) patterns.push(...PII_PATTERNS);
+  if (!options) options = {};
   for (const pattern of options.patterns ?? []) {
     if (typeof pattern === "string") {
       if (pattern) patterns.push(new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"));
     } else patterns.push(new RegExp(pattern.source, pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`));
   }
-  if (!patterns.length && !options.fn) return undefined;
+  if (!patterns.length && !maskPii && !options.fn) return undefined;
   return (text: string) => {
+    if (maskPii) text = text.replace(CARD_NUMBER, (m) => { const d = m.replace(/\D/g, ""); return d.length >= 13 && passesLuhn(d) ? replacement : m; });
     for (const pattern of patterns) text = text.replace(pattern, replacement);
-    return options.fn ? options.fn(text) : text;
+    return options!.fn ? options.fn(text) : text;
   };
 }
 
@@ -753,3 +767,4 @@ export { TracifyLangGraphHandler } from "./integrations/langgraph";
 export { tracifyMiddleware } from "./integrations/vercel-ai";
 export { traceTools } from "./integrations/tools";
 export { init, uninit } from "./integrations/auto";
+export { runDoctor, formatReport, maskKey, type DoctorReport, type DoctorCheck, type DoctorOptions } from "./doctor";

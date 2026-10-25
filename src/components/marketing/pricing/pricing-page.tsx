@@ -326,7 +326,29 @@ function Faq({ t }: { t: PricingCopy }) {
   );
 }
 
-export function PricingPage({ locale = "en" }: { locale?: Locale }) {
+const foundingCopy: Record<Locale, { tag: string; line: string; cta: string }> = {
+  en: { tag: "Founding members", line: "The first 20 paying teams get 40% off, for as long as they stay.", cta: "Claim it on Pro or Team" },
+  de: { tag: "Gründungsmitglieder", line: "Die ersten 20 zahlenden Teams erhalten 40 % Rabatt, solange sie dabei bleiben.", cta: "Mit Pro oder Team sichern" },
+  no: { tag: "Grunnleggende medlemmer", line: "De første 20 betalende teamene får 40 % avslag så lenge de er med.", cta: "Ta det med Pro eller Team" },
+};
+
+/** Yellow strip above the plans while the founding-member coupon is live. */
+function FoundingStrip({ locale }: { locale: Locale }) {
+  const c = foundingCopy[locale] ?? foundingCopy.en;
+  return (
+    <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-2 border-black bg-[#f4d44d] px-5 py-4">
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-black">
+        <span className="bg-black px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[#f4d44d]">{c.tag}</span>
+        {c.line}
+      </p>
+      <Link href="#plans" className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.13em] text-black underline underline-offset-4">
+        {c.cta} <ArrowRight className="size-3.5" aria-hidden="true" />
+      </Link>
+    </div>
+  );
+}
+
+export function PricingPage({ locale = "en", founding = false }: { locale?: Locale; founding?: boolean }) {
   const t = getCopy(locale).pricing;
   const [interval, setInterval] = useState<BillingInterval>("monthly");
   const [estimate, setEstimate] = useState<EstimateState | null>(null);
@@ -341,6 +363,7 @@ export function PricingPage({ locale = "en" }: { locale?: Locale }) {
 
       <section id="plans" className="bg-[#eceae3] px-5 py-20 text-black md:px-10 md:py-28">
         <div className="mx-auto max-w-[1320px]">
+          {founding && <FoundingStrip locale={locale} />}
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">{interval === "annual" ? t.annualOn : t.annualOff}</p>
             <BillingToggle interval={interval} onChange={setInterval} t={t} />

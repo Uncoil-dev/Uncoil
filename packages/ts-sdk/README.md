@@ -165,6 +165,15 @@ usage breakdown remains in metadata for rate-card calculations. See the [provide
 
 ## Framework one-liners
 
+Quickest start: call `init()` once at startup and every OpenAI and Anthropic call is traced, with no client wrapping (`TRACIFY_API_KEY` is read from the environment).
+
+```ts
+import { init } from "tracify-sdk";
+init();
+```
+
+`init()` patches the installed `openai` and `@anthropic-ai/sdk` (both the CommonJS and ES-module builds; `await init().ready` if your first call happens instantly). Call the function it returns to switch it off. Use it or the per-framework options below for the same calls, not both. LangChain / LangGraph need `callbacks: [new TracifyLangGraphHandler()]`, and the Vercel AI SDK needs the middleware shown here.
+
 ```ts
 import { wrapLanguageModel } from "ai";
 import { tracifyMiddleware, traceTools } from "tracify-sdk";

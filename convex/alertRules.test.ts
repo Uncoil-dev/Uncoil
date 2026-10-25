@@ -123,3 +123,44 @@ test("sending a test needs a Slack or webhook link, and only accepts real Slack 
   await expect(owner.action(api.alertRules.testLink, { projectId, slackUrl: "https://evil.example/services/x" })).rejects.toThrow(/Slack/);
   await expect(owner.action(api.alertRules.testLink, { projectId })).rejects.toThrow(/Paste a link/);
 });
+
+test("a snoozed rule records the alert as held back and sends nothing, then wakes up", async () => {
+  const { t, projectId, owner } = await setup();
+  const ruleId = await owner.mutation(api.alertRules.create, { projectId, ...rule });
+  await owner.mutation(api.alertRules.snooze, { ruleId, minutes: 60 });
+  await addRuns(t, projectId as never, "failed", 3);
+
+  expect(await t.mutation(internal.alertRules.evaluate, { ruleId })).toMatchObject({ fired: true, silenced: "snoozed" });
+  const history = await owner.query(api.alertRules.history, { projectId });
+  expect(history?.items).toHaveLength(1);
+  expect(history?.items[0]).toMatchObject({ silencedBy: "snoozed", state: "active", ruleName: "Failed runs per hour" });
+
+  await owner.mutation(api.alertRules.snooze, { ruleId, minutes: null });
+  expect((await t.run((ctx) => ctx.db.get(ruleId)))?.snoozedUntil).toBeUndefined();
+});
+
+test("quiet hours hold back a new alert and the resolved message too", async () => {
+  const { t, projectId, owner } = await setup();
+  const ruleId = await owner.mutation(api.alertRules.create, { projectId, ...rule });
+  // A 24-hour-wide window minus one minute is quiet at any time except 00:00 to 00:01 UTC; start just after "now".
+  const minute = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
+  await owner.mutation(api.alertRules.setQuietHours, { projectId, enabled: true, startMinute: (minute + 1439) % 1440, endMinute: (minute + 1438) % 1440, timezone: "UTC" });
+  await addRuns(t, projectId as never, "failed", 3);
+  expect(await t.mutation(internal.alertRules.evaluate, { ruleId })).toMatchObject({ fired: true, silenced: "quiet_hours" });
+
+  await t.run(async (ctx) => { for (const run of await ctx.db.query("agentRuns").collect()) await ctx.db.delete(run._id); });
+  const back = await t.mutation(internal.alertRules.evaluate, { ruleId });
+  expect(back).toMatchObject({ fired: false, resolved: { silent: true } });
+  const history = await owner.query(api.alertRules.history, { projectId });
+  expect(history?.items[0]).toMatchObject({ state: "resolved", silencedBy: "quiet_hours" });
+  expect(history?.items[0].resolvedAt).toBeTypeOf("number");
+});
+
+test("only people on the project can snooze or change quiet hours", async () => {
+  const { projectId, owner, outsider } = await setup();
+  const ruleId = await owner.mutation(api.alertRules.create, { projectId, ...rule });
+  await expect(outsider.mutation(api.alertRules.snooze, { ruleId, minutes: 60 })).rejects.toThrow();
+  await expect(outsider.mutation(api.alertRules.setQuietHours, { projectId, enabled: true, startMinute: 0, endMinute: 60, timezone: "UTC" })).rejects.toThrow();
+  await expect(owner.mutation(api.alertRules.setQuietHours, { projectId, enabled: true, startMinute: 60, endMinute: 60, timezone: "UTC" })).rejects.toThrow();
+  await expect(owner.mutation(api.alertRules.setQuietHours, { projectId, enabled: true, startMinute: 0, endMinute: 60, timezone: "Nowhere/Land" })).rejects.toThrow();
+});

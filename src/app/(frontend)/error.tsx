@@ -3,11 +3,13 @@
 import { useEffect } from "react";
 import Link from "next/link";
 
+import { reportBrowserCrash } from "@/lib/report-browser-crash";
 import { StatusScene, statusButton, statusButtonGhost } from "@/components/brand/status-scene";
 
 export default function SiteError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error("Route error", error);
+    reportBrowserCrash(error);
   }, [error]);
 
   return (

@@ -22,6 +22,9 @@ dependencies = [
     "httpx>=0.24.0",
 ]
 
+[project.scripts]
+tracify-doctor = "tracify.doctor:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

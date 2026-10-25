@@ -12,7 +12,7 @@ export function errorGroupLabel(group: Pick<ErrorGroup, "tool" | "errorType">) {
   return [group.tool, group.errorType].filter(Boolean).join(" · ") || "Error";
 }
 
-/** Identical errors across every trace matching the filters, busiest first. Clicking one filters the list. */
+/** Similar errors (ids, emails, links, quoted values and numbers ignored) across every trace matching the filters, busiest first. Clicking one filters the list. */
 export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle, onSelect }: {
   data: ErrorGroups | null | undefined; open: boolean; loading: boolean; active?: string; clock: number;
   onToggle: () => void; onSelect: (group: ErrorGroup) => void;
@@ -25,7 +25,7 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle,
           <span aria-hidden="true">{open ? "▾" : "▸"}</span>
           <span className="font-medium text-[#E6E9EE]">Error groups</span>
           {data ? <span className="font-mono">{data.total > groups.length ? `top ${groups.length} of ${compactNumber(data.total)}` : compactNumber(data.total)}</span> : null}
-          <span className="ml-auto hidden sm:inline">same tool, error type and message · click to filter</span>
+          <span className="ml-auto hidden sm:inline">similar errors grouped (ids, emails, links and values ignored) · click to filter</span>
         </button>
       </h2>
       {!open ? null : data === undefined || (data === null && loading) ? (

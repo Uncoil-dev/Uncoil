@@ -157,6 +157,15 @@ usage breakdown remains in metadata for rate-card calculations. See the [provide
 
 ## Framework one-liners
 
+Quickest start: call `tracify.init()` once at startup. Every OpenAI, Anthropic and LangChain / LangGraph call is traced, sync and async, with no client wrapping (`TRACIFY_API_KEY` is read from the environment). Libraries that are not installed are skipped, and `tracify.uninit()` switches it off.
+
+```python
+import tracify
+tracify.init()
+```
+
+Calls made through a client you also wrapped with `wrap_openai` are recorded once, and model calls inside LangChain are recorded by the LangChain handler only. The Vercel AI SDK is JavaScript-only.
+
 ```python
 import tracify
 

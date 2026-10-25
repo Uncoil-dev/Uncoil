@@ -852,3 +852,4 @@ def langgraph_callback(**options):
     """Create a LangGraph callback; install tracify-sdk[langgraph] first."""
     from .langgraph import TracifyCallbackHandler
     return TracifyCallbackHandler(**options)
+from .auto import init, uninit

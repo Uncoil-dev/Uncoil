@@ -40,6 +40,7 @@ import type * as projectData from "../projectData.js";
 import type * as notify from "../notify.js";
 import type * as projects from "../projects.js";
 import type * as prompts from "../prompts.js";
+import type * as quietHours from "../quietHours.js";
 import type * as resilience from "../resilience.js";
 import type * as retention from "../retention.js";
 import type * as sandbox from "../sandbox.js";
@@ -89,6 +90,7 @@ declare const fullApi: ApiFromModules<{
   notify: typeof notify;
   projects: typeof projects;
   prompts: typeof prompts;
+  quietHours: typeof quietHours;
   resilience: typeof resilience;
   retention: typeof retention;
   sandbox: typeof sandbox;

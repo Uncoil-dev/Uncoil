@@ -39,6 +39,8 @@ type NavRow = {
   external?: boolean;
   badge?: "New";
   children?: NavLeaf[];
+  /** A group that is always open, shown as a plain label instead of a dropdown. */
+  open?: boolean;
 };
 type NavSection = { id: string; label: string; rows: NavRow[] };
 
@@ -192,6 +194,7 @@ export function DashboardSidebar({
             id: "observe",
             title: "Observe",
             icon: Activity,
+            open: true,
             children: [
               { title: "Tracing", href: workspaceHref("tracing") },
               ...(liveProject ? [{ title: "Steps", href: workspaceHref("steps") }] : []),
@@ -305,8 +308,10 @@ export function DashboardSidebar({
     recordRecent(recentsKey, { href: activeHref, title: activeTitle, section: activeSection });
   }, [activeHref, activeSection, activeTitle, hasProject, recentsKey]);
 
-  // Only Recents folds; every other group lists its pages.
+  // Rows with children open on their own while you are inside them; clicking a row overrides that for the session.
   const [rowOverrides, setRowOverrides] = useState<Record<string, boolean>>({});
+  const rowOpen = (row: NavRow) => row.open ?? rowOverrides[row.id] ?? Boolean(row.children?.some((child) => isLeafActive(child.href)));
+  const toggleRow = (row: NavRow) => setRowOverrides((current) => ({ ...current, [row.id]: !rowOpen(row) }));
   const recentsOpen = rowOverrides.recents ?? false;
 
   useEffect(() => {
@@ -337,6 +342,8 @@ export function DashboardSidebar({
     resolveHref,
     close,
     pin: liveProject ? { isPinned, toggle: togglePin } : null,
+    rowOpen,
+    toggleRow,
     expandRow,
   };
 
@@ -510,6 +517,8 @@ type RowContext = {
   resolveHref: (href: string) => string;
   close: () => void;
   pin: { isPinned: (href: string) => boolean; toggle: (pin: { href: string; title: string }) => void } | null;
+  rowOpen: (row: NavRow) => boolean;
+  toggleRow: (row: NavRow) => void;
   expandRow: (id: string) => void;
 };
 
@@ -537,8 +546,10 @@ function NewBadge() {
 function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   const Icon = row.icon;
   const hasChildren = Boolean(row.children?.length);
-  // Groups are one flat level: the header names the group and its pages are always listed.
-  const active = !hasChildren && row.href ? ctx.isLeafActive(row.href) : false;
+  const childActive = hasChildren && row.children!.some((child) => ctx.isLeafActive(child.href));
+  const open = hasChildren && ctx.rowOpen(row);
+  // An open dropdown shows its active page below it, so only a folded one carries the highlight.
+  const active = hasChildren ? childActive && !open : row.href ? ctx.isLeafActive(row.href) : false;
 
   if (!ctx.expanded) {
     const state = cn(rowClass, "mx-auto w-10 justify-center px-0", active ? rowActive : rowIdle);
@@ -569,16 +580,8 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
     </>
   );
 
-  if (hasChildren) {
-    return (
-      <>
-        <div className="mt-1 flex h-7 items-center gap-2 px-5 font-mono text-[11px] uppercase tracking-wider !text-white/40">
-          <span className="truncate">{row.title}</span>
-          {row.badge ? <NewBadge /> : null}
-        </div>
-        <Collapsible open>
-          <div className="mx-2">
-            {row.children!.map((child) => {
+  const leaves = hasChildren
+    ? row.children!.map((child) => {
               const leafOn = ctx.isLeafActive(child.href);
               const link = (
                 <Link
@@ -598,7 +601,36 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
                   <PinButton pinned={ctx.pin.isPinned(child.href)} title={child.title} onToggle={() => ctx.pin?.toggle({ href: child.href, title: child.title })} />
                 </div>
               );
-            })}
+            })
+    : null;
+
+  if (hasChildren && row.open) {
+    return (
+      <>
+        <div className="mt-1 flex h-7 items-center gap-2 px-5 font-mono text-[11px] uppercase tracking-wider !text-white/40">
+          <span className="truncate">{row.title}</span>
+          {row.badge ? <NewBadge /> : null}
+        </div>
+        <Collapsible open>
+          <div className="mx-2">
+            {leaves}
+          </div>
+        </Collapsible>
+      </>
+    );
+  }
+
+
+  if (hasChildren) {
+    return (
+      <>
+        <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowClass, "mx-2 w-[calc(100%-1rem)] text-left", active ? rowActive : rowIdle)}>
+          {label}
+          <Chevron open={open} className="ml-auto size-4" />
+        </button>
+        <Collapsible open={open}>
+          <div className="mx-2 ml-[23px] border-l !border-white/15">
+            {leaves}
           </div>
         </Collapsible>
       </>

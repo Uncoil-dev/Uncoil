@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -202,7 +203,7 @@ export function UseCases() {
           {cases.map((c, i) => (
             <CaseCard key={c.slug} c={c} i={i} />
           ))}
-          <Link href="/demo/project" className="flex aspect-[4/5] w-[78vw] shrink-0 flex-col justify-between border-2 border-black p-8 hover:bg-black hover:text-[#f4d44d] sm:w-[420px]">
+          <Link href={appHref("/demo/project")} className="flex aspect-[4/5] w-[78vw] shrink-0 flex-col justify-between border-2 border-black p-8 hover:bg-black hover:text-[#f4d44d] sm:w-[420px]">
             <span className="font-mono text-[10px] uppercase tracking-[0.14em]">Not sure yet?</span>
             <span className="font-pixel text-6xl leading-[0.9] tracking-[-0.07em]">Try the live demo →</span>
           </Link>

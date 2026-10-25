@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { pageMetadata, breadcrumbJsonLd, jsonLdString } from "@/lib/seo";
 import { PageHeader } from "@/components/marketing/page-header";
@@ -60,7 +61,7 @@ export default function CostEstimatorPage() {
         </div>
         <div className="mx-auto max-w-[1320px]"><NewsletterPanel source="cost-estimator" heading="Get the cost guides when they land." /></div>
       </section>
-      <ClosingBand title="Now measure the real thing." body="Send a first trace and see the true cost of every run." actions={[{ href: "/sign-up", label: "Start free", primary: true }, { href: "/docs/quickstart", label: "Read the quickstart" }]} />
+      <ClosingBand title="Now measure the real thing." body="Send a first trace and see the true cost of every run." actions={[{ href: appHref("/sign-up"), label: "Start free", primary: true }, { href: "/docs/quickstart", label: "Read the quickstart" }]} />
     </div>
   );
 }

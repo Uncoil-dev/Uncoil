@@ -16,7 +16,7 @@ import {
   getPublishedPosts,
   type BlogPost,
 } from "@/lib/markdoc-blog";
-import { articleJsonLd, ogImageUrl } from "@/lib/seo";
+import { articleJsonLd, fitDescription, fitTitle, fitTitleText, ogImageUrl } from "@/lib/seo";
 import { comparisons } from "@/lib/seo-pages";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -46,16 +46,21 @@ export async function generateMetadata({
   const post = await getPublishedPost(slug);
   if (!post) return {};
 
-  const metaTitle = post.seo?.metaTitle || `${post.title} — Tracify Blog`;
-  const metaDescription = post.seo?.metaDescription || post.excerpt;
+  const metaTitle = post.seo?.metaTitle || post.title;
+  const metaDescription = fitDescription(post.seo?.metaDescription || post.excerpt);
+  const shareTitle = fitTitleText(metaTitle);
+  const canonical = post.seo?.canonicalUrl || canonicalPath(slug);
   const image = ogImageUrl({ title: post.title, kicker: "Blog", sub: post.author ? `By ${post.author}` : undefined, kind: "blog" });
 
   return {
-    title: metaTitle,
+    title: fitTitle(metaTitle),
     description: metaDescription,
     openGraph: {
-      title: metaTitle,
+      title: shareTitle,
       description: metaDescription,
+      url: canonical,
+      siteName: "Tracify",
+      locale: "en_US",
       type: "article",
       publishedTime: getPostDate(post),
       authors: post.author ? [post.author] : undefined,
@@ -63,12 +68,12 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: metaTitle,
+      title: shareTitle,
       description: metaDescription,
       images: [image],
     },
     alternates: {
-      canonical: post.seo?.canonicalUrl || canonicalPath(slug),
+      canonical,
       types: { "text/markdown": `/blog/${slug}.md` },
     },
     robots: { index: !internalPosts.has(slug), follow: true },

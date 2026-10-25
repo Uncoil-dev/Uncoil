@@ -1,0 +1,27 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="apiHeroTitle apiHeroDesc">
+  <title id="apiHeroTitle">LLM API request path showing timing, retries, and response evidence</title>
+  <desc id="apiHeroDesc">A request flows to a model API and a response, with a retry budget above, a dashed fallback below, and a trace box recording the path.</desc>
+  <rect width="1600" height="900" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >LLM APIS IN PRODUCTION</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >timeout, retry, fallback, evidence</text>
+    <rect x="120" y="380" width="200" height="90" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="220" y="432" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >REQUEST</text>
+    <rect x="520" y="380" width="220" height="90" fill="#161616" stroke="#f4d44d" stroke-width="3" stroke-opacity="1"/>
+    <text x="630" y="432" fill="#f4d44d" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >MODEL API</text>
+    <rect x="940" y="380" width="200" height="90" fill="#f4d44d" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="1040" y="432" fill="#0a0a0a" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >RESPONSE</text>
+    <line x1="320" y1="425" x2="520" y2="425" stroke="#f4d44d" stroke-width="3" stroke-opacity="1" />
+    <line x1="740" y1="425" x2="940" y2="425" stroke="#f4d44d" stroke-width="3" stroke-opacity="1" />
+    <rect x="520" y="600" width="220" height="80" fill="none" stroke="#e06a5a" stroke-width="2" stroke-opacity="1"/>
+    <text x="630" y="650" fill="#e06a5a" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >FALLBACK</text>
+    <line x1="630" y1="470" x2="630" y2="600" stroke="#e06a5a" stroke-width="2" stroke-opacity="1" stroke-dasharray="6 6"/>
+    <text x="630" y="300" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >timeout and retry budget</text>
+    <line x1="520" y1="330" x2="740" y2="330" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5" />
+    <rect x="1260" y="380" width="220" height="90" fill="none" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="1370" y="432" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >TRACE</text>
+    <line x1="1140" y1="425" x2="1260" y2="425" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5" />
+    <text x="100" y="800" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >Every attempt, retry and fallback lands in one trace with timing, tokens and cost.</text>
+
+  </g>
+</svg>

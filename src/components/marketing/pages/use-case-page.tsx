@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import { ArtBand, CapabilityGrid, EndCta, PageHero, SignalTicker, StickyStory, type CapsVariant, type HeroVariant, type StoryLook } from "./page-kit";
 import { CodeSection, snippets } from "./code-section";
 import { ChainStage, type ChainRow, type Meter } from "./stages";
@@ -518,7 +519,7 @@ export function UseCasePage({ slug, page }: { slug: string; page: UseCaseData })
   };
   return (
     <>
-      <PageHero eyebrow={c.eyebrow} title={page.statement} lead={c.lead} img={c.hero} facts={c.facts} primary={["Start tracing free", "/sign-up"]} secondary={["Read the docs", "/docs"]} variant={look.hero} />
+      <PageHero eyebrow={c.eyebrow} title={page.statement} lead={c.lead} img={c.hero} facts={c.facts} primary={["Start tracing free", appHref("/sign-up")]} secondary={["Read the docs", "/docs"]} variant={look.hero} />
       <SignalTicker items={page.signals.map((s) => s.split(" — ")[0])} />
       {look.order.map((k) => blocks[k])}
       <EndCta heading={c.cta} links={all.filter(([, h]) => !h.endsWith(slug))} />

@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -106,7 +107,7 @@ export function LocalizedHome({ locale }: { locale: Locale }) {
           <h2 className="mx-auto max-w-5xl font-pixel text-[clamp(3rem,9vw,8rem)] leading-[0.88] tracking-[-0.08em]">{h.closeTitle}</h2>
           <p className="mx-auto mt-6 max-w-md text-base leading-7 text-white/70">{h.closeBody}</p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Link href="/sign-up" className="group inline-flex items-center gap-3 bg-[#f4d44d] px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
+            <Link href={appHref("/sign-up")} className="group inline-flex items-center gap-3 bg-[#f4d44d] px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
               {h.ctaPrimary} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
             <Link href="/docs" className="inline-flex items-center border border-white/40 bg-[#090909] px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] hover:bg-white hover:text-black">{h.closeDocs}</Link>

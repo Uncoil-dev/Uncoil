@@ -1,0 +1,34 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lgHeroTitle lgHeroDesc">
+  <title id="lgHeroTitle">A graph run branching into plan, search and answer nodes with model and tool spans beneath</title>
+  <desc id="lgHeroDesc">A graph run box on the left branches into plan, search and answer nodes, each linked to a yellow model or tool span on the right.</desc>
+  <rect width="1600" height="900" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >TRACE LANGGRAPH AGENTS</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >the shape of the graph is the shape of the trace</text>
+    <rect x="120" y="380" width="200" height="80" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="220" y="428" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >GRAPH RUN</text>
+    <line x1="320" y1="420" x2="520" y2="220" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5" />
+    <rect x="520" y="180" width="200" height="80" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="620" y="228" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >PLAN</text>
+    <line x1="320" y1="420" x2="520" y2="420" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5" />
+    <rect x="520" y="380" width="200" height="80" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="620" y="428" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >SEARCH</text>
+    <line x1="320" y1="420" x2="520" y2="620" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5" />
+    <rect x="520" y="580" width="200" height="80" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="620" y="628" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >ANSWER</text>
+    <line x1="720" y1="220" x2="820" y2="220" stroke="#f4d44d" stroke-width="2" stroke-opacity="1" />
+    <rect x="820" y="180" width="240" height="80" fill="#f4d44d" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="940" y="228" fill="#0a0a0a" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >model span</text>
+    <line x1="720" y1="420" x2="820" y2="420" stroke="#f4d44d" stroke-width="2" stroke-opacity="1" />
+    <rect x="820" y="380" width="240" height="80" fill="#f4d44d" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="940" y="428" fill="#0a0a0a" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >tool span</text>
+    <line x1="720" y1="620" x2="820" y2="620" stroke="#f4d44d" stroke-width="2" stroke-opacity="1" />
+    <rect x="820" y="580" width="240" height="80" fill="#f4d44d" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="940" y="628" fill="#0a0a0a" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >model span</text>
+    <text x="1120" y="226" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="start" letter-spacing="0" >tokens</text>
+    <text x="1120" y="426" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="start" letter-spacing="0" >duration</text>
+    <text x="1120" y="626" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="start" letter-spacing="0" >tokens</text>
+    <text x="100" y="800" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >Nodes branch from one run. Model and tool spans sit beneath the node that made them.</text>
+
+  </g>
+</svg>

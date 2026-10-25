@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import type { Copy } from "./types";
 
 export const no: Copy = {
@@ -6,13 +7,13 @@ export const no: Copy = {
     tagline: "Ett kart per kjøring.",
     product: "Produkt",
     company: "Selskap",
-    links: [["Priser", "/no/pricing"], ["Dokumentasjon", "/docs"], ["Demo", "/demo"], ["Blogg", "/blog"], ["Kontakt", "/contact"]],
+    links: [["Priser", "/no/pricing"], ["Dokumentasjon", "/docs"], ["Demo", appHref("/demo")], ["Blogg", "/blog"], ["Kontakt", "/contact"]],
     legal: [["Personvern", "/privacy"], ["Vilkår", "/terms"], ["Informasjonskapsler", "/cookie-policy"]],
     note: "Dokumentasjon, blogg og juridiske sider er foreløpig på engelsk.",
   },
   home: {
     metaTitle: "Tracify | Observerbarhet og evaluering for AI-agenter",
-    metaDescription: "Følg hver beslutning, verktøykall, kostnad og kvalitetsmåling i én feilsøkingstidslinje.",
+    metaDescription: "Følg hver beslutning, verktøykall, kostnad og kvalitetsmåling i én feilsøkingstidslinje. Start gratis med 25 000 spans i måneden.",
     badgeNew: "Nytt",
     badge: "TypeScript SDK v0.4.0 · OpenAI, Anthropic og LangGraph",
     heroA: "Se agenten din",

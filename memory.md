@@ -21,6 +21,9 @@
 - The Ctrl K dialog now lives in the sidebar only; `DashboardCommandMenu showTrigger` is a plain button that fires `tracify:open-command`. The in-page sidebar toggle in the shell shows only on phones.
 - Recents follow the last 5 pages you opened (menu pages by menu name; a single trace/session/prompt page is named from its address, e.g. "Session sess_8f2a…"), per project, in this browser only.
 
+## 2026-10-25 — PR previews on Coolify
+- Every PR gets a preview at `<PR number>.preview.tracify.tech` (Coolify preview deployments on tracify-cloud-eu, wildcard DNS `*.preview` + Caddy on-demand TLS). Previews use the staging Convex deployment and share the live trace database.
+- Auth: `*.preview.tracify.tech` is in Better Auth `allowedHosts`/`trustedOrigins`; the staging Convex backend must be deployed with this for preview sign-in to work.
 ## 2026-10-25 SEO round after first 100-impression day
 - Search Console (3 months to Oct 22): 28 clicks, 1,695 views; views rose from ~15/day to 100/day Oct 19-22. "tracify" ranks ~7.7 but few clicks; the observability guide has ~580 views at position ~81.
 - New `/about` (brand + "other Tracify" note, Organization sameAs from `src/lib/about.ts`) and `/answers` hub plus 8 direct-answer pages (`src/lib/answers.ts`), all in sitemap, footer and llms.txt. Guide gained a best-practices section; 4 blog posts got sharper SEO titles.

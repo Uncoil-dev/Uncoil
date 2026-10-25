@@ -44,3 +44,5 @@
 
 ## Crash tracking (Oct 25)
 - Server errors (`onRequestError` in `src/instrumentation.ts`) and browser error screens (`/api/crash`) email `CRASH_ALERT_EMAIL` (default `EMAIL_REPLY_TO`/kb@tracify.tech) via Resend. One email per distinct error per hour, max 20/hour, emails and keys scrubbed. Also logged as `[crash]` JSON in the Coolify container log. No new vendor.
+## 2026-10-25 Error grouping: looser matching — draft PR (branch `claude/project-thread-k3sxbo`)
+- Error grouping already existed on the Tracing page (panel "Error groups", `traceErrorGroups` in `src/lib/tinybird.ts`, groups by tool + error type + normalized message). The message key now also masks urls, emails, quoted values and `sk-`/`ghp_`-style keys (on top of uuids, paths, hex ids, numbers), so "this broke 40 times" bundles more. Group ids change, so old `errorGroup` links/saved views stop matching. SQL checked only through a JS mirror, not against the real ClickHouse.

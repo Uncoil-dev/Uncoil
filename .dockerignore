@@ -1,17 +1,6 @@
 node_modules
 .next
 .git
-.github
 .vercel
 scratch
-scratchpad.md
-tests
-docs
-codex
-teams-bot
-studio-tracify
-sanity
-tinybird
 *.log
-.env*
-!.env.local.example

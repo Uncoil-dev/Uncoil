@@ -4,7 +4,7 @@ import { TracifyClient } from "tracify-sdk";
 export const tracify = new TracifyClient({
   sampleRate: 0.1,
   redact: {
-    pii: true,                       // emails, phone numbers, card numbers
+    // pii: false,                  // emails, phone numbers and card numbers are masked by default; uncomment to turn off
     patterns: [/ACME-\d{6}/],        // anything else you consider private
   },
   // Print problems your own way instead of in the console:

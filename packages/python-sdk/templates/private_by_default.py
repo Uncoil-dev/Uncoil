@@ -5,7 +5,7 @@ import tracify
 client = tracify.TracifyClient(
     sample_rate=0.1,
     redact={
-        "pii": True,                                  # emails, phone numbers, card numbers
+        # "pii": False,                               # emails, phone numbers and card numbers are masked by default; uncomment to turn off
         "patterns": [re.compile(r"ACME-\d{6}")],      # anything else you consider private
     },
     # Print problems your own way instead of to the console:

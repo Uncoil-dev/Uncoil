@@ -34,3 +34,6 @@
 - Demo project: floating "Start Pro · $19" button next to "Start your own free". Sign-up form: one line on Free limits and Pro/Team prices from `pricing-plans.ts`.
 - Account > Profile: upload/change/remove picture (centre-cropped 192px WebP data URL saved as the Better Auth user image; shows in the sidebar account row).
 - `scripts/seed-sample-traces.mjs` sends a week of sample support-agent runs through `/api/ingest` (needs `SEED_API_KEY` + `SEED_BASE_URL`; staging has no analytics DB yet, so it only shows data once one exists). Backup file names with time live on the agent server, not in this repo; not changed.
+
+## 2026-10-25 Ahrefs audit: titles, descriptions, share tags
+- `pageMetadata` (`src/lib/seo.ts`) now runs every title and description through `fitTitle` / `fitDescription`: full title kept to 60 characters (brand suffix dropped, or cut at a colon/dash, when needed) and descriptions kept to 110-160 (long ones trimmed at a sentence, short ones topped up with a Tracify line). Blog posts use the same helpers and now also send `og:url` (same as canonical) and `og:site_name`. Docs pages render one H1 (the body's own `# Title` is skipped). Home and Norwegian/English home descriptions adjusted. A local crawl of all 312 sitemap pages is clean for these checks; German/Norwegian pricing text and legal/docs guide copy were not touched.

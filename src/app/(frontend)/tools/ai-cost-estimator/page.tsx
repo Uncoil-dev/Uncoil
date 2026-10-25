@@ -25,7 +25,6 @@ const faqs = [
 export default function CostEstimatorPage() {
   const schema = [
     breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Tools", path }, { name: "AI cost estimator", path }]),
-    { "@context": "https://schema.org", "@type": "WebApplication", name: "AI agent cost estimator", url: `https://www.tracify.tech${path}`, applicationCategory: "BusinessApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } },
     { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
   ];
   return (

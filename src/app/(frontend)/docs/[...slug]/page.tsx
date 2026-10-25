@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_URL, breadcrumbJsonLd, jsonLdString, pageMetadata } from "@/lib/seo";
+import { articleJsonLd, breadcrumbJsonLd, jsonLdString, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, ChevronLeft } from "lucide-react";
@@ -34,7 +34,7 @@ export default async function DocsArticlePage({ params }: { params: Promise<{ sl
 
   const structuredData = [
     breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Docs", path: "/docs" }, { name: doc.title, path: `/docs/${doc.slug}` }]),
-    { "@context": "https://schema.org", "@type": "TechArticle", headline: doc.title, description: doc.description, mainEntityOfPage: `${SITE_URL}/docs/${doc.slug}`, publisher: { "@type": "Organization", name: "Tracify", url: SITE_URL } },
+    articleJsonLd({ headline: doc.title, description: doc.description, path: `/docs/${doc.slug}` }),
   ];
 
   return (

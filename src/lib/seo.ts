@@ -114,6 +114,73 @@ export function faqJsonLd(items: ReadonlyArray<{ q: string; a: string }>) {
   };
 }
 
+const publisher = { "@type": "Organization", name: SITE_NAME, url: SITE_URL, logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` } };
+
+/** Article markup for blog posts and docs pages (Google and Ahrefs both expect `Article`). */
+export function articleJsonLd({ headline, description, path, image, datePublished, dateModified, author }: {
+  headline: string;
+  description: string;
+  path: string;
+  image?: string;
+  datePublished?: string;
+  dateModified?: string;
+  author?: string;
+}) {
+  const url = path.startsWith("http") ? path : `${SITE_URL}${path}`;
+  const picture = image ? (image.startsWith("http") ? image : `${SITE_URL}${image}`) : `${SITE_URL}${ogImageUrl({ title: headline, kicker: kickerForPath(path) })}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: headline.slice(0, 110),
+    description,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    image: [picture],
+    ...(datePublished ? { datePublished } : {}),
+    ...(dateModified || datePublished ? { dateModified: dateModified ?? datePublished } : {}),
+    author: author && author !== "Tracify Team" ? { "@type": "Person", name: author } : { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    publisher,
+  };
+}
+
+/** Real plans only: Pro $19 and Team $39 per month, plus the free tier. No ratings or reviews. */
+const PLAN_OFFERS = [
+  { name: "Free", price: "0" },
+  { name: "Pro", price: "19" },
+  { name: "Team", price: "39" },
+] as const;
+
+export function productJsonLd({ name, description, path }: { name: string; description: string; path: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name,
+    description,
+    url: `${SITE_URL}${path}`,
+    image: `${SITE_URL}/logo.png`,
+    brand: { "@type": "Brand", name: SITE_NAME },
+    category: "AI agent observability software",
+    offers: PLAN_OFFERS.map((plan) => ({
+      "@type": "Offer",
+      name: `Tracify ${plan.name}`,
+      url: `${SITE_URL}/pricing`,
+      price: plan.price,
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      priceSpecification: { "@type": "UnitPriceSpecification", price: plan.price, priceCurrency: "USD", billingDuration: "P1M", unitCode: "MON" },
+    })),
+  };
+}
+
+export function itemListJsonLd(name: string, items: ReadonlyArray<{ name: string; path: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({ "@type": "ListItem", position: index + 1, name: item.name, url: `${SITE_URL}${item.path}` })),
+  };
+}
+
 /** Serialises JSON-LD safely for an inline script tag. */
 export function jsonLdString(data: unknown) {
   return JSON.stringify(data).replace(/</g, "\\u003c");

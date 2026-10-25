@@ -13,6 +13,61 @@ type PageMetadataInput = {
   type?: "website" | "article";
 };
 
+const TITLE_SUFFIX = " | Tracify";
+const TITLE_MAX = 60;
+const DESCRIPTION_MIN = 110;
+const DESCRIPTION_MAX = 160;
+const DESCRIPTION_TAILS = [
+  "Tracify is AI agent observability.",
+  "Trace runs, tool calls, cost and quality in one place.",
+  "Start free with 25,000 spans a month.",
+];
+
+/**
+ * Keeps the full `<title>` (page title + " | Tracify") within 60 characters so search results do not cut it.
+ * Fits as-is when it can, drops the brand suffix when the title alone fits, and otherwise shortens the
+ * title at its last natural break (colon, dash, bracket, comma) or word.
+ */
+export function fitTitle(title: string): NonNullable<Metadata["title"]> {
+  const clean = title.replace(/\s+/g, " ").trim();
+  if (clean.length + TITLE_SUFFIX.length <= TITLE_MAX) return clean;
+  if (clean.length <= TITLE_MAX) return { absolute: clean };
+  const window = clean.slice(0, TITLE_MAX + 1);
+  for (const marks of [[": ", " - ", " — ", " ("], [", "]]) {
+    const at = Math.max(...marks.map((mark) => window.lastIndexOf(mark)));
+    if (at >= 25 && at <= TITLE_MAX) return { absolute: clean.slice(0, at).trim() };
+  }
+  const cut = window.lastIndexOf(" ", TITLE_MAX - 1);
+  return { absolute: clean.slice(0, cut > 0 ? cut : TITLE_MAX - 1).replace(/[\s,:;-]+$/, "") };
+}
+
+/** Plain string form of {@link fitTitle}, for Open Graph and X titles. */
+export function fitTitleText(title: string) {
+  const fitted = fitTitle(title);
+  return typeof fitted === "string" ? `${fitted}${TITLE_SUFFIX}` : (fitted as { absolute: string }).absolute;
+}
+
+/**
+ * Keeps a meta description between 110 and 160 characters: trims long ones at a sentence or word
+ * boundary and tops short ones up with a short Tracify line so snippets are neither cut nor thin.
+ */
+export function fitDescription(description: string) {
+  let text = description.replace(/\s+/g, " ").trim();
+  if (text.length > DESCRIPTION_MAX) {
+    const window = text.slice(0, DESCRIPTION_MAX);
+    const sentence = Math.max(window.lastIndexOf(". "), window.lastIndexOf("? "), window.lastIndexOf("! "));
+    if (sentence >= DESCRIPTION_MIN - 1) return window.slice(0, sentence + 1);
+    const cut = text.slice(0, DESCRIPTION_MAX - 1).lastIndexOf(" ");
+    return `${text.slice(0, cut).replace(/[\s,;:.-]+$/, "")}…`;
+  }
+  if (!/[.!?…]$/.test(text)) text += ".";
+  for (const tail of DESCRIPTION_TAILS) {
+    if (text.length >= DESCRIPTION_MIN) break;
+    if (text.length + 1 + tail.length <= DESCRIPTION_MAX) text += ` ${tail}`;
+  }
+  return text;
+}
+
 /**
  * One place that builds the title, canonical, Open Graph and X card values so
  * every public page ships the full set the SEO release checklist requires.
@@ -20,12 +75,14 @@ type PageMetadataInput = {
 export function pageMetadata({ title, description, path, image, type = "website" }: PageMetadataInput): Metadata {
   const card = image ?? ogImageUrl({ title, kicker: kickerForPath(path) });
   const images = [{ url: card, width: 1200, height: 630, alt: `${title} | ${SITE_NAME}` }];
+  const shareTitle = fitTitleText(title);
+  description = fitDescription(description);
   return {
-    title,
+    title: fitTitle(title),
     description,
     alternates: { canonical: path },
-    openGraph: { title: `${title} | ${SITE_NAME}`, description, url: path, siteName: SITE_NAME, locale: "en_US", type, images },
-    twitter: { card: "summary_large_image", title: `${title} | ${SITE_NAME}`, description, images: [card] },
+    openGraph: { title: shareTitle, description, url: path, siteName: SITE_NAME, locale: "en_US", type, images },
+    twitter: { card: "summary_large_image", title: shareTitle, description, images: [card] },
   };
 }
 
@@ -54,6 +111,73 @@ export function faqJsonLd(items: ReadonlyArray<{ q: string; a: string }>) {
       name: item.q,
       acceptedAnswer: { "@type": "Answer", text: item.a },
     })),
+  };
+}
+
+const publisher = { "@type": "Organization", name: SITE_NAME, url: SITE_URL, logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` } };
+
+/** Article markup for blog posts and docs pages (Google and Ahrefs both expect `Article`). */
+export function articleJsonLd({ headline, description, path, image, datePublished, dateModified, author }: {
+  headline: string;
+  description: string;
+  path: string;
+  image?: string;
+  datePublished?: string;
+  dateModified?: string;
+  author?: string;
+}) {
+  const url = path.startsWith("http") ? path : `${SITE_URL}${path}`;
+  const picture = image ? (image.startsWith("http") ? image : `${SITE_URL}${image}`) : `${SITE_URL}${ogImageUrl({ title: headline, kicker: kickerForPath(path) })}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: headline.slice(0, 110),
+    description,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    image: [picture],
+    ...(datePublished ? { datePublished } : {}),
+    ...(dateModified || datePublished ? { dateModified: dateModified ?? datePublished } : {}),
+    author: author && author !== "Tracify Team" ? { "@type": "Person", name: author } : { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    publisher,
+  };
+}
+
+/** Real plans only: Pro $19 and Team $39 per month, plus the free tier. No ratings or reviews. */
+const PLAN_OFFERS = [
+  { name: "Free", price: "0" },
+  { name: "Pro", price: "19" },
+  { name: "Team", price: "39" },
+] as const;
+
+export function productJsonLd({ name, description, path }: { name: string; description: string; path: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name,
+    description,
+    url: `${SITE_URL}${path}`,
+    image: `${SITE_URL}/logo.png`,
+    brand: { "@type": "Brand", name: SITE_NAME },
+    category: "AI agent observability software",
+    offers: PLAN_OFFERS.map((plan) => ({
+      "@type": "Offer",
+      name: `Tracify ${plan.name}`,
+      url: `${SITE_URL}/pricing`,
+      price: plan.price,
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      priceSpecification: { "@type": "UnitPriceSpecification", price: plan.price, priceCurrency: "USD", billingDuration: "P1M", unitCode: "MON" },
+    })),
+  };
+}
+
+export function itemListJsonLd(name: string, items: ReadonlyArray<{ name: string; path: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({ "@type": "ListItem", position: index + 1, name: item.name, url: `${SITE_URL}${item.path}` })),
   };
 }
 

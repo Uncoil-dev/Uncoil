@@ -16,7 +16,7 @@ import {
   getPublishedPosts,
   type BlogPost,
 } from "@/lib/markdoc-blog";
-import { ogImageUrl } from "@/lib/seo";
+import { articleJsonLd, fitDescription, fitTitle, fitTitleText, ogImageUrl } from "@/lib/seo";
 import { comparisons } from "@/lib/seo-pages";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -46,16 +46,21 @@ export async function generateMetadata({
   const post = await getPublishedPost(slug);
   if (!post) return {};
 
-  const metaTitle = post.seo?.metaTitle || `${post.title} — Tracify Blog`;
-  const metaDescription = post.seo?.metaDescription || post.excerpt;
+  const metaTitle = post.seo?.metaTitle || post.title;
+  const metaDescription = fitDescription(post.seo?.metaDescription || post.excerpt);
+  const shareTitle = fitTitleText(metaTitle);
+  const canonical = post.seo?.canonicalUrl || canonicalPath(slug);
   const image = ogImageUrl({ title: post.title, kicker: "Blog", sub: post.author ? `By ${post.author}` : undefined, kind: "blog" });
 
   return {
-    title: metaTitle,
+    title: fitTitle(metaTitle),
     description: metaDescription,
     openGraph: {
-      title: metaTitle,
+      title: shareTitle,
       description: metaDescription,
+      url: canonical,
+      siteName: "Tracify",
+      locale: "en_US",
       type: "article",
       publishedTime: getPostDate(post),
       authors: post.author ? [post.author] : undefined,
@@ -63,12 +68,12 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: metaTitle,
+      title: shareTitle,
       description: metaDescription,
       images: [image],
     },
     alternates: {
-      canonical: post.seo?.canonicalUrl || canonicalPath(slug),
+      canonical,
       types: { "text/markdown": `/blog/${slug}.md` },
     },
     robots: { index: !internalPosts.has(slug), follow: true },
@@ -83,30 +88,21 @@ function formatDate(dateString: string) {
   });
 }
 
-function absoluteUrl(value: string) {
-  return value.startsWith("http") ? value : `https://www.tracify.tech${value}`;
-}
-
 function jsonLd(post: BlogPost) {
   const canonical = post.seo?.canonicalUrl || `https://www.tracify.tech${canonicalPath(post.slug!)}`;
   const image = post.heroImage?.og || post.heroImage?.src;
   const faqItems = extractBlogFaqItems(post.body);
 
   return [
-    {
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
+    articleJsonLd({
       headline: post.title,
       description: post.excerpt,
+      path: canonical,
+      image,
       datePublished: getPostDate(post),
       dateModified: post.updatedAt || getPostDate(post),
-      mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
-      author: post.author === "Tracify Team"
-        ? { "@type": "Organization", name: "Tracify", url: "https://www.tracify.tech" }
-        : { "@type": "Person", name: post.author },
-      publisher: { "@type": "Organization", name: "Tracify", url: "https://www.tracify.tech" },
-      image: image ? absoluteUrl(image) : undefined,
-    },
+      author: post.author,
+    }),
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",

@@ -1,0 +1,24 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="estHeroTitle estHeroDesc">
+  <title id="estHeroTitle">A staircase of cost blocks rising from one token to a monthly bill</title>
+  <desc id="estHeroDesc">A black canvas shows six blocks rising left to right, labeled one token, one call, one run, one task, one day and one month. The last block is yellow.</desc>
+  <rect width="1600" height="900" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >HOW TO ESTIMATE AI AGENT COSTS</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >from one token to a monthly bill</text>
+    <rect x="140" y="720" width="200" height="60" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="240" y="704" fill="#f6f1e6" font-size="16" opacity="0.8" text-anchor="middle" letter-spacing="1" >1 TOKEN</text>
+    <rect x="365" y="650" width="200" height="130" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="465" y="634" fill="#f6f1e6" font-size="16" opacity="0.8" text-anchor="middle" letter-spacing="1" >1 CALL</text>
+    <rect x="590" y="570" width="200" height="210" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="690" y="554" fill="#f6f1e6" font-size="16" opacity="0.8" text-anchor="middle" letter-spacing="1" >1 RUN</text>
+    <rect x="815" y="480" width="200" height="300" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="915" y="464" fill="#f6f1e6" font-size="16" opacity="0.8" text-anchor="middle" letter-spacing="1" >1 TASK</text>
+    <rect x="1040" y="380" width="200" height="400" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="1140" y="364" fill="#f6f1e6" font-size="16" opacity="0.8" text-anchor="middle" letter-spacing="1" >1 DAY</text>
+    <rect x="1265" y="260" width="200" height="520" fill="#f4d44d" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="1365" y="244" fill="#f4d44d" font-size="16" opacity="1" text-anchor="middle" letter-spacing="1" >1 MONTH</text>
+    <line x1="100" y1="780" x2="1560" y2="780" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.4" />
+    <text x="100" y="830" fill="#f6f1e6" font-size="14" opacity="0.55" text-anchor="start" letter-spacing="0" >Illustrative staircase. Each block multiplies the one before it.</text>
+
+  </g>
+</svg>

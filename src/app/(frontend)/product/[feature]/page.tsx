@@ -1,5 +1,6 @@
+import { appHref } from "@/lib/app-links";
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { jsonLdString, pageMetadata, productJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -295,6 +296,10 @@ function ProductBreadcrumb({ title, slug }: { title: string; slug: string }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 }
 
+function ProductSchema({ title, description, slug }: { title: string; description: string; slug: string }) {
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(productJsonLd({ name: `Tracify ${title}`, description, path: `/product/${slug}` })) }} />;
+}
+
 function ProductFaqSchema({ faq }: { faq: FeaturePage["faq"] }) {
   const data = {
     "@context": "https://schema.org",
@@ -334,7 +339,7 @@ function ProductHero({ page, index }: { page: FeaturePage; index: number }) {
         <div className={`flex flex-col justify-between px-5 py-10 sm:px-8 md:px-10 md:py-14 ${instrumentFirst ? "lg:order-2 lg:border-l" : "lg:border-r"} border-black`}>
           <div className="flex items-start justify-between gap-6"><p className="max-w-xl font-mono text-[9px] uppercase tracking-[0.15em] opacity-55">{page.eyebrow}</p><span className="font-pixel text-5xl leading-none opacity-15">0{index + 1}</span></div>
           <div className="my-12"><h1 className="max-w-5xl text-balance font-pixel text-[clamp(3.4rem,7vw,7.4rem)] leading-[0.8] tracking-[-0.075em]">{page.title}</h1><p className="mt-7 max-w-2xl text-pretty text-base leading-7 opacity-68 md:text-lg">{page.description}</p></div>
-          <div><p className="mb-6 max-w-2xl border-l-4 border-[#f4d44d] pl-4 font-mono text-[9px] uppercase leading-5 tracking-[0.12em] opacity-70">{page.outcome}</p><div className="flex flex-wrap gap-3"><FutureAction href="/demo" inverted={tone.includes("text-white")}>Explore the demo</FutureAction><FutureAction href="/docs" inverted={tone.includes("text-white")}>Read the docs</FutureAction></div></div>
+          <div><p className="mb-6 max-w-2xl border-l-4 border-[#f4d44d] pl-4 font-mono text-[9px] uppercase leading-5 tracking-[0.12em] opacity-70">{page.outcome}</p><div className="flex flex-wrap gap-3"><FutureAction href={appHref("/demo")} inverted={tone.includes("text-white")}>Explore the demo</FutureAction><FutureAction href="/docs" inverted={tone.includes("text-white")}>Read the docs</FutureAction></div></div>
         </div>
         <div className={`flex min-h-[360px] flex-col justify-center bg-black text-white ${instrumentFirst ? "lg:order-1" : ""}`}><div className="border-b border-white/20 px-6 py-4 font-mono text-[8px] uppercase tracking-[0.14em] text-white/45">{page.title} / live instrument</div><div className="flex-1 content-center"><FeatureInstrument type={page.visual} /></div></div>
       </div>
@@ -374,17 +379,17 @@ export default async function ProductFeaturePage({ params }: { params: Promise<{
   const page = productFeatures[feature as Feature];
   if (!page) notFound();
   if (isNewProductPage(feature)) {
-    return <main className="overflow-x-clip bg-[#090909]"><ProductBreadcrumb title={page.title} slug={feature} /><ProductFaqSchema faq={page.faq} /><ProductPage slug={feature} page={page} /></main>;
+    return <main className="overflow-x-clip bg-[#090909]"><ProductBreadcrumb title={page.title} slug={feature} /><ProductSchema title={page.title} description={page.description} slug={feature} /><ProductFaqSchema faq={page.faq} /><ProductPage slug={feature} page={page} /></main>;
   }
   const index = Object.keys(productFeatures).indexOf(feature);
   return <FuturePage>
     <ProductBreadcrumb title={page.title} slug={feature} />
-    <ProductFaqSchema faq={page.faq} />
+    <ProductSchema title={page.title} description={page.description} slug={feature} /><ProductFaqSchema faq={page.faq} />
     <ProductHero page={page} index={index} />
     <FutureBand label="Operating outcome"><div className="grid border-x border-black md:grid-cols-[1fr_1.25fr]"><p className="border-b border-black bg-[#f4d44d] p-7 font-pixel text-4xl leading-[0.92] tracking-[-0.045em] md:border-b-0 md:border-r md:p-10">{page.outcome}</p><div className="p-7 md:p-10"><p className="font-mono text-[8px] uppercase tracking-[0.14em] text-black/45">Use it when</p><p className="mt-5 max-w-2xl text-base leading-7 text-black/65">{page.bestFor}</p></div></div></FutureBand>
     <FutureBand label={`${page.title} / capability record`}><DetailGrid details={page.details} visual={page.visual} /></FutureBand>
     <FutureBand label="From signal to action"><Workflow page={page} /></FutureBand>
     <FutureBand label="Frequently asked questions"><ProductFaq faq={page.faq} /></FutureBand>
-    <FutureBand tone="ink" label="Continue through the system"><div className="grid border-x border-white/20 md:grid-cols-[1fr_360px]"><div className="p-7 md:p-10"><p className="max-w-3xl font-pixel text-5xl leading-[0.9] tracking-[-0.055em] md:text-7xl">The evidence stays connected after the page ends.</p><div className="mt-9 flex flex-wrap gap-3"><FutureAction href="/demo" inverted>Open the demo</FutureAction><FutureAction href="/sign-up" inverted>Start free</FutureAction></div></div><nav aria-label="Related product capabilities" className="border-t border-white/20 md:border-l md:border-t-0">{page.related.map((slug)=><Link key={slug} href={`/product/${slug}`} className="flex min-h-24 items-center justify-between border-b border-white/20 px-6 font-mono text-[9px] uppercase tracking-[0.12em] last:border-b-0 hover:bg-[#f4d44d] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#f4d44d]"><span>{productFeatures[slug as Feature].title}</span><ArrowRight className="size-4" aria-hidden="true" /></Link>)}</nav></div></FutureBand>
+    <FutureBand tone="ink" label="Continue through the system"><div className="grid border-x border-white/20 md:grid-cols-[1fr_360px]"><div className="p-7 md:p-10"><p className="max-w-3xl font-pixel text-5xl leading-[0.9] tracking-[-0.055em] md:text-7xl">The evidence stays connected after the page ends.</p><div className="mt-9 flex flex-wrap gap-3"><FutureAction href={appHref("/demo")} inverted>Open the demo</FutureAction><FutureAction href={appHref("/sign-up")} inverted>Start free</FutureAction></div></div><nav aria-label="Related product capabilities" className="border-t border-white/20 md:border-l md:border-t-0">{page.related.map((slug)=><Link key={slug} href={`/product/${slug}`} className="flex min-h-24 items-center justify-between border-b border-white/20 px-6 font-mono text-[9px] uppercase tracking-[0.12em] last:border-b-0 hover:bg-[#f4d44d] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#f4d44d]"><span>{productFeatures[slug as Feature].title}</span><ArrowRight className="size-4" aria-hidden="true" /></Link>)}</nav></div></FutureBand>
   </FuturePage>;
 }

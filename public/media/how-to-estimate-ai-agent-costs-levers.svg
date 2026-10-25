@@ -1,0 +1,21 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="estLevTitle estLevDesc">
+  <title id="estLevTitle">Four savings levers ranked by how much each cuts from a monthly estimate</title>
+  <desc id="estLevDesc">Four horizontal bars of decreasing length labeled trim input, cache prefix, smaller model and fewer retries. The longest bar is yellow.</desc>
+  <rect width="1600" height="900" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >FOUR SAVINGS LEVERS</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >illustrative shape only</text>
+    <text x="100" y="232" fill="#f4d44d" font-size="18" opacity="1" text-anchor="start" letter-spacing="1" >TRIM INPUT</text>
+    <rect x="420" y="190" width="1008.0" height="64" fill="#f4d44d" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="100" y="362" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="start" letter-spacing="1" >CACHE PREFIX</text>
+    <rect x="420" y="320" width="792.0" height="64" fill="#2a2a2a" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="100" y="492" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="start" letter-spacing="1" >SMALLER MODEL</text>
+    <rect x="420" y="450" width="600.0" height="64" fill="#2a2a2a" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="100" y="622" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="start" letter-spacing="1" >FEWER RETRIES</text>
+    <rect x="420" y="580" width="360.0" height="64" fill="#2a2a2a" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <line x1="420" y1="170" x2="420" y2="700" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.4" />
+    <text x="420" y="740" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >monthly saving, larger is better</text>
+    <text x="100" y="800" fill="#f6f1e6" font-size="14" opacity="0.55" text-anchor="start" letter-spacing="0" >Order depends on your input and output mix, retry rate and prices. Levers overlap, so savings do not add up.</text>
+
+  </g>
+</svg>

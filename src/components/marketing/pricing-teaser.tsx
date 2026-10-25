@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -12,7 +13,7 @@ const PLANS = [
     price: "$19",
     note: "/mo",
     cta: "Start building",
-    href: "/sign-up?intent=beta&plan=pro",
+    href: appHref("/sign-up?intent=beta&plan=pro"),
     popular: true,
     lines: [
       ["spans", "100,000"],
@@ -27,7 +28,7 @@ const PLANS = [
     price: "$39",
     note: "/mo",
     cta: "Start building",
-    href: "/sign-up?intent=beta&plan=team",
+    href: appHref("/sign-up?intent=beta&plan=team"),
     popular: false,
     lines: [
       ["spans", "1,000,000"],
@@ -202,7 +203,7 @@ export function PricingTeaser() {
               </div>
             </div>
             <div className="shrink-0">
-              <Link href="/sign-up">
+              <Link href={appHref("/sign-up")}>
                 <Button
                   variant="secondary"
                   className="h-11 rounded-none font-mono text-[11px] uppercase tracking-widest hover:bg-[#1A1A1A] hover:text-white"

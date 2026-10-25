@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, type ReactNode } from "react";
@@ -355,7 +356,7 @@ export function EndCta({ heading, links }: { heading: string; links: readonly (r
         <Reveal>
           <p className="max-w-5xl font-pixel text-[clamp(3rem,8vw,7.4rem)] leading-[0.84] tracking-[-0.07em]">{heading}</p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Button href="/sign-up">Start tracing free</Button>
+            <Button href={appHref("/sign-up")}>Start tracing free</Button>
             <Button href="/docs" variant="line">
               Read the docs
             </Button>

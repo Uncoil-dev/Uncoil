@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -35,7 +36,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
           <p className="mt-6 max-w-2xl text-base leading-7 text-white/65 md:text-lg">{p.answer}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <HeaderAction href={`/docs/${p.doc}`}>Read the guide</HeaderAction>
-            <HeaderAction href="/sign-up" kind="secondary">Start free</HeaderAction>
+            <HeaderAction href={appHref("/sign-up")} kind="secondary">Start free</HeaderAction>
           </div>
         </div>
       </section>
@@ -90,7 +91,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
           ))}
         </ul>
       </CreamBand>
-      <ClosingBand title="Send your first trace." body="Free to start." actions={[{ href: "/sign-up", label: "Start free", primary: true }, { href: "/compare", label: "Compare tools" }]} />
+      <ClosingBand title="Send your first trace." body="Free to start." actions={[{ href: appHref("/sign-up"), label: "Start free", primary: true }, { href: "/compare", label: "Compare tools" }]} />
     </div>
   );
 }

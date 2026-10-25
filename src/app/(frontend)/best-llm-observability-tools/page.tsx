@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { pageMetadata, breadcrumbJsonLd, faqJsonLd, jsonLdString } from "@/lib/seo";
 import { comparisons, type Faq } from "@/lib/seo-pages";
@@ -43,7 +44,7 @@ export default function BestToolsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(schema) }} />
       <PageHeader eyebrow="Guide / Choosing a tool" title="Best LLM observability tools." lede="The best tool is the one that matches how you collect traces, what you need to see and where your data has to live. Here is how to choose, and who each option fits.">
         <HeaderAction href="/compare">Compare Tracify</HeaderAction>
-        <HeaderAction href="/sign-up" kind="secondary">Start free</HeaderAction>
+        <HeaderAction href={appHref("/sign-up")} kind="secondary">Start free</HeaderAction>
       </PageHeader>
 
       <CreamBand>
@@ -97,7 +98,7 @@ export default function BestToolsPage() {
         <div className="mt-10"><FaqList items={faq} /></div>
         <p className="mt-10 text-sm text-black/60">Next: <Link className="underline" href="/glossary/llm-observability">what is LLM observability</Link>, <Link className="underline" href="/integrations/opentelemetry">send OpenTelemetry traces</Link>, <Link className="underline" href="/pricing">pricing</Link>.</p>
       </CreamBand>
-      <ClosingBand title="Try it on your own agent." body="Free to start. First trace in minutes." actions={[{ href: "/sign-up", label: "Start free", primary: true }, { href: "/compare", label: "See comparisons" }]} />
+      <ClosingBand title="Try it on your own agent." body="Free to start. First trace in minutes." actions={[{ href: appHref("/sign-up"), label: "Start free", primary: true }, { href: "/compare", label: "See comparisons" }]} />
     </div>
   );
 }

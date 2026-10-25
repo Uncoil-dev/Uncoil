@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import type { Copy } from "./types";
 
 export const de: Copy = {
@@ -6,7 +7,7 @@ export const de: Copy = {
     tagline: "Eine Karte pro Lauf.",
     product: "Produkt",
     company: "Unternehmen",
-    links: [["Preise", "/de/pricing"], ["Dokumentation", "/docs"], ["Demo", "/demo"], ["Blog", "/blog"], ["Kontakt", "/contact"]],
+    links: [["Preise", "/de/pricing"], ["Dokumentation", "/docs"], ["Demo", appHref("/demo")], ["Blog", "/blog"], ["Kontakt", "/contact"]],
     legal: [["Datenschutz", "/privacy"], ["Nutzungsbedingungen", "/terms"], ["Cookies", "/cookie-policy"]],
     note: "Dokumentation, Blog und rechtliche Seiten sind vorerst nur auf Englisch verfügbar.",
   },

@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import { pageMetadata } from "@/lib/seo";
 import { PageHeader } from "@/components/marketing/page-header";
 import { ClosingBand, DarkBand, HeaderAction } from "@/components/marketing/company/blocks";
@@ -37,7 +38,7 @@ export default function GlossaryPage() {
         lede="Short, direct definitions for the terms used across agent tracing, LLM observability and evaluation, written to be quoted, not just read."
         image="/images/company/glossary-text.png"
       >
-        <HeaderAction href="/demo/project">See the terms as live traces</HeaderAction>
+        <HeaderAction href={appHref("/demo/project")}>See the terms as live traces</HeaderAction>
         <HeaderAction href="/docs" kind="secondary">Read the docs</HeaderAction>
       </PageHeader>
 
@@ -55,7 +56,7 @@ export default function GlossaryPage() {
       <ClosingBand
         title="Definitions are the start."
         body="Open a real trace and watch these terms move."
-        actions={[{ href: "/demo/project", label: "Open the demo", primary: true }, { href: "/blog/what-is-ai-observability", label: "What is AI observability?" }]}
+        actions={[{ href: appHref("/demo/project"), label: "Open the demo", primary: true }, { href: "/blog/what-is-ai-observability", label: "What is AI observability?" }]}
       />
     </div>
   );

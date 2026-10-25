@@ -1,0 +1,26 @@
+<svg viewBox="0 0 1600 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lgLoopTitle lgLoopDesc">
+  <title id="lgLoopTitle">A graph loop between an agent node and a tools node ending at an end node</title>
+  <desc id="lgLoopDesc">A start box leads to an agent node. Two yellow lines run between the agent node and a tools node, forming a loop. A further line leads from the agent node to an end box.</desc>
+  <rect width="1600" height="800" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >A LANGGRAPH AGENT IS A LOOP</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >each pass should be its own branch</text>
+    <rect x="200" y="380" width="200" height="90" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="300" y="432" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >START</text>
+    <rect x="600" y="260" width="240" height="100" fill="#161616" stroke="#f4d44d" stroke-width="3" stroke-opacity="1"/>
+    <text x="720" y="318" fill="#f4d44d" font-size="20" opacity="1" text-anchor="middle" letter-spacing="0" >AGENT NODE</text>
+    <rect x="600" y="500" width="240" height="100" fill="#161616" stroke="#f4d44d" stroke-width="3" stroke-opacity="1"/>
+    <text x="720" y="558" fill="#f4d44d" font-size="20" opacity="1" text-anchor="middle" letter-spacing="0" >TOOLS NODE</text>
+    <rect x="1100" y="380" width="200" height="90" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="1200" y="432" fill="#f6f1e6" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >END</text>
+    <line x1="400" y1="425" x2="600" y2="310" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6" />
+    <line x1="690" y1="360" x2="690" y2="500" stroke="#f4d44d" stroke-width="3" stroke-opacity="1" />
+    <line x1="750" y1="500" x2="750" y2="360" stroke="#f4d44d" stroke-width="3" stroke-opacity="1" />
+    <text x="640" y="435" fill="#f4d44d" font-size="14" opacity="1" text-anchor="end" letter-spacing="0" >call</text>
+    <text x="800" y="435" fill="#f4d44d" font-size="14" opacity="1" text-anchor="start" letter-spacing="0" >result</text>
+    <line x1="840" y1="310" x2="1100" y2="415" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6" />
+    <text x="990" y="350" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >no more tools</text>
+    <text x="100" y="740" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >The loop runs until the agent stops asking for tools. Bound it with a recursion limit you can see in the trace.</text>
+
+  </g>
+</svg>

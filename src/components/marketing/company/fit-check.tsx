@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import { useState } from "react";
 import { HeaderAction } from "./blocks";
 
@@ -36,7 +37,7 @@ export function FitCheck({ href }: { href: string }) {
         <p role="status" className="font-pixel text-2xl leading-none tracking-[-0.05em]">
           <span className="text-[#f4d44d]">{score}/4</span> {verdict}
         </p>
-        <HeaderAction href={score >= 2 ? href : "/demo/project"}>{score >= 2 ? "Book the fit call" : "Open the demo"}</HeaderAction>
+        <HeaderAction href={score >= 2 ? href : appHref("/demo/project")}>{score >= 2 ? "Book the fit call" : "Open the demo"}</HeaderAction>
       </div>
     </div>
   );

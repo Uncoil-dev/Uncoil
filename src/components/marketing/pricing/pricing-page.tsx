@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -75,7 +76,7 @@ function PlanCard({ plan, interval, featured, recommended, t }: { plan: Plan; in
       </ul>
       {recommended && <p className={`mt-6 font-mono text-[9px] uppercase tracking-[0.14em] ${featured ? "text-[#f4d44d]" : "text-black"}`}>◼ {t.fits}</p>}
       <Link
-        href={plan.id === "free" ? "/sign-up" : pricingCheckoutHref(plan.id, interval)}
+        href={plan.id === "free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.id, interval))}
         className={`mt-auto flex min-h-12 items-center justify-between px-4 font-mono text-[10px] uppercase tracking-[0.13em] ${featured ? "bg-[#f4d44d] text-black hover:bg-white" : "border-2 border-black hover:bg-black hover:text-white"}`}
         style={{ marginTop: "2.5rem" }}
       >
@@ -195,7 +196,7 @@ function Calculator({ value, onChange, interval, locale, t }: { value: EstimateS
               </div>
               <p className="mt-8 text-sm leading-6 text-white/65">{over ? c.over : match.id === "free" ? c.fitsFree : c.covers(match.name, match.spans)}</p>
               <Link
-                href={over ? "/contact" : match.id === "free" ? "/sign-up" : pricingCheckoutHref(match.id, interval)}
+                href={over ? "/contact" : match.id === "free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(match.id, interval))}
                 className="group mt-6 inline-flex items-center gap-3 bg-[#f4d44d] px-6 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white"
               >
                 {over ? c.talk : match.id === "free" ? t.startFree : t.getPlan(match.name)}
@@ -402,7 +403,7 @@ export function PricingPage({ locale = "en", founding = false }: { locale?: Loca
         <Reveal>
           <h2 className="mx-auto max-w-5xl font-pixel text-[clamp(3rem,9vw,8rem)] leading-[0.88] tracking-[-0.08em]">{t.closeTitle}</h2>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Link href="/sign-up" className="group inline-flex items-center gap-3 bg-[#f4d44d] px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
+            <Link href={appHref("/sign-up")} className="group inline-flex items-center gap-3 bg-[#f4d44d] px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
               {t.closeCta} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
             <Link href={contact} className="inline-flex items-center border border-white/40 px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] hover:bg-white hover:text-black">{t.closeTalk}</Link>

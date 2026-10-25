@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import type { Copy } from "./types";
 
 export const en: Copy = {
@@ -6,7 +7,7 @@ export const en: Copy = {
     tagline: "One map per run.",
     product: "Product",
     company: "Company",
-    links: [["Pricing", "/pricing"], ["Docs", "/docs"], ["Demo", "/demo"], ["Blog", "/blog"], ["Contact", "/contact"]],
+    links: [["Pricing", "/pricing"], ["Docs", "/docs"], ["Demo", appHref("/demo")], ["Blog", "/blog"], ["Contact", "/contact"]],
     legal: [["Privacy", "/privacy"], ["Terms", "/terms"], ["Cookies", "/cookie-policy"]],
     note: "",
   },

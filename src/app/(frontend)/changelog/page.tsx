@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import { pageMetadata } from "@/lib/seo";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -88,7 +89,7 @@ export default function ChangelogPage() {
       <ClosingBand
         title="Ship with eyes open."
         body="Start tracing in a few minutes. The free plan needs no card."
-        actions={[{ href: "/sign-up", label: "Start tracing free", primary: true }, { href: "/docs", label: "Read the docs" }]}
+        actions={[{ href: appHref("/sign-up"), label: "Start tracing free", primary: true }, { href: "/docs", label: "Read the docs" }]}
       />
     </div>
   );

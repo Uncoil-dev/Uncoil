@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { pageMetadata, breadcrumbJsonLd, jsonLdString } from "@/lib/seo";
 import { PageHeader } from "@/components/marketing/page-header";
@@ -31,7 +32,7 @@ export default function AnswersPage() {
           ))}
         </ul>
       </CreamBand>
-      <ClosingBand title="Answers are the start." body="Open a real trace and see it for yourself." actions={[{ href: "/demo/project", label: "Open the demo", primary: true }, { href: "/blog/ai-agent-observability-complete-guide", label: "Read the complete guide" }]} />
+      <ClosingBand title="Answers are the start." body="Open a real trace and see it for yourself." actions={[{ href: appHref("/demo/project"), label: "Open the demo", primary: true }, { href: "/blog/ai-agent-observability-complete-guide", label: "Read the complete guide" }]} />
     </div>
   );
 }

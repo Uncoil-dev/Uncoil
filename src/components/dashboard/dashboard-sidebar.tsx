@@ -25,7 +25,7 @@ import { DashboardCommandMenu } from "@/components/dashboard/dashboard-command-m
 import { usePathname, useParams, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DEMO_BASE_PATH } from "@/lib/demo/demo-config";
-import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useClosedSections, useRecents, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
+import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useRecents, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
 
 type Icon = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
@@ -157,7 +157,6 @@ export function DashboardSidebar({
   const savedViews = useSavedViews(projectId, liveProject && showPanel);
   const recentsKey = projectId || (isSynthetic ? "playground" : demo ? "demo" : "");
   const recents = useRecents(recentsKey).recents;
-  const closedSections = useClosedSections();
 
   const home = useMemo<NavRow[]>(
     () => [
@@ -170,7 +169,7 @@ export function DashboardSidebar({
   const sections = useMemo<NavSection[]>(() => {
     const help: NavSection = {
       id: "help",
-      label: "Help",
+      label: "",
       rows: [
         ...(liveProject ? [{ id: "quickstart", title: "Quickstart", icon: Terminal, href: workspaceHref("quickstart") }] : []),
         { id: "docs", title: "Docs", icon: BookOpen, href: `${MARKETING_ORIGIN}/docs`, external: true },
@@ -208,7 +207,7 @@ export function DashboardSidebar({
       },
       {
         id: "improve",
-        label: "Improve",
+        label: "",
         rows: [
           {
             id: "prompts",
@@ -232,7 +231,7 @@ export function DashboardSidebar({
       },
       {
         id: "manage",
-        label: "Manage",
+        label: "",
         rows: [
           liveProject
             ? {
@@ -306,10 +305,8 @@ export function DashboardSidebar({
     recordRecent(recentsKey, { href: activeHref, title: activeTitle, section: activeSection });
   }, [activeHref, activeSection, activeTitle, hasProject, recentsKey]);
 
-  // Rows with children open on their own while you are inside them; clicking a row overrides that for the session.
+  // Only Recents folds; every other group lists its pages.
   const [rowOverrides, setRowOverrides] = useState<Record<string, boolean>>({});
-  const rowOpen = (row: NavRow) => rowOverrides[row.id] ?? Boolean(row.children?.some((child) => isLeafActive(child.href)));
-  const toggleRow = (row: NavRow) => setRowOverrides((current) => ({ ...current, [row.id]: !rowOpen(row) }));
   const recentsOpen = rowOverrides.recents ?? false;
 
   useEffect(() => {
@@ -340,8 +337,6 @@ export function DashboardSidebar({
     resolveHref,
     close,
     pin: liveProject ? { isPinned, toggle: togglePin } : null,
-    rowOpen,
-    toggleRow,
     expandRow,
   };
 
@@ -369,7 +364,7 @@ export function DashboardSidebar({
         <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
           {showPanel ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-name-on-dark.svg" alt="tracify" height={22} className="block h-[22px] w-auto" />
+            <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" height={30} className="block h-[30px] w-auto" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src="/logos/dissolve/tracify-icon.svg" alt="" width={36} height={36} className="block size-9" />
@@ -461,31 +456,11 @@ export function DashboardSidebar({
 
         {liveProject && showPanel ? <PinnedSection pins={pins} pathname={pathname} onToggle={togglePin} onNavClick={close} /> : null}
 
-        {sections.map((section) => {
-          // A folded group still shows the page you are on, so the current page never disappears.
-          const holdsActive = section.rows.some((row) => (row.children ?? [{ href: row.href ?? "" }]).some((leaf) => leaf.href && isLeafActive(leaf.href)));
-          const folded = closedSections.closed.includes(section.id) && !holdsActive;
-          return (
-            <div key={section.id}>
-              {!section.label ? null : showPanel ? (
-                <button
-                  type="button"
-                  aria-expanded={!folded}
-                  onClick={() => closedSections.toggle(section.id)}
-                  className="mt-3 flex h-8 w-full items-center gap-1 px-5 text-left font-mono text-[11px] !text-white/40 outline-none transition-colors hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
-                >
-                  <span>{section.label}</span>
-                  <Chevron open={!folded} className="size-3.5" />
-                </button>
-              ) : (
-                <div className="mx-3 my-3 border-t !border-white/10" aria-hidden />
-              )}
-              <Collapsible open={!folded || !showPanel}>
-                {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
-              </Collapsible>
-            </div>
-          );
-        })}
+        {sections.map((section, index) => (
+          <div key={section.id} className={cn(index > 0 && (showPanel ? "mt-2" : "mx-3 mt-2 border-t !border-white/10 pt-2"))}>
+            {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
+          </div>
+        ))}
       </nav>
 
       {liveProject && showPanel ? (
@@ -535,8 +510,6 @@ type RowContext = {
   resolveHref: (href: string) => string;
   close: () => void;
   pin: { isPinned: (href: string) => boolean; toggle: (pin: { href: string; title: string }) => void } | null;
-  rowOpen: (row: NavRow) => boolean;
-  toggleRow: (row: NavRow) => void;
   expandRow: (id: string) => void;
 };
 
@@ -564,10 +537,8 @@ function NewBadge() {
 function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   const Icon = row.icon;
   const hasChildren = Boolean(row.children?.length);
-  const childActive = hasChildren && row.children!.some((child) => ctx.isLeafActive(child.href));
-  const open = hasChildren && ctx.rowOpen(row);
-  // An open row shows its active page below it, so only a folded row carries the highlight.
-  const active = hasChildren ? childActive && !open : row.href ? ctx.isLeafActive(row.href) : false;
+  // Groups are one flat level: the header names the group and its pages are always listed.
+  const active = !hasChildren && row.href ? ctx.isLeafActive(row.href) : false;
 
   if (!ctx.expanded) {
     const state = cn(rowClass, "mx-auto w-10 justify-center px-0", active ? rowActive : rowIdle);
@@ -601,11 +572,10 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   if (hasChildren) {
     return (
       <>
-        <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowState, "text-left", )}>
+        <div className={cn(rowClass, "mx-2 w-[calc(100%-1rem)] !text-white")}>
           {label}
-          <Chevron open={open} className="ml-auto size-4" />
-        </button>
-        <Collapsible open={open}>
+        </div>
+        <Collapsible open>
           <div className="mx-2 ml-[23px] border-l !border-white/15">
             {row.children!.map((child) => {
               const leafOn = ctx.isLeafActive(child.href);

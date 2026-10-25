@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
@@ -144,7 +145,7 @@ export function Hero() {
               className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mb-4"
             >
               {!session ? (
-                <Link href="/sign-up" className="w-full sm:w-auto">
+                <Link href={appHref("/sign-up")} className="w-full sm:w-auto">
                   <Button
                     variant="default"
                     size="lg"
@@ -156,7 +157,7 @@ export function Hero() {
               ) : null}
 
               {session ? (
-                <Link href="/dashboard" className="w-full sm:w-auto">
+                <Link href={appHref("/dashboard")} className="w-full sm:w-auto">
                   <Button
                     variant="default"
                     size="lg"

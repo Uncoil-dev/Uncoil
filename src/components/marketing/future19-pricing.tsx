@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
@@ -107,7 +108,7 @@ export function Future19Pricing() {
                 ))}
               </ul>
               <Link
-                href={plan.name === "Free" ? "/sign-up" : pricingCheckoutHref(plan.name.toLowerCase() as "pro" | "team", billing)}
+                href={plan.name === "Free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.name.toLowerCase() as "pro" | "team", billing))}
                 className="mt-6 flex min-h-10 items-center justify-between border-t border-black/15 pt-4 font-mono text-[9px] uppercase tracking-[0.12em] hover:text-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
               >
                 Choose {plan.name}

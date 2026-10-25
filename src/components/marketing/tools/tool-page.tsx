@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { breadcrumbJsonLd, jsonLdString, SITE_URL } from "@/lib/seo";
@@ -61,7 +62,7 @@ export function ToolPage({
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">From one check to every run</p>
             <p className="mt-3 max-w-2xl text-balance text-lg leading-7">{tool.trackLine}</p>
           </div>
-          <Link href="/sign-up" className="group inline-flex min-h-12 items-center justify-center bg-[#f4d44d] px-6 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black transition-colors hover:bg-white">
+          <Link href={appHref("/sign-up")} className="group inline-flex min-h-12 items-center justify-center bg-[#f4d44d] px-6 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black transition-colors hover:bg-white">
             Track this automatically with Tracify
           </Link>
         </aside>
@@ -115,7 +116,7 @@ export function ToolPage({
       <ClosingBand
         title="Now measure the real thing."
         body="Send a first trace and see the true cost, speed and failures of every run."
-        actions={[{ href: "/sign-up", label: "Track this automatically with Tracify", primary: true }, { href: "/docs/quickstart", label: "Read the quickstart" }]}
+        actions={[{ href: appHref("/sign-up"), label: "Track this automatically with Tracify", primary: true }, { href: "/docs/quickstart", label: "Read the quickstart" }]}
       />
     </div>
   );

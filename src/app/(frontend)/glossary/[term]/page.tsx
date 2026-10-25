@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -67,10 +68,10 @@ export default async function GlossaryTermPage({ params }: { params: Promise<{ t
               </ul>
             </div>
           )}
-          <div className="mt-10"><HeaderAction href={t.link?.href ?? "/demo/project"}>{t.link?.label ?? "See it in a live trace"}</HeaderAction></div>
+          <div className="mt-10"><HeaderAction href={t.link?.href ?? appHref("/demo/project")}>{t.link?.label ?? "See it in a live trace"}</HeaderAction></div>
         </div>
       </CreamBand>
-      <ClosingBand title="Definitions are the start." body="Open a real trace and watch these terms move." actions={[{ href: "/demo/project", label: "Open the demo", primary: true }, { href: "/docs", label: "Read the docs" }]} />
+      <ClosingBand title="Definitions are the start." body="Open a real trace and watch these terms move." actions={[{ href: appHref("/demo/project"), label: "Open the demo", primary: true }, { href: "/docs", label: "Read the docs" }]} />
     </div>
   );
 }

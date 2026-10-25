@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -124,13 +125,13 @@ export function NavigationSystemExplorations({
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/sign-up"
+                  href={appHref("/sign-up")}
                   className="inline-flex h-12 items-center gap-3 bg-black px-6 font-mono text-[9px] uppercase tracking-[0.13em] text-white hover:bg-[#f4d44d] hover:text-black"
                 >
                   Start tracing <ArrowRight className="size-4" />
                 </Link>
                 <Link
-                  href="/demo"
+                  href={appHref("/demo")}
                   className="inline-flex h-12 items-center border border-black/25 px-6 font-mono text-[9px] uppercase tracking-[0.13em] hover:bg-[#f4d44d]"
                 >
                   Open sample run
@@ -284,7 +285,7 @@ export function NavigationSystemExplorations({
                 without stitching logs together.
               </p>
               <div className="mt-10">
-                <TextLink href="/demo">Inspect sample trace</TextLink>
+                <TextLink href={appHref("/demo")}>Inspect sample trace</TextLink>
               </div>
             </div>
             <div className="bg-black p-6 text-white md:p-8">
@@ -669,7 +670,7 @@ export function NavigationSystemExplorations({
                   One technical dispatch a month. Unsubscribe anytime.
                 </p>
                 <Link
-                  href="/sign-up"
+                  href={appHref("/sign-up")}
                   className="mt-6 inline-flex items-center gap-3 bg-black px-5 py-3 font-mono text-[9px] uppercase tracking-[0.12em] text-white hover:bg-[#f4d44d] hover:text-black"
                 >
                   Start free <ArrowRight className="size-3" />

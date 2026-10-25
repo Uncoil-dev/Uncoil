@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -82,7 +83,7 @@ export function Footer() {
               One technical dispatch a month. Unsubscribe anytime.
             </p>
             <Link
-              href="/sign-up"
+              href={appHref("/sign-up")}
               className="mt-6 inline-flex items-center gap-3 bg-black px-5 py-3 font-mono text-[9px] uppercase tracking-[0.12em] text-white hover:bg-[#f4d44d] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
             >
               Start free <ArrowRight className="size-3" />

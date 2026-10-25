@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -38,7 +39,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
     <div className="overflow-x-clip bg-[#090909]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(schema) }} />
       <PageHeader eyebrow={`Compare / ${c.name}`} title={`Tracify vs ${c.name}`} lede={c.oneLine}>
-        <HeaderAction href="/sign-up">Start free</HeaderAction>
+        <HeaderAction href={appHref("/sign-up")}>Start free</HeaderAction>
         {article && <HeaderAction href="#full-comparison" kind="secondary">Read the full comparison</HeaderAction>}
       </PageHeader>
 
@@ -111,7 +112,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
           </ul>
         </div>
       </CreamBand>
-      <ClosingBand title="See it on your own traces." body="Free to start. First trace in minutes." actions={[{ href: "/sign-up", label: "Start free", primary: true }, { href: "/demo/project", label: "Open the demo" }]} />
+      <ClosingBand title="See it on your own traces." body="Free to start. First trace in minutes." actions={[{ href: appHref("/sign-up"), label: "Start free", primary: true }, { href: appHref("/demo/project"), label: "Open the demo" }]} />
     </div>
   );
 }

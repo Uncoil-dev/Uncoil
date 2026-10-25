@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import type { Copy } from "./types";
 
 export const no: Copy = {
@@ -6,7 +7,7 @@ export const no: Copy = {
     tagline: "Ett kart per kjøring.",
     product: "Produkt",
     company: "Selskap",
-    links: [["Priser", "/no/pricing"], ["Dokumentasjon", "/docs"], ["Demo", "/demo"], ["Blogg", "/blog"], ["Kontakt", "/contact"]],
+    links: [["Priser", "/no/pricing"], ["Dokumentasjon", "/docs"], ["Demo", appHref("/demo")], ["Blogg", "/blog"], ["Kontakt", "/contact"]],
     legal: [["Personvern", "/privacy"], ["Vilkår", "/terms"], ["Informasjonskapsler", "/cookie-policy"]],
     note: "Dokumentasjon, blogg og juridiske sider er foreløpig på engelsk.",
   },

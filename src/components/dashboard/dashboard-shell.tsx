@@ -10,7 +10,7 @@ const COLLAPSED_STORAGE_KEY = "tracify.sidebar.collapsed";
 const LEGACY_COLLAPSED_STORAGE_KEY = "tracify:dashboard-sidebar";
 
 const COLLAPSED_WIDTH = 64;
-const EXPANDED_WIDTH = 280;
+const EXPANDED_WIDTH = 232;
 type DashboardTheme = "legacy" | "tracify-v2";
 
 export function DashboardShell({

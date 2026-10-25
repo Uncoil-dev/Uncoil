@@ -171,9 +171,9 @@ Copy-paste starters live in [`templates/`](./templates).
 ```python
 client = tracify.TracifyClient(
     sample_rate=0.1,                                   # record about 1 in 10 runs; each run is kept or dropped whole
-    redact={"pii": True, "patterns": [re.compile(r"ACME-\d{6}")]},  # emails, phones, card numbers + your own
+    redact={"patterns": [re.compile(r"ACME-\d{6}")]},  # emails, phones and card numbers are masked by default; add your own
     on_error=lambda error: log(str(error)),            # problems come with a plain-language fix (error.hint)
 )
 ```
 
-Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed.
+Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, pass `redact={"pii": False}`.

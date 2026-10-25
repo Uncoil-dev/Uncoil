@@ -186,3 +186,13 @@ const tracify = new TracifyClient({
 ```
 
 Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed.
+
+## Setup checker
+
+Not seeing traces? One command checks your key, region and network, then sends a test trace:
+
+```bash
+npx tracify-sdk doctor
+```
+
+It reads `TRACIFY_API_KEY` (and `TRACIFY_REGION` / `TRACIFY_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Tracify setup check" and tagged `tracify-doctor`; it counts as one trace on your plan.

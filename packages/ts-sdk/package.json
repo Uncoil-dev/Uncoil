@@ -10,6 +10,10 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "tracify-sdk": "dist/cli.js",
+    "tracify-doctor": "dist/cli.js"
+  },
   "files": [
     "dist"
   ],

@@ -209,11 +209,14 @@ export async function POST(request: NextRequest) {
   const redactionEnabled = project.redactionEnabled !== false;
   const redactionRules = project.redactionRules?.length ? project.redactionRules : [...DEFAULT_REDACTION_RULES];
 
-  await convex.mutation(api.projects.markApiKeyUsed, {
-    projectId: projectDocId,
-    apiKeyHash: hashApiKey(apiKey),
-    lastUsedAt: now,
-  });
+  // "Key last used" only needs minute accuracy; writing it on every span costs a Convex call each time.
+  if (!project.apiKeyLastUsedAt || now - project.apiKeyLastUsedAt >= 60_000) {
+    await convex.mutation(api.projects.markApiKeyUsed, {
+      projectId: projectDocId,
+      apiKeyHash: hashApiKey(apiKey),
+      lastUsedAt: now,
+    });
+  }
 
   const spanEvent: SpanEvent = {
         spanId: payload.spanId,

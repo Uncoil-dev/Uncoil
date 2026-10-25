@@ -68,28 +68,9 @@ export const processSpan = inngest.createFunction(
     });
 
     await step.run("check-thresholds", async () => {
-      const convex = getConvexClient();
-      const project = await convex.query(api.projects.getById, {
-        id: span.projectDocId as Id<"projects">,
-      });
-      const run = await convex.query(api.agentRuns.getByRunId, {
-        runId: span.runId,
-        projectId: span.projectDocId as Id<"projects">,
-      });
-
-      if (project?.costThresholdUsd && run && run.totalCostUsd > project.costThresholdUsd) {
-        await inngest.send({
-          name: "tracify/alert.triggered",
-          data: {
-            projectId: span.projectDocId,
-            runId: span.runId,
-            type: "cost_exceeded",
-            message: `Run ${span.runId} exceeded cost threshold of $${project.costThresholdUsd}. Current cost: $${run.totalCostUsd.toFixed(4)}`,
-            triggeredAt: new Date().toISOString(),
-          },
-        });
-      }
-
+      // The per-run cost limit used to be checked here with two Convex reads per span. Those reads ran
+      // without a signed-in user, so they always came back empty and never raised anything; cost limits
+      // are checked by the budgets schedule instead.
       if (span.spanType === "error") {
         await inngest.send({
           name: "tracify/alert.triggered",

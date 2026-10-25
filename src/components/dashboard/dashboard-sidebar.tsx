@@ -461,7 +461,7 @@ export function DashboardSidebar({
         {liveProject && showPanel ? <PinnedSection pins={pins} pathname={pathname} onToggle={togglePin} onNavClick={close} /> : null}
 
         {sections.map((section, index) => (
-          <div key={section.id} className={cn(index > 0 && (showPanel ? "mt-2" : "mx-3 mt-2 border-t !border-white/10 pt-2"))}>
+          <div key={section.id} className={cn(section.id === "help" && index > 0 && "mx-3 mt-2 border-t !border-white/10 pt-2", section.id !== "help" && index > 0 && !showPanel && "mt-1")}>
             {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
           </div>
         ))}

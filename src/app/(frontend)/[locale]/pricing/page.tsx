@@ -21,8 +21,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// Reads STRIPE_FOUNDING_COUPON_ID per request so the founding strip appears the moment the coupon is set.
+export const dynamic = "force-dynamic";
+
 export default async function Page({ params }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <PricingPage locale={locale} />;
+  return <PricingPage locale={locale} founding={Boolean(process.env.STRIPE_FOUNDING_COUPON_ID)} />;
 }

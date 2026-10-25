@@ -25,3 +25,9 @@
 - Search Console (3 months to Oct 22): 28 clicks, 1,695 views; views rose from ~15/day to 100/day Oct 19-22. "tracify" ranks ~7.7 but few clicks; the observability guide has ~580 views at position ~81.
 - New `/about` (brand + "other Tracify" note, Organization sameAs from `src/lib/about.ts`) and `/answers` hub plus 8 direct-answer pages (`src/lib/answers.ts`), all in sitemap, footer and llms.txt. Guide gained a best-practices section; 4 blog posts got sharper SEO titles.
 - Note: `validate:blog` already failed on rollback, orchestration, reliability and Braintrust posts before this work (highlight/panel/note counts); not fixed here.
+
+## 2026-10-25 Founding deal, demo Start Pro, sign-up plan line, profile picture, sample traces
+- Pricing page shows a yellow "Founding members: first 20 paying teams get 40% off for life" strip only while env `STRIPE_FOUNDING_COUPON_ID` is set (pages are `force-dynamic` for this). Checkout (`/api/stripe/checkout`) adds that coupon as a discount and falls back to the normal price if Stripe rejects it. The 20 cap is the coupon's own max redemptions in Stripe (create it: 40% off, duration forever, max redemptions 20). Not created yet.
+- Demo project: floating "Start Pro · $19" button next to "Start your own free". Sign-up form: one line on Free limits and Pro/Team prices from `pricing-plans.ts`.
+- Account > Profile: upload/change/remove picture (centre-cropped 192px WebP data URL saved as the Better Auth user image; shows in the sidebar account row).
+- `scripts/seed-sample-traces.mjs` sends a week of sample support-agent runs through `/api/ingest` (needs `SEED_API_KEY` + `SEED_BASE_URL`; staging has no analytics DB yet, so it only shows data once one exists). Backup file names with time live on the agent server, not in this repo; not changed.

@@ -20,3 +20,8 @@
 - Sidebar is now one column (280px, 64px icon-only when collapsed) instead of rail + panel: project switcher and "Quick search… Ctrl K" on top, Home, Dashboards, Recents (last 5 pages, localStorage `tracify.sidebar.recents.<projectId>`), then small-heading groups Observe / Improve / Manage / Help. Rows have icons; Tracing, Prompt management, Evaluation and Settings expand in place (auto-open on the page you are on). Alerts carries a dashed "New" badge. "Manage account" row (opens the account menu) and the collapse toggle sit at the bottom. Pins, saved views (under Tracing) and Finish setup are kept; the old "New alert" footer link is gone (Alerts page has the button).
 - The Ctrl K dialog now lives in the sidebar only; `DashboardCommandMenu showTrigger` is a plain button that fires `tracify:open-command`. The in-page sidebar toggle in the shell shows only on phones.
 - Recents follow the last 5 pages you opened (menu pages by menu name; a single trace/session/prompt page is named from its address, e.g. "Session sess_8f2a…"), per project, in this browser only.
+
+## 2026-10-25 SEO round after first 100-impression day
+- Search Console (3 months to Oct 22): 28 clicks, 1,695 views; views rose from ~15/day to 100/day Oct 19-22. "tracify" ranks ~7.7 but few clicks; the observability guide has ~580 views at position ~81.
+- New `/about` (brand + "other Tracify" note, Organization sameAs from `src/lib/about.ts`) and `/answers` hub plus 8 direct-answer pages (`src/lib/answers.ts`), all in sitemap, footer and llms.txt. Guide gained a best-practices section; 4 blog posts got sharper SEO titles.
+- Note: `validate:blog` already failed on rollback, orchestration, reliability and Braintrust posts before this work (highlight/panel/note counts); not fixed here.

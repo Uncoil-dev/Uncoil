@@ -26,6 +26,7 @@ const coreTerms: readonly Term[] = [
     expansion:
       "A good trace viewer shows inputs, outputs, timing, tokens and cost for every step, and lets you jump from a bad answer to the first step that went wrong. Tracify's trace viewer does this for every run sent through the SDK or OpenTelemetry.",
     related: ["ai-agent-trace", "span", "agent-run"],
+    link: { href: "/answers/what-is-a-trace-viewer", label: "How to view a trace" },
   },
   {
     slug: "tool-call-tracking",

@@ -1,12 +1,13 @@
 import { getPostDate, getPublishedPosts } from "@/lib/markdoc-blog";
 import { getDocs } from "@/lib/markdoc-docs";
 import { comparisons, integrationPages } from "@/lib/seo-pages";
+import { answers } from "@/lib/answers";
 import { glossaryTerms } from "@/lib/glossary";
 import { tools } from "@/lib/tools/registry";
 import type { MetadataRoute } from "next";
 
 // Real "last reviewed" date for pages that are not blog posts. Bump it when those pages change in a meaningful way.
-const SITE_REVIEWED = new Date("2026-10-19T00:00:00.000Z");
+const SITE_REVIEWED = new Date("2026-10-25T00:00:00.000Z");
 const INTERNAL_POSTS = new Set(["how-to-write-tracify-blog-posts"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -45,6 +46,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/docs`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/tools`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     ...tools.map((t) => ({ url: `${baseUrl}/tools/${t.slug}`, lastModified: SITE_REVIEWED, changeFrequency: (t.slug === "ai-api-status" ? "daily" : "monthly") as "daily" | "monthly", priority: 0.8 })),
+    { url: `${baseUrl}/about`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/answers`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },
+    ...answers.map((a) => ({ url: `${baseUrl}/answers/${a.slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     { url: `${baseUrl}/glossary`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },
     ...documentation.map((slug) => ({ url: `${baseUrl}/docs/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     ...productFeatures.map((slug) => ({ url: `${baseUrl}/product/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.8 })),

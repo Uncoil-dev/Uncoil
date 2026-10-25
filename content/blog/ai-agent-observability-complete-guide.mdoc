@@ -254,6 +254,19 @@ The [guide to choosing AI observability tools](/blog/ai-observability-tools) lis
 
 {% editorial-panel eyebrow="Decision room" title="Ship the smallest view that lets a stranger explain a run." body="If a new teammate can open a trace and explain what happened, why, and what to change, you are observable enough for now. If they need you in the room, add the missing field and nothing else." tone="paper" /%}
 
+## Best practices for AI agent observability
+
+If you only remember a few things, make them these:
+
+- **Trace one workflow end to end first.** One complete trace teaches more than ten half-instrumented services.
+- **Give every run a terminal status.** Success, failure, timeout or cancelled, so nothing disappears.
+- **Record cost and tokens on every model call.** Spend problems are easiest to catch while they are small.
+- **Segment before you average.** Compare by release, model, tool and customer type.
+- **Build evals from real bad runs.** A small set made from production failures beats a large generic one.
+- **Alert with an owner and a first action.** An alert nobody owns gets muted.
+
+Short answers to related questions live on our [questions page](/answers), including [how to trace a whole request](/answers/trace-ai-agent-request-lifecycle) and [how to catch failures before customers do](/answers/catch-ai-agent-failures-before-customers).
+
 ## Mistakes we see most often
 
 - **Logging everything, answering nothing.** Huge volume with no outcome or owner attached.

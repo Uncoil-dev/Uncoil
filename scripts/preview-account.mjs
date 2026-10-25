@@ -13,7 +13,7 @@ const file = ".preview-account.json";
 const origin = `http://localhost:${process.env.PREVIEW_PORT ?? "4000"}`;
 const account = existsSync(file)
   ? JSON.parse(readFileSync(file, "utf8"))
-  : { email: "preview-test@tracify.tech", password: `Pv-${randomBytes(9).toString("hex")}`, name: "Preview Tester" };
+  : { email: "preview-local@tracify.tech", password: `Pv-${randomBytes(9).toString("hex")}`, name: "Preview Tester" };
 
 async function post(path, body) {
   const res = await fetch(`${site}/api/auth/${path}`, {
@@ -30,7 +30,7 @@ try {
     const up = await post("sign-up/email", account);
     if (up.status !== 200) {
       console.error(`Could not create the test account (${up.status}): ${up.text.slice(0, 200)}`);
-      process.exit(0);
+      throw new Error("sign-up failed");
     }
     r = await post("sign-in/email", { email: account.email, password: account.password });
   }

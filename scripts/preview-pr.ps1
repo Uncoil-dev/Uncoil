@@ -22,8 +22,8 @@ $envFile = Join-Path $Repo ".env.local"
 if (-not (Test-Path $envFile)) { throw ".env.local not found in $Repo." }
 $stagingEnv = (Get-Content $envFile) |
   Where-Object { $_ -notmatch "^\s*(CONVEX_DEPLOYMENT|CONVEX_DEPLOY_KEY|NEXT_PUBLIC_CONVEX_URL|NEXT_PUBLIC_CONVEX_SITE_URL)\s*=" }
-$stagingEnv += "NEXT_PUBLIC_CONVEX_URL=https://$StagingConvex.convex.cloud"
-$stagingEnv += "NEXT_PUBLIC_CONVEX_SITE_URL=https://$StagingConvex.convex.site"
+$stagingEnv += "NEXT_PUBLIC_CONVEX_URL=https://$StagingConvex.eu-west-1.convex.cloud"
+$stagingEnv += "NEXT_PUBLIC_CONVEX_SITE_URL=https://$StagingConvex.eu-west-1.convex.site"
 if (($stagingEnv -join "`n") -match $LiveConvex) { throw "Stopped: settings mention the live backend ($LiveConvex)." }
 
 # 2. Fetch the PR.
@@ -48,7 +48,7 @@ if (-not (Test-Path "node_modules") -or $lockBefore -ne $lockAfter) { npm instal
 
 # 5. Staging test account (prints a login you can use on the sign-in page).
 $port = if ($Target -eq "marketing") { "3000" } else { "4000" }
-$env:NEXT_PUBLIC_CONVEX_SITE_URL = "https://$StagingConvex.convex.site"
+$env:NEXT_PUBLIC_CONVEX_SITE_URL = "https://$StagingConvex.eu-west-1.convex.site"
 $env:PREVIEW_PORT = $port
 node (Join-Path $Repo "scripts\preview-account.mjs")
 

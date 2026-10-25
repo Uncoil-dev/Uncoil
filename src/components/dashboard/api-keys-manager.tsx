@@ -77,7 +77,7 @@ export function ApiKeysManager({ projectId }: ApiKeysManagerProps) {
   return (
     <div className="space-y-8 max-w-3xl">
       <Card className="p-6 rounded-none border-border bg-white shadow-none space-y-6">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-3 max-sm:flex-col">
           <div>
             <h3 className="font-mono text-[14px] text-black uppercase tracking-widest">Active API Key</h3>
             <p className="text-[11px] text-black/55 mt-1">This key grants write access to your project&apos;s ingestion pipeline.</p>
@@ -86,7 +86,7 @@ export function ApiKeysManager({ projectId }: ApiKeysManagerProps) {
             variant="outline" 
             onClick={handleRotate}
             disabled={rotating}
-            className="rounded-none border-black/15 h-8 px-3 font-mono text-[10px] uppercase hover:bg-black hover:text-white"
+            className="rounded-none border-black/15 h-8 px-3 font-mono text-[10px] uppercase hover:bg-black hover:text-white max-sm:h-10"
           >
             {rotating ? "Rotating..." : <span className="flex items-center gap-2"><RefreshCw className="size-3" /> Rotate Key</span>}
           </Button>
@@ -116,7 +116,7 @@ export function ApiKeysManager({ projectId }: ApiKeysManagerProps) {
         ) : (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-10 bg-white border border-black/15 px-3 flex items-center font-mono text-sm text-black/55">
+              <div className="min-w-0 flex-1 h-10 bg-white border border-black/15 px-3 flex items-center font-mono text-sm text-black/55 overflow-x-auto whitespace-nowrap">
                 {project.apiKeyPrefix}************{project.apiKeyLast4}
               </div>
               <Button 

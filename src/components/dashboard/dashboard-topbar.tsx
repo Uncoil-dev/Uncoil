@@ -123,9 +123,9 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
         {title || "Dashboard"}{description ? `: ${description}` : ""}
       </span>
 
-      <div className="flex min-w-0 items-center gap-4">
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-black/55">
-          <div className="flex items-center gap-2 overflow-hidden">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className="flex min-w-0 items-center gap-2 text-[11px] uppercase tracking-wider text-black/55">
+          <div className="flex min-w-0 items-center gap-2 overflow-hidden">
             <Link
               href={dashboardHref}
               className="shrink-0 text-black transition-colors hover:text-black/70"
@@ -157,7 +157,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-[12px] text-black/60">
+      <div className="flex shrink-0 items-center gap-2 text-[12px] text-black/60">
         <div className="tracify-topbar-controls hidden items-center gap-1 lg:flex">
           <Link
             href={`/cloud/region?next=${encodeURIComponent(pathname)}`}
@@ -210,7 +210,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
             className={buttonVariants({
               variant: "ghost",
               size: "sm",
-              className: "h-8 px-3 text-[12px]",
+              className: "h-8 px-3 text-[12px] max-sm:hidden",
             })}
           >
             Setup

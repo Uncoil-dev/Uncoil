@@ -101,7 +101,7 @@ export function UsageMeterView({ usage }: { usage: { spans: number; planTier: st
         <div className="absolute -inset-y-1.5 w-px bg-black" style={{ left: `${includedAt}%` }} />
       </div>
       <div className="relative mt-2 h-4 font-mono text-[9px] uppercase tracking-widest text-black/55">
-        <span className="absolute -translate-x-1/2" style={{ left: `${warnAt}%` }}>80%</span>
+        <span className="absolute -translate-x-1/2 max-sm:hidden" style={{ left: `${warnAt}%` }}>80%</span>
         <span className="absolute -translate-x-full whitespace-nowrap pr-1" style={{ left: `${includedAt}%` }}>{plan.spans} included</span>
       </div>
       {hard > included ? <div className="mt-1 text-right font-mono text-[9px] uppercase tracking-widest text-black/55">Hatched = buffer · new data stops at {hard.toLocaleString()}</div> : null}

@@ -371,7 +371,7 @@ export function RunsTable({ projectId }: RunsTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {["all", "running", "completed", "failed", "cancelled"].map((status) => (
             <button
               key={status}
@@ -382,7 +382,7 @@ export function RunsTable({ projectId }: RunsTableProps) {
                 updateQuery({ q: search, status, limit: pageSize });
               }}
               className={cn(
-                "border px-3 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black",
+                "border px-3 py-1 max-sm:py-2.5 font-mono text-[10px] uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black",
                 statusFilter === status 
                   ? "bg-black text-white border-black"
                   : "bg-transparent text-black/55 border-black/15 hover:border-black/30"

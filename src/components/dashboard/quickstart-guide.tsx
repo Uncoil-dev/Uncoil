@@ -75,13 +75,13 @@ const runAgent = traceAgent(async () => {
         <TabsList className="bg-white border border-border rounded-none p-1 h-12">
           <TabsTrigger
             value="python"
-            className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-mono text-xs uppercase"
+            className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-mono text-xs uppercase max-sm:h-10 max-sm:px-4"
           >
             Python
           </TabsTrigger>
           <TabsTrigger
             value="typescript"
-            className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-mono text-xs uppercase"
+            className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-mono text-xs uppercase max-sm:h-10 max-sm:px-4"
           >
             TypeScript
           </TabsTrigger>
@@ -160,14 +160,14 @@ const runAgent = traceAgent(async () => {
 function CodeBlock({ code, onCopy, copied, language }: { code: string, onCopy: () => void, copied: boolean, language?: string }) {
   return (
     <div className="group relative">
-      <pre className="p-4 bg-[#050505] border border-black text-[12px] font-mono text-[#f4d44d] overflow-x-auto leading-relaxed">
+      <pre className="p-4 bg-[#050505] border border-black text-[12px] max-sm:pr-12 font-mono text-[#f4d44d] overflow-x-auto leading-relaxed">
         {code}
       </pre>
       <Button
         variant="ghost"
         size="icon"
         onClick={onCopy}
-        className="absolute right-2 top-2 size-8 bg-black/50 border border-black/15 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute right-2 top-2 size-8 bg-black/50 border border-black/15 opacity-0 group-hover:opacity-100 max-sm:opacity-100 transition-opacity"
       >
         {copied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4 text-black/55" />}
       </Button>

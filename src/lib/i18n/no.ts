@@ -12,7 +12,7 @@ export const no: Copy = {
   },
   home: {
     metaTitle: "Tracify | Observerbarhet og evaluering for AI-agenter",
-    metaDescription: "Følg hver beslutning, verktøykall, kostnad og kvalitetsmåling i én feilsøkingstidslinje.",
+    metaDescription: "Følg hver beslutning, verktøykall, kostnad og kvalitetsmåling i én feilsøkingstidslinje. Start gratis med 25 000 spans i måneden.",
     badgeNew: "Nytt",
     badge: "TypeScript SDK v0.4.0 · OpenAI, Anthropic og LangGraph",
     heroA: "Se agenten din",

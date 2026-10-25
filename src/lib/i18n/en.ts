@@ -12,7 +12,7 @@ export const en: Copy = {
   },
   home: {
     metaTitle: "Tracify | AI agent observability and evaluation",
-    metaDescription: "Trace every decision, tool call, cost, quality signal, and deployment change in one debugging timeline.",
+    metaDescription: "Trace every decision, tool call, cost, quality signal, and deployment change in one debugging timeline. Start free with 25,000 spans a month.",
     badgeNew: "New",
     badge: "TypeScript SDK v0.4.0 · OpenAI, Anthropic and LangGraph",
     heroA: "Watch your agent",

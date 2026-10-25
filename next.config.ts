@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   // impossible to run the marketing host and a regional cloud host side by side
   // the way they exist in production.
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  // The Dockerfile sets this so the image only ships the files the server
+  // needs instead of the full source tree and every dependency. Left unset,
+  // builds (Nixpacks, Vercel, local) behave exactly as before.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   allowedDevOrigins: ["localhost", "127.0.0.1"],
   typescript: {
     tsconfigPath: process.env.NODE_ENV === "production" ? "tsconfig.build.json" : "tsconfig.json",

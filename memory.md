@@ -34,3 +34,8 @@
 - Demo project: floating "Start Pro · $19" button next to "Start your own free". Sign-up form: one line on Free limits and Pro/Team prices from `pricing-plans.ts`.
 - Account > Profile: upload/change/remove picture (centre-cropped 192px WebP data URL saved as the Better Auth user image; shows in the sidebar account row).
 - `scripts/seed-sample-traces.mjs` sends a week of sample support-agent runs through `/api/ingest` (needs `SEED_API_KEY` + `SEED_BASE_URL`; staging has no analytics DB yet, so it only shows data once one exists). Backup file names with time live on the agent server, not in this repo; not changed.
+
+## 2026-10-25 Site audit: slow pages, IndexNow, long URL — draft PR (branch `claude/project-thread-spwo5y`)
+- IndexNow: public key file `public/<key>.txt` (the script reads the key from that file name), `npm run seo:indexnow` (dry run; `-- --submit [--since ISO]` sends sitemap URLs to api.indexnow.org, refuses if the live key file is wrong), and `.github/workflows/indexnow.yml` (after each push to main: waits for the key to be live, submits URLs with sitemap lastmod in the last 2 days; manual run with empty `since` sends everything). Tests in `scripts/indexnow.test.mjs` (part of `test:seo`). Not yet run against the live site.
+- Slow pages: `/pricing` and `/[locale]/pricing` were `force-dynamic` since the founding strip; now `revalidate = 300` (static, strip appears within 5 minutes of the env var). The seven slow URLs were not named in the audit paste, so other causes are not ruled out; recheck after the next crawl.
+- Four-parameter URL: the demo overview's "See the failing traces" link dropped `errors=1` (`status=error` already shows only failing traces).

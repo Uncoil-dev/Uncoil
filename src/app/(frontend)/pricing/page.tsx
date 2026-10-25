@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing", languages: languageAlternates("/pricing") },
 };
 
-// Reads STRIPE_FOUNDING_COUPON_ID per request so the founding strip appears the moment the coupon is set.
-export const dynamic = "force-dynamic";
+// Served as a cached static page and rebuilt every 5 minutes, so the founding strip (STRIPE_FOUNDING_COUPON_ID) appears within minutes without a per-request render.
+export const revalidate = 300;
 
 export default function Page() {
   return <PricingPage founding={Boolean(process.env.STRIPE_FOUNDING_COUPON_ID)} />;

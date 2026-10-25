@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 
 const bars = [
@@ -16,7 +17,7 @@ export function ArticleCta() {
         <p className="mt-4 text-balance font-pixel text-[clamp(2rem,4vw,3.2rem)] leading-[0.92] tracking-[-0.06em]">Watch your own agent think.</p>
         <p className="mt-4 max-w-sm text-sm leading-6">Send one real run and see every model call, tool call and failure on a single timeline.</p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/sign-up" className="inline-flex min-h-11 items-center bg-black px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#eceae3] transition-colors hover:bg-white hover:text-black">Start free →</Link>
+          <Link href={appHref("/sign-up")} className="inline-flex min-h-11 items-center bg-black px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#eceae3] transition-colors hover:bg-white hover:text-black">Start free →</Link>
           <Link href="/docs/quickstart" className="inline-flex min-h-11 items-center border border-black px-5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors hover:bg-black hover:text-[#eceae3]">Read the quickstart</Link>
         </div>
       </div>

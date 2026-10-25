@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -61,7 +62,7 @@ export default async function AnswerPage({ params }: { params: Promise<{ slug: s
           <div className="mt-10"><HeaderAction href={a.link.href}>{a.link.label}</HeaderAction></div>
         </div>
       </CreamBand>
-      <ClosingBand title="Answers are the start." body="Open a real trace and see it for yourself." actions={[{ href: "/demo/project", label: "Open the demo", primary: true }, { href: "/docs", label: "Read the docs" }]} />
+      <ClosingBand title="Answers are the start." body="Open a real trace and see it for yourself." actions={[{ href: appHref("/demo/project"), label: "Open the demo", primary: true }, { href: "/docs", label: "Read the docs" }]} />
     </div>
   );
 }

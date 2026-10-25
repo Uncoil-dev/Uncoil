@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import { pageMetadata, breadcrumbJsonLd, jsonLdString } from "@/lib/seo";
 import { PageHeader } from "@/components/marketing/page-header";
 import { ClosingBand, CreamBand, Eyebrow, HeaderAction } from "@/components/marketing/company/blocks";
@@ -45,7 +46,7 @@ export default function AboutPage() {
           </div>
         </div>
       </CreamBand>
-      <ClosingBand title="See it on a real trace." body="Open the demo project." actions={[{ href: "/demo/project", label: "Open the demo", primary: true }, { href: "/security", label: "Security" }]} />
+      <ClosingBand title="See it on a real trace." body="Open the demo project." actions={[{ href: appHref("/demo/project"), label: "Open the demo", primary: true }, { href: "/security", label: "Security" }]} />
     </div>
   );
 }

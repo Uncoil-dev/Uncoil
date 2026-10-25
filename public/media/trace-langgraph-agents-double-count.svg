@@ -1,0 +1,29 @@
+<svg viewBox="0 0 1600 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lgDblTitle lgDblDesc">
+  <title id="lgDblTitle">Two panels contrasting recording a model call twice with recording it once</title>
+  <desc id="lgDblDesc">Two panels. The left panel in red shows a handler and a wrapper both producing a span, giving two spans and doubled tokens. The right panel in yellow shows only a handler producing one span.</desc>
+  <rect width="1600" height="800" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >RECORD EACH MODEL CALL ONCE</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >pick one source per call</text>
+    <rect x="100" y="170" width="680" height="560" fill="#161616" stroke="#e06a5a" stroke-width="2" stroke-opacity="0.8"/>
+    <text x="440" y="215" fill="#e06a5a" font-size="20" opacity="1" text-anchor="middle" letter-spacing="2" >TWICE (WRONG)</text>
+    <rect x="180" y="300" width="200" height="80" fill="none" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="280" y="348" fill="#f6f1e6" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >handler</text>
+    <rect x="500" y="300" width="200" height="80" fill="none" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.6"/>
+    <text x="600" y="348" fill="#f6f1e6" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >wrapper</text>
+    <rect x="340" y="470" width="200" height="80" fill="#e06a5a" stroke="#e06a5a" stroke-width="2" stroke-opacity="1"/>
+    <text x="440" y="518" fill="#0a0a0a" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >2 spans</text>
+    <line x1="280" y1="380" x2="420" y2="470" stroke="#e06a5a" stroke-width="2" stroke-opacity="1" />
+    <line x1="600" y1="380" x2="460" y2="470" stroke="#e06a5a" stroke-width="2" stroke-opacity="1" />
+    <text x="440" y="640" fill="#e06a5a" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >tokens and cost doubled</text>
+    <rect x="820" y="170" width="680" height="560" fill="#161616" stroke="#f4d44d" stroke-width="2" stroke-opacity="0.8"/>
+    <text x="1160" y="215" fill="#f4d44d" font-size="20" opacity="1" text-anchor="middle" letter-spacing="2" >ONCE (RIGHT)</text>
+    <rect x="1060" y="300" width="200" height="80" fill="none" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="1160" y="348" fill="#f4d44d" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >handler only</text>
+    <rect x="1060" y="470" width="200" height="80" fill="#f4d44d" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="1160" y="518" fill="#0a0a0a" font-size="18" opacity="1" text-anchor="middle" letter-spacing="0" >1 span</text>
+    <line x1="1160" y1="380" x2="1160" y2="470" stroke="#f4d44d" stroke-width="2" stroke-opacity="1" />
+    <text x="1160" y="640" fill="#f4d44d" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >counts match the provider</text>
+
+  </g>
+</svg>

@@ -46,6 +46,12 @@ Set-Content -Path (Join-Path $Preview ".env.local") -Value $stagingEnv
 $lockAfter = if (Test-Path "package-lock.json") { (Get-FileHash package-lock.json).Hash } else { "" }
 if (-not (Test-Path "node_modules") -or $lockBefore -ne $lockAfter) { npm install }
 
-# 5. Run it.
+# 5. Staging test account (prints a login you can use on the sign-in page).
+$port = if ($Target -eq "marketing") { "3000" } else { "4000" }
+$env:NEXT_PUBLIC_CONVEX_SITE_URL = "https://$StagingConvex.convex.site"
+$env:PREVIEW_PORT = $port
+node (Join-Path $Repo "scripts\preview-account.mjs")
+
+# 6. Run it.
 Write-Host "Previewing PR $Pr ($Target). Press Ctrl+C to stop."
 npm run "dev:$Target"

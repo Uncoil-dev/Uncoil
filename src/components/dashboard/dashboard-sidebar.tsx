@@ -545,8 +545,8 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   const hasChildren = Boolean(row.children?.length);
   const childActive = hasChildren && row.children!.some((child) => ctx.isLeafActive(child.href));
   const open = hasChildren && ctx.rowOpen(row);
-  // An open dropdown shows its active page below it, so only a folded one carries the highlight.
-  const active = hasChildren ? childActive && !open : row.href ? ctx.isLeafActive(row.href) : false;
+  // Dropdown headers never highlight; the page itself does. A folded one only shows a dot.
+  const active = hasChildren ? false : row.href ? ctx.isLeafActive(row.href) : false;
 
   if (!ctx.expanded) {
     const state = cn(rowClass, "mx-auto w-10 justify-center px-0", active ? rowActive : rowIdle);
@@ -606,7 +606,8 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
       <>
         <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowClass, "mx-2 w-[calc(100%-1rem)] text-left", active ? rowActive : rowIdle)}>
           {label}
-          <Chevron open={open} className="ml-auto size-4" />
+          {childActive && !open ? <span className="ml-auto size-1.5 shrink-0 bg-[#f4d44d]" aria-label="Contains the current page" /> : null}
+          <Chevron open={open} className={cn("size-4", !(childActive && !open) && "ml-auto")} />
         </button>
         <Collapsible open={open}>
           <div className="mx-2 ml-[23px] border-l !border-white/15">

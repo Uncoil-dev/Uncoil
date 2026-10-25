@@ -43,7 +43,7 @@ type NavRow = {
 type NavSection = { id: string; label: string; rows: NavRow[] };
 
 const COLLAPSED_WIDTH = 64;
-const EXPANDED_WIDTH = 280;
+const EXPANDED_WIDTH = 232;
 const DETAIL_NOUNS: Record<string, string> = {
   runs: "Run",
   traces: "Trace",
@@ -365,7 +365,7 @@ export function DashboardSidebar({
     >
       <DashboardCommandMenu projectId={projectId} showTrigger={false} basePath={demo ? DEMO_BASE_PATH : isSynthetic ? "/playground" : undefined} />
 
-      <div className={cn("flex h-14 shrink-0 items-center", showPanel ? "px-4" : "justify-center")}>
+      <div className={cn("flex h-14 shrink-0 items-center", showPanel ? "px-3" : "justify-center")}>
         <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
           {showPanel ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -394,8 +394,8 @@ export function DashboardSidebar({
           aria-label="Quick search (Ctrl K)"
           title={showPanel ? undefined : "Quick search · Ctrl K"}
           className={cn(
-            "flex items-center border border-white/15 bg-[#141414] font-mono text-[13px] !text-[#b4b4b4] outline-none transition-colors hover:border-white/40 hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55",
-            showPanel ? "h-10 w-full gap-3 px-3" : "size-10 justify-center",
+            "flex items-center border border-white/15 bg-[#141414] font-mono text-[12px] !text-[#b4b4b4] outline-none transition-colors hover:border-white/40 hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55",
+            showPanel ? "h-9 w-full gap-2.5 px-2.5" : "size-10 justify-center",
           )}
         >
           <Search className="size-4 shrink-0" strokeWidth={1.7} />
@@ -422,12 +422,12 @@ export function DashboardSidebar({
                 onClick={() => setRowOverrides((current) => ({ ...current, recents: !recentsOpen }))}
                 className={cn(rowClass, "mx-2 w-[calc(100%-1rem)] text-left", recentsActive ? rowActive : rowIdle)}
               >
-                <History className="size-[17px] shrink-0" strokeWidth={1.7} />
+                <History className="size-[16px] shrink-0" strokeWidth={1.7} />
                 <span className="truncate">Recents</span>
                 <Chevron open={recentsOpen} className="ml-auto size-4" />
               </button>
               <Collapsible open={recentsOpen}>
-                <div className="mx-2 ml-[27px] border-l !border-white/15">
+                <div className="mx-2 ml-[23px] border-l !border-white/15">
                   {recents.map((recent) => {
                     const active = isLeafActive(recent.href);
                     return (
@@ -454,7 +454,7 @@ export function DashboardSidebar({
               onClick={() => expandRow("recents")}
               className={cn(rowClass, "mx-auto w-10 justify-center px-0", rowIdle)}
             >
-              <History className="size-[17px]" strokeWidth={1.7} />
+              <History className="size-[16px]" strokeWidth={1.7} />
             </button>
           )
         ) : null}
@@ -521,11 +521,11 @@ export function DashboardSidebar({
 }
 
 const rowClass =
-  "relative flex h-9 items-center gap-3 px-3 font-mono text-[13px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
+  "relative flex h-8 items-center gap-2.5 px-2.5 font-mono text-[12px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
 const rowActive = "!bg-[#1c1c1c] font-semibold !text-white before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#f4d44d]";
 const rowIdle = "!text-[#b4b4b4] hover:!bg-[#181818] hover:!text-white";
 const leafClass =
-  "relative flex h-8 items-center px-4 font-mono text-[12.5px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
+  "relative flex h-7 items-center px-3 font-mono text-[11.5px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
 const leafActive = "!text-white before:absolute before:inset-y-1 before:-left-px before:w-[2px] before:bg-[#f4d44d]";
 const leafIdle = "!text-[#9a9a9a] hover:!bg-[#181818] hover:!text-white";
 
@@ -574,17 +574,17 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
     if (hasChildren) {
       return (
         <button type="button" aria-label={row.title} title={row.title} onClick={() => ctx.expandRow(row.id)} className={state}>
-          <Icon className="size-[17px]" strokeWidth={1.7} />
+          <Icon className="size-[16px]" strokeWidth={1.7} />
         </button>
       );
     }
     return row.external ? (
       <a href={row.href} title={row.title} aria-label={row.title} className={state} onClick={ctx.close}>
-        <Icon className="size-[17px]" strokeWidth={1.7} />
+        <Icon className="size-[16px]" strokeWidth={1.7} />
       </a>
     ) : (
       <Link href={ctx.resolveHref(row.href ?? "/dashboard")} title={row.title} aria-label={row.title} aria-current={active ? "page" : undefined} className={state} onClick={ctx.close}>
-        <Icon className="size-[17px]" strokeWidth={1.7} />
+        <Icon className="size-[16px]" strokeWidth={1.7} />
       </Link>
     );
   }
@@ -592,7 +592,7 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   const rowState = cn(rowClass, "mx-2 w-[calc(100%-1rem)]", active ? rowActive : rowIdle);
   const label = (
     <>
-      <Icon className="size-[17px] shrink-0" strokeWidth={1.7} />
+      <Icon className="size-[16px] shrink-0" strokeWidth={1.7} />
       <span className="truncate">{row.title}</span>
       {row.badge ? <NewBadge /> : null}
     </>
@@ -606,7 +606,7 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
           <Chevron open={open} className="ml-auto size-4" />
         </button>
         <Collapsible open={open}>
-          <div className="mx-2 ml-[27px] border-l !border-white/15">
+          <div className="mx-2 ml-[23px] border-l !border-white/15">
             {row.children!.map((child) => {
               const leafOn = ctx.isLeafActive(child.href);
               const link = (

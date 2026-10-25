@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { breadcrumbJsonLd, jsonLdString, SITE_URL } from "@/lib/seo";
+import { breadcrumbJsonLd, jsonLdString } from "@/lib/seo";
 import { PageHeader } from "@/components/marketing/page-header";
 import { ClosingBand, CreamBand, Eyebrow, HeaderAction, SectionTitle } from "@/components/marketing/company/blocks";
 import { NewsletterPanel } from "@/components/marketing/newsletter-panel";
@@ -40,7 +40,6 @@ export function ToolPage({
   const related = tools.filter((t) => t.slug !== slug).slice(0, 4);
   const schema = [
     breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Free tools", path: "/tools" }, { name: tool.name, path }]),
-    { "@context": "https://schema.org", "@type": "WebApplication", name: tool.name, url: `${SITE_URL}${path}`, description: tool.description, applicationCategory: "DeveloperApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } },
     { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
   ];
   return (

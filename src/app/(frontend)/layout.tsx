@@ -52,7 +52,6 @@ export const metadata: Metadata = {
 const structuredData = [
   { "@context": "https://schema.org", "@type": "Organization", name: "Tracify", url: "https://www.tracify.tech", logo: "https://www.tracify.tech/logo.png", alternateName: ["Tracify AI agent observability", "tracify.tech"], description: "Tracify is an observability and evaluation platform for AI agents, at tracify.tech.", sameAs: ORG_PROFILES },
   { "@context": "https://schema.org", "@type": "WebSite", name: "Tracify", url: "https://www.tracify.tech", description: "AI agent observability and evaluation." },
-  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Tracify", applicationCategory: "DeveloperApplication", operatingSystem: "Web", url: "https://www.tracify.tech", description: "AI agent observability and evaluation for tracing failures, cost, quality, prompts, and releases.", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } },
 ];
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

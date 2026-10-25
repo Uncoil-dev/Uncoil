@@ -16,7 +16,7 @@ import {
   getPublishedPosts,
   type BlogPost,
 } from "@/lib/markdoc-blog";
-import { ogImageUrl } from "@/lib/seo";
+import { articleJsonLd, ogImageUrl } from "@/lib/seo";
 import { comparisons } from "@/lib/seo-pages";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -83,30 +83,21 @@ function formatDate(dateString: string) {
   });
 }
 
-function absoluteUrl(value: string) {
-  return value.startsWith("http") ? value : `https://www.tracify.tech${value}`;
-}
-
 function jsonLd(post: BlogPost) {
   const canonical = post.seo?.canonicalUrl || `https://www.tracify.tech${canonicalPath(post.slug!)}`;
   const image = post.heroImage?.og || post.heroImage?.src;
   const faqItems = extractBlogFaqItems(post.body);
 
   return [
-    {
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
+    articleJsonLd({
       headline: post.title,
       description: post.excerpt,
+      path: canonical,
+      image,
       datePublished: getPostDate(post),
       dateModified: post.updatedAt || getPostDate(post),
-      mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
-      author: post.author === "Tracify Team"
-        ? { "@type": "Organization", name: "Tracify", url: "https://www.tracify.tech" }
-        : { "@type": "Person", name: post.author },
-      publisher: { "@type": "Organization", name: "Tracify", url: "https://www.tracify.tech" },
-      image: image ? absoluteUrl(image) : undefined,
-    },
+      author: post.author,
+    }),
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",

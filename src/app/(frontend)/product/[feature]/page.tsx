@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { jsonLdString, pageMetadata, productJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -295,6 +295,10 @@ function ProductBreadcrumb({ title, slug }: { title: string; slug: string }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 }
 
+function ProductSchema({ title, description, slug }: { title: string; description: string; slug: string }) {
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(productJsonLd({ name: `Tracify ${title}`, description, path: `/product/${slug}` })) }} />;
+}
+
 function ProductFaqSchema({ faq }: { faq: FeaturePage["faq"] }) {
   const data = {
     "@context": "https://schema.org",
@@ -374,12 +378,12 @@ export default async function ProductFeaturePage({ params }: { params: Promise<{
   const page = productFeatures[feature as Feature];
   if (!page) notFound();
   if (isNewProductPage(feature)) {
-    return <main className="overflow-x-clip bg-[#090909]"><ProductBreadcrumb title={page.title} slug={feature} /><ProductFaqSchema faq={page.faq} /><ProductPage slug={feature} page={page} /></main>;
+    return <main className="overflow-x-clip bg-[#090909]"><ProductBreadcrumb title={page.title} slug={feature} /><ProductSchema title={page.title} description={page.description} slug={feature} /><ProductFaqSchema faq={page.faq} /><ProductPage slug={feature} page={page} /></main>;
   }
   const index = Object.keys(productFeatures).indexOf(feature);
   return <FuturePage>
     <ProductBreadcrumb title={page.title} slug={feature} />
-    <ProductFaqSchema faq={page.faq} />
+    <ProductSchema title={page.title} description={page.description} slug={feature} /><ProductFaqSchema faq={page.faq} />
     <ProductHero page={page} index={index} />
     <FutureBand label="Operating outcome"><div className="grid border-x border-black md:grid-cols-[1fr_1.25fr]"><p className="border-b border-black bg-[#f4d44d] p-7 font-pixel text-4xl leading-[0.92] tracking-[-0.045em] md:border-b-0 md:border-r md:p-10">{page.outcome}</p><div className="p-7 md:p-10"><p className="font-mono text-[8px] uppercase tracking-[0.14em] text-black/45">Use it when</p><p className="mt-5 max-w-2xl text-base leading-7 text-black/65">{page.bestFor}</p></div></div></FutureBand>
     <FutureBand label={`${page.title} / capability record`}><DetailGrid details={page.details} visual={page.visual} /></FutureBand>

@@ -39,8 +39,6 @@ type NavRow = {
   external?: boolean;
   badge?: "New";
   children?: NavLeaf[];
-  /** A group that is always open, shown as a plain label instead of a dropdown. */
-  open?: boolean;
 };
 type NavSection = { id: string; label: string; rows: NavRow[] };
 
@@ -194,7 +192,6 @@ export function DashboardSidebar({
             id: "observe",
             title: "Observe",
             icon: Activity,
-            open: true,
             children: [
               { title: "Tracing", href: workspaceHref("tracing") },
               ...(liveProject ? [{ title: "Steps", href: workspaceHref("steps") }] : []),
@@ -310,7 +307,7 @@ export function DashboardSidebar({
 
   // Rows with children open on their own while you are inside them; clicking a row overrides that for the session.
   const [rowOverrides, setRowOverrides] = useState<Record<string, boolean>>({});
-  const rowOpen = (row: NavRow) => row.open ?? rowOverrides[row.id] ?? Boolean(row.children?.some((child) => isLeafActive(child.href)));
+  const rowOpen = (row: NavRow) => rowOverrides[row.id] ?? Boolean(row.children?.some((child) => isLeafActive(child.href)));
   const toggleRow = (row: NavRow) => setRowOverrides((current) => ({ ...current, [row.id]: !rowOpen(row) }));
   const recentsOpen = rowOverrides.recents ?? false;
 
@@ -603,23 +600,6 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
               );
             })
     : null;
-
-  if (hasChildren && row.open) {
-    return (
-      <>
-        <div className="mt-1 flex h-7 items-center gap-2 px-5 font-mono text-[11px] uppercase tracking-wider !text-white/40">
-          <span className="truncate">{row.title}</span>
-          {row.badge ? <NewBadge /> : null}
-        </div>
-        <Collapsible open>
-          <div className="mx-2">
-            {leaves}
-          </div>
-        </Collapsible>
-      </>
-    );
-  }
-
 
   if (hasChildren) {
     return (

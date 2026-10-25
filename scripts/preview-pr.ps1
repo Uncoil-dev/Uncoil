@@ -1,11 +1,13 @@
 # Open any pull request as a localhost preview, without touching your working folder.
 #   preview 312              -> cloud app (dashboard) on http://localhost:4000
 #   preview 312 marketing    -> marketing site on http://localhost:3000
+#   preview new              -> a fresh, empty workspace from main on localhost:4000, for
+#                               building something new live with an agent (branch live-work)
 # The PR is checked out in a separate folder next to this repo (<repo>-preview),
 # so whatever branch or unsaved work you have here is never touched.
 # The backend is always forced to staging; it refuses to run if live is mentioned.
 param(
-  [Parameter(Mandatory = $true, Position = 0)][int]$Pr,
+  [Parameter(Mandatory = $true, Position = 0)][string]$Pr,
   [Parameter(Position = 1)][ValidateSet("cloud", "marketing")][string]$Target = "cloud"
 )
 $ErrorActionPreference = "Stop"
@@ -26,10 +28,18 @@ $stagingEnv += "NEXT_PUBLIC_CONVEX_URL=https://$StagingConvex.eu-west-1.convex.c
 $stagingEnv += "NEXT_PUBLIC_CONVEX_SITE_URL=https://$StagingConvex.eu-west-1.convex.site"
 if (($stagingEnv -join "`n") -match $LiveConvex) { throw "Stopped: settings mention the live backend ($LiveConvex)." }
 
-# 2. Fetch the PR.
-git fetch origin "pull/$Pr/head"
-if ($LASTEXITCODE -ne 0) { throw "Could not fetch PR $Pr." }
-$sha = (git rev-parse FETCH_HEAD)
+# 2. Fetch the PR (or the latest main for a fresh live-work branch).
+$isNew = $Pr -eq "new"
+if ($isNew) {
+  git fetch origin main
+  if ($LASTEXITCODE -ne 0) { throw "Could not fetch main." }
+  $sha = (git rev-parse FETCH_HEAD)
+} else {
+  if ($Pr -notmatch "^\d+$") { throw "Use a PR number, or 'new'." }
+  git fetch origin "pull/$Pr/head"
+  if ($LASTEXITCODE -ne 0) { throw "Could not fetch PR $Pr." }
+  $sha = (git rev-parse FETCH_HEAD)
+}
 
 # 3. Separate preview folder (git worktree, shares history, no second download).
 if (-not (Test-Path $Preview)) {
@@ -38,8 +48,14 @@ if (-not (Test-Path $Preview)) {
 }
 Set-Location $Preview
 $lockBefore = if (Test-Path "package-lock.json") { (Get-FileHash package-lock.json).Hash } else { "" }
-git checkout --detach --force $sha
-if ($LASTEXITCODE -ne 0) { throw "Could not check out PR $Pr." }
+if ($isNew) {
+  # Keep unfinished live work: only start over when the branch does not exist yet.
+  git rev-parse --verify live-work 2>$null | Out-Null
+  if ($LASTEXITCODE -ne 0) { git checkout -b live-work $sha } else { git checkout live-work }
+} else {
+  git checkout --detach --force $sha
+}
+if ($LASTEXITCODE -ne 0) { throw "Could not check out $Pr." }
 Set-Content -Path (Join-Path $Preview ".env.local") -Value $stagingEnv
 
 # 4. Install packages only when needed.

@@ -90,3 +90,4 @@ artifacts/reference-parity/
 # 2026-08-18; untracked then so `tb auth` can no longer commit a workspace token.
 .tinyb
 .preview-account.json
+public/preview-login.html

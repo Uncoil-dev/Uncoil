@@ -52,6 +52,16 @@ $env:NEXT_PUBLIC_CONVEX_SITE_URL = "https://$StagingConvex.eu-west-1.convex.site
 $env:PREVIEW_PORT = $port
 node (Join-Path $Repo "scripts\preview-account.mjs")
 
-# 6. Run it.
+# 6. Open the browser already signed in once the server answers.
+$url = "http://localhost:$port"
+Start-Job -ScriptBlock {
+  param($u)
+  for ($i = 0; $i -lt 120; $i++) {
+    try { Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec 3 | Out-Null; break } catch { Start-Sleep -Seconds 2 }
+  }
+  Start-Process "$u/preview-login.html"
+} -ArgumentList $url | Out-Null
+
+# 7. Run it.
 Write-Host "Previewing PR $Pr ($Target). Press Ctrl+C to stop."
 npm run "dev:$Target"

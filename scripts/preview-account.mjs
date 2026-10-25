@@ -1,7 +1,7 @@
 // Makes sure a staging test account exists for localhost previews and prints its login.
 // Talks to the staging Convex site only (never live) and writes the login to
 // .preview-account.json next to the preview, so agents and you use the same account.
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 
 const site = process.env.NEXT_PUBLIC_CONVEX_SITE_URL;
@@ -35,6 +35,16 @@ try {
     r = await post("sign-in/email", { email: account.email, password: account.password });
   }
   writeFileSync(file, JSON.stringify(account, null, 2));
+  // Same-origin helper page: opening it signs the browser in, then lands on the dashboard.
+  mkdirSync("public", { recursive: true });
+  writeFileSync(
+    "public/preview-login.html",
+    `<!doctype html><meta charset="utf-8"><title>Signing in...</title><body style="font:14px monospace;background:#eceae3;padding:2rem"><p id="m">Signing in to the preview...</p><script>
+fetch("/api/auth/sign-in/email",{method:"POST",headers:{"content-type":"application/json"},credentials:"same-origin",body:JSON.stringify(${JSON.stringify({ email: account.email, password: account.password })})})
+.then(r=>{if(!r.ok)throw new Error("status "+r.status);location.replace("/dashboard")})
+.catch(e=>{document.getElementById("m").textContent="Auto sign-in failed ("+e.message+"). Use the email and password shown in the PowerShell window."});
+</script>`,
+  );
   console.log(`\nTest login for the preview (staging only):\n  email:    ${account.email}\n  password: ${account.password}\n  sign-in check: ${r.status === 200 ? "works" : `failed (${r.status}) - ${r.text.slice(0, 120)}`}\n`);
 } catch (error) {
   console.error(`Test account step failed: ${error.message}`);

@@ -25,7 +25,7 @@ import { DashboardCommandMenu } from "@/components/dashboard/dashboard-command-m
 import { usePathname, useParams, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DEMO_BASE_PATH } from "@/lib/demo/demo-config";
-import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useClosedSections, useRecents, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
+import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useRecents, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
 
 type Icon = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
@@ -157,7 +157,6 @@ export function DashboardSidebar({
   const savedViews = useSavedViews(projectId, liveProject && showPanel);
   const recentsKey = projectId || (isSynthetic ? "playground" : demo ? "demo" : "");
   const recents = useRecents(recentsKey).recents;
-  const closedSections = useClosedSections();
 
   const home = useMemo<NavRow[]>(
     () => [
@@ -170,7 +169,7 @@ export function DashboardSidebar({
   const sections = useMemo<NavSection[]>(() => {
     const help: NavSection = {
       id: "help",
-      label: "Help",
+      label: "",
       rows: [
         ...(liveProject ? [{ id: "quickstart", title: "Quickstart", icon: Terminal, href: workspaceHref("quickstart") }] : []),
         { id: "docs", title: "Docs", icon: BookOpen, href: `${MARKETING_ORIGIN}/docs`, external: true },
@@ -208,7 +207,7 @@ export function DashboardSidebar({
       },
       {
         id: "improve",
-        label: "Improve",
+        label: "",
         rows: [
           {
             id: "prompts",
@@ -232,7 +231,7 @@ export function DashboardSidebar({
       },
       {
         id: "manage",
-        label: "Manage",
+        label: "",
         rows: [
           liveProject
             ? {
@@ -369,7 +368,7 @@ export function DashboardSidebar({
         <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
           {showPanel ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-name-on-dark.svg" alt="tracify" height={22} className="block h-[22px] w-auto" />
+            <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" height={30} className="block h-[30px] w-auto" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src="/logos/dissolve/tracify-icon.svg" alt="" width={36} height={36} className="block size-9" />
@@ -461,31 +460,11 @@ export function DashboardSidebar({
 
         {liveProject && showPanel ? <PinnedSection pins={pins} pathname={pathname} onToggle={togglePin} onNavClick={close} /> : null}
 
-        {sections.map((section) => {
-          // A folded group still shows the page you are on, so the current page never disappears.
-          const holdsActive = section.rows.some((row) => (row.children ?? [{ href: row.href ?? "" }]).some((leaf) => leaf.href && isLeafActive(leaf.href)));
-          const folded = closedSections.closed.includes(section.id) && !holdsActive;
-          return (
-            <div key={section.id}>
-              {!section.label ? null : showPanel ? (
-                <button
-                  type="button"
-                  aria-expanded={!folded}
-                  onClick={() => closedSections.toggle(section.id)}
-                  className="mt-3 flex h-8 w-full items-center gap-1 px-5 text-left font-mono text-[11px] !text-white/40 outline-none transition-colors hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
-                >
-                  <span>{section.label}</span>
-                  <Chevron open={!folded} className="size-3.5" />
-                </button>
-              ) : (
-                <div className="mx-3 my-3 border-t !border-white/10" aria-hidden />
-              )}
-              <Collapsible open={!folded || !showPanel}>
-                {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
-              </Collapsible>
-            </div>
-          );
-        })}
+        {sections.map((section, index) => (
+          <div key={section.id} className={cn(section.id === "help" && index > 0 && "mx-3 mt-2 border-t !border-white/10 pt-2", section.id !== "help" && index > 0 && !showPanel && "mt-1")}>
+            {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
+          </div>
+        ))}
       </nav>
 
       {liveProject && showPanel ? (
@@ -525,9 +504,9 @@ const rowClass =
 const rowActive = "!bg-[#1c1c1c] font-semibold !text-white before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#f4d44d]";
 const rowIdle = "!text-[#b4b4b4] hover:!bg-[#181818] hover:!text-white";
 const leafClass =
-  "relative flex h-7 items-center px-3 font-mono text-[11.5px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
-const leafActive = "!text-white before:absolute before:inset-y-1 before:-left-px before:w-[2px] before:bg-[#f4d44d]";
-const leafIdle = "!text-[#9a9a9a] hover:!bg-[#181818] hover:!text-white";
+  "relative flex h-8 items-center px-3 font-mono text-[12px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
+const leafActive = "!bg-[#1c1c1c] font-semibold !text-white before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#f4d44d]";
+const leafIdle = "!text-[#b4b4b4] hover:!bg-[#181818] hover:!text-white";
 
 type RowContext = {
   expanded: boolean;
@@ -566,8 +545,8 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   const hasChildren = Boolean(row.children?.length);
   const childActive = hasChildren && row.children!.some((child) => ctx.isLeafActive(child.href));
   const open = hasChildren && ctx.rowOpen(row);
-  // An open row shows its active page below it, so only a folded row carries the highlight.
-  const active = hasChildren ? childActive && !open : row.href ? ctx.isLeafActive(row.href) : false;
+  // Dropdown headers never highlight; the page itself does. A folded one only shows a dot.
+  const active = hasChildren ? false : row.href ? ctx.isLeafActive(row.href) : false;
 
   if (!ctx.expanded) {
     const state = cn(rowClass, "mx-auto w-10 justify-center px-0", active ? rowActive : rowIdle);
@@ -598,16 +577,8 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
     </>
   );
 
-  if (hasChildren) {
-    return (
-      <>
-        <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowState, "text-left", )}>
-          {label}
-          <Chevron open={open} className="ml-auto size-4" />
-        </button>
-        <Collapsible open={open}>
-          <div className="mx-2 ml-[23px] border-l !border-white/15">
-            {row.children!.map((child) => {
+  const leaves = hasChildren
+    ? row.children!.map((child) => {
               const leafOn = ctx.isLeafActive(child.href);
               const link = (
                 <Link
@@ -627,7 +598,20 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
                   <PinButton pinned={ctx.pin.isPinned(child.href)} title={child.title} onToggle={() => ctx.pin?.toggle({ href: child.href, title: child.title })} />
                 </div>
               );
-            })}
+            })
+    : null;
+
+  if (hasChildren) {
+    return (
+      <>
+        <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowClass, "mx-2 w-[calc(100%-1rem)] text-left", active ? rowActive : rowIdle)}>
+          {label}
+          {childActive && !open ? <span className="ml-auto size-1.5 shrink-0 bg-[#f4d44d]" aria-label="Contains the current page" /> : null}
+          <Chevron open={open} className={cn("size-4", !(childActive && !open) && "ml-auto")} />
+        </button>
+        <Collapsible open={open}>
+          <div className="mx-2 ml-[23px] border-l !border-white/15">
+            {leaves}
           </div>
         </Collapsible>
       </>

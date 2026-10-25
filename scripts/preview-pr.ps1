@@ -78,6 +78,25 @@ Start-Job -ScriptBlock {
   Start-Process "$u/preview-login.html"
 } -ArgumentList $url | Out-Null
 
-# 7. Run it.
-Write-Host "Previewing PR $Pr ($Target). Press Ctrl+C to stop."
+# 7. Keep the preview current: every 15 seconds check whether the PR has new commits and
+# switch to them, so the open page updates by itself while this window stays running.
+if (-not $isNew) {
+  Start-Job -ScriptBlock {
+    param($repo, $preview, $pr)
+    $last = (git -C $preview rev-parse HEAD)
+    while ($true) {
+      Start-Sleep -Seconds 15
+      git -C $repo fetch origin "pull/$pr/head" 2>$null
+      if ($LASTEXITCODE -ne 0) { continue }
+      $new = (git -C $repo rev-parse FETCH_HEAD)
+      if ($new -ne $last -and -not (git -C $preview status --porcelain --untracked-files=no)) {
+        git -C $preview checkout --detach $new 2>$null
+        if ($LASTEXITCODE -eq 0) { $last = $new }
+      }
+    }
+  } -ArgumentList $Repo, $Preview, $Pr | Out-Null
+}
+
+# 8. Run it.
+Write-Host "Previewing PR $Pr ($Target). New commits on the PR show up on their own. Press Ctrl+C to stop."
 npm run "dev:$Target"

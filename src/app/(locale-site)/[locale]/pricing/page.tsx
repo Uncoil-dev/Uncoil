@@ -21,8 +21,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// Served as a cached static page and rebuilt every 5 minutes, so the founding strip (STRIPE_FOUNDING_COUPON_ID) appears within minutes without a per-request render.
+export const revalidate = 300;
+
 export default async function Page({ params }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <PricingPage locale={locale} />;
+  return <PricingPage locale={locale} founding={Boolean(process.env.STRIPE_FOUNDING_COUPON_ID)} />;
 }

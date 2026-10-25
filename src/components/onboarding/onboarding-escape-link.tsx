@@ -70,7 +70,7 @@ export function OnboardingEscapeLink({
 
   const label = returnPath ? "Back" : "Skip setup";
   const destination =
-    returnPath || (projectId ? `/dashboard/${projectId}` : "/dashboard");
+    returnPath || (projectId ? `/dashboard/${projectId}/tracing` : "/dashboard");
 
   function leaveOnboarding() {
     dismissOnboarding();

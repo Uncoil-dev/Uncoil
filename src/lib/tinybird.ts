@@ -400,13 +400,18 @@ export type TraceListRow = {
 /** A step that failed; the same rule as a trace's errorCount. */
 export const IS_ERROR = `(spanType = 'error' OR errorType != '')`;
 const ERROR_TOOL = `if(toolName != '', toolName, modelId)`;
-// The first 120 characters of the error message with ids, paths and numbers replaced, so the same failure with
-// different ids groups together. Regexes avoid backslashes so they read the same in JS and ClickHouse literals.
-const ERROR_MESSAGE_KEY = `leftUTF8(trimBoth(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(
+// The first 120 characters of the error message with the parts that change between occurrences (urls, emails, ids,
+// paths, quoted values, long tokens, numbers) replaced, so similar failures group together. Regexes avoid backslashes
+// so they read the same in JS and ClickHouse literals.
+const ERROR_MESSAGE_KEY = `leftUTF8(trimBoth(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(replaceRegexpAll(
   substring(errorMessage, 1, 600),
+  '[a-zA-Z][a-zA-Z0-9+.-]*://[^[:space:]"<>]+', '<url>'),
+  '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+[.][A-Za-z]{2,}', '<email>'),
   '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<id>'),
   '(~|[.]{1,2})?(/[^/[:space:]"(),:;<>]+){2,}/?', '<path>'),
+  '(sk|pk|rk|ghp|xox[a-z])[-_][A-Za-z0-9_-]{10,}', '<token>'),
   '[0-9a-fA-F]{8,}', '<id>'),
+  '"[^"]*"|[\\x27][^\\x27]*[\\x27]', '<value>'),
   '[0-9]+([.][0-9]+)?', '<n>'),
   '[[:space:]]+', ' ')), 120)`;
 const ERROR_GROUP_ID = `lower(hex(cityHash64(${ERROR_TOOL}, errorType, ${ERROR_MESSAGE_KEY})))`;
@@ -1021,6 +1026,27 @@ export async function deleteProjectAnalytics(projectId: string) {
           cache: "no-store",
         });
     if (!res.ok) throw new Error(`Could not delete ${table}: ${res.status}`);
+  }
+}
+
+/** Removes analytics rows older than `days` days for the given projects (one delete per table, however many projects). */
+export async function purgeExpiredAnalytics(projectIds: string[], days: number) {
+  if (!projectIds.length) return;
+  if (!Number.isInteger(days) || days < 1) throw new Error("Retention days must be a positive integer");
+  const ids = projectIds.map((id) => `'${sqlString(id)}'`).join(",");
+  for (const table of ["spans", "evaluation_scores"] as const) {
+    const condition = `projectId IN (${ids}) AND createdAt < now() - INTERVAL ${days} DAY`;
+    const res = CLICKHOUSE_URL
+      ? await fetch(`${CLICKHOUSE_URL}/?${new URLSearchParams({ database: CLICKHOUSE_DATABASE })}`, {
+          method: "POST", headers: clickhouseHeaders(), body: `ALTER TABLE ${table} DELETE WHERE ${condition}`, cache: "no-store",
+        })
+      : await fetch(`${TINYBIRD_HOST}/v0/datasources/${table}/delete`, {
+          method: "POST",
+          headers: { ...getHeaders(), "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ delete_condition: condition }),
+          cache: "no-store",
+        });
+    if (!res.ok) throw new Error(`Could not purge ${table}: ${res.status}`);
   }
 }
 

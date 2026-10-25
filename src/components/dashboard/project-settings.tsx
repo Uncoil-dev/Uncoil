@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, ArrowRight, Send, Save } from "lucide-react";
 import { captureAnalytics } from "@/lib/analytics";
 import { DEFAULT_REDACTION_RULES } from "@/lib/redaction";
+import { effectiveRetentionDays, planRetentionDays } from "@/lib/retention";
 
 const isPostHogConfigured = Boolean(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
@@ -61,7 +62,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
       setTeamsWebhookUrl(project.teamsWebhookUrl || "");
       setRedactionEnabled(project.redactionEnabled !== false);
       setRedactionRules(project.redactionRules?.length ? project.redactionRules : [...DEFAULT_REDACTION_RULES]);
-      setRetentionDays(project.retentionDays?.toString() || "365");
+      setRetentionDays(String(effectiveRetentionDays(project.planTier, project.retentionDays) ?? 365));
     }
   }, [project]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -254,7 +255,8 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
         </div>
         <div className="max-w-xs space-y-2">
           <label className="text-[10px] uppercase tracking-widest text-black/55 font-mono">Retention (days)</label>
-          <Input type="number" min="1" max="3650" value={retentionDays} onChange={(e) => setRetentionDays(e.target.value)} className="rounded-none border-black/15 bg-white text-black font-mono h-10" />
+          <p className="text-[11px] text-black/55">{planRetentionDays(project?.planTier) === null ? "Your plan sets no limit; older data is removed after this many days." : `Your plan keeps data for ${planRetentionDays(project?.planTier)} days at most. Older data is removed every day.`}</p>
+          <Input type="number" min="1" max={planRetentionDays(project?.planTier) ?? 3650} value={retentionDays} onChange={(e) => setRetentionDays(e.target.value)} className="rounded-none border-black/15 bg-white text-black font-mono h-10" />
         </div>
       </Card>
 

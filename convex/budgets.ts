@@ -164,7 +164,7 @@ export const checkAll = internalAction({
       try {
         const notice: Notice | null = await ctx.runMutation(internal.budgets.evaluate, { budgetId });
         if (!notice) continue;
-        const sends: Promise<void>[] = [];
+        const sends: Promise<unknown>[] = [];
         const heading = notice.level === "over" ? "Budget passed" : "Budget warning";
         if (notice.emailTo.length > 0) {
           sends.push(sendEmail({

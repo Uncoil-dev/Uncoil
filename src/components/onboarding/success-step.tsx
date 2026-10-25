@@ -35,7 +35,7 @@ export function SuccessStep({
           Open your trace →
         </Link>
         <Link
-          href={`/dashboard/${projectId}`}
+          href={`/dashboard/${projectId}/tracing`}
           className="inline-flex h-12 items-center justify-center border border-black/25 px-6 font-mono text-[12px] uppercase tracking-[0.1em] text-black/70 transition-colors hover:border-black hover:text-black"
         >
           Go to dashboard

@@ -40,7 +40,7 @@ export function DashboardHomeRouter() {
       projects[0];
 
     window.localStorage.setItem(LAST_PROJECT_STORAGE_KEY, project._id);
-    router.replace(`/dashboard/${project._id}`);
+    router.replace(`/dashboard/${project._id}/tracing`);
   }, [auth.status, projects, router]);
 
   if (auth.status === "error") {

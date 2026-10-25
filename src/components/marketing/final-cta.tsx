@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,7 @@ export function FinalCTA() {
 
           {/* Buttons */}
           <div className="flex flex-col md:flex-row gap-4 mt-auto">
-            <Link href="/sign-up" className="w-full md:w-auto">
+            <Link href={appHref("/sign-up")} className="w-full md:w-auto">
               <Button
                 variant="default"
                 className="w-full md:w-auto font-mono text-[13px] h-11 px-8 uppercase"

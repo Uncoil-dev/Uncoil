@@ -61,7 +61,7 @@ export default async function DemoOverviewPage({ searchParams }: { searchParams:
           <h2 className="mt-1.5 text-base font-semibold text-white">Release v1.14.0 made refunds time out. v1.14.1 fixed it.</h2>
           <p className="mt-1 max-w-3xl text-[#C9CED6]">The refund agent&apos;s payment call started failing after the release and recovered a few days later. Follow the same path you would use on a real incident.</p>
           <div className="mt-3 flex flex-wrap gap-2 font-mono text-xs">
-            <Link href={`${DEMO_BASE_PATH}/tracing?release=v1.14.0&status=error&range=30d&errors=1`} className="bg-[#f4d44d] px-3 py-1.5 !text-[#090909] hover:bg-[#fff4b5]">See the failing traces</Link>
+            <Link href={`${DEMO_BASE_PATH}/tracing?release=v1.14.0&status=error&range=30d`} className="bg-[#f4d44d] px-3 py-1.5 !text-[#090909] hover:bg-[#fff4b5]">See the failing traces</Link>
             <Link href={`${DEMO_BASE_PATH}/tracing?traceName=refund-agent&release=v1.14.1&range=30d`} className="border border-white/25 px-3 py-1.5 !text-white hover:border-white">See refunds after the fix</Link>
           </div>
         </section>

@@ -1,10 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { enforcedSpanLimit, monthKey, planLimitMessage, secondsUntilNextMonth } from "./plan-limits.ts";
+import { enforcedSpanLimit, usageLevel, monthKey, planLimitMessage, secondsUntilNextMonth } from "./plan-limits.ts";
 
-test("only the free plan is blocked at its limit", () => {
+test("free stops at its limit, Pro and Team at their limit plus 10%", () => {
   assert.equal(enforcedSpanLimit("free"), 25_000);
-  for (const tier of ["pro", "team", "enterprise", undefined, "unknown"]) assert.equal(enforcedSpanLimit(tier), null);
+  assert.equal(enforcedSpanLimit("pro"), 550_000);
+  assert.equal(enforcedSpanLimit("team"), 2_200_000);
+  for (const tier of ["enterprise", undefined, "unknown"]) assert.equal(enforcedSpanLimit(tier), null);
+});
+
+test("usage level walks ok, warn, over, blocked", () => {
+  assert.equal(usageLevel(399_999, "pro"), "ok");
+  assert.equal(usageLevel(400_000, "pro"), "warn");
+  assert.equal(usageLevel(500_000, "pro"), "over");
+  assert.equal(usageLevel(549_999, "pro"), "over");
+  assert.equal(usageLevel(550_000, "pro"), "blocked");
+  assert.equal(usageLevel(25_000, "free"), "blocked");
+  assert.equal(usageLevel(9e9, "enterprise"), "ok");
 });
 
 test("month key uses UTC and pads the month", () => {
@@ -20,4 +32,5 @@ test("seconds until reset count to the first of next month, across year end", ()
 
 test("message names the limit", () => {
   assert.match(planLimitMessage(25_000), /25,000 free spans/);
+  assert.match(planLimitMessage(550_000, "pro"), /all 550,000 spans/);
 });

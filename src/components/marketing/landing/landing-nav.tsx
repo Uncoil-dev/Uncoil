@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -14,14 +15,14 @@ const art = "[image-rendering:pixelated]";
 const menus = {
   Product: {
     img: "/images/landing/hero-graph.png",
-    feature: { title: "See the full loop.", body: "Trace a run, evaluate the output, compare changes, ship with evidence.", href: "/demo/project", label: "Open the demo" },
+    feature: { title: "See the full loop.", body: "Trace a run, evaluate the output, compare changes, ship with evidence.", href: appHref("/demo/project"), label: "Open the demo" },
     links: [
       ["Observe", "Traces, sessions and costs", "/product/trace-viewer"],
       ["Improve", "Evaluations, datasets, prompts", "/product/evaluation-engine"],
       ["Release", "Experiments, gates, monitors", "/product/lifecycle"],
       ["Operate", "Alerts, reports, integrations", "/integrations"],
       ["Free tools", "Token counter, price and log checkers", "/tools"],
-      ["Live demo", "Explore a sample project", "/demo/project"],
+      ["Live demo", "Explore a sample project", appHref("/demo/project")],
     ],
   },
   Solutions: {
@@ -133,7 +134,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
             </ul>
             <div className="flex items-center gap-2">
               {session ? (
-                <Link href="/dashboard" className="hidden bg-[#f4d44d] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-black hover:bg-white sm:inline-flex">
+                <Link href={appHref("/dashboard")} className="hidden bg-[#f4d44d] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-black hover:bg-white sm:inline-flex">
                   Dashboard
                 </Link>
               ) : (
@@ -141,7 +142,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                   <Link href="/cloud?next=/sign-in" className="hidden px-3 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-white/75 hover:text-white sm:inline-flex">
                     Sign in
                   </Link>
-                  <Link href="/cloud?next=/sign-up" className="group relative hidden overflow-hidden bg-[#f4d44d] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-black sm:inline-flex">
+                  <Link href={appHref("/sign-up")} className="group relative hidden overflow-hidden bg-[#f4d44d] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-black sm:inline-flex">
                     <span className="absolute inset-0 -translate-x-full bg-white transition-transform duration-300 group-hover:translate-x-0" />
                     <span className="relative flex items-center gap-2">
                       Start free <ArrowRight className="size-3.5" aria-hidden="true" />
@@ -246,7 +247,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                   <Link href="/pricing" onClick={() => setMobile(false)} className="font-pixel text-4xl tracking-[-0.06em]">
                     Pricing
                   </Link>
-                  <Link href={session ? "/dashboard" : "/cloud?next=/sign-up"} onClick={() => setMobile(false)} className="mt-4 flex items-center justify-between bg-[#f4d44d] px-5 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black">
+                  <Link href={session ? appHref("/dashboard") : appHref("/sign-up")} onClick={() => setMobile(false)} className="mt-4 flex items-center justify-between bg-[#f4d44d] px-5 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black">
                     {session ? "Dashboard" : "Start free"} <ArrowRight className="size-4" aria-hidden="true" />
                   </Link>
                   {!session && (

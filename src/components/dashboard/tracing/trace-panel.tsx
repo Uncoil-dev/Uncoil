@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { buildSpanTree, type SpanTreeNode } from "@/lib/tracify-ports/treeBuilding";
 import { chatMessages, compactNumber, downloadFile, formatCost, formatDuration, formatTime, parsePayload } from "./format";
 import { AskAiPanel } from "./ask-ai-panel";
@@ -36,6 +36,10 @@ function matchesFilter(span: Span, filter: StepFilter) {
   return true;
 }
 
+function earliestFailedId(list: Span[]) {
+  return list.filter(isFailed).sort((x, y) => toIso(x.createdAt).localeCompare(toIso(y.createdAt)))[0]?.spanId ?? null;
+}
+
 function spanName(span: Span) {
   return span.toolName || span.modelId || span.traceName || span.spanType || "span";
 }
@@ -67,7 +71,7 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
         if (!live) return;
         if (body.unavailable && !body.spans.length) throw new Error("Step data is temporarily unavailable.");
         setSpans(body.spans);
-        setSelectedId((current) => current ?? body.spans[0]?.spanId ?? null);
+        setSelectedId((current) => current ?? earliestFailedId(body.spans) ?? body.spans[0]?.spanId ?? null);
       })
       .catch((reason: unknown) => live && setError(reason instanceof Error ? reason.message : "Could not load this trace"));
     return () => { live = false; };
@@ -148,7 +152,17 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
   }, [filtering, rows, tree, bySpanId, stepFilter, stepSearch]);
   const counts = useMemo(() => Object.fromEntries(STEP_FILTERS.map((filter) => [filter.id, (spans ?? []).filter((span) => matchesFilter(span, filter.id)).length])) as Record<StepFilter, number>, [spans]);
   // Earliest failing step by start time.
-  const firstErrorId = useMemo(() => (spans ?? []).filter(isFailed).sort((x, y) => toIso(x.createdAt).localeCompare(toIso(y.createdAt)))[0]?.spanId ?? null, [spans]);
+  const firstErrorId = useMemo(() => earliestFailedId(spans ?? []), [spans]);
+  const firstError = firstErrorId ? bySpanId.get(firstErrorId) : undefined;
+
+  // When a trace opens on its failing step, bring that step into view once (not on every live update).
+  const scrolledToFailure = useRef(false);
+  useEffect(() => {
+    if (scrolledToFailure.current || !spans?.length) return;
+    scrolledToFailure.current = true;
+    if (!firstErrorId || selectedId !== firstErrorId) return;
+    requestAnimationFrame(() => document.getElementById(`${view === "tree" ? "step" : view}-${firstErrorId}`)?.scrollIntoView({ block: "center", inline: "center" }));
+  }, [spans, firstErrorId, selectedId, view]);
 
   const totalMs = Math.max(1, ...tree.roots.map((root) => root.subtreeWallClockDurationMs));
   const selected = selectedId ? bySpanId.get(selectedId) : undefined;
@@ -223,6 +237,16 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
         {session ? <button type="button" className="text-[#8AB4FF] hover:underline" onClick={() => onFilter("sessionId", session)}>session: {session}</button> : null}
         {(summary?.tags ?? []).map((tag) => <button key={tag} type="button" className="rounded bg-[#1A1F27] px-1.5 py-0.5 hover:bg-[#232A34]" onClick={() => onFilter("tag", tag)}>{tag}</button>)}
       </div>
+
+      {firstError ? (
+        <div role="status" className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#5A2A2A] bg-[#1E1314] px-3 py-2 text-xs">
+          <span className="rounded bg-[#3A1C1F] px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-[#FF8A8A]">{counts.error > 1 ? `Failed · first of ${counts.error}` : "Failed"}</span>
+          <span className="font-medium text-[#FFB4B4]">{spanName(firstError)}</span>
+          {firstError.errorType ? <span className="font-mono text-[#FF8A8A]">{firstError.errorType}</span> : null}
+          {firstError.errorMessage ? <span className="min-w-0 flex-1 truncate text-[#E6C3C3]" title={firstError.errorMessage}>{firstError.errorMessage}</span> : <span className="flex-1" />}
+          <button type="button" onClick={jumpToError} disabled={selectedId === firstErrorId} className="h-6 rounded-md border border-[#5A2A2A] px-2 text-[#FFB4B4] hover:bg-[#2A1719] disabled:opacity-50">{selectedId === firstErrorId ? "Showing" : "Show failing step"}</button>
+        </div>
+      ) : null}
 
       {error ? (
         <div role="alert" className="m-4 rounded-lg border border-[#5A2A2A] bg-[#1E1314] p-4 text-sm">

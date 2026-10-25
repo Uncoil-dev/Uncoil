@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { pageMetadata, breadcrumbJsonLd, jsonLdString } from "@/lib/seo";
 import { comparisons } from "@/lib/seo-pages";
@@ -24,7 +25,7 @@ export default function ComparePage() {
     <div className="overflow-x-clip bg-[#090909]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(schema) }} />
       <PageHeader eyebrow="Compare / alternatives" title="Tracify vs the rest." lede="Plain comparisons with the other tools teams look at, including the cases where they are the better pick.">
-        <HeaderAction href="/demo/project">See Tracify live</HeaderAction>
+        <HeaderAction href={appHref("/demo/project")}>See Tracify live</HeaderAction>
         <HeaderAction href="/pricing" kind="secondary">Pricing</HeaderAction>
       </PageHeader>
       <CreamBand>
@@ -44,7 +45,7 @@ export default function ComparePage() {
           ))}
         </ul>
       </CreamBand>
-      <ClosingBand title="Try it on your own agent." body="Send a first trace in a few minutes." actions={[{ href: "/sign-up", label: "Start free", primary: true }, { href: "/docs", label: "Read the docs" }]} />
+      <ClosingBand title="Try it on your own agent." body="Send a first trace in a few minutes." actions={[{ href: appHref("/sign-up"), label: "Start free", primary: true }, { href: "/docs", label: "Read the docs" }]} />
     </div>
   );
 }

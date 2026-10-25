@@ -29,21 +29,36 @@ export async function POST(request: Request) {
     await client.mutation(api.billing.attachCustomer, { projectId, stripeCustomerId: customer });
   }
   const origin = new URL(request.url).origin;
-  const session = await stripe.checkout.sessions.create(
-    {
-      mode: "subscription",
-      managed_payments: { enabled: true },
-      customer,
-      line_items: [{ price, quantity: 1 }],
-      client_reference_id: projectId,
-      metadata: { projectId, plan: body.plan, tracifyRegion: region },
-      subscription_data: { metadata: { projectId, plan: body.plan, tracifyRegion: region }, billing_mode: { type: "flexible" } },
-      success_url: `${origin}/dashboard/${projectId}/billing?checkout=success`,
-      cancel_url: `${origin}/dashboard/${projectId}/billing?checkout=cancelled`,
-      integration_identifier: "tracify_checkout_qplmzvka",
-    },
-    { apiVersion: "2026-02-25.preview" },
-  );
+  const plan = body.plan;
+  const createSession = (discounts?: { coupon: string }[]) =>
+    stripe.checkout.sessions.create(
+      {
+        mode: "subscription",
+        managed_payments: { enabled: true },
+        customer,
+        line_items: [{ price, quantity: 1 }],
+        ...(discounts ? { discounts } : {}),
+        client_reference_id: projectId,
+        metadata: { projectId, plan, tracifyRegion: region },
+        subscription_data: { metadata: { projectId, plan, tracifyRegion: region }, billing_mode: { type: "flexible" } },
+        success_url: `${origin}/dashboard/${projectId}/billing?checkout=success`,
+        cancel_url: `${origin}/dashboard/${projectId}/billing?checkout=cancelled`,
+        integration_identifier: "tracify_checkout_qplmzvka",
+      },
+      { apiVersion: "2026-02-25.preview" },
+    );
+  // Founding-member coupon: 40% off forever, capped at 20 redemptions inside Stripe itself.
+  // When it is used up (or rejected), fall back to the normal price rather than blocking checkout.
+  const foundingCoupon = process.env.STRIPE_FOUNDING_COUPON_ID;
+  let session;
+  if (foundingCoupon) {
+    try {
+      session = await createSession([{ coupon: foundingCoupon }]);
+    } catch (error) {
+      console.warn("Founding coupon not applied, using the normal price", error);
+    }
+  }
+  session ??= await createSession();
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Stripe checkout session creation failed", error);

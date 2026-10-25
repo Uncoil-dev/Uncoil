@@ -10,12 +10,16 @@ function isJobAuthorized(jobSecret: string | undefined) {
   return Boolean(configured && jobSecret && jobSecret === configured);
 }
 
+/** One page of projects with the plan and own retention setting; the job works out the days (src/lib/retention.ts). */
 export const listProjectsForRetention = query({
-  args: { jobSecret: v.string() },
-  handler: async (ctx, { jobSecret }) => {
+  args: { jobSecret: v.string(), cursor: v.optional(v.union(v.string(), v.null())) },
+  handler: async (ctx, { jobSecret, cursor }) => {
     if (!isJobAuthorized(jobSecret)) throw new Error("Retention job unauthorized");
-    const projects = await ctx.db.query("projects").take(1000);
-    return projects.map((project) => ({ projectId: project._id, retentionDays: project.retentionDays ?? 365 }));
+    const page = await ctx.db.query("projects").paginate({ numItems: 200, cursor: cursor ?? null });
+    return {
+      projects: page.page.map((project) => ({ projectId: project._id, planTier: project.planTier ?? "free", retentionDays: project.retentionDays })),
+      continueCursor: page.isDone ? null : page.continueCursor,
+    };
   },
 });
 

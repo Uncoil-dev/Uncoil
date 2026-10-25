@@ -1,0 +1,38 @@
+name: IndexNow
+
+# After a push to main, waits for the new site to be live, then tells IndexNow
+# (Bing and partners) about the URLs whose sitemap date moved in the last two days.
+# Run by hand to resubmit everything: leave "since" empty.
+
+on:
+  push:
+    branches: [main]
+    paths: ["content/**", "src/**", "public/**"]
+  workflow_dispatch:
+    inputs:
+      since:
+        description: "Only URLs modified since this ISO time (empty = every URL in the sitemap)"
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: true
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Wait for the key file, then submit
+        env:
+          SINCE: ${{ github.event_name == 'workflow_dispatch' && inputs.since || '' }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then SINCE=$(date -u -d '2 days ago' +%Y-%m-%dT%H:%M:%SZ); fi
+          if [ -n "$SINCE" ]; then node scripts/indexnow.mjs --submit --wait --since "$SINCE"; else node scripts/indexnow.mjs --submit --wait; fi

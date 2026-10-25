@@ -1,0 +1,28 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tokHeroTitle tokHeroDesc">
+  <title id="tokHeroTitle">A receipt-style token ledger listing three model calls and one tool call with a yellow run total</title>
+  <desc id="tokHeroDesc">A cream receipt lists three model calls with input and output token counts and one tool call with none, ending in a yellow box showing the run total.</desc>
+  <rect width="1600" height="900" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >HOW TO TRACK LLM TOKEN USAGE</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >a ledger for one run</text>
+    <rect x="480" y="160" width="640" height="640" fill="#f6f1e6" stroke="#f6f1e6" stroke-width="2" stroke-opacity="1"/>
+    <text x="520" y="240" fill="#0a0a0a" font-size="18" opacity="1" text-anchor="start" letter-spacing="0" >model call 1</text>
+    <text x="1080" y="240" fill="#0a0a0a" font-size="16" opacity="0.8" text-anchor="end" letter-spacing="0" >1,200 in   300 out</text>
+    <line x1="520" y1="258" x2="1080" y2="258" stroke="#0a0a0a" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4 6"/>
+    <text x="520" y="310" fill="#0a0a0a" font-size="18" opacity="1" text-anchor="start" letter-spacing="0" >tool call: search</text>
+    <text x="1080" y="310" fill="#0a0a0a" font-size="16" opacity="0.8" text-anchor="end" letter-spacing="0" >no tokens</text>
+    <line x1="520" y1="328" x2="1080" y2="328" stroke="#0a0a0a" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4 6"/>
+    <text x="520" y="380" fill="#0a0a0a" font-size="18" opacity="1" text-anchor="start" letter-spacing="0" >model call 2</text>
+    <text x="1080" y="380" fill="#0a0a0a" font-size="16" opacity="0.8" text-anchor="end" letter-spacing="0" >2,100 in   450 out</text>
+    <line x1="520" y1="398" x2="1080" y2="398" stroke="#0a0a0a" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4 6"/>
+    <text x="520" y="450" fill="#0a0a0a" font-size="18" opacity="1" text-anchor="start" letter-spacing="0" >model call 3</text>
+    <text x="1080" y="450" fill="#0a0a0a" font-size="16" opacity="0.8" text-anchor="end" letter-spacing="0" >3,400 in   600 out</text>
+    <line x1="520" y1="468" x2="1080" y2="468" stroke="#0a0a0a" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4 6"/>
+    <rect x="520" y="560" width="560" height="110" fill="#f4d44d" stroke="#0a0a0a" stroke-width="3" stroke-opacity="1"/>
+    <text x="550" y="605" fill="#0a0a0a" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >RUN TOTAL</text>
+    <text x="550" y="645" fill="#0a0a0a" font-size="14" opacity="0.8" text-anchor="start" letter-spacing="0" >sum of every call in the run</text>
+    <text x="1050" y="640" fill="#0a0a0a" font-size="40" opacity="1" text-anchor="end" letter-spacing="0" >9,550</text>
+    <text x="800" y="740" fill="#0a0a0a" font-size="14" opacity="0.6" text-anchor="middle" letter-spacing="0" >illustrative numbers</text>
+
+  </g>
+</svg>

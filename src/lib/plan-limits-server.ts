@@ -15,7 +15,7 @@ export async function planLimitResponse(project: { _id: unknown; planTier?: stri
     if (monthly.allowed) return null;
     const retryAfterSeconds = secondsUntilNextMonth(month);
     return Response.json(
-      { error: planLimitMessage(spanLimit), code: "plan_limit_reached", limit: spanLimit, retryAfterSeconds },
+      { error: planLimitMessage(spanLimit, project.planTier), code: "plan_limit_reached", limit: spanLimit, retryAfterSeconds },
       { status: 429, headers: { "Retry-After": String(retryAfterSeconds), "X-Tracify-Plan-Limit": String(spanLimit) } },
     );
   } catch (error) {

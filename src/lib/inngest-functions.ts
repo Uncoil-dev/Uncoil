@@ -5,7 +5,9 @@ import { getConvexClient } from "@/lib/convex";
 import { inngest } from "@/lib/inngest";
 import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
 import { getTracifyRegion } from "@/lib/regions";
+import { runRetention } from "@/lib/retention-job";
 import { sendTransactionalEmail } from "@/lib/transactional-email";
+import { renderNoTraceEmail } from "@/lib/email-templates";
 
 /**
  * Milestone 2 activation pipeline:
@@ -112,7 +114,9 @@ export const onboardingReminder = inngest.createFunction(
     await step.sleep("wait-one-day", "1d");
     const state = await step.run("check-activation", async () => getConvexClient().query(api.agentRuns.getProjectOnboardingState, { projectId: event.data.projectId as Id<"projects"> }));
     if (state?.hasReceivedFirstSpan) return { skipped: true, reason: "activated" };
-    await step.run("send-reminder", async () => sendTransactionalEmail({ to: event.data.email, subject: "Your Tracify project is ready", text: `Hi ${event.data.name || "there"},\n\nYour Tracify project is ready, but it has not received a first trace yet. Continue setup: ${getTracifyRegion().origin}/onboarding`, html: `<p>Hi ${event.data.name || "there"},</p><p>Your Tracify project is ready, but it has not received a first trace yet.</p><p><a href="${getTracifyRegion().origin}/onboarding">Continue setup</a></p>`, idempotencyKey: `onboarding-reminder-${event.data.projectId}` }));
+    const origin = getTracifyRegion().origin;
+    const email = renderNoTraceEmail({ name: event.data.name, projectName: event.data.projectName, projectId: event.data.projectId, origin });
+    await step.run("send-reminder", async () => sendTransactionalEmail({ to: event.data.email, ...email, idempotencyKey: `onboarding-reminder-${event.data.projectId}` }));
     return { skipped: false };
   },
 );
@@ -219,5 +223,15 @@ export const processAlert = inngest.createFunction(
     });
 
     return { ok: true };
+  },
+);
+
+/** Every day at 03:17 UTC: delete data older than each plan keeps (7 / 30 / 90 days). Needs TRACIFY_RETENTION_SECRET. */
+export const dailyRetention = inngest.createFunction(
+  { id: "daily-retention", name: "Remove data past plan retention", retries: 2, triggers: [{ cron: "17 3 * * *" }] },
+  async ({ step }) => {
+    const secret = process.env.TRACIFY_RETENTION_SECRET;
+    if (!secret) return { skipped: true, reason: "TRACIFY_RETENTION_SECRET is not set" };
+    return step.run("purge", () => runRetention(secret));
   },
 );

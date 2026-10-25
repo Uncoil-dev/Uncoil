@@ -58,7 +58,7 @@ export function ProjectStep() {
     setError("");
     try {
       const result = await createProject({ name: trimmed });
-      if (session?.user.email) void fetch("/api/lifecycle/onboarding-reminder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: session.user.email, name: session.user.name, projectId: result.projectId }) }).catch(() => undefined);
+      if (session?.user.email) void fetch("/api/lifecycle/onboarding-reminder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: session.user.email, name: session.user.name, projectId: result.projectId, projectName: trimmed }) }).catch(() => undefined);
       if (isPostHogConfigured) {
         captureAnalytics("project_created", { creation_flow: "onboarding" });
       }

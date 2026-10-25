@@ -147,8 +147,8 @@ export function ProjectSwitcher({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align={isCollapsed ? "end" : "start"}
-        side={isCollapsed ? "right" : "top"}
+        align="start"
+        side={isCollapsed ? "right" : "bottom"}
         sideOffset={isCollapsed ? 12 : 6}
         collisionPadding={8}
         className="w-72 max-h-[70vh] overflow-y-auto"

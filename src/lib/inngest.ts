@@ -45,5 +45,5 @@ export type SpanIngestedEvent = {
 
 export type OnboardingReminderEvent = {
   name: "tracify/onboarding.reminder";
-  data: { email: string; name?: string; projectId: string };
+  data: { email: string; name?: string; projectId: string; projectName?: string };
 };

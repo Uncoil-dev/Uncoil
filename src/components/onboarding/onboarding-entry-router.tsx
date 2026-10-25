@@ -47,7 +47,7 @@ export function OnboardingEntryRouter() {
 
     window.sessionStorage.setItem(PROJECT_ID_STORAGE_KEY, project._id);
     window.localStorage.setItem(LAST_PROJECT_STORAGE_KEY, project._id);
-    router.replace(`/dashboard/${project._id}`);
+    router.replace(`/dashboard/${project._id}/tracing`);
   }, [auth.status, isAuthenticated, projects, router]);
 
   if (auth.status === "error") return <ConvexAuthState mode="error" redirectPath="/onboarding" />;

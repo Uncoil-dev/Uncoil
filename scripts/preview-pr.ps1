@@ -1,0 +1,83 @@
+# Open any pull request as a localhost preview, without touching your working folder.
+#   preview 312              -> cloud app (dashboard) on http://localhost:4000
+#   preview 312 marketing    -> marketing site on http://localhost:3000
+#   preview new              -> a fresh, empty workspace from main on localhost:4000, for
+#                               building something new live with an agent (branch live-work)
+# The PR is checked out in a separate folder next to this repo (<repo>-preview),
+# so whatever branch or unsaved work you have here is never touched.
+# The backend is always forced to staging; it refuses to run if live is mentioned.
+param(
+  [Parameter(Mandatory = $true, Position = 0)][string]$Pr,
+  [Parameter(Position = 1)][ValidateSet("cloud", "marketing")][string]$Target = "cloud"
+)
+$ErrorActionPreference = "Stop"
+$StagingConvex = "first-malamute-177"
+$LiveConvex = "jovial-owl-711"
+
+$Repo = Split-Path -Parent $PSScriptRoot
+$Preview = "$Repo-preview"
+Set-Location $Repo
+
+# 1. Settings: your .env.local, with the backend swapped to staging.
+# Your own .env.local is never edited. The result is written to the preview folder only.
+$envFile = Join-Path $Repo ".env.local"
+if (-not (Test-Path $envFile)) { throw ".env.local not found in $Repo." }
+$stagingEnv = (Get-Content $envFile) |
+  Where-Object { $_ -notmatch "^\s*(CONVEX_DEPLOYMENT|CONVEX_DEPLOY_KEY|NEXT_PUBLIC_CONVEX_URL|NEXT_PUBLIC_CONVEX_SITE_URL)\s*=" }
+$stagingEnv += "NEXT_PUBLIC_CONVEX_URL=https://$StagingConvex.eu-west-1.convex.cloud"
+$stagingEnv += "NEXT_PUBLIC_CONVEX_SITE_URL=https://$StagingConvex.eu-west-1.convex.site"
+if (($stagingEnv -join "`n") -match $LiveConvex) { throw "Stopped: settings mention the live backend ($LiveConvex)." }
+
+# 2. Fetch the PR (or the latest main for a fresh live-work branch).
+$isNew = $Pr -eq "new"
+if ($isNew) {
+  git fetch origin main
+  if ($LASTEXITCODE -ne 0) { throw "Could not fetch main." }
+  $sha = (git rev-parse FETCH_HEAD)
+} else {
+  if ($Pr -notmatch "^\d+$") { throw "Use a PR number, or 'new'." }
+  git fetch origin "pull/$Pr/head"
+  if ($LASTEXITCODE -ne 0) { throw "Could not fetch PR $Pr." }
+  $sha = (git rev-parse FETCH_HEAD)
+}
+
+# 3. Separate preview folder (git worktree, shares history, no second download).
+if (-not (Test-Path $Preview)) {
+  git worktree add --detach $Preview $sha
+  if ($LASTEXITCODE -ne 0) { throw "Could not create $Preview." }
+}
+Set-Location $Preview
+$lockBefore = if (Test-Path "package-lock.json") { (Get-FileHash package-lock.json).Hash } else { "" }
+if ($isNew) {
+  # Keep unfinished live work: only start over when the branch does not exist yet.
+  git rev-parse --verify live-work 2>$null | Out-Null
+  if ($LASTEXITCODE -ne 0) { git checkout -b live-work $sha } else { git checkout live-work }
+} else {
+  git checkout --detach $sha
+}
+if ($LASTEXITCODE -ne 0) { throw "Could not switch to $Pr. If you have unsaved live-work changes, ask Claude to commit them first." }
+Set-Content -Path (Join-Path $Preview ".env.local") -Value $stagingEnv
+
+# 4. Install packages only when needed.
+$lockAfter = if (Test-Path "package-lock.json") { (Get-FileHash package-lock.json).Hash } else { "" }
+if (-not (Test-Path "node_modules") -or $lockBefore -ne $lockAfter) { npm install }
+
+# 5. Staging test account (prints a login you can use on the sign-in page).
+$port = if ($Target -eq "marketing") { "3000" } else { "4000" }
+$env:NEXT_PUBLIC_CONVEX_SITE_URL = "https://$StagingConvex.eu-west-1.convex.site"
+$env:PREVIEW_PORT = $port
+node (Join-Path $Repo "scripts\preview-account.mjs")
+
+# 6. Open the browser already signed in once the server answers.
+$url = "http://localhost:$port"
+Start-Job -ScriptBlock {
+  param($u)
+  for ($i = 0; $i -lt 120; $i++) {
+    try { Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec 3 | Out-Null; break } catch { Start-Sleep -Seconds 2 }
+  }
+  Start-Process "$u/preview-login.html"
+} -ArgumentList $url | Out-Null
+
+# 7. Run it.
+Write-Host "Previewing PR $Pr ($Target). Press Ctrl+C to stop."
+npm run "dev:$Target"

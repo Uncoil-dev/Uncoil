@@ -2,67 +2,67 @@
 
 import {
   Activity,
-  BarChart3,
   BookOpen,
-  CircleHelp,
-  Eye,
-  Plus,
-  FileText,
-  Database,
-  LayoutDashboard,
-  SlidersHorizontal,
-  Search,
-  MessageSquareText,
-  PhoneCall,
+  ChevronRight,
   FlaskConical,
-  GitCompare,
+  History,
+  House,
+  LayoutDashboard,
+  MessageSquareText,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PhoneCall,
+  Search,
   Settings2,
   ShieldCheck,
   Terminal,
-  Globe2,
-  Zap,
-  Users,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ProjectSwitcher } from "@/components/dashboard/project-switcher";
 import { SidebarAccountMenu } from "@/components/dashboard/sidebar-account-menu";
+import { DashboardCommandMenu } from "@/components/dashboard/dashboard-command-menu";
 import { usePathname, useParams, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DEMO_BASE_PATH } from "@/lib/demo/demo-config";
-import { FinishSetupCard, PinButton, PinnedSection, SavedViewsSection, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
+import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useClosedSections, useRecents, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
 
-type RailId = "observe" | "analyze" | "improve" | "operate" | "manage" | "help";
+type Icon = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
-const RAIL_ORDER: RailId[] = ["observe", "analyze", "improve", "operate", "manage", "help"];
-const RAIL_META: Record<RailId, { label: string; blurb: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }> }> = {
-  observe: { label: "Observe", blurb: "every run, step and user", icon: Eye },
-  analyze: { label: "Analyze", blurb: "costs, reports, comparisons", icon: BarChart3 },
-  improve: { label: "Improve", blurb: "prompts, tests, scoring", icon: FlaskConical },
-  operate: { label: "Operate", blurb: "alerts, rules, automation", icon: Zap },
-  manage: { label: "Manage", blurb: "project, team, billing", icon: Settings2 },
-  help: { label: "Help", blurb: "guides and support", icon: CircleHelp },
-};
-
-type GroupId = "primary" | "observe" | "analyze" | "improve" | "operate" | "manage" | "resources";
-
-type NavItem = {
+type NavLeaf = { title: string; href: string; external?: boolean; badge?: "New" };
+type NavRow = {
+  id: string;
   title: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: Icon;
+  /** Rows with children expand in place; rows without are plain links. */
+  href?: string;
   external?: boolean;
+  badge?: "New";
+  children?: NavLeaf[];
+};
+type NavSection = { id: string; label: string; rows: NavRow[] };
+
+const COLLAPSED_WIDTH = 64;
+const EXPANDED_WIDTH = 232;
+const DETAIL_NOUNS: Record<string, string> = {
+  runs: "Run",
+  traces: "Trace",
+  sessions: "Session",
+  users: "User",
+  prompts: "Prompt",
+  "prompt-management": "Prompt",
+  datasets: "Dataset",
+  experiments: "Experiment",
+  evaluators: "Evaluator",
+  alerts: "Alert",
+  dashboards: "Dashboard",
 };
 
-type NavGroup = {
-  id: GroupId;
-  label: string;
-  items: NavItem[];
-};
+function titleCase(segment: string) {
+  const words = decodeURIComponent(segment).replace(/[-_]+/g, " ").trim();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Page";
+}
 
-const COLLAPSED_STORAGE_KEY = "tracify.sidebar.collapsed";
-const COLLAPSED_WIDTH = 72;
-const EXPANDED_WIDTH = 296;
-const RAIL_WIDTH = 72;
 const MARKETING_ORIGIN = process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech";
 
 function isActivePath(pathname: string, href: string, projectId: string, isPreview = false, currentSearch = "") {
@@ -111,7 +111,6 @@ export function DashboardSidebar({
   const params = useParams();
   const projectId = projectIdOverride || (params?.projectId as string) || "";
   const isSynthetic = synthetic && pathname.startsWith("/playground");
-  const syntheticHref = (view: string) => (view === "home" ? "/playground" : `/playground/${view}`);
   const projectDashboardHref = isSynthetic ? "/dashboard" : demo ? DEMO_BASE_PATH : projectId ? `/dashboard/${projectId}` : "/dashboard";
   // Sessions only appear in the menu once the project has recorded one (or while you are already on that page).
   const [hasSessions, setHasSessions] = useState<boolean | null>(null);
@@ -139,178 +138,179 @@ export function DashboardSidebar({
     [isSynthetic, projectDashboardHref],
   );
 
-  const rawGroups = useMemo<NavGroup[]>(() => {
-    if (isSynthetic || projectId) {
-      return [
-        {
-          id: "primary",
-          label: "",
-          items: [
-            { title: "Home", icon: LayoutDashboard, href: workspaceHref("home") },
-            { title: "Dashboards", icon: LayoutDashboard, href: workspaceHref("dashboards") },
-          ],
-        },
-        {
-          id: "observe",
-          label: "Observability",
-          items: [
-            { title: "Tracing", icon: Activity, href: workspaceHref("tracing") },
-            ...(demo ? [{ title: "Costs", icon: BarChart3, href: workspaceHref("costs") }] : []),
-            ...(isSynthetic || demo ? [{ title: "Explore", icon: Zap, href: workspaceHref("explore") }] : []),
-            ...(showSessions ? [{ title: "Sessions", icon: Activity, href: workspaceHref("sessions") }] : []),
-            { title: "Users", icon: Users, href: workspaceHref("users") },
-            { title: "Alerts", icon: Activity, href: workspaceHref("alerts") },
-          ],
-        },
-        {
-          id: "improve",
-          label: "Prompt Management",
-          items: [
-            { title: "Prompts", icon: MessageSquareText, href: workspaceHref("prompts") },
-            { title: "Playground", icon: FlaskConical, href: workspaceHref("playground") },
-          ],
-        },
-        {
-          id: "analyze",
-          label: "Evaluation",
-          items: [
-            { title: "Scores", icon: BarChart3, href: workspaceHref("scores") },
-            { title: "Evaluators", icon: FlaskConical, href: workspaceHref("evaluators") },
-            { title: "Human Annotation", icon: MessageSquareText, href: workspaceHref("annotation-queues", "human-annotation") },
-            { title: "Datasets", icon: Database, href: workspaceHref("datasets") },
-            { title: "Experiments", icon: FlaskConical, href: workspaceHref("experiments") },
-          ],
-        },
-        {
-          id: "manage",
-          label: "",
-          items: [{ title: "Settings", icon: Settings2, href: workspaceHref("settings") }],
-        },
-        {
-          id: "resources",
-          label: "",
-          items: [
-            { title: "Book a call", icon: PhoneCall, href: `${MARKETING_ORIGIN}/contact`, external: true },
-            { title: "Support", icon: MessageSquareText, href: `${MARKETING_ORIGIN}/contact`, external: true },
-          ],
-        },
-      ];
-    }
+  const hasProject = isSynthetic || demo || Boolean(projectId);
+  // While collapsed, pointing at the sidebar opens it over the page and moving away closes it again.
+  const [peeking, setPeeking] = useState(false);
+  const [pointerInside, setPointerInside] = useState(false);
+  const showPanel = !isCollapsed || isMobileOpen || peeking;
+  const peekOverlay = isCollapsed && !isMobileOpen && peeking;
+  useEffect(() => {
+    if (!peeking || pointerInside) return;
+    // Menus (project switcher, account) live outside the sidebar; keep it open until they close.
+    const timer = window.setInterval(() => {
+      if (!document.querySelector('[role="menu"][data-state="open"]')) setPeeking(false);
+    }, 150);
+    return () => window.clearInterval(timer);
+  }, [peeking, pointerInside]);
+  const liveProject = !isSynthetic && !demo && !projectIdOverride && Boolean(projectId);
+  const { pins, toggle: togglePin, isPinned } = usePins(projectId);
+  const savedViews = useSavedViews(projectId, liveProject && showPanel);
+  const recentsKey = projectId || (isSynthetic ? "playground" : demo ? "demo" : "");
+  const recents = useRecents(recentsKey).recents;
+  const closedSections = useClosedSections();
+
+  const home = useMemo<NavRow[]>(
+    () => [
+      { id: "home", title: "Home", icon: House, href: workspaceHref("home") },
+      ...(hasProject ? [{ id: "dashboards", title: "Dashboards", icon: LayoutDashboard, href: workspaceHref("dashboards") }] : []),
+    ],
+    [hasProject, workspaceHref],
+  );
+
+  const sections = useMemo<NavSection[]>(() => {
+    const help: NavSection = {
+      id: "help",
+      label: "Help",
+      rows: [
+        ...(liveProject ? [{ id: "quickstart", title: "Quickstart", icon: Terminal, href: workspaceHref("quickstart") }] : []),
+        { id: "docs", title: "Docs", icon: BookOpen, href: `${MARKETING_ORIGIN}/docs`, external: true },
+        { id: "call", title: "Book a call", icon: PhoneCall, href: `${MARKETING_ORIGIN}/contact`, external: true },
+        { id: "support", title: "Support", icon: MessageSquareText, href: `${MARKETING_ORIGIN}/contact`, external: true },
+        ...(canAccessContent ? [{ id: "admin-library", title: "Admin Library", icon: ShieldCheck, href: "/admin/library" }] : []),
+      ],
+    };
+    if (!hasProject) return [help];
+    const savedViewLeaves: NavLeaf[] = (savedViews ?? []).slice(0, 5).map((view) => ({
+      title: view.name,
+      href: `/dashboard/${projectId}/${view.target === "traces" ? "tracing" : "steps"}?savedView=${encodeURIComponent(view._id)}`,
+    }));
     return [
       {
         id: "observe",
-        label: "Observe",
-        items: [
-          { title: "Home", icon: LayoutDashboard, href: isSynthetic ? syntheticHref("home") : projectDashboardHref },
-          { title: "Dashboards", icon: LayoutDashboard, href: isSynthetic ? syntheticHref("dashboards") : projectId ? `/dashboard/${projectId}/dashboards` : "/dashboard/dashboards" },
-          { title: "Tracing", icon: Activity, href: isSynthetic ? syntheticHref("tracing") : projectId ? `/dashboard/${projectId}/tracing` : "/dashboard/runs" },
-          ...(showSessions ? [{ title: "Sessions", icon: Activity, href: isSynthetic ? syntheticHref("sessions") : projectId ? `/dashboard/${projectId}/sessions` : "/dashboard/sessions" }] : []),
-          { title: "Users", icon: Users, href: isSynthetic ? syntheticHref("users") : projectId ? `/dashboard/${projectId}/users` : "/dashboard/users" },
-          { title: "Search", icon: Search, href: isSynthetic ? syntheticHref("search") : projectId ? `/dashboard/${projectId}/search` : "/dashboard/search" },
-        ],
-      },
-      {
-        id: "analyze",
-        label: "Analyze",
-        items: [
-          { title: "Costs", icon: BarChart3, href: isSynthetic ? syntheticHref("costs") : projectId ? `/dashboard/${projectId}/costs` : "/dashboard/costs" },
-          { title: "Comparisons", icon: GitCompare, href: isSynthetic ? syntheticHref("compare") : projectId ? `/dashboard/${projectId}/comparisons` : "/dashboard/comparisons" },
-          { title: "Reports", icon: FileText, href: isSynthetic ? syntheticHref("reports") : projectId ? `/dashboard/${projectId}/reports` : "/dashboard/reports" },
-          { title: "Compare runs", icon: GitCompare, href: isSynthetic ? syntheticHref("compare") : projectId ? `/dashboard/${projectId}/compare` : "/dashboard/compare" },
+        label: "",
+        rows: [
+          {
+            id: "observe",
+            title: "Observe",
+            icon: Activity,
+            children: [
+              { title: "Tracing", href: workspaceHref("tracing") },
+              ...(liveProject ? [{ title: "Steps", href: workspaceHref("steps") }] : []),
+              ...(demo ? [{ title: "Costs", href: workspaceHref("costs") }] : []),
+              ...(isSynthetic || demo ? [{ title: "Explore", href: workspaceHref("explore") }] : []),
+              ...(showSessions ? [{ title: "Sessions", href: workspaceHref("sessions") }] : []),
+              { title: "Users", href: workspaceHref("users") },
+              { title: "Alerts", href: workspaceHref("alerts"), badge: "New" as const },
+              ...savedViewLeaves,
+            ],
+          },
         ],
       },
       {
         id: "improve",
         label: "Improve",
-        items: [
-          { title: "Prompt Management", icon: MessageSquareText, href: isSynthetic ? syntheticHref("prompts") : projectId ? `/dashboard/${projectId}/prompt-management` : "/dashboard/prompts" },
-          { title: "Evaluation", icon: FlaskConical, href: isSynthetic ? syntheticHref("evaluation") : projectId ? `/dashboard/${projectId}/evaluation` : "/dashboard/evaluation" },
-          { title: "Scores", icon: BarChart3, href: isSynthetic ? syntheticHref("scores") : projectId ? `/dashboard/${projectId}/scores` : "/dashboard/evaluation" },
-          { title: "Evaluators", icon: FlaskConical, href: isSynthetic ? syntheticHref("evaluators") : projectId ? `/dashboard/${projectId}/evaluators` : "/dashboard/evaluation" },
-          { title: "Human Annotation", icon: MessageSquareText, href: isSynthetic ? syntheticHref("annotation") : projectId ? `/dashboard/${projectId}/human-annotation` : "/dashboard/evaluation" },
-          { title: "Datasets", icon: Database, href: isSynthetic ? syntheticHref("datasets") : projectId ? `/dashboard/${projectId}/datasets` : "/dashboard/datasets" },
-          { title: "Experiments", icon: GitCompare, href: isSynthetic ? syntheticHref("experiments") : projectId ? `/dashboard/${projectId}/experiments` : "/dashboard/experiments" },
-          { title: "Playground", icon: FlaskConical, href: isSynthetic ? syntheticHref("playground") : projectId ? `/dashboard/${projectId}/playground` : "/dashboard/playground" },
-        ],
-      },
-      {
-        id: "operate",
-        label: "Operate",
-        items: [
-          { title: "Alerts", icon: Activity, href: isSynthetic ? syntheticHref("alerts") : projectId ? `/dashboard/${projectId}/alerts` : "/dashboard/alerts" },
-          { title: "Automations", icon: Zap, href: isSynthetic ? syntheticHref("automations") : projectId ? `/dashboard/${projectId}/automations` : "/dashboard/automations" },
-          { title: "Operations", icon: Globe2, href: isSynthetic ? syntheticHref("operations") : projectId ? `/dashboard/${projectId}/operations` : "/dashboard/operations" },
-          { title: "Integrations", icon: Terminal, href: isSynthetic ? syntheticHref("integrations") : projectId ? `/dashboard/${projectId}/settings/integrations` : "/integrations" },
+        rows: [
+          {
+            id: "prompts",
+            title: "Prompt management",
+            icon: MessageSquareText,
+            children: [{ title: "Prompts", href: workspaceHref("prompts") }, { title: "Playground", href: workspaceHref("playground") }],
+          },
+          {
+            id: "evaluation",
+            title: "Evaluation",
+            icon: FlaskConical,
+            children: [
+              { title: "Scores", href: workspaceHref("scores") },
+              { title: "Evaluators", href: workspaceHref("evaluators") },
+              { title: "Human annotation", href: workspaceHref("annotation-queues", "human-annotation") },
+              { title: "Datasets", href: workspaceHref("datasets") },
+              { title: "Experiments", href: workspaceHref("experiments") },
+            ],
+          },
         ],
       },
       {
         id: "manage",
         label: "Manage",
-        items: [
-          { title: "Settings", icon: Settings2, href: isSynthetic ? syntheticHref("settings") : projectId ? `/dashboard/${projectId}/settings` : "/dashboard/settings" },
-          { title: "Members", icon: Activity, href: isSynthetic ? syntheticHref("members") : projectId ? `/dashboard/${projectId}/settings?tab=members` : "/dashboard/members" },
-          { title: "Manage", icon: SlidersHorizontal, href: isSynthetic ? syntheticHref("manage") : projectId ? `/dashboard/${projectId}/manage` : "/dashboard/manage" },
-          { title: "API Keys", icon: Terminal, href: isSynthetic ? syntheticHref("api-keys") : projectId ? `/dashboard/${projectId}/api-keys` : "/dashboard/api-keys" },
-          { title: "Billing", icon: FileText, href: isSynthetic ? syntheticHref("billing") : projectId ? `/dashboard/${projectId}/billing` : "/dashboard/billing" },
-          { title: "Widget library", icon: Settings2, href: isSynthetic ? syntheticHref("widgets") : projectId ? `/dashboard/${projectId}/widgets` : "/dashboard/widgets" },
-          { title: "Upgrade Plan", icon: Zap, href: isSynthetic ? syntheticHref("upgrade") : projectId ? `/dashboard/${projectId}/billing` : "/dashboard/billing" },
+        rows: [
+          liveProject
+            ? {
+                id: "settings",
+                title: "Settings",
+                icon: Settings2,
+                children: [
+                  { title: "General", href: workspaceHref("settings") },
+                  { title: "Members", href: `${workspaceHref("settings")}?tab=members` },
+                  { title: "API keys", href: workspaceHref("api-keys") },
+                  { title: "Billing", href: workspaceHref("billing") },
+                ],
+              }
+            : { id: "settings", title: "Settings", icon: Settings2, href: workspaceHref("settings") },
         ],
       },
-      {
-        id: "resources",
-        label: "Resources",
-        items: [
-          { title: "Quickstart", icon: Terminal, href: isSynthetic ? syntheticHref("quickstart") : projectId ? `/dashboard/${projectId}/quickstart` : "/dashboard/quickstart" },
-          { title: "Docs", icon: BookOpen, href: `${MARKETING_ORIGIN}/docs`, external: true },
-          { title: "Support", icon: MessageSquareText, href: `${MARKETING_ORIGIN}/contact`, external: true },
-          { title: "Roadmap", icon: FileText, href: `${MARKETING_ORIGIN}/roadmap`, external: true },
-          ...(canAccessContent
-            ? [{ title: "Admin Library", icon: ShieldCheck, href: "/admin/library" }]
-            : []),
-        ],
-      },
+      help,
     ];
-  }, [canAccessContent, demo, isSynthetic, projectDashboardHref, projectId, showSessions, workspaceHref]);
-
-  // With no project yet, `/dashboard/<page>` would be read as a project id and the page would
-  // sit on its loading skeleton, so every in-app link falls back to the project start page.
-  const dynamicGroups = useMemo<NavGroup[]>(() => {
-    if (isSynthetic || demo || projectId) return rawGroups;
-    return rawGroups.map((group) => ({
-      ...group,
-      items: group.items.map((item) =>
-        item.external || !item.href.startsWith("/dashboard/") ? item : { ...item, href: "/dashboard" },
-      ),
-    }));
-  }, [demo, isSynthetic, projectId, rawGroups]);
-
-  const railGroups = useMemo(() => {
-    const byRail = new Map<RailId, NavItem[]>();
-    for (const group of dynamicGroups) {
-      const railId = group.id === "primary" ? "observe" : group.id === "resources" ? "help" : group.id;
-      byRail.set(railId, [...(byRail.get(railId) ?? []), ...group.items]);
-    }
-    return RAIL_ORDER.filter((id) => byRail.has(id)).map((id) => ({ id, ...RAIL_META[id], items: byRail.get(id) ?? [] }));
-  }, [dynamicGroups]);
+  }, [canAccessContent, demo, hasProject, isSynthetic, liveProject, projectId, savedViews, showSessions, workspaceHref]);
 
   const currentSearch = searchParams.toString();
-  const activeRailId = railGroups.find(
-    (group) => group.id !== "help" && group.items.some((item) => isActivePath(pathname, item.href, projectId, Boolean(projectIdOverride), currentSearch)),
-  )?.id;
-  // Picks and the help popup are tied to the page they were made on, so navigating resets them.
-  const [picked, setPicked] = useState<{ id: RailId | "help-open"; path: string } | null>(null);
-  const pickedGroup = picked && picked.path === pathname && picked.id !== "help-open" ? picked.id : null;
-  const helpOpen = picked?.path === pathname && picked.id === "help-open";
-  const panelGroupId: RailId = pickedGroup ?? activeRailId ?? "observe";
-  const panelGroup = railGroups.find((group) => group.id === panelGroupId && group.id !== "help") ?? railGroups[0];
+  // With no project yet, `/dashboard/<page>` would be read as a project id and the page would
+  // sit on its loading skeleton, so every in-app link falls back to the project start page.
+  const resolveHref = useCallback(
+    (href: string) => (hasProject || href.startsWith("http") || !href.startsWith("/dashboard/") ? href : "/dashboard"),
+    [hasProject],
+  );
+  const isLeafActive = useCallback(
+    (href: string) => {
+      const [path, query] = href.split("?");
+      if (!isActivePath(pathname, path, projectId, Boolean(projectIdOverride), currentSearch)) return false;
+      if (query) return currentSearch.includes(query);
+      // The plain settings page is the "General" tab; a ?tab= belongs to the matching row.
+      return !(path.endsWith("/settings") && new URLSearchParams(currentSearch).has("tab"));
+    },
+    [currentSearch, pathname, projectId, projectIdOverride],
+  );
 
-  const showPanel = !isCollapsed || isMobileOpen;
-  const visualWidth = showPanel ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
-  const helpGroup = railGroups.find((group) => group.id === "help");
-  const alertsHref = workspaceHref("alerts");
-  const liveProject = !isSynthetic && !demo && !projectIdOverride && Boolean(projectId);
-  const { pins, toggle: togglePin, isPinned } = usePins(projectId);
-  const savedViews = useSavedViews(projectId, liveProject && showPanel);
+  // The page you are on, as a recents entry. Menu pages keep their menu name; anything deeper
+  // (a single trace, session, prompt…) is named from its address so you can jump back to it.
+  const dashboardBase = isSynthetic ? "/playground" : projectDashboardHref;
+  const activeEntry = useMemo(() => {
+    const here = pathname.replace(/\/$/, "");
+    let exact: { href: string; title: string; section: string } | null = null;
+    const consider = (leaf: NavLeaf, section: string) => {
+      if (leaf.external || here !== leaf.href.split("?")[0] || !isLeafActive(leaf.href)) return;
+      if (!exact || leaf.href.length > exact.href.length) exact = { href: leaf.href, title: leaf.title, section };
+    };
+    for (const row of home) if (row.href) consider({ title: row.title, href: row.href }, "Overview");
+    for (const section of sections) {
+      for (const row of section.rows) {
+        if (row.children) row.children.forEach((child) => consider(child, row.title));
+        else if (row.href) consider({ title: row.title, href: row.href, external: row.external }, section.label);
+      }
+    }
+    if (exact) return exact as { href: string; title: string; section: string };
+    if (!here.startsWith(`${dashboardBase}/`)) return null;
+    const [first, ...rest] = here.slice(dashboardBase.length + 1).split("/");
+    const noun = DETAIL_NOUNS[first];
+    if (noun && rest.length) {
+      const id = decodeURIComponent(rest[0]);
+      return { href: here, title: `${noun} ${id.length > 14 ? `${id.slice(0, 12)}…` : id}`, section: titleCase(first) };
+    }
+    return { href: here, title: titleCase(rest.length ? rest[rest.length - 1] : first), section: titleCase(first) };
+  }, [dashboardBase, home, isLeafActive, pathname, sections]);
+  const activeHref = activeEntry?.href;
+  const activeTitle = activeEntry?.title;
+  const activeSection = activeEntry?.section;
+  useEffect(() => {
+    if (!hasProject || !activeHref || !activeTitle || !activeSection) return;
+    recordRecent(recentsKey, { href: activeHref, title: activeTitle, section: activeSection });
+  }, [activeHref, activeSection, activeTitle, hasProject, recentsKey]);
+
+  // Rows with children open on their own while you are inside them; clicking a row overrides that for the session.
+  const [rowOverrides, setRowOverrides] = useState<Record<string, boolean>>({});
+  const rowOpen = (row: NavRow) => rowOverrides[row.id] ?? Boolean(row.children?.some((child) => isLeafActive(child.href)));
+  const toggleRow = (row: NavRow) => setRowOverrides((current) => ({ ...current, [row.id]: !rowOpen(row) }));
+  const recentsOpen = rowOverrides.recents ?? false;
 
   useEffect(() => {
     function onShellToggle() {
@@ -324,158 +324,334 @@ export function DashboardSidebar({
     return () => window.removeEventListener("tracify:toggle-sidebar", onShellToggle);
   }, [isCollapsed, onCollapsedChange, onMobileToggle]);
 
-  function pickGroup(id: RailId) {
-    if (id === "help") {
-      setPicked(helpOpen ? null : { id: "help-open", path: pathname });
-      return;
-    }
-    setPicked({ id, path: pathname });
-    if (isCollapsed) {
-      onCollapsedChange(false);
-      window.localStorage.setItem(COLLAPSED_STORAGE_KEY, "false");
-    }
+  const close = () => onMobileClose?.();
+  // In the icon-only sidebar a row that expands has nowhere to show its pages, so it opens the sidebar first.
+  function expandRow(id: string) {
+    setRowOverrides((current) => ({ ...current, [id]: true }));
+    onCollapsedChange(false);
   }
+  function openSearch() {
+    window.dispatchEvent(new Event("tracify:open-command"));
+  }
+
+  const ctx: RowContext = {
+    expanded: showPanel,
+    isLeafActive,
+    resolveHref,
+    close,
+    pin: liveProject ? { isPinned, toggle: togglePin } : null,
+    rowOpen,
+    toggleRow,
+    expandRow,
+  };
+
+  const recentsRow = recents.length > 0 && hasProject;
+  const recentsActive = false;
 
   return (
     <aside
       className={cn(
-        "tracify-shell-sidebar fixed inset-y-0 left-0 z-30 flex border-r border-white/10 bg-[#0b0b0b] text-white transition-[width,transform] duration-150 ease-out motion-reduce:transition-none",
+        "tracify-shell-sidebar fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-[#0b0b0b] text-white overflow-hidden transition-[width,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
         isMobileOpen && "is-mobile-open",
+        peekOverlay && "shadow-[12px_0_32px_rgb(0_0_0/0.45)]",
       )}
-      style={{ width: visualWidth }}
+      style={{ width: showPanel ? EXPANDED_WIDTH : COLLAPSED_WIDTH }}
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "mouse") return;
+        setPointerInside(true);
+        if (isCollapsed) setPeeking(true);
+      }}
+      onPointerLeave={() => setPointerInside(false)}
     >
-      <div className="relative flex shrink-0 flex-col items-center border-r border-white/10 bg-[#050505] py-3" style={{ width: RAIL_WIDTH }}>
-        <Link href={projectDashboardHref} aria-label="Tracify dashboard" className="mb-3 block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logos/dissolve/tracify-icon.svg" alt="" width={44} height={44} className="block size-11" />
+      <DashboardCommandMenu projectId={projectId} showTrigger={false} basePath={demo ? DEMO_BASE_PATH : isSynthetic ? "/playground" : undefined} />
+
+      <div className={cn("flex h-14 shrink-0 items-center", showPanel ? "px-3" : "justify-center")}>
+        <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
+          {showPanel ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/logos/dissolve/tracify-name-on-dark.svg" alt="tracify" height={22} className="block h-[22px] w-auto" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/logos/dissolve/tracify-icon.svg" alt="" width={36} height={36} className="block size-9" />
+          )}
         </Link>
-        <div className="flex w-full flex-1 flex-col items-center gap-1 px-1.5">
-          {railGroups.map((group) => {
-            const Icon = group.icon;
-            const isActive = group.id === "help" ? helpOpen : showPanel ? group.id === panelGroup?.id : group.id === activeRailId;
-            return (
-              <button
-                key={group.id}
-                type="button"
-                aria-label={group.label}
-                aria-pressed={isActive}
-                onClick={() => pickGroup(group.id)}
-                className={cn(
-                  "flex w-full flex-col items-center gap-1 py-2 font-mono text-[10px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55",
-                  group.id === "help" && "mt-auto",
-                  isActive ? "!bg-[#f4d44d] !text-[#090909]" : "!text-[#8d8d8d] hover:!text-white",
-                )}
-              >
-                <Icon className="size-[18px]" strokeWidth={1.7} />
-                {group.label}
-              </button>
-            );
-          })}
-        </div>
-        {isCollapsed ? (
-          <div className="mt-3 flex flex-col items-center gap-2">
-            <ProjectSwitcher isCollapsed previewProjectName={previewProjectName} synthetic={isSynthetic || demo} />
-            <SidebarAccountMenu isCollapsed synthetic={isSynthetic || demo} />
-          </div>
-        ) : null}
-        {helpOpen && helpGroup ? (
-          <div className="absolute bottom-3 left-[calc(100%+6px)] z-40 w-52 border-2 border-[#f4d44d] bg-[#090909] py-1 shadow-none">
-            {helpGroup.items.map((item) => (
-              <PanelLink key={item.title} item={item} isActive={false} onNavClick={() => { setPicked(null); onMobileClose?.(); }} />
-            ))}
-          </div>
-        ) : null}
       </div>
 
-      {showPanel && panelGroup ? (
-        <div className="flex min-w-0 flex-1 flex-col bg-[#0f0f0f]">
-          <div className="flex h-12 items-center border-b border-white/10 px-4">
-            <Link href={projectDashboardHref} aria-label="Tracify dashboard">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logos/dissolve/tracify-name-on-dark.svg" alt="tracify" height={22} className="block h-[22px] w-auto" />
-            </Link>
-          </div>
-
-          {isSynthetic ? (
-            <div className="captured-sidebar-context border-y border-white/10">
-              <Link href={DEMO_BASE_PATH} className="captured-sidebar-context-link is-demo">↗ <span>Use Demo App</span></Link>
-              <a href={`${MARKETING_ORIGIN}/cloud`} className="captured-sidebar-context-link">⊞ <span>Your Orgs</span></a>
-            </div>
-          ) : null}
-
-          <div className="px-4 pb-2 pt-3">
-            <div className="font-mono text-[17px] font-semibold text-white">{panelGroup.label}</div>
-            <div className="mt-0.5 font-mono text-[11px] text-white/40">{panelGroup.blurb}</div>
-          </div>
-
-          <nav className="min-h-0 flex-1 overflow-y-auto py-1 scrollbar-hide" aria-label={panelGroup.label}>
-            {liveProject ? <PinnedSection pins={pins} pathname={pathname} onToggle={togglePin} onNavClick={() => onMobileClose?.()} /> : null}
-            {panelGroup.items.map((item) => (
-              <PanelLink
-                key={item.title}
-                item={item}
-                isActive={isActivePath(pathname, item.href, projectId, Boolean(projectIdOverride), currentSearch)}
-                onNavClick={() => onMobileClose?.()}
-                pin={liveProject && !item.external ? { pinned: isPinned(item.href), onToggle: () => togglePin({ href: item.href, title: item.title }) } : undefined}
-              />
-            ))}
-            {liveProject && savedViews ? <SavedViewsSection views={savedViews} projectId={projectId} onNavClick={() => onMobileClose?.()} /> : null}
-          </nav>
-
-          {liveProject ? (
-            <FinishSetupCard
-              projectId={projectId}
-              hasSavedView={Boolean(savedViews?.length)}
-              tracingHref={workspaceHref("tracing")}
-              keysHref={`${projectDashboardHref}/api-keys`}
-              onNavClick={() => onMobileClose?.()}
-            />
-          ) : null}
-
-          <div className="border-t border-white/10">
-            <div className={cn("p-3", isSynthetic && "captured-sidebar-project")}>
-              <ProjectSwitcher isCollapsed={false} previewProjectName={previewProjectName} synthetic={isSynthetic || demo} />
-            </div>
-            {!isSynthetic ? (
-              <Link
-                href={alertsHref}
-                onClick={() => onMobileClose?.()}
-                className="flex h-10 items-center gap-3 px-4 font-mono text-[12px] !text-[#bdbdbd] outline-none hover:bg-[#181818] hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
-              >
-                <Plus className="size-4" />
-                New alert
-              </Link>
-            ) : null}
-            <div className="border-t border-white/10">
-              <SidebarAccountMenu synthetic={isSynthetic || demo} />
-            </div>
-          </div>
+      {isSynthetic && showPanel ? (
+        <div className="captured-sidebar-context border-y border-white/10">
+          <Link href={DEMO_BASE_PATH} className="captured-sidebar-context-link is-demo">↗ <span>Use Demo App</span></Link>
+          <a href={`${MARKETING_ORIGIN}/cloud`} className="captured-sidebar-context-link">⊞ <span>Your Orgs</span></a>
         </div>
       ) : null}
+
+      <div className={cn("shrink-0 space-y-2 pb-2", showPanel ? "px-3" : "flex flex-col items-center")}>
+        <div className={cn(isSynthetic && "captured-sidebar-project")}>
+          <ProjectSwitcher isCollapsed={!showPanel} previewProjectName={previewProjectName} synthetic={isSynthetic || demo} />
+        </div>
+        <button
+          type="button"
+          onClick={openSearch}
+          aria-label="Quick search (Ctrl K)"
+          title={showPanel ? undefined : "Quick search · Ctrl K"}
+          className={cn(
+            "flex items-center border border-white/15 bg-[#141414] font-mono text-[12px] !text-[#b4b4b4] outline-none transition-colors hover:border-white/40 hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55",
+            showPanel ? "h-9 w-full gap-2.5 px-2.5" : "size-10 justify-center",
+          )}
+        >
+          <Search className="size-4 shrink-0" strokeWidth={1.7} />
+          {showPanel ? (
+            <>
+              <span className="truncate">Quick search…</span>
+              <kbd className="ml-auto shrink-0 font-mono text-[10px] !text-white/45">Ctrl <span className="font-semibold !text-white/70">K</span></kbd>
+            </>
+          ) : null}
+        </button>
+      </div>
+
+      <nav key={showPanel ? "open" : "rail"} className="min-h-0 flex-1 animate-in fade-in-0 overflow-y-auto pb-3 duration-300 scrollbar-hide motion-reduce:animate-none" aria-label="Dashboard">
+        {home.map((row) => (
+          <SidebarRow key={row.id} row={row} ctx={ctx} />
+        ))}
+
+        {recentsRow ? (
+          showPanel ? (
+            <>
+              <button
+                type="button"
+                aria-expanded={recentsOpen}
+                onClick={() => setRowOverrides((current) => ({ ...current, recents: !recentsOpen }))}
+                className={cn(rowClass, "mx-2 w-[calc(100%-1rem)] text-left", recentsActive ? rowActive : rowIdle)}
+              >
+                <History className="size-[16px] shrink-0" strokeWidth={1.7} />
+                <span className="truncate">Recents</span>
+                <Chevron open={recentsOpen} className="ml-auto size-4" />
+              </button>
+              <Collapsible open={recentsOpen}>
+                <div className="mx-2 ml-[23px] border-l !border-white/15">
+                  {recents.map((recent) => {
+                    const active = isLeafActive(recent.href);
+                    return (
+                      <Link
+                        key={recent.href}
+                        href={resolveHref(recent.href)}
+                        onClick={close}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(leafClass, "h-auto flex-col items-start gap-0 py-1.5", active ? leafActive : leafIdle)}
+                      >
+                        <span className="w-full truncate">{recent.title}</span>
+                        <span className="w-full truncate text-[10.5px] !text-white/35">{recent.section}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </Collapsible>
+            </>
+          ) : (
+            <button
+              type="button"
+              aria-label="Recents"
+              title="Recents"
+              onClick={() => expandRow("recents")}
+              className={cn(rowClass, "mx-auto w-10 justify-center px-0", rowIdle)}
+            >
+              <History className="size-[16px]" strokeWidth={1.7} />
+            </button>
+          )
+        ) : null}
+
+        {liveProject && showPanel ? <PinnedSection pins={pins} pathname={pathname} onToggle={togglePin} onNavClick={close} /> : null}
+
+        {sections.map((section) => {
+          // A folded group still shows the page you are on, so the current page never disappears.
+          const holdsActive = section.rows.some((row) => (row.children ?? [{ href: row.href ?? "" }]).some((leaf) => leaf.href && isLeafActive(leaf.href)));
+          const folded = closedSections.closed.includes(section.id) && !holdsActive;
+          return (
+            <div key={section.id}>
+              {!section.label ? null : showPanel ? (
+                <button
+                  type="button"
+                  aria-expanded={!folded}
+                  onClick={() => closedSections.toggle(section.id)}
+                  className="mt-3 flex h-8 w-full items-center gap-1 px-5 text-left font-mono text-[11px] !text-white/40 outline-none transition-colors hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
+                >
+                  <span>{section.label}</span>
+                  <Chevron open={!folded} className="size-3.5" />
+                </button>
+              ) : (
+                <div className="mx-3 my-3 border-t !border-white/10" aria-hidden />
+              )}
+              <Collapsible open={!folded || !showPanel}>
+                {section.rows.map((row) => <SidebarRow key={row.id} row={row} ctx={ctx} />)}
+              </Collapsible>
+            </div>
+          );
+        })}
+      </nav>
+
+      {liveProject && showPanel ? (
+        <FinishSetupCard
+          projectId={projectId}
+          hasSavedView={Boolean(savedViews?.length)}
+          tracingHref={workspaceHref("tracing")}
+          keysHref={`${projectDashboardHref}/api-keys`}
+          onNavClick={close}
+        />
+      ) : null}
+
+      <div className="shrink-0 border-t border-white/10 pt-1">
+        <SidebarAccountMenu isCollapsed={!showPanel} synthetic={isSynthetic || demo} />
+        <div className={cn("flex h-11 items-center", showPanel ? "px-3" : "justify-center")}>
+          <button
+            type="button"
+            aria-label={showPanel ? "Collapse sidebar (Ctrl+\\)" : "Open sidebar (Ctrl+\\)"}
+            title={showPanel ? "Collapse sidebar · Ctrl+\\" : "Open sidebar · Ctrl+\\"}
+            onClick={() => {
+              setPeeking(false);
+              if (isMobileOpen) onMobileClose?.();
+              else onCollapsedChange(!isCollapsed);
+            }}
+            className="flex size-8 items-center justify-center !text-[#8d8d8d] outline-none transition-colors hover:!bg-[#181818] hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
+          >
+            {showPanel ? <PanelLeftClose className="size-4" /> : <PanelLeftOpen className="size-4" />}
+          </button>
+        </div>
+      </div>
     </aside>
   );
 }
 
-function PanelLink({ item, isActive, onNavClick, pin }: { item: NavItem; isActive: boolean; onNavClick: () => void; pin?: { pinned: boolean; onToggle: () => void } }) {
-  const className = cn(
-    "relative flex h-9 items-center gap-3 px-4 font-mono text-[13px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55",
-    isActive
-      ? "!bg-[#1c1c1c] font-semibold !text-white before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#f4d44d]"
-      : "!text-[#a0a0a0] hover:!bg-[#181818] hover:!text-white",
+const rowClass =
+  "relative flex h-8 items-center gap-2.5 px-2.5 font-mono text-[12px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
+const rowActive = "!bg-[#1c1c1c] font-semibold !text-white before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#f4d44d]";
+const rowIdle = "!text-[#b4b4b4] hover:!bg-[#181818] hover:!text-white";
+const leafClass =
+  "relative flex h-7 items-center px-3 font-mono text-[11.5px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
+const leafActive = "!text-white before:absolute before:inset-y-1 before:-left-px before:w-[2px] before:bg-[#f4d44d]";
+const leafIdle = "!text-[#9a9a9a] hover:!bg-[#181818] hover:!text-white";
+
+type RowContext = {
+  expanded: boolean;
+  isLeafActive: (href: string) => boolean;
+  resolveHref: (href: string) => string;
+  close: () => void;
+  pin: { isPinned: (href: string) => boolean; toggle: (pin: { href: string; title: string }) => void } | null;
+  rowOpen: (row: NavRow) => boolean;
+  toggleRow: (row: NavRow) => void;
+  expandRow: (id: string) => void;
+};
+
+/** Opens and closes by animating the height from and to zero, so folding is as smooth as unfolding. */
+function Collapsible({ open, children }: { open: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className={cn("grid transition-[grid-template-rows,opacity] duration-250 ease-out motion-reduce:transition-none", open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}
+      aria-hidden={!open}
+      inert={!open}
+    >
+      <div className="min-h-0 overflow-hidden">{children}</div>
+    </div>
   );
-  const content = (
+}
+
+function Chevron({ open, className }: { open: boolean; className?: string }) {
+  return <ChevronRight className={cn("shrink-0 opacity-60 transition-transform duration-250 motion-reduce:transition-none", open && "rotate-90", className)} />;
+}
+
+function NewBadge() {
+  return <span className="shrink-0 border border-dashed !border-white/45 px-1.5 font-mono text-[10px] leading-[16px] !text-white">New</span>;
+}
+
+function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
+  const Icon = row.icon;
+  const hasChildren = Boolean(row.children?.length);
+  const childActive = hasChildren && row.children!.some((child) => ctx.isLeafActive(child.href));
+  const open = hasChildren && ctx.rowOpen(row);
+  // An open row shows its active page below it, so only a folded row carries the highlight.
+  const active = hasChildren ? childActive && !open : row.href ? ctx.isLeafActive(row.href) : false;
+
+  if (!ctx.expanded) {
+    const state = cn(rowClass, "mx-auto w-10 justify-center px-0", active ? rowActive : rowIdle);
+    if (hasChildren) {
+      return (
+        <button type="button" aria-label={row.title} title={row.title} onClick={() => ctx.expandRow(row.id)} className={state}>
+          <Icon className="size-[16px]" strokeWidth={1.7} />
+        </button>
+      );
+    }
+    return row.external ? (
+      <a href={row.href} title={row.title} aria-label={row.title} className={state} onClick={ctx.close}>
+        <Icon className="size-[16px]" strokeWidth={1.7} />
+      </a>
+    ) : (
+      <Link href={ctx.resolveHref(row.href ?? "/dashboard")} title={row.title} aria-label={row.title} aria-current={active ? "page" : undefined} className={state} onClick={ctx.close}>
+        <Icon className="size-[16px]" strokeWidth={1.7} />
+      </Link>
+    );
+  }
+
+  const rowState = cn(rowClass, "mx-2 w-[calc(100%-1rem)]", active ? rowActive : rowIdle);
+  const label = (
     <>
-      <span className="truncate">{item.title}</span>
-      {item.external ? <span className="ml-auto text-[11px] opacity-50">↗</span> : null}
+      <Icon className="size-[16px] shrink-0" strokeWidth={1.7} />
+      <span className="truncate">{row.title}</span>
+      {row.badge ? <NewBadge /> : null}
     </>
   );
-  if (item.external) return <a href={item.href} className={className} onClick={onNavClick}>{content}</a>;
-  const link = <Link href={item.href} className={cn(className, pin && "pr-9")} aria-current={isActive ? "page" : undefined} onClick={onNavClick}>{content}</Link>;
-  if (!pin) return link;
+
+  if (hasChildren) {
+    return (
+      <>
+        <button type="button" aria-expanded={open} onClick={() => ctx.toggleRow(row)} className={cn(rowState, "text-left", )}>
+          {label}
+          <Chevron open={open} className="ml-auto size-4" />
+        </button>
+        <Collapsible open={open}>
+          <div className="mx-2 ml-[23px] border-l !border-white/15">
+            {row.children!.map((child) => {
+              const leafOn = ctx.isLeafActive(child.href);
+              const link = (
+                <Link
+                  href={ctx.resolveHref(child.href)}
+                  aria-current={leafOn ? "page" : undefined}
+                  onClick={ctx.close}
+                  className={cn(leafClass, ctx.pin && "pr-9", leafOn ? leafActive : leafIdle)}
+                >
+                  <span className="truncate">{child.title}</span>
+                  {child.badge ? <span className="ml-2"><NewBadge /></span> : null}
+                </Link>
+              );
+              if (!ctx.pin || child.href.includes("savedView=")) return <div key={child.href}>{link}</div>;
+              return (
+                <div key={child.href} className="group/row relative">
+                  {link}
+                  <PinButton pinned={ctx.pin.isPinned(child.href)} title={child.title} onToggle={() => ctx.pin?.toggle({ href: child.href, title: child.title })} />
+                </div>
+              );
+            })}
+          </div>
+        </Collapsible>
+      </>
+    );
+  }
+
+  if (row.external) {
+    return (
+      <a href={row.href} className={rowState} onClick={ctx.close}>
+        {label}
+        <span className="ml-auto text-[11px] opacity-50">↗</span>
+      </a>
+    );
+  }
+  const link = (
+    <Link href={ctx.resolveHref(row.href ?? "/dashboard")} aria-current={active ? "page" : undefined} className={cn(rowState, ctx.pin && "pr-9")} onClick={ctx.close}>
+      {label}
+    </Link>
+  );
+  if (!ctx.pin || row.id === "home" || row.id === "dashboards") return link;
   return (
     <div className="group/row relative">
       {link}
-      <PinButton pinned={pin.pinned} title={item.title} onToggle={pin.onToggle} />
+      <PinButton pinned={ctx.pin.isPinned(row.href ?? "")} title={row.title} onToggle={() => ctx.pin?.toggle({ href: row.href ?? "", title: row.title })} />
     </div>
   );
 }

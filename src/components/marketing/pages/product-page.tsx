@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import { ArtBand, CapabilityGrid, EndCta, Faq, PageHero, SignalTicker, StickyStory, type CapsVariant, type HeroVariant, type StoryLook } from "./page-kit";
 import { CodeSection, snippets } from "./code-section";
 import { ControlStage, CostStage, EvalStage, FailureStage, ModelStage, ReportStage, ToolStage, TraceStage } from "./stages";
@@ -171,7 +172,7 @@ export function ProductPage({ slug, page }: { slug: ProductSlug; page: ProductPa
   };
   return (
     <>
-      <PageHero eyebrow={c.eyebrow} title={c.headline} lead={c.lead} img={c.hero} facts={c.facts} primary={["Start tracing free", "/sign-up"]} secondary={["Read the docs", "/docs"]} variant={look.hero} />
+      <PageHero eyebrow={c.eyebrow} title={c.headline} lead={c.lead} img={c.hero} facts={c.facts} primary={["Start tracing free", appHref("/sign-up")]} secondary={["Read the docs", "/docs"]} variant={look.hero} />
       <SignalTicker items={c.ticker} />
       {look.order.map((k) => blocks[k])}
       <EndCta heading="See your own runs like this." links={others} />

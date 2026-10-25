@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPrice, plans } from "@/lib/pricing-plans";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
@@ -42,9 +43,6 @@ export function BetterAuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         ? await authClient.signUp.email({ name: name.trim(), email: email.trim(), password, callbackURL: absolute(callbackPath) })
         : await authClient.signIn.email({ email: email.trim(), password, callbackURL: absolute(callbackPath) });
       if (result.error) return setError(result.error.message || "Authentication failed.");
-      if (mode === "sign-up") {
-        await fetch("/api/lifecycle/welcome", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim(), name: name.trim() }) }).catch(() => undefined);
-      }
       const callback = new URL(callbackPath, window.location.origin);
       if (intent) callback.searchParams.set("intent", intent);
       window.location.assign(`/auth/callback?redirect_url=${encodeURIComponent(`${callback.pathname}${callback.search}${callback.hash}`)}`);
@@ -79,6 +77,11 @@ export function BetterAuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     <div>
       <h2 className="font-pixel text-4xl leading-none tracking-[-0.06em]">{mode === "sign-up" ? "Start debugging agents." : "Welcome back."}</h2>
       <p className="mt-3 text-sm leading-6 text-black/55">{mode === "sign-up" ? "Free to start. Your first trace takes about five minutes." : "Your traces are right where you left them."}</p>
+      {mode === "sign-up" ? (
+        <p className="mt-4 border-l-2 border-[#f4d44d] pl-3 font-mono text-[10px] uppercase leading-5 tracking-[0.08em] text-black/65">
+          Free: {plans[0].spans} spans a month, {plans[0].retention} of history, no card. Need more later? Pro is {formatPrice(plans[1].monthly)} a month, Team {formatPrice(plans[2].monthly)}.
+        </p>
+      ) : null}
 
       <div className="mt-7 grid gap-2 sm:grid-cols-2">
         <SocialButton label="GitHub" disabled={pending} onClick={() => void continueWith("github")} icon={<GitHubMark />} />

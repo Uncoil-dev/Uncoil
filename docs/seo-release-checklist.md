@@ -56,7 +56,7 @@ Confirm `.vercel/project.json` points to project `tracify` in team `tracify-tech
 2. Inspect `https://www.tracify.tech` and confirm it resolves to the new deployment ID.
 3. Verify `/`, `/robots.txt`, `/sitemap.xml`, one representative public article, and every changed route.
 4. Recheck final canonicals, H1, descriptions, social tags, internal links, and utility-route `noindex` behavior.
-5. If IndexNow is part of the release, verify the key file before running `npm run seo:indexnow -- --submit`. Never submit while the key returns 404 or before the expected key contents are live.
+5. If IndexNow is part of the release, verify the key file before running `npm run seo:indexnow -- --submit`. Never submit while the key returns 404 or before the expected key contents are live. The key file is `public/<key>.txt`; the `IndexNow` GitHub workflow submits URLs modified in the last two days after each push to `main` (waits up to 15 minutes for the key to be live), and can be run by hand with an empty `since` to resubmit every sitemap URL.
 6. Start a new Ahrefs crawl after production verification. Compare results using the new crawl timestamp, not a crawl from before deployment.
 
 ## Incident note: PR #5

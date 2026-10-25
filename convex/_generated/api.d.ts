@@ -10,6 +10,7 @@
 
 import type * as admin from "../admin.js";
 import type * as agentRuns from "../agentRuns.js";
+import type * as alertMessages from "../alertMessages.js";
 import type * as alertMetrics from "../alertMetrics.js";
 import type * as alertRules from "../alertRules.js";
 import type * as alerts from "../alerts.js";
@@ -47,6 +48,7 @@ import type * as sharedTraces from "../sharedTraces.js";
 import type * as sessions from "../sessions.js";
 import type * as spendMetrics from "../spendMetrics.js";
 import type * as weeklySummary from "../weeklySummary.js";
+import type * as welcomeEmail from "../welcomeEmail.js";
 
 import type {
   ApiFromModules,
@@ -57,6 +59,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   agentRuns: typeof agentRuns;
+  alertMessages: typeof alertMessages;
   alertMetrics: typeof alertMetrics;
   alertRules: typeof alertRules;
   alerts: typeof alerts;
@@ -94,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   sessions: typeof sessions;
   spendMetrics: typeof spendMetrics;
   weeklySummary: typeof weeklySummary;
+  welcomeEmail: typeof welcomeEmail;
 }>;
 
 /**

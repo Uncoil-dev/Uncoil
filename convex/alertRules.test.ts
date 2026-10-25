@@ -90,3 +90,36 @@ test("tags are cleaned, capped and limited to the project", async () => {
   const overview = await owner.query(api.alertRules.overview, { projectId });
   expect(overview?.rules[0].tags).toEqual(tags);
 });
+
+test("coming back under the limit hands back the links to tell, and nothing for rules without any", async () => {
+  const { t, projectId, owner } = await setup();
+  const ruleId = await owner.mutation(api.alertRules.create, { projectId, ...rule, slackUrl: "https://hooks.slack.com/services/T/B/x" });
+  await addRuns(t, projectId as never, "failed", 3);
+  await t.mutation(internal.alertRules.evaluate, { ruleId });
+  await t.run(async (ctx) => { for (const run of await ctx.db.query("agentRuns").collect()) await ctx.db.patch(run._id, { status: "completed" }); });
+  const back = await t.mutation(internal.alertRules.evaluate, { ruleId });
+  expect(back).toMatchObject({ fired: false, resolved: { slackUrl: "https://hooks.slack.com/services/T/B/x", name: "Failed runs per hour" } });
+  expect(await t.mutation(internal.alertRules.evaluate, { ruleId })).toEqual({ fired: false });
+});
+
+test("delivery results show on the rule and old ones are trimmed", async () => {
+  const { t, projectId, owner, outsider } = await setup();
+  const ruleId = await owner.mutation(api.alertRules.create, { projectId, ...rule, slackUrl: "https://hooks.slack.com/services/T/B/x" });
+  await t.mutation(internal.alertRules.recordDelivery, { projectId, ruleId, channel: "slack", kind: "fired", ok: false, status: 404, error: "gone" });
+  await t.mutation(internal.alertRules.recordDelivery, { projectId, ruleId, channel: "slack", kind: "test", ok: true, status: 200 });
+  const shown = (await owner.query(api.alertRules.overview, { projectId }))?.rules[0];
+  expect(shown?.slackDelivery).toMatchObject({ ok: true, kind: "test" });
+  expect(shown?.webhookDelivery).toBeUndefined();
+  expect(JSON.stringify(shown)).not.toContain("hooks.slack.com");
+  for (let i = 0; i < 30; i += 1) await t.mutation(internal.alertRules.recordDelivery, { projectId, ruleId, channel: "slack", kind: "fired", ok: true, status: 200 });
+  expect(await t.run((ctx) => ctx.db.query("alertDeliveries").collect())).toHaveLength(20);
+  await expect(outsider.action(api.alertRules.sendTest, { ruleId })).rejects.toThrow();
+});
+
+test("sending a test needs a Slack or webhook link, and only accepts real Slack addresses", async () => {
+  const { projectId, owner } = await setup();
+  const emailOnly = await owner.mutation(api.alertRules.create, { projectId, ...rule });
+  await expect(owner.action(api.alertRules.sendTest, { ruleId: emailOnly })).rejects.toThrow(/no Slack or webhook/);
+  await expect(owner.action(api.alertRules.testLink, { projectId, slackUrl: "https://evil.example/services/x" })).rejects.toThrow(/Slack/);
+  await expect(owner.action(api.alertRules.testLink, { projectId })).rejects.toThrow(/Paste a link/);
+});

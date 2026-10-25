@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -128,10 +129,10 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           transition={{ delay: 0.85 }}
           className="mt-9 flex flex-wrap justify-center gap-3"
         >
-          <Link href="/sign-up" className="group inline-flex min-h-13 items-center gap-3 bg-[#f4d44d] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
+          <Link href={appHref("/sign-up")} className="group inline-flex min-h-13 items-center gap-3 bg-[#f4d44d] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
             {t.ctaPrimary} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
-          <Link href="/demo/project" className="inline-flex min-h-13 items-center gap-3 border border-white/30 bg-black/40 px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] backdrop-blur-sm hover:bg-white hover:text-black">
+          <Link href={appHref("/demo/project")} className="inline-flex min-h-13 items-center gap-3 border border-white/30 bg-black/40 px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] backdrop-blur-sm hover:bg-white hover:text-black">
             {t.ctaSecondary} <ArrowUpRight className="size-4" aria-hidden="true" />
           </Link>
         </motion.div>

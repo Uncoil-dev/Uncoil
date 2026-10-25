@@ -116,7 +116,7 @@ Send each partial as a span with \`isStreamChunk: true\`, an increasing \`stream
 
 ## Privacy and retention
 
-Redaction is enabled by default and configurable under **Project settings → Privacy & Retention**. A scheduler can call \`POST /api/retention\` with the \`x-retention-secret\` header to purge Convex summaries; set \`TRACIFY_RETENTION_SECRET\` in the deployment environment.
+Redaction is enabled by default and configurable under **Project settings → Privacy & Retention**. Data older than your plan keeps (Free 7 days, Pro 30, Team 90) is removed every day by a built-in schedule. You can also run it with \`POST /api/retention\` and the \`x-retention-secret\` header; set \`TRACIFY_RETENTION_SECRET\` in the deployment environment.
     `,
   },
 };

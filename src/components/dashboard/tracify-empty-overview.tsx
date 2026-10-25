@@ -7,7 +7,6 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useProjectStats } from "@/hooks/use-project-stats";
 import { ChevronDown, ExternalLink, Info, PanelLeft, Pencil, Search, SlidersHorizontal } from "lucide-react";
-import { DashboardCommandMenu } from "./dashboard-command-menu";
 
 type ChartPanelProps = {
   title: string;
@@ -290,7 +289,6 @@ export function TracifyEmptyOverview({ projectId, dashboardId, dashboardMode = f
 
   return (
     <div className="tracify-overview">
-      <DashboardCommandMenu projectId={projectId} showTrigger={false} />
       <header className="tracify-page-header">
         <div className="tracify-breadcrumbs">
           <button type="button" className="tracify-icon-button" aria-label="Toggle sidebar" onClick={() => window.dispatchEvent(new Event("tracify:toggle-sidebar"))}><PanelLeft /></button>

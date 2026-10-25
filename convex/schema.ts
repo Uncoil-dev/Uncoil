@@ -165,6 +165,20 @@ export default defineSchema({
     .index("by_projectId", ["projectId"])
     .index("by_enabled", ["enabled"]),
 
+  // One row per Slack or webhook send for an alert rule (fired, back to normal, or a test), so the dashboard can show what happened. Trimmed to the newest 20 per rule.
+  alertDeliveries: defineTable({
+    projectId: v.id("projects"),
+    ruleId: v.id("alertRules"),
+    channel: v.union(v.literal("slack"), v.literal("webhook")),
+    kind: v.union(v.literal("fired"), v.literal("resolved"), v.literal("test")),
+    ok: v.boolean(),
+    status: v.optional(v.number()),
+    error: v.optional(v.string()),
+    at: v.number(),
+  })
+    .index("by_ruleId", ["ruleId"])
+    .index("by_projectId", ["projectId"]),
+
   automations: defineTable({
     projectId: v.id("projects"),
     name: v.string(),
@@ -758,6 +772,12 @@ export default defineSchema({
     product: v.boolean(),
     updatedAt: v.number(),
   }).index("by_userKey", ["userKey"]),
+
+  // One row per address already welcomed, so the welcome email is never sent twice.
+  welcomeEmails: defineTable({
+    email: v.string(),
+    sentAt: v.number(),
+  }).index("by_email", ["email"]),
 
   auditLogs: defineTable({
     projectId: v.id("projects"),

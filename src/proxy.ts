@@ -4,6 +4,8 @@ import { TRACIFY_REGIONS } from "@/lib/regions";
 
 const DEMO_PREFIX = "/demo";
 
+const MARKETING_HOSTS = new Set(["www.tracify.tech", "tracify.tech"]);
+
 function isDemoPath(pathname: string) {
   return pathname === DEMO_PREFIX || pathname.startsWith(`${DEMO_PREFIX}/`);
 }
@@ -99,7 +101,8 @@ export function proxy(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-  if (deploymentKind === "cloud") response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  // The cloud app is private, but a marketing host must never be told noindex by a cloud-flavoured build.
+  if (deploymentKind === "cloud" && !MARKETING_HOSTS.has(hostname)) response.headers.set("X-Robots-Tag", "noindex, nofollow");
   return response;
 }
 

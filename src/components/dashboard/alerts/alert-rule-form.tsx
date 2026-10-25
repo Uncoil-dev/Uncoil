@@ -6,6 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { AlertChart } from "./alert-chart";
 import { METRICS, type Metric } from "./alert-metrics";
+import { TestLink } from "./delivery-status";
 
 export function AlertRuleForm({ projectId, defaultEmail, onClose }: { projectId: string; defaultEmail: string; onClose: () => void }) {
   const create = useMutation(api.alertRules.create);
@@ -118,12 +119,14 @@ export function AlertRuleForm({ projectId, defaultEmail, onClose }: { projectId:
               <div className="mt-2.5">
                 <input aria-label="Slack webhook link" type="password" autoComplete="off" value={slackUrl} onChange={(event) => setSlackUrl(event.target.value)} placeholder="https://hooks.slack.com/services/…" className="h-9 w-full border border-[#262C35] bg-[#111418] px-2.5 font-mono text-[12px] outline-none focus:border-[#4A5260]" />
                 <p className="mt-1 text-[11px] text-[#6B7380]">In Slack, add the “Incoming Webhooks” app to a channel and paste the link it gives you.</p>
+                <TestLink projectId={projectId} kind="slack" url={slackUrl} />
               </div>
             ) : null}
             {useWebhook ? (
               <div className="mt-2.5">
                 <input aria-label="Webhook link" type="password" autoComplete="off" value={webhookUrl} onChange={(event) => setWebhookUrl(event.target.value)} placeholder="https://example.com/tracify-alerts" className="h-9 w-full border border-[#262C35] bg-[#111418] px-2.5 font-mono text-[12px] outline-none focus:border-[#4A5260]" />
                 <p className="mt-1 text-[11px] text-[#6B7380]">We send a JSON message to this address whenever the rule fires. It must be a public https link.</p>
+                <TestLink projectId={projectId} kind="webhook" url={webhookUrl} />
               </div>
             ) : null}
           </div>

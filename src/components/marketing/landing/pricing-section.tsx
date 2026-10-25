@@ -1,5 +1,6 @@
 "use client";
 
+import { appHref } from "@/lib/app-links";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -75,7 +76,7 @@ export function PricingSection() {
                   ))}
                 </ul>
                 <Link
-                  href={plan.name === "Free" ? "/sign-up" : pricingCheckoutHref(plan.name.toLowerCase() as "pro" | "team", interval)}
+                  href={plan.name === "Free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.name.toLowerCase() as "pro" | "team", interval))}
                   className={`mt-10 flex min-h-12 items-center justify-between px-4 font-mono text-[10px] uppercase tracking-[0.13em] ${featured ? "bg-[#f4d44d] text-black hover:bg-white" : "border-2 border-black hover:bg-black hover:text-white"}`}
                 >
                   {plan.name === "Free" ? "Start free" : `Get ${plan.name}`}

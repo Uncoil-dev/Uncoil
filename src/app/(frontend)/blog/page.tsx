@@ -1,4 +1,4 @@
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, itemListJsonLd, jsonLdString, pageMetadata } from "@/lib/seo";
 import { JournalHero, TopicStory, TraceArchive, type JournalPost } from "@/components/blog/journal";
 import { getReadingTime } from "@/components/blog/reading-time";
 import { Reveal } from "@/components/marketing/landing/reveal";
@@ -35,6 +35,10 @@ export default async function BlogPage() {
 
   return (
     <main className="bg-[#eceae3] text-black">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdString([breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Blog", path: "/blog" }]), itemListJsonLd("Tracify blog", journal.map((p) => ({ name: p.title, path: `/blog/${p.slug}` })))]) }}
+      />
       <JournalHero posts={journal} total={journal.length} />
 
       {lead ? (

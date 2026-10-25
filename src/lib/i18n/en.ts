@@ -1,3 +1,4 @@
+import { appHref } from "@/lib/app-links";
 import type { Copy } from "./types";
 
 export const en: Copy = {
@@ -6,13 +7,13 @@ export const en: Copy = {
     tagline: "One map per run.",
     product: "Product",
     company: "Company",
-    links: [["Pricing", "/pricing"], ["Docs", "/docs"], ["Demo", "/demo"], ["Blog", "/blog"], ["Contact", "/contact"]],
+    links: [["Pricing", "/pricing"], ["Docs", "/docs"], ["Demo", appHref("/demo")], ["Blog", "/blog"], ["Contact", "/contact"]],
     legal: [["Privacy", "/privacy"], ["Terms", "/terms"], ["Cookies", "/cookie-policy"]],
     note: "",
   },
   home: {
     metaTitle: "Tracify | AI agent observability and evaluation",
-    metaDescription: "Trace every decision, tool call, cost, quality signal, and deployment change in one debugging timeline.",
+    metaDescription: "Trace every decision, tool call, cost, quality signal, and deployment change in one debugging timeline. Start free with 25,000 spans a month.",
     badgeNew: "New",
     badge: "TypeScript SDK v0.4.0 · OpenAI, Anthropic and LangGraph",
     heroA: "Watch your agent",

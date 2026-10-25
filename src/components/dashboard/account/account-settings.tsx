@@ -3,15 +3,17 @@
 import { useCallback, useEffect, useState, useSyncExternalStore, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, KeyRound, LogOut, Monitor, ShieldCheck, UserRound, Bell } from "lucide-react";
+import { ArrowLeft, KeyRound, LogOut, Monitor, ShieldCheck, UserRound, Bell, Gauge } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import { authClient } from "@/lib/auth-client";
+import { UsageTab } from "@/components/dashboard/account/usage-tab";
 import { cn } from "@/lib/utils";
 
 const TABS = [
   { id: "profile", label: "Profile", blurb: "Name and sign-in email", icon: UserRound },
   { id: "security", label: "Password", blurb: "Change how you sign in", icon: KeyRound },
+  { id: "usage", label: "Usage", blurb: "Spans used this month", icon: Gauge },
   { id: "sessions", label: "Devices", blurb: "Where you are signed in", icon: Monitor },
   { id: "email", label: "Email", blurb: "What we may send you", icon: Bell },
 ] as const;
@@ -44,6 +46,21 @@ function Notice({ tone, children }: { tone: "ok" | "error"; children: ReactNode 
   );
 }
 
+/** Centre-crops a picked image to a small square and returns it as a data URL (a few KB, stored on the user). */
+async function squareAvatar(file: File, size = 192): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const side = Math.min(bitmap.width, bitmap.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("This browser cannot resize pictures.");
+  context.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size);
+  bitmap.close();
+  const webp = canvas.toDataURL("image/webp", 0.82);
+  return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.85);
+}
+
 function Profile() {
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
@@ -52,6 +69,31 @@ function Profile() {
   const [note, setNote] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [edited, setEdited] = useState(false);
   const shownName = edited ? name : (user?.name ?? "");
+
+  async function changePicture(file: File | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setNote({ tone: "error", text: "Pick an image file (PNG, JPG or WebP)." });
+      return;
+    }
+    setBusy(true);
+    setNote(null);
+    try {
+      const result = await authClient.updateUser({ image: await squareAvatar(file) });
+      setNote(result.error ? { tone: "error", text: result.error.message ?? "Could not save the picture." } : { tone: "ok", text: "Picture updated." });
+    } catch {
+      setNote({ tone: "error", text: "That picture could not be read. Try another one." });
+    }
+    setBusy(false);
+  }
+
+  async function removePicture() {
+    setBusy(true);
+    setNote(null);
+    const result = await authClient.updateUser({ image: null });
+    setBusy(false);
+    setNote(result.error ? { tone: "error", text: result.error.message ?? "Could not remove the picture." } : { tone: "ok", text: "Picture removed." });
+  }
 
   async function save(event: FormEvent) {
     event.preventDefault();
@@ -69,12 +111,24 @@ function Profile() {
       ) : (
         <form onSubmit={save} className="grid max-w-xl gap-5">
           <div className="flex items-center gap-4">
-            <span className="flex size-14 items-center justify-center bg-[#F4D44D] font-mono text-2xl font-semibold text-[#090909]">
-              {(user?.name || user?.email || "T").slice(0, 1).toUpperCase()}
-            </span>
+            {user?.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.image} alt="Your profile picture" width={56} height={56} referrerPolicy="no-referrer" className="block size-14 shrink-0 object-cover" />
+            ) : (
+              <span className="flex size-14 items-center justify-center bg-[#F4D44D] font-mono text-2xl font-semibold text-[#090909]">
+                {(user?.name || user?.email || "T").slice(0, 1).toUpperCase()}
+              </span>
+            )}
             <div className="min-w-0">
               <div className="truncate font-mono text-sm text-[#E6E9EE]">{user?.name || "No name yet"}</div>
               <div className="truncate font-mono text-xs text-[#8B93A1]">{user?.email}</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <label className={cn(ghost, "cursor-pointer", busy && "pointer-events-none opacity-50")}>
+                  {user?.image ? "Change picture" : "Upload picture"}
+                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" disabled={busy} onChange={(e) => { void changePicture(e.target.files?.[0]); e.target.value = ""; }} />
+                </label>
+                {user?.image ? <button type="button" className={ghost} disabled={busy} onClick={() => void removePicture()}>Remove</button> : null}
+              </div>
             </div>
           </div>
           <label className="grid gap-2 font-mono text-[11px] uppercase tracking-widest text-[#8B93A1]">
@@ -339,6 +393,7 @@ export function AccountSettings() {
           <p className="mb-6 mt-1 font-sans text-sm text-[#8B93A1]">Account settings follow you across every project.</p>
           {active === "profile" ? <Profile /> : null}
           {active === "security" ? <Password /> : null}
+          {active === "usage" ? <UsageTab /> : null}
           {active === "sessions" ? <Devices /> : null}
           {active === "email" ? <EmailPrefs /> : null}
           <button

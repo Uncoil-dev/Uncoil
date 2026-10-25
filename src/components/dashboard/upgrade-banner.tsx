@@ -9,9 +9,8 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 import { pricingCheckoutHref } from "@/lib/billing-links";
-import { planById } from "@/lib/pricing-plans";
-
-const WARN_AT = 0.8;
+import { usageLevel } from "@/lib/plan-limits";
+import { planById, type PlanId } from "@/lib/pricing-plans";
 
 /** Shows a calm heads-up near the plan's monthly span limit, and a clear upgrade prompt once it is passed. */
 export function UpgradeBanner({ projectId }: { projectId: string }) {
@@ -23,12 +22,13 @@ export function UpgradeBanner({ projectId }: { projectId: string }) {
   );
 
   if (!usage || usage.planTier === "enterprise" || pathname.endsWith("/billing")) return null;
-  const plan = planById(usage.planTier);
+  const plan = planById(usage.planTier as PlanId);
+  const level = usageLevel(usage.spans, usage.planTier);
+  if (level === "ok") return null;
   const ratio = usage.spans / plan.spanLimit;
-  if (ratio < WARN_AT) return null;
 
   const next = usage.planTier === "free" ? "pro" : usage.planTier === "pro" ? "team" : null;
-  const over = ratio >= 1;
+  const over = level !== "warn";
   const percent = Math.min(999, Math.round(ratio * 100));
   const message = `You've used ${percent}% of this month's ${plan.spans} spans on the ${plan.name} plan.`;
 
@@ -41,7 +41,11 @@ export function UpgradeBanner({ projectId }: { projectId: string }) {
     >
       <span>
         {message}{" "}
-        {over ? "Upgrade to keep every run visible." : "Upgrade before you run out."}
+        {level === "blocked"
+          ? "New data is paused until next month or an upgrade."
+          : over
+            ? "New data will pause soon. Upgrade to keep everything coming in."
+            : "Upgrade before you run out."}
       </span>
       <Link
         href={next ? pricingCheckoutHref(next, "monthly") : "/contact"}

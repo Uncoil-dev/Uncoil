@@ -1,3 +1,4 @@
+import { planRetentionDays } from "../src/lib/retention";
 import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";
@@ -792,6 +793,10 @@ export const updateProject = mutation({
 
     const { projectId, ...rawUpdates } = args;
     const updates = validateProjectSettings(rawUpdates);
+    const planDays = planRetentionDays(project.planTier);
+    if (updates.retentionDays !== undefined && planDays !== null && updates.retentionDays > planDays) {
+      throw new Error(`Your plan keeps data for ${planDays} days. Upgrade to keep it longer.`);
+    }
     await ctx.db.patch(projectId, {
       ...updates,
       updatedAt: Date.now(),

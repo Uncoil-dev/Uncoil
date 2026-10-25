@@ -117,7 +117,7 @@ export const deliver = internalAction({
   handler: async (ctx, { summaryId, weekKey }) => {
     const data = await ctx.runQuery(internal.weeklySummary.content, { summaryId });
     if (!data) return;
-    const sends: Promise<void>[] = [];
+    const sends: Promise<unknown>[] = [];
     if (data.settings.emailTo.length > 0) {
       const email = renderSummaryEmail(data.projectName, data.summary, data.budgets, data.dashboardUrl);
       sends.push(sendEmail({ to: data.settings.emailTo, ...email, idempotencyKey: `weekly-${summaryId}-${weekKey}` }));

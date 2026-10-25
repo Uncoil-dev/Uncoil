@@ -1,5 +1,4 @@
 "use client";
-import { ViewSwitch } from "./view-switch";
 import { SavedViews } from "./saved-views";
 import { DEMO_BASE_PATH, DEMO_PROJECT_ID } from "@/lib/demo/demo-config";
 import { columnsFromUrl } from "@/lib/saved-view-state";
@@ -325,7 +324,6 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
     <div className="flex min-h-svh flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
         <h1 className="mr-2 text-base font-semibold tracking-tight">Tracing</h1>
-        <ViewSwitch projectId={projectId} view="runs" />
         <form
           className="flex min-w-[220px] flex-1 items-center gap-2 rounded-md border border-[#262C35] bg-[#111418] px-2.5 focus-within:border-[#4A5260]"
           onSubmit={(event) => { event.preventDefault(); submitSearch(searchDraft.trim()); }}

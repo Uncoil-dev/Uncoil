@@ -213,7 +213,7 @@ export function WaitingStep() {
           Use the test span above to separate a Tracify connection problem from an agent setup problem. If it is accepted, your SDK or agent is the next place to inspect.
         </div>
       ) : null}
-      <button type="button" onClick={() => router.push(projectId ? `/dashboard/${projectId}` : "/dashboard")} className="mt-6 block font-mono text-[11px] uppercase tracking-[0.12em] text-black/55 underline underline-offset-4 hover:text-black">Skip for now, I&apos;ll connect later</button>
+      <button type="button" onClick={() => router.push(projectId ? `/dashboard/${projectId}/tracing` : "/dashboard")} className="mt-6 block font-mono text-[11px] uppercase tracking-[0.12em] text-black/55 underline underline-offset-4 hover:text-black">Skip for now, I&apos;ll connect later</button>
       {elapsed >= 120 ? (
         <a
           href="mailto:support@tracify.tech"

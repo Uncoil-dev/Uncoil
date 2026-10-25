@@ -9,6 +9,7 @@ import { relativeTime } from "@/components/dashboard/tracing/format";
 import { AlertChart } from "./alert-chart";
 import { AlertRuleForm } from "./alert-rule-form";
 import { METRICS } from "./alert-metrics";
+import { DeliveryLine, SendTest } from "./delivery-status";
 
 type Status = "all" | "firing" | "ok" | "paused";
 type View = "cards" | "list";
@@ -171,6 +172,13 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
                         <div className="mb-1 mt-1.5 flex items-baseline gap-2.5"><span className="font-mono text-xl font-bold" style={{ color: rule.status === "paused" ? "#6B7380" : color }}>{config.format(rule.value)}</span><span className="font-mono text-[11px] text-[#6B7380]">limit {config.condition(rule.threshold, rule.windowMinutes).replace("> ", "")}</span></div>
                         <AlertChart series={rule.series} threshold={rule.threshold} color={rule.status === "paused" ? "#3A4250" : color} label={`${rule.name}, last 24 hours`} />
                         <TagEditor name={rule.name} tags={rule.tags ?? []} onChange={(next) => setTags({ ruleId: rule._id, tags: next })} />
+                        {rule.hasSlack || rule.webhookHost ? (
+                          <div className="mt-2 space-y-0.5 text-[11px]">
+                            {rule.hasSlack ? <div><DeliveryLine label="Slack" delivery={rule.slackDelivery} now={data.now} /></div> : null}
+                            {rule.webhookHost ? <div><DeliveryLine label={`Webhook (${rule.webhookHost})`} delivery={rule.webhookDelivery} now={data.now} /></div> : null}
+                            <SendTest ruleId={rule._id} name={rule.name} />
+                          </div>
+                        ) : null}
                         <div className="mt-2 flex items-center justify-between text-[11px] text-[#6B7380]">
                           <span className="font-mono">{destinations(rule)}</span>
                           <RuleActions rule={rule} confirming={confirmingDelete === rule._id} onToggle={() => void setEnabled({ ruleId: rule._id, enabled: !rule.enabled })} onAskDelete={() => setConfirmingDelete(rule._id)} onCancelDelete={() => setConfirmingDelete(null)} onDelete={() => { void remove({ ruleId: rule._id }); setConfirmingDelete(null); }} />

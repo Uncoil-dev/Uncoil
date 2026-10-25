@@ -53,3 +53,20 @@ export function register() {
     throw new Error(`NEXT_PUBLIC_SITE_URL must be ${expectedOrigin} for the ${publicRegion.toUpperCase()} deployment`);
   }
 }
+
+export async function onRequestError(
+  error: unknown,
+  request: { path: string },
+) {
+  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  if (process.env.PLAYWRIGHT_LOCAL_SERVER === "1" || process.env.NODE_ENV !== "production") return;
+  const err = error instanceof Error ? error : new Error(String(error));
+  const { reportCrash } = await import("@/lib/crash-report");
+  await reportCrash({
+    source: "server",
+    message: err.message,
+    stack: err.stack,
+    route: request.path,
+    digest: (err as { digest?: string }).digest,
+  });
+}

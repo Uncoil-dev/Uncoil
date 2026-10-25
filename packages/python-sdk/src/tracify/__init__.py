@@ -58,13 +58,28 @@ class TracifyError(ValueError):
 
 _PII_PATTERNS = [
     re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
-    re.compile(r"\b(?:\d[ -]?){13,19}\b"),
     re.compile(r"(?<![\w.])\+?\d{1,3}[\s.-]?\(?\d{2,4}\)?[\s.-]\d{3,4}[\s.-]\d{3,4}\b"),
 ]
 
 
-def build_redactor(pii: bool = False, patterns: Optional[List[Any]] = None, fn: Optional[Callable[[str], str]] = None, replacement: str = "[redacted]") -> Optional[Callable[[str], str]]:
-    """Build the extra clean-up applied to prompts and answers. Returns None when nothing is asked for."""
+_CARD_NUMBER = re.compile(r"\b(?:\d[ -]?){13,19}\b")
+
+
+def _passes_luhn(digits: str) -> bool:
+    """Card-number check, so long ids and timestamps are left alone."""
+    total = 0
+    for i, ch in enumerate(reversed(digits)):
+        d = int(ch)
+        if i % 2 == 1:
+            d *= 2
+            if d > 9:
+                d -= 9
+        total += d
+    return total % 10 == 0
+
+
+def build_redactor(pii: bool = True, patterns: Optional[List[Any]] = None, fn: Optional[Callable[[str], str]] = None, replacement: str = "[redacted]") -> Optional[Callable[[str], str]]:
+    """Build the clean-up applied to prompts and answers. Emails, phone numbers and card numbers are masked unless pii=False."""
     compiled = list(_PII_PATTERNS) if pii else []
     for pattern in patterns or []:
         if isinstance(pattern, str):
@@ -72,10 +87,16 @@ def build_redactor(pii: bool = False, patterns: Optional[List[Any]] = None, fn: 
                 compiled.append(re.compile(re.escape(pattern)))
         else:
             compiled.append(pattern)
-    if not compiled and fn is None:
+    if not compiled and not pii and fn is None:
         return None
 
+    def _card(match: "re.Match[str]") -> str:
+        digits = re.sub(r"\D", "", match.group(0))
+        return replacement if len(digits) >= 13 and _passes_luhn(digits) else match.group(0)
+
     def redact(text: str) -> str:
+        if pii:
+            text = _CARD_NUMBER.sub(_card, text)
         for pattern in compiled:
             text = pattern.sub(replacement, text)
         return fn(text) if fn else text
@@ -293,7 +314,7 @@ class TracifyClient:
             raise TracifyError("bad_sample_rate", f"sample_rate must be a number from 0 to 1, but got {sample_rate!r}.", "Use 1 to record every run, 0.1 to record about one in ten.")
         self.sample_rate = float(sample_rate)
         self.keep_errors = keep_errors
-        self._redactor = build_redactor(**redact) if redact else None
+        self._redactor = build_redactor(**(redact or {}))
         selected_region = (region or os.environ.get("TRACIFY_REGION") or "eu").strip().lower()
         if selected_region not in self.REGION_HOSTS:
             raise TracifyError("bad_region", f"The region {selected_region!r} is not one Tracify offers.", "Use region='eu' or region='us' (or set TRACIFY_REGION to one of them).")

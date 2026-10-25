@@ -180,12 +180,12 @@ OpenAI (`wrapOpenAI`), Anthropic (`wrapAnthropic`) and LangGraph (`TracifyLangGr
 ```ts
 const tracify = new TracifyClient({
   sampleRate: 0.1,                 // record about 1 in 10 runs; each run is kept or dropped whole
-  redact: { pii: true, patterns: [/ACME-\d{6}/] },   // mask emails, phones, card numbers and your own patterns
+  redact: { patterns: [/ACME-\d{6}/] },   // emails, phones and card numbers are masked by default; add your own patterns
   onError: (error) => log(error.message),            // problems come with a plain-language fix (error.hint)
 });
 ```
 
-Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed.
+Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, set `redact: { pii: false }`.
 
 ## Setup checker
 

@@ -95,4 +95,10 @@ describe("deployment host routing", () => {
     const response = proxy(new NextRequest("http://staging.eu.cloud.tracify.tech/", { headers }));
     expect(response.headers.get("location")).toBe("https://staging.eu.cloud.tracify.tech/sign-in");
   });
+
+  it("never sends noindex headers on the public marketing hosts, even from a cloud-flavoured build", () => {
+    process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND = "cloud";
+    expect(proxy(new NextRequest("https://eu.cloud.tracify.tech/sign-in")).headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    expect(proxy(new NextRequest("https://www.tracify.tech/sign-in", { headers: { "x-forwarded-host": "www.tracify.tech" } })).headers.get("x-robots-tag")).toBeNull();
+  });
 });

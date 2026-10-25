@@ -96,9 +96,22 @@ describe("redaction", () => {
     expect(sent[0].input).toBe("hi from [redacted]");
     expect(sent[0].output).not.toContain("bob@");
   });
-  it("does nothing extra when not asked", () => {
-    expect(buildRedactor()).toBeUndefined();
-    expect(buildRedactor({})).toBeUndefined();
+  it("masks emails, phones and cards by default", async () => {
+    mockFetch();
+    await new TracifyClient({ apiKey: KEY }).ingest({ spanType: "llm_call", runId: "r", input: "bob@example.com paid with 4242 4242 4242 4242" });
+    expect(sent[0].input).toBe("[redacted] paid with [redacted]");
+  });
+  it("leaves long numbers that are not cards alone", () => {
+    expect(buildRedactor()!("order 1761400000000 shipped")).toBe("order 1761400000000 shipped");
+  });
+  it("can be turned off with pii: false", async () => {
+    expect(buildRedactor({ pii: false })).toBeUndefined();
+    mockFetch();
+    await new TracifyClient({ apiKey: KEY, redact: { pii: false } }).ingest({ spanType: "llm_call", runId: "r", input: "bob@example.com" });
+    expect(sent[0].input).toBe("bob@example.com");
+  });
+  it("keeps masking when only custom patterns are given", () => {
+    expect(buildRedactor({ patterns: ["X1"] })!("X1 bob@example.com")).toBe("[redacted] [redacted]");
   });
 });
 

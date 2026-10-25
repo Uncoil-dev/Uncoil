@@ -157,6 +157,15 @@ usage breakdown remains in metadata for rate-card calculations. See the [provide
 
 ## Framework one-liners
 
+Quickest start: call `tracify.init()` once at startup. Every OpenAI, Anthropic and LangChain / LangGraph call is traced, sync and async, with no client wrapping (`TRACIFY_API_KEY` is read from the environment). Libraries that are not installed are skipped, and `tracify.uninit()` switches it off.
+
+```python
+import tracify
+tracify.init()
+```
+
+Calls made through a client you also wrapped with `wrap_openai` are recorded once, and model calls inside LangChain are recorded by the LangChain handler only. The Vercel AI SDK is JavaScript-only.
+
 ```python
 import tracify
 
@@ -171,9 +180,19 @@ Copy-paste starters live in [`templates/`](./templates).
 ```python
 client = tracify.TracifyClient(
     sample_rate=0.1,                                   # record about 1 in 10 runs; each run is kept or dropped whole
-    redact={"pii": True, "patterns": [re.compile(r"ACME-\d{6}")]},  # emails, phones, card numbers + your own
+    redact={"patterns": [re.compile(r"ACME-\d{6}")]},  # emails, phones and card numbers are masked by default; add your own
     on_error=lambda error: log(str(error)),            # problems come with a plain-language fix (error.hint)
 )
 ```
 
-Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed.
+Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, pass `redact={"pii": False}`.
+
+## Setup checker
+
+Not seeing traces? One command checks your key, region and network, then sends a test trace:
+
+```bash
+tracify-doctor            # or: python -m tracify doctor
+```
+
+It reads `TRACIFY_API_KEY` (and `TRACIFY_REGION` / `TRACIFY_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Tracify setup check" and tagged `tracify-doctor`; it counts as one trace on your plan.

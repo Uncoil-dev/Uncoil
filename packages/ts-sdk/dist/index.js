@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.traceTools = exports.tracifyMiddleware = exports.TracifyLangGraphHandler = exports.wrapAnthropic = exports.wrapOpenAI = exports.decision = exports.toolCall = exports.llmCall = exports.Step = exports.TracifyClient = exports.MAX_PAYLOAD_CHARS = exports.TRACIFY_REGION_HOSTS = exports.TracifyError = void 0;
+exports.maskKey = exports.formatReport = exports.runDoctor = exports.traceTools = exports.tracifyMiddleware = exports.TracifyLangGraphHandler = exports.wrapAnthropic = exports.wrapOpenAI = exports.decision = exports.toolCall = exports.llmCall = exports.Step = exports.TracifyClient = exports.MAX_PAYLOAD_CHARS = exports.TRACIFY_REGION_HOSTS = exports.TracifyError = void 0;
 exports.currentRunId = currentRunId;
 exports.currentTraceContext = currentTraceContext;
 exports.integrationPayload = integrationPayload;
@@ -626,3 +626,7 @@ var vercel_ai_1 = require("./integrations/vercel-ai");
 Object.defineProperty(exports, "tracifyMiddleware", { enumerable: true, get: function () { return vercel_ai_1.tracifyMiddleware; } });
 var tools_1 = require("./integrations/tools");
 Object.defineProperty(exports, "traceTools", { enumerable: true, get: function () { return tools_1.traceTools; } });
+var doctor_1 = require("./doctor");
+Object.defineProperty(exports, "runDoctor", { enumerable: true, get: function () { return doctor_1.runDoctor; } });
+Object.defineProperty(exports, "formatReport", { enumerable: true, get: function () { return doctor_1.formatReport; } });
+Object.defineProperty(exports, "maskKey", { enumerable: true, get: function () { return doctor_1.maskKey; } });

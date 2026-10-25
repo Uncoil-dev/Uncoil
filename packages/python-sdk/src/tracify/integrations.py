@@ -1,4 +1,5 @@
 """One-line, optional provider instrumentation. Provider libraries remain optional."""
+import contextvars
 import inspect
 import time
 import uuid
@@ -196,6 +197,32 @@ def _observe_result(result, obs):
     return result
 
 
+# Set while a wrapped client calls the provider, so auto-instrumentation does not record the call twice.
+_inside_wrapped = contextvars.ContextVar("tracify_inside_wrapped", default=False)
+
+
+def _traced_call(provider, path, value, args, kwargs, options):
+    """Run one provider call (`value`) and record it. Shared by wrapped clients and `auto_instrument`."""
+    params = dict(kwargs)
+    if provider == "openai" and path.startswith("chat.") and params.get("stream") and "include_usage" not in (params.get("stream_options") or {}): params["stream_options"] = dict(params.get("stream_options") or {}, include_usage=True)
+    input_data = params.get("messages", params.get("input", ""))
+    if params.get("system"): input_data = [dict(role="system", content=params["system"])] + list(params.get("messages", []))
+    if params.get("instructions"): input_data = dict(instructions=params["instructions"], input=params.get("input"))
+    obs = Observation(provider, params.get("model", ""), input_data, options)
+    try: result = value(*args, **params)
+    except BaseException as error:
+        obs.finish(error=error)
+        raise
+    if inspect.isawaitable(result):
+        async def resolve():
+            try: return _observe_result(await result, obs)
+            except BaseException as error:
+                obs.finish(error=error)
+                raise
+        return resolve()
+    return _observe_result(result, obs)
+
+
 class _ClientProxy:
     def __init__(self, target, provider, options, path="", cache=None):
         self._target, self._provider, self._options, self._path = target, provider, options, path
@@ -214,24 +241,9 @@ class _ClientProxy:
         allowed = ("chat.completions.create", "responses.create") if self._provider == "openai" else ("messages.create", "messages.stream", "beta.messages.create", "beta.messages.stream")
         if path in allowed and callable(value):
             def call(*args, **kwargs):
-                params = dict(kwargs)
-                if self._provider == "openai" and path.startswith("chat.") and params.get("stream") and "include_usage" not in (params.get("stream_options") or {}): params["stream_options"] = dict(params.get("stream_options") or {}, include_usage=True)
-                input_data = params.get("messages", params.get("input", ""))
-                if params.get("system"): input_data = [dict(role="system", content=params["system"])] + list(params.get("messages", []))
-                if params.get("instructions"): input_data = dict(instructions=params["instructions"], input=params.get("input"))
-                obs = Observation(self._provider, params.get("model", ""), input_data, self._options)
-                try: result = value(*args, **params)
-                except BaseException as error:
-                    obs.finish(error=error)
-                    raise
-                if inspect.isawaitable(result):
-                    async def resolve():
-                        try: return _observe_result(await result, obs)
-                        except BaseException as error:
-                            obs.finish(error=error)
-                            raise
-                    return resolve()
-                return _observe_result(result, obs)
+                token = _inside_wrapped.set(True)
+                try: return _traced_call(self._provider, path, value, args, kwargs, self._options)
+                finally: _inside_wrapped.reset(token)
             return call
         if path in ("chat", "chat.completions", "responses", "messages", "beta", "beta.messages"):
             if path not in self._cache: self._cache[path] = _ClientProxy(value, self._provider, self._options, path, self._cache)

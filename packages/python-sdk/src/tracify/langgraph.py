@@ -10,6 +10,7 @@ from . import current_run_id, current_span_id
 
 class TracifyCallbackHandler(BaseCallbackHandler):
     run_inline = True
+    enabled = True
     raise_error = False
     def __init__(self, **options):
         self.options = options
@@ -17,7 +18,7 @@ class TracifyCallbackHandler(BaseCallbackHandler):
         self.lock = threading.RLock()
     def _start(self, kind, name, inputs, run_id, parent_run_id=None, model=""):
         with self.lock:
-            if run_id in self.runs: return
+            if not self.enabled or run_id in self.runs: return
             parent = self.runs.get(parent_run_id)
             outer = not parent and current_run_id() != "unknown"
             self.runs[run_id] = Observation("langgraph", model, inputs, self.options, dict(run_id=parent.data["runId"] if parent else current_run_id() if outer else str(run_id), span_id=str(run_id), parent_span_id=parent.data["spanId"] if parent else current_span_id() if outer else None, root=parent is None and not outer, type=kind, name=name))

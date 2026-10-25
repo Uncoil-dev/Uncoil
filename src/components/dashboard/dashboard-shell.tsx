@@ -134,13 +134,13 @@ export function DashboardShell({
           className={`h-svh pb-0 overflow-y-auto scrollbar-hide ${isDashboardRoute ? "bg-[#101010] p-0" : "bg-[#eceae3] p-4 lg:p-6"}`}
         >
           {isDashboardRoute && !synthetic && isMobileViewport ? (
-            <div className="tracify-collapse-anchor relative h-0">
+            <div className="tracify-collapse-anchor relative h-11">
               <button
                 type="button"
                 aria-label="Open menu"
                 title="Open menu"
                 onClick={() => window.dispatchEvent(new Event("tracify:toggle-sidebar"))}
-                className="absolute left-2 top-2.5 z-10 flex size-7 items-center justify-center !text-[#8d8d8d] outline-none hover:!bg-[#181818] hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
+                className="absolute left-1 top-0.5 z-10 flex size-10 items-center justify-center !text-[#8d8d8d] outline-none hover:!bg-[#181818] hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
               >
                 <PanelLeftOpen className="size-4" />
               </button>

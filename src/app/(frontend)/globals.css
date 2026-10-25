@@ -821,6 +821,7 @@
 .tracify-cloud-shell main:has(.captured-workspace, .tracify-icon-button[aria-label="Toggle sidebar"]) > .tracify-collapse-anchor{display:none}
 .tracify-cloud-shell main:not(:has(.captured-workspace, .tracify-icon-button[aria-label="Toggle sidebar"])) h1:first-of-type{margin-left:2.25rem}
 .tracify-cloud-shell main .tracify-dashboard-topbar{padding-left:3.25rem}
+@media (max-width:700px){.tracify-cloud-shell main:not(:has(.captured-workspace, .tracify-icon-button[aria-label="Toggle sidebar"])) h1:first-of-type{margin-left:0}.tracify-cloud-shell main .tracify-dashboard-topbar{padding-left:1rem}}
 
 /* Dashboard menus (project, account, alerts...) are portaled out of the shell, so style them dark here. */
 body:has(.tracify-cloud-shell) [role="menu"]{background:#121212;color:#d6d6d6;border:1px solid #2c2c2c;box-shadow:0 14px 32px rgba(0,0,0,.55)}

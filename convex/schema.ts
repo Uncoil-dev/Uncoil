@@ -131,6 +131,9 @@ export default defineSchema({
     readAt: v.optional(v.number()),
     projectId: v.id("projects"),
     ruleId: v.optional(v.id("alertRules")),
+    // Set when the alert was recorded but nobody was messaged because the rule was snoozed or quiet hours were on.
+    silencedBy: v.optional(v.union(v.literal("snoozed"), v.literal("quiet_hours"))),
+    resolvedAt: v.optional(v.number()),
   })
     .index("by_projectId", ["projectId"])
     .index("by_runId", ["runId"])
@@ -154,6 +157,8 @@ export default defineSchema({
     slackUrl: v.optional(v.string()),
     webhookUrl: v.optional(v.string()),
     enabled: v.boolean(),
+    // While this is in the future the rule still records alerts but sends no email, Slack or webhook.
+    snoozedUntil: v.optional(v.number()),
     state: v.union(v.literal("ok"), v.literal("firing")),
     lastValue: v.optional(v.number()),
     lastCheckedAt: v.optional(v.number()),
@@ -164,6 +169,16 @@ export default defineSchema({
   })
     .index("by_projectId", ["projectId"])
     .index("by_enabled", ["enabled"]),
+
+  // Daily window (project-wide) when alert messages are held back. Alerts are still recorded in history.
+  alertQuietHours: defineTable({
+    projectId: v.id("projects"),
+    enabled: v.boolean(),
+    startMinute: v.number(), // minutes after midnight in `timezone`, 0-1439
+    endMinute: v.number(),
+    timezone: v.string(), // IANA name, e.g. Europe/Berlin
+    updatedAt: v.number(),
+  }).index("by_projectId", ["projectId"]),
 
   // One row per Slack or webhook send for an alert rule (fired, back to normal, or a test), so the dashboard can show what happened. Trimmed to the newest 20 per rule.
   alertDeliveries: defineTable({

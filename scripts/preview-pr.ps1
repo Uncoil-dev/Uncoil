@@ -53,9 +53,9 @@ if ($isNew) {
   git rev-parse --verify live-work 2>$null | Out-Null
   if ($LASTEXITCODE -ne 0) { git checkout -b live-work $sha } else { git checkout live-work }
 } else {
-  git checkout --detach --force $sha
+  git checkout --detach $sha
 }
-if ($LASTEXITCODE -ne 0) { throw "Could not check out $Pr." }
+if ($LASTEXITCODE -ne 0) { throw "Could not switch to $Pr. If you have unsaved live-work changes, ask Claude to commit them first." }
 Set-Content -Path (Join-Path $Preview ".env.local") -Value $stagingEnv
 
 # 4. Install packages only when needed.

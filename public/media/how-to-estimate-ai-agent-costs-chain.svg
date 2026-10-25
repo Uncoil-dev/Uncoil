@@ -1,0 +1,33 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="estChainTitle estChainDesc">
+  <title id="estChainTitle">Five inputs of an agent cost estimate chained into a monthly formula</title>
+  <desc id="estChainDesc">Five boxes labeled runs, calls, tokens, price and reality are joined by multiplication signs and feed into a monthly bill. Calls and reality are outlined in yellow.</desc>
+  <rect width="1600" height="900" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >FIVE INPUTS, ONE BILL</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >an agent estimate is five numbers multiplied</text>
+    <rect x="100" y="320" width="230" height="170" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="215" y="395" fill="#f6f1e6" font-size="26" opacity="1" text-anchor="middle" letter-spacing="0" >RUNS</text>
+    <text x="215" y="435" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >per day</text>
+    <text x="363" y="415" fill="#f6f1e6" font-size="36" opacity="0.8" text-anchor="middle" letter-spacing="0" >×</text>
+    <rect x="390" y="320" width="230" height="170" fill="#161616" stroke="#f4d44d" stroke-width="3" stroke-opacity="1"/>
+    <text x="505" y="395" fill="#f4d44d" font-size="26" opacity="1" text-anchor="middle" letter-spacing="0" >CALLS</text>
+    <text x="505" y="435" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >per run</text>
+    <text x="653" y="415" fill="#f6f1e6" font-size="36" opacity="0.8" text-anchor="middle" letter-spacing="0" >×</text>
+    <rect x="680" y="320" width="230" height="170" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="795" y="395" fill="#f6f1e6" font-size="26" opacity="1" text-anchor="middle" letter-spacing="0" >TOKENS</text>
+    <text x="795" y="435" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >per call</text>
+    <text x="943" y="415" fill="#f6f1e6" font-size="36" opacity="0.8" text-anchor="middle" letter-spacing="0" >×</text>
+    <rect x="970" y="320" width="230" height="170" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="1085" y="395" fill="#f6f1e6" font-size="26" opacity="1" text-anchor="middle" letter-spacing="0" >PRICE</text>
+    <text x="1085" y="435" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >per token</text>
+    <text x="1233" y="415" fill="#f6f1e6" font-size="36" opacity="0.8" text-anchor="middle" letter-spacing="0" >×</text>
+    <rect x="1260" y="320" width="230" height="170" fill="#161616" stroke="#f4d44d" stroke-width="3" stroke-opacity="1"/>
+    <text x="1375" y="395" fill="#f4d44d" font-size="26" opacity="1" text-anchor="middle" letter-spacing="0" >REALITY</text>
+    <text x="1375" y="435" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >retries, fails, peaks</text>
+    <line x1="1445" y1="490" x2="1445" y2="560" stroke="#f4d44d" stroke-width="2" stroke-opacity="1" />
+    <line x1="1445" y1="560" x2="800" y2="560" stroke="#f4d44d" stroke-width="2" stroke-opacity="1" />
+    <text x="800" y="620" fill="#f4d44d" font-size="34" opacity="1" text-anchor="middle" letter-spacing="2" >= MONTHLY BILL</text>
+    <text x="800" y="700" fill="#f6f1e6" font-size="16" opacity="0.7" text-anchor="middle" letter-spacing="0" >Most estimates go wrong in calls per run and in the reality multiplier, not in the price.</text>
+
+  </g>
+</svg>

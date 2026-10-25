@@ -1,0 +1,27 @@
+<svg viewBox="0 0 1600 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tokSrcTitle tokSrcDesc">
+  <title id="tokSrcTitle">An input token budget split into six sources, with chat history highlighted as the share that grows</title>
+  <desc id="tokSrcDesc">One wide bar is split into six segments labeled system prompt, tool definitions, retrieved chunks, chat history, tool results and user message. Chat history is the largest and is yellow.</desc>
+  <rect width="1600" height="760" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >SIX SOURCES OF INPUT TOKENS</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >chat history is the share that grows</text>
+    <rect x="100" y="300" width="143.1818181818182" height="150" fill="#1c1c1c" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="171.5909090909091" y="385" fill="#f6f1e6" font-size="14" opacity="1" text-anchor="middle" letter-spacing="0" >SYSTEM</text>
+    <rect x="243.1818181818182" y="300" width="159.0909090909091" height="150" fill="#1c1c1c" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="322.72727272727275" y="385" fill="#f6f1e6" font-size="14" opacity="1" text-anchor="middle" letter-spacing="0" >TOOL DEFS</text>
+    <rect x="402.27272727272725" y="300" width="238.63636363636363" height="150" fill="#1c1c1c" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="521.590909090909" y="385" fill="#f6f1e6" font-size="14" opacity="1" text-anchor="middle" letter-spacing="0" >RETRIEVED</text>
+    <rect x="640.9090909090909" y="300" width="525.0" height="150" fill="#f4d44d" stroke="#f4d44d" stroke-width="2" stroke-opacity="1"/>
+    <text x="903.4090909090909" y="385" fill="#0a0a0a" font-size="14" opacity="1" text-anchor="middle" letter-spacing="0" >CHAT HISTORY</text>
+    <rect x="1165.909090909091" y="300" width="222.72727272727272" height="150" fill="#1c1c1c" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="1277.2727272727273" y="385" fill="#f6f1e6" font-size="14" opacity="1" text-anchor="middle" letter-spacing="0" >TOOL RESULTS</text>
+    <rect x="1388.6363636363637" y="300" width="111.36363636363636" height="150" fill="#1c1c1c" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="1444.318181818182" y="385" fill="#f6f1e6" font-size="14" opacity="1" text-anchor="middle" letter-spacing="0" >USER</text>
+    <text x="100" y="520" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >one call input, shares illustrative</text>
+    <text x="1000" y="520" fill="#f4d44d" font-size="16" opacity="1" text-anchor="middle" letter-spacing="0" >grows each turn</text>
+    <line x1="1000" y1="452" x2="1000" y2="500" stroke="#f4d44d" stroke-width="2" stroke-opacity="1" />
+    <text x="100" y="620" fill="#f6f1e6" font-size="16" opacity="0.8" text-anchor="start" letter-spacing="0" >Fixed: system prompt, tool definitions, user message.</text>
+    <text x="100" y="660" fill="#f6f1e6" font-size="16" opacity="0.8" text-anchor="start" letter-spacing="0" >Variable: retrieved chunks, tool results, chat history.</text>
+
+  </g>
+</svg>

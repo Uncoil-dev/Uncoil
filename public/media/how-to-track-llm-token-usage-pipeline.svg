@@ -1,0 +1,29 @@
+<svg viewBox="0 0 1600 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tokPipeTitle tokPipeDesc">
+  <title id="tokPipeTitle">Token usage flowing from the provider reply to a span, a run total and a cost view</title>
+  <desc id="tokPipeDesc">Four boxes labeled provider reply, span, run total and cost view are joined by yellow arrows from left to right.</desc>
+  <rect width="1600" height="700" fill="#0a0a0a"/>
+  <g font-family="monospace">
+    <text x="100" y="90" fill="#f4d44d" font-size="20" opacity="1" text-anchor="start" letter-spacing="2" >TOKEN USAGE PIPELINE</text>
+    <text x="100" y="122" fill="#f6f1e6" font-size="14" opacity="0.6" text-anchor="start" letter-spacing="0" >four hops, no guessing</text>
+    <rect x="100" y="320" width="280" height="150" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="240" y="390" fill="#f6f1e6" font-size="20" opacity="1" text-anchor="middle" letter-spacing="0" >PROVIDER REPLY</text>
+    <text x="240" y="430" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >usage numbers</text>
+    <line x1="380" y1="395" x2="480" y2="395" stroke="#f4d44d" stroke-width="3" stroke-opacity="1" />
+    <text x="475" y="388" fill="#f4d44d" font-size="30" opacity="1" text-anchor="end" letter-spacing="0" >›</text>
+    <rect x="480" y="320" width="280" height="150" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="620" y="390" fill="#f6f1e6" font-size="20" opacity="1" text-anchor="middle" letter-spacing="0" >SPAN</text>
+    <text x="620" y="430" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >input, output, cache</text>
+    <line x1="760" y1="395" x2="860" y2="395" stroke="#f4d44d" stroke-width="3" stroke-opacity="1" />
+    <text x="855" y="388" fill="#f4d44d" font-size="30" opacity="1" text-anchor="end" letter-spacing="0" >›</text>
+    <rect x="860" y="320" width="280" height="150" fill="#161616" stroke="#f6f1e6" stroke-width="2" stroke-opacity="0.5"/>
+    <text x="1000" y="390" fill="#f6f1e6" font-size="20" opacity="1" text-anchor="middle" letter-spacing="0" >RUN TOTAL</text>
+    <text x="1000" y="430" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >sum of spans</text>
+    <line x1="1140" y1="395" x2="1240" y2="395" stroke="#f4d44d" stroke-width="3" stroke-opacity="1" />
+    <text x="1235" y="388" fill="#f4d44d" font-size="30" opacity="1" text-anchor="end" letter-spacing="0" >›</text>
+    <rect x="1240" y="320" width="280" height="150" fill="#161616" stroke="#f4d44d" stroke-width="3" stroke-opacity="1"/>
+    <text x="1380" y="390" fill="#f4d44d" font-size="20" opacity="1" text-anchor="middle" letter-spacing="0" >COST VIEW</text>
+    <text x="1380" y="430" fill="#f6f1e6" font-size="14" opacity="0.7" text-anchor="middle" letter-spacing="0" >by run, task, release</text>
+    <text x="100" y="560" fill="#f6f1e6" font-size="16" opacity="0.75" text-anchor="start" letter-spacing="0" >Each hop can lose, duplicate or mislabel a count. Check each one against something independent.</text>
+
+  </g>
+</svg>

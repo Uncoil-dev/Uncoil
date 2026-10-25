@@ -766,4 +766,5 @@ export { wrapOpenAI, wrapAnthropic, type IntegrationOptions } from "./integratio
 export { TracifyLangGraphHandler } from "./integrations/langgraph";
 export { tracifyMiddleware } from "./integrations/vercel-ai";
 export { traceTools } from "./integrations/tools";
+export { init, uninit } from "./integrations/auto";
 export { runDoctor, formatReport, maskKey, type DoctorReport, type DoctorCheck, type DoctorOptions } from "./doctor";

@@ -152,6 +152,8 @@ http.route({
     if (!body.projectId || !body.traceId || !body.spanId) return Response.json({ error: "projectId, traceId, and spanId are required" }, { status: 422 });
     const projectId = body.projectId as never;
     const bundle = await ctx.runQuery(internal.evaluationEngine.getExecutionBundle, { projectId });
+    // Most projects have no online evaluators; skip the job write (and the rest) for them.
+    if (!bundle.some((item) => item.version.config.enabledOnline)) return Response.json({ ok: true, evaluated: 0, results: [], alerts: [] });
     const jobId = await ctx.runMutation(internal.evaluationEngine.createOnlineJob, { projectId, traceId: body.traceId });
     const outputs: Array<{ resultId?: string; evaluatorId: string; scoreName?: string; value?: number | boolean | string; status: string }> = [];
     const monitorAlerts: Array<{ projectId: string; runId: string; type: string; message: string; triggeredAt: string }> = [];

@@ -500,9 +500,9 @@ const rowClass =
 const rowActive = "!bg-[#1c1c1c] font-semibold !text-white before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#f4d44d]";
 const rowIdle = "!text-[#b4b4b4] hover:!bg-[#181818] hover:!text-white";
 const leafClass =
-  "relative flex h-7 items-center px-3 font-mono text-[11.5px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
-const leafActive = "!text-white before:absolute before:inset-y-1 before:-left-px before:w-[2px] before:bg-[#f4d44d]";
-const leafIdle = "!text-[#9a9a9a] hover:!bg-[#181818] hover:!text-white";
+  "relative flex h-8 items-center px-3 font-mono text-[12px] outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55";
+const leafActive = "!bg-[#1c1c1c] font-semibold !text-white before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#f4d44d]";
+const leafIdle = "!text-[#b4b4b4] hover:!bg-[#181818] hover:!text-white";
 
 type RowContext = {
   expanded: boolean;
@@ -572,11 +572,12 @@ function SidebarRow({ row, ctx }: { row: NavRow; ctx: RowContext }) {
   if (hasChildren) {
     return (
       <>
-        <div className={cn(rowClass, "mx-2 w-[calc(100%-1rem)] !text-white")}>
-          {label}
+        <div className="mt-1 flex h-7 items-center gap-2 px-5 font-mono text-[11px] uppercase tracking-wider !text-white/40">
+          <span className="truncate">{row.title}</span>
+          {row.badge ? <NewBadge /> : null}
         </div>
         <Collapsible open>
-          <div className="mx-2 ml-[23px] border-l !border-white/15">
+          <div className="mx-2">
             {row.children!.map((child) => {
               const leafOn = ctx.isLeafActive(child.href);
               const link = (

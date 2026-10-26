@@ -50,7 +50,7 @@ test("seconds until the next day count to UTC midnight", () => {
 
 test("oversized Free spans are trimmed, not refused", () => {
   const big = "x".repeat(300_000);
-  const { span, trimmed } = trimOversizedSpan({ spanId: "s1", input: big, output: { text: big }, metadata: { a: 1 } });
+  const { span, trimmed } = trimOversizedSpan<Record<string, unknown>>({ spanId: "s1", input: big, output: { text: big }, metadata: { a: 1 } });
   assert.equal(trimmed, true);
   assert.ok((span.input as string).length < 70_000);
   assert.match(span.output as string, /trimmed by Tracify/);

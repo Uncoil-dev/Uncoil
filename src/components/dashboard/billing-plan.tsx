@@ -21,7 +21,7 @@ const PLANS = [
     popular: false,
     note: undefined,
     icon: undefined,
-    features: ["25k spans / month", "7-day retention", "1 project", "1 team member"],
+    features: ["25k spans / month", "7-day retention", "3 projects", "1 team member"],
   },
   {
     id: "pro",

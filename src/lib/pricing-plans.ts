@@ -18,7 +18,7 @@ export type Plan = {
 };
 
 export const plans: readonly Plan[] = [
-  { id: "free", name: "Free", monthly: 0, spanLimit: 25_000, spans: "25k", retention: "7 days", members: "1", projects: "1", line: "Try it on a real agent.", features: ["Trace viewer", "Cost visibility", "Community support"] },
+  { id: "free", name: "Free", monthly: 0, spanLimit: 25_000, spans: "25k", retention: "7 days", members: "1", projects: "3", line: "Try it on a real agent.", features: ["Trace viewer", "Cost visibility", "Community support"] },
   { id: "pro", name: "Pro", monthly: 19, spanLimit: 500_000, spans: "500k", retention: "30 days", members: "5", projects: "3", line: "For a builder shipping agents.", features: ["Evaluations + datasets", "Prompt versions", "Slack alerts"] },
   { id: "team", name: "Team", monthly: 39, spanLimit: 2_000_000, spans: "2m", retention: "90 days", members: "20", projects: "Unlimited", line: "For teams running agents in prod.", features: ["Release gates", "Collaboration + reviews", "Priority support"] },
 ];

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { TracifyMark } from "@/components/brand/tracify-mark";
 import { ProjectSwitcher } from "@/components/dashboard/project-switcher";
 import { SidebarAccountMenu } from "@/components/dashboard/sidebar-account-menu";
 import { DashboardCommandMenu } from "@/components/dashboard/dashboard-command-menu";
@@ -370,8 +371,7 @@ export function DashboardSidebar({
             // eslint-disable-next-line @next/next/no-img-element
             <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" height={30} className="block h-[30px] w-auto" />
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-icon.svg" alt="" width={36} height={36} className="block size-9" />
+            <TracifyMark solid className="h-auto w-8" />
           )}
         </Link>
       </div>

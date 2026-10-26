@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dailySpanLimit, FREE_MAX_PROJECTS, ingestLimitPerMinute, secondsUntilNextDay, enforcedSpanLimit, usageLevel, monthKey, planLimitMessage, secondsUntilNextMonth } from "./plan-limits.ts";
+import { trimOversizedSpan, dailySpanLimit, FREE_MAX_PROJECTS, ingestLimitPerMinute, secondsUntilNextDay, enforcedSpanLimit, usageLevel, monthKey, planLimitMessage, secondsUntilNextMonth } from "./plan-limits.ts";
 
 test("free stops at its limit, Pro and Team at their limit plus 10%", () => {
   assert.equal(enforcedSpanLimit("free"), 25_000);
@@ -35,15 +35,27 @@ test("message names the limit", () => {
   assert.match(planLimitMessage(550_000, "pro"), /all 550,000 spans/);
 });
 
-test("free is held to 3 projects, 600 requests a minute and a daily cap of 1,000 spans", () => {
+test("free is held to 3 projects, 600 requests a minute and a daily cap of 5,000 spans", () => {
   assert.equal(FREE_MAX_PROJECTS, 3);
   assert.equal(ingestLimitPerMinute("free", 6_000), 600);
   assert.equal(ingestLimitPerMinute(undefined, 6_000), 600);
   assert.equal(ingestLimitPerMinute("pro", 6_000), 6_000);
-  assert.equal(dailySpanLimit("free"), 1_000);
+  assert.equal(dailySpanLimit("free"), 5_000);
   assert.equal(dailySpanLimit("pro"), null);
 });
 
 test("seconds until the next day count to UTC midnight", () => {
   assert.equal(secondsUntilNextDay(new Date("2026-10-31T23:59:00Z")), 60);
+});
+
+test("oversized Free spans are trimmed, not refused", () => {
+  const big = "x".repeat(300_000);
+  const { span, trimmed } = trimOversizedSpan({ spanId: "s1", input: big, output: { text: big }, metadata: { a: 1 } });
+  assert.equal(trimmed, true);
+  assert.ok((span.input as string).length < 70_000);
+  assert.match(span.output as string, /trimmed by Tracify/);
+  assert.equal((span.metadata as Record<string, unknown>).tracifyTrimmed, true);
+  assert.equal((span.metadata as Record<string, unknown>).a, 1);
+  const small = { spanId: "s2", input: "hi" };
+  assert.equal(trimOversizedSpan(small).span, small);
 });

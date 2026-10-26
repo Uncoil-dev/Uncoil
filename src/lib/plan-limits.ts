@@ -56,11 +56,46 @@ export function ingestLimitPerMinute(tier: string | undefined, paidLimit: number
 /** Most spans one OTLP request may carry; bigger batches are refused with 413 so they cannot sidestep the per-span checks. */
 export const MAX_SPANS_PER_REQUEST = 1_000;
 
-/** Largest single native span body (input, output and metadata together) a Free project may send. Paid plans keep the 1 MB request cap. */
+/** Free spans bigger than this are trimmed (not refused), so a long prompt still shows up, just shortened. Paid plans keep the full 1 MB request. */
 export const FREE_MAX_SPAN_BYTES = 256 * 1024;
 
-/** Daily cap for Free: 1,000 spans, so one bad day cannot burn the 25k month. */
-export const FREE_DAILY_SPAN_LIMIT = 1_000;
+const TRIM_NOTE = "\n…[trimmed by Tracify: Free plan keeps up to 64 KB of text per field]";
+const FIELD_LIMITS = { input: 64_000, output: 64_000, errorMessage: 16_000, stackTrace: 16_000 } as const;
+const METADATA_LIMIT = 32_000;
+const ATTACHMENTS_LIMIT = 32_000;
+
+function asText(value: unknown) {
+  return typeof value === "string" ? value : JSON.stringify(value ?? "");
+}
+
+/** Shortens the large text fields of an oversized Free span. Returns the same object when nothing needed trimming. */
+export function trimOversizedSpan<T extends Record<string, unknown>>(span: T): { span: T; trimmed: boolean } {
+  const next: Record<string, unknown> = { ...span };
+  let trimmed = false;
+  for (const [field, limit] of Object.entries(FIELD_LIMITS)) {
+    if (next[field] === undefined) continue;
+    const text = asText(next[field]);
+    if (text.length > limit) {
+      next[field] = text.slice(0, limit) + TRIM_NOTE;
+      trimmed = true;
+    }
+  }
+  if (next.attachments !== undefined && asText(next.attachments).length > ATTACHMENTS_LIMIT) {
+    next.attachments = [];
+    trimmed = true;
+  }
+  const metadata = next.metadata as Record<string, unknown> | undefined;
+  if (metadata && asText(metadata).length > METADATA_LIMIT) {
+    next.metadata = { tracifyTrimmed: "metadata over 32 KB was dropped on the Free plan" };
+    trimmed = true;
+  }
+  if (!trimmed) return { span, trimmed };
+  next.metadata = { ...(next.metadata as Record<string, unknown> | undefined), tracifyTrimmed: true };
+  return { span: next as T, trimmed };
+}
+
+/** Daily cap for Free: 5,000 spans. Room for a heavy day of testing, but one runaway loop cannot burn the 25k month. */
+export const FREE_DAILY_SPAN_LIMIT = 5_000;
 
 export function dailySpanLimit(tier: string | undefined): number | null {
   return (tier ?? "free") === "free" ? FREE_DAILY_SPAN_LIMIT : null;

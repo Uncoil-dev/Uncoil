@@ -1,7 +1,7 @@
 import { planRetentionDays } from "../src/lib/retention";
 import { FREE_MAX_PROJECTS } from "../src/lib/plan-limits";
-import { v } from "convex/values";
-import { api, internal } from "./_generated/api";
+import { ConvexError, v } from "convex/values";
+import { api, components, internal } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
@@ -348,10 +348,21 @@ export const createProject = mutation({
       throw new Error("Project name is required");
     }
 
+    // A confirmed email comes before the first key, so throwaway sign-ups cannot send data.
+    if (identity.email) {
+      const account = (await ctx.runQuery(components.betterAuth.adapter.findOne, {
+        model: "user",
+        where: [{ field: "email", value: identity.email.toLowerCase() }],
+      })) as { emailVerified?: boolean } | null;
+      if (account && account.emailVerified === false) {
+        throw new ConvexError({ code: "email_not_verified", message: "Confirm your email first. We sent you a link when you signed up." });
+      }
+    }
+
     // Each Free project has its own monthly spans, so the number of Free projects per account is capped.
     const owned = await ctx.db.query("projects").withIndex("by_ownerId", (q) => q.eq("ownerId", identity.subject)).collect();
     if (owned.filter((p) => (p.planTier ?? "free") === "free").length >= FREE_MAX_PROJECTS) {
-      throw new Error(`Free accounts can have up to ${FREE_MAX_PROJECTS} projects. Upgrade a project or delete one you no longer use.`);
+      throw new ConvexError({ code: "project_limit", message: `Free accounts can have up to ${FREE_MAX_PROJECTS} projects. Upgrade a project or delete one you no longer use.` });
     }
 
     const clerkOrgId = getOrgId(identity);

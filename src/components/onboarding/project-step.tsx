@@ -7,6 +7,7 @@ import { api } from "convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { captureAnalytics } from "@/lib/analytics";
+import { projectCreateError } from "@/lib/project-errors";
 
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
@@ -32,7 +33,15 @@ export function ProjectStep() {
   const createProject = useMutation(api.projects.createProject);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  async function resendVerification() {
+    if (!session?.user.email) return;
+    await authClient.sendVerificationEmail({ email: session.user.email, callbackURL: "/onboarding/project" }).catch(() => undefined);
+    setVerificationSent(true);
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,9 +78,9 @@ export function ProjectStep() {
       window.localStorage.setItem(LAST_PROJECT_STORAGE_KEY, result.projectId);
       router.push("/onboarding/api-key");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Project creation failed.",
-      );
+      const failure = projectCreateError(err);
+      setNeedsVerification(failure.code === "email_not_verified");
+      setError(failure.message);
     } finally {
       setIsCreating(false);
     }
@@ -135,6 +144,16 @@ export function ProjectStep() {
         ))}
       </div>
       {error ? <p className="mt-3 text-sm text-[#EF4444]">{error}</p> : null}
+      {needsVerification ? (
+        <button
+          type="button"
+          onClick={() => void resendVerification()}
+          disabled={verificationSent}
+          className="mt-2 font-mono text-[12px] text-black underline underline-offset-4 disabled:no-underline disabled:text-black/55"
+        >
+          {verificationSent ? "Sent. Check your inbox, then try again." : "Send the confirmation email again"}
+        </button>
+      ) : null}
 
       <div className="mt-6 flex flex-wrap items-center gap-4">
         <Button

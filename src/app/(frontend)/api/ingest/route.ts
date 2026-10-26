@@ -7,7 +7,7 @@ import { inngest } from "@/lib/inngest";
 import { getWrongRegionApiKeyResponse, hashApiKey, isTracifyApiKey } from "@/lib/api-keys";
 import { DEFAULT_REDACTION_RULES, redactPayload, redactRecord } from "@/lib/redaction";
 import { planLimitResponse, recordRateLimitStrike } from "@/lib/plan-limits-server";
-import { FREE_MAX_SPAN_BYTES, ingestLimitPerMinute } from "@/lib/plan-limits";
+import { FREE_MAX_SPAN_BYTES, ingestLimitPerMinute, trimOversizedSpan } from "@/lib/plan-limits";
 import { consumeRateLimit } from "@/lib/redis-cache";
 import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
 
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
   if (!validation.ok) {
     return Response.json({ error: validation.error }, { status: 422 });
   }
-  const payload = validation.payload;
+  let payload = validation.payload;
 
   const convex = getConvexClient();
   const project = await convex.query(api.projects.getProjectByApiKey, {
@@ -188,13 +188,6 @@ export async function POST(request: NextRequest) {
       );
     }
     return Response.json({ error: "Invalid API key" }, { status: 401 });
-  }
-
-  if ((project.planTier ?? "free") === "free" && bodyBytes > FREE_MAX_SPAN_BYTES) {
-    return Response.json(
-      { error: `A single span on the Free plan can be at most ${FREE_MAX_SPAN_BYTES / 1024} KB. Shorten the input or output, or upgrade.`, code: "span_too_large" },
-      { status: 413 },
-    );
   }
 
   const ingestLimit = ingestLimitPerMinute(project.planTier, PAID_INGEST_LIMIT_PER_MINUTE);
@@ -222,6 +215,11 @@ export async function POST(request: NextRequest) {
 
   const overPlanLimit = await planLimitResponse(project);
   if (overPlanLimit) return overPlanLimit;
+
+  // Free spans over the size cap are shortened, not refused, so a long prompt still shows up.
+  if ((project.planTier ?? "free") === "free" && bodyBytes > FREE_MAX_SPAN_BYTES) {
+    payload = trimOversizedSpan(payload).span;
+  }
 
   const projectDocId = project._id as Id<"projects">;
   const now = Date.now();

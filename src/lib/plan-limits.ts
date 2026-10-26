@@ -44,3 +44,33 @@ export function planLimitMessage(limit: number, tier: string | undefined = "free
   }
   return `This project has used all ${formatted} spans allowed on its plan this month. New data is not saved until the month resets or the plan is upgraded.`;
 }
+
+/** Free accounts may own this many Free projects; each one gets its own monthly spans, so unlimited projects would mean unlimited free data. */
+export const FREE_MAX_PROJECTS = 3;
+
+/** Requests (or OTLP spans) per minute per project. Free is held lower than paid so a leaked or looping key cannot flood storage. */
+export function ingestLimitPerMinute(tier: string | undefined, paidLimit: number): number {
+  return (tier ?? "free") === "free" ? Math.min(paidLimit, 600) : paidLimit;
+}
+
+/** Most spans one OTLP request may carry; bigger batches are refused with 413 so they cannot sidestep the per-span checks. */
+export const MAX_SPANS_PER_REQUEST = 1_000;
+
+/** Largest single native span body (input, output and metadata together) a Free project may send. Paid plans keep the 1 MB request cap. */
+export const FREE_MAX_SPAN_BYTES = 256 * 1024;
+
+/** Daily soft cap for Free: about 5x an even daily share of the monthly spans, so one bad day cannot burn the month. */
+export function dailySpanLimit(tier: string | undefined): number | null {
+  if ((tier ?? "free") !== "free") return null;
+  return Math.ceil((planById("free" as PlanId).spanLimit / 30) * 5);
+}
+
+/** Whole seconds until the next UTC midnight (at least 1). */
+export function secondsUntilNextDay(now: Date) {
+  const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  return Math.max(1, Math.ceil((next - now.getTime()) / 1000));
+}
+
+/** Rate-limit refusals (429s) one Free key may collect in ten minutes before it is paused automatically. */
+export const ABUSE_STRIKE_LIMIT = 30;
+export const ABUSE_STRIKE_WINDOW_SECONDS = 600;

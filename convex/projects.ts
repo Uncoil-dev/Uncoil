@@ -1,4 +1,5 @@
 import { planRetentionDays } from "../src/lib/retention";
+import { FREE_MAX_PROJECTS } from "../src/lib/plan-limits";
 import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";
@@ -347,6 +348,12 @@ export const createProject = mutation({
       throw new Error("Project name is required");
     }
 
+    // Each Free project has its own monthly spans, so the number of Free projects per account is capped.
+    const owned = await ctx.db.query("projects").withIndex("by_ownerId", (q) => q.eq("ownerId", identity.subject)).collect();
+    if (owned.filter((p) => (p.planTier ?? "free") === "free").length >= FREE_MAX_PROJECTS) {
+      throw new Error(`Free accounts can have up to ${FREE_MAX_PROJECTS} projects. Upgrade a project or delete one you no longer use.`);
+    }
+
     const clerkOrgId = getOrgId(identity);
     const slug = `${slugify(name)}-${randomHex(3)}`;
     const prefix = apiKeyPrefix();
@@ -493,6 +500,35 @@ export const getProjectByApiKey = query({
       planTier: project.planTier ?? "free",
       apiKeyLastUsedAt: project.apiKeyLastUsedAt ?? null,
     };
+  },
+});
+
+/** True when the key exists but was paused for abuse, so ingest can say so instead of "Invalid API key". */
+export const isApiKeyPaused = query({
+  args: { apiKeyHash: v.string() },
+  handler: async (ctx, { apiKeyHash }) => {
+    const project = await ctx.db.query("projects").withIndex("by_apiKeyHash", (q) => q.eq("apiKeyHash", apiKeyHash)).unique();
+    return project?.apiKeyStatus === "paused";
+  },
+});
+
+/** Called by ingest when a Free key keeps hitting its rate limit. The hash is the credential, as in markApiKeyUsed. */
+export const pauseApiKeyForAbuse = mutation({
+  args: { projectId: v.id("projects"), apiKeyHash: v.string(), reason: v.string() },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.query("projects").withIndex("by_apiKeyHash", (q) => q.eq("apiKeyHash", args.apiKeyHash)).unique();
+    if (!project || project._id !== args.projectId || project.apiKeyStatus !== "active" || (project.planTier ?? "free") !== "free") return null;
+    const now = Date.now();
+    await ctx.db.patch(project._id, { apiKeyStatus: "paused", apiKeyPausedAt: now, apiKeyPauseReason: args.reason, updatedAt: now });
+    await ctx.db.insert("auditLogs", {
+      projectId: project._id,
+      actorId: "system",
+      action: "api_key.paused",
+      resource: "apiKey",
+      summary: `API key paused automatically: ${args.reason}`,
+      createdAt: now,
+    });
+    return null;
   },
 });
 

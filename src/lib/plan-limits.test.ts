@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { enforcedSpanLimit, usageLevel, monthKey, planLimitMessage, secondsUntilNextMonth } from "./plan-limits.ts";
+import { dailySpanLimit, FREE_MAX_PROJECTS, ingestLimitPerMinute, secondsUntilNextDay, enforcedSpanLimit, usageLevel, monthKey, planLimitMessage, secondsUntilNextMonth } from "./plan-limits.ts";
 
 test("free stops at its limit, Pro and Team at their limit plus 10%", () => {
   assert.equal(enforcedSpanLimit("free"), 25_000);
@@ -33,4 +33,17 @@ test("seconds until reset count to the first of next month, across year end", ()
 test("message names the limit", () => {
   assert.match(planLimitMessage(25_000), /25,000 free spans/);
   assert.match(planLimitMessage(550_000, "pro"), /all 550,000 spans/);
+});
+
+test("free is held to 3 projects, 600 requests a minute and a daily soft cap", () => {
+  assert.equal(FREE_MAX_PROJECTS, 3);
+  assert.equal(ingestLimitPerMinute("free", 6_000), 600);
+  assert.equal(ingestLimitPerMinute(undefined, 6_000), 600);
+  assert.equal(ingestLimitPerMinute("pro", 6_000), 6_000);
+  assert.equal(dailySpanLimit("free"), 4_167);
+  assert.equal(dailySpanLimit("pro"), null);
+});
+
+test("seconds until the next day count to UTC midnight", () => {
+  assert.equal(secondsUntilNextDay(new Date("2026-10-31T23:59:00Z")), 60);
 });

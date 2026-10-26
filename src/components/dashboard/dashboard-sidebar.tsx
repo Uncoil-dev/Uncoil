@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { TracifyMark } from "@/components/brand/tracify-mark";
 import { ProjectSwitcher } from "@/components/dashboard/project-switcher";
 import { SidebarAccountMenu } from "@/components/dashboard/sidebar-account-menu";
 import { DashboardCommandMenu } from "@/components/dashboard/dashboard-command-menu";
@@ -371,7 +370,11 @@ export function DashboardSidebar({
             // eslint-disable-next-line @next/next/no-img-element
             <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" height={30} className="block h-[30px] w-auto" />
           ) : (
-            <TracifyMark solid className="h-auto w-8" />
+            // The official icon at exactly one pixel per dither cell (66px file, cropped to the mark), so it stays crisp.
+            <span className="relative block h-[38px] w-[46px] overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logos/dissolve/tracify-icon.svg" alt="" width={66} height={66} className="absolute -left-[12px] -top-[14px] block max-w-none" />
+            </span>
           )}
         </Link>
       </div>

@@ -368,11 +368,11 @@ export function DashboardSidebar({
         <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
           {showPanel ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" width={176} height={49} className="block h-[49px] w-[176px] max-w-none" />
+            <img src="/logos/sidebar/tracify-logo-on-dark.svg" alt="Tracify" width={176} height={49} className="block h-[49px] w-[176px] max-w-none" />
           ) : (
-            // The official Dissolve icon.
+            // Smooth-scaling copies of the official files (public/logos/sidebar); the originals use crisp edges, which breaks the dither when small.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-icon.svg" alt="" width={32} height={32} className="block size-8" />
+            <img src="/logos/sidebar/tracify-icon.svg" alt="" width={32} height={32} className="block size-8" />
           )}
         </Link>
       </div>

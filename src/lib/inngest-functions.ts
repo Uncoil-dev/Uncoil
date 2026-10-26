@@ -3,6 +3,7 @@ import type { Id } from "convex/_generated/dataModel";
 
 import { getConvexClient } from "@/lib/convex";
 import { inngest } from "@/lib/inngest";
+import { noEvaluatorsCache } from "@/lib/ingest-cache";
 import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
 import { getTracifyRegion } from "@/lib/regions";
 import { runRetention } from "@/lib/retention-job";
@@ -34,6 +35,8 @@ export const processSpan = inngest.createFunction(
       const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
       const evaluationSecret = process.env.EVALUATION_INTERNAL_SECRET;
       if (!convexUrl || !evaluationSecret || !span.spanId) return { skipped: true };
+      // Projects with no online evaluators are remembered for a minute, so most spans never call Convex here.
+      if (noEvaluatorsCache.get(span.projectDocId)) return { skipped: true, reason: "no-evaluators" };
       try {
         const response = await fetch(`${convexUrl.replace(/\/$/, "")}/evaluation/online`, {
           method: "POST",
@@ -51,7 +54,8 @@ export const processSpan = inngest.createFunction(
         });
         if (!response.ok) console.warn("Online evaluation returned", response.status);
         if (response.ok) {
-          const body = await response.json().catch(() => null) as { results?: Array<{ resultId?: string; evaluatorId?: string; scoreName?: string; value?: number | boolean | string; status?: string }>; alerts?: Array<{ projectId: string; runId: string; type: string; message: string; triggeredAt: string }> } | null;
+          const body = await response.json().catch(() => null) as { noEvaluators?: boolean; results?: Array<{ resultId?: string; evaluatorId?: string; scoreName?: string; value?: number | boolean | string; status?: string }>; alerts?: Array<{ projectId: string; runId: string; type: string; message: string; triggeredAt: string }> } | null;
+          if (body?.noEvaluators) noEvaluatorsCache.set(span.projectDocId, true);
           for (const alert of body?.alerts ?? []) await inngest.send({ name: "tracify/alert.triggered", data: alert });
           const tinybird = await import("@/lib/tinybird");
           for (const result of body?.results ?? []) {

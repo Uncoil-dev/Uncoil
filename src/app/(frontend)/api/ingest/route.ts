@@ -1,5 +1,6 @@
 import { type NextRequest } from "next/server";
 import { api } from "convex/_generated/api";
+import type { FunctionReturnType } from "convex/server";
 import type { Id } from "convex/_generated/dataModel";
 
 import { getConvexClient } from "@/lib/convex";
@@ -8,6 +9,7 @@ import { getWrongRegionApiKeyResponse, hashApiKey, isTracifyApiKey } from "@/lib
 import { DEFAULT_REDACTION_RULES, redactPayload, redactRecord } from "@/lib/redaction";
 import { planLimitResponse } from "@/lib/plan-limits-server";
 import { consumeRateLimit } from "@/lib/redis-cache";
+import { apiKeyProjectCache, cachedProjectForKey } from "@/lib/ingest-cache";
 import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
 
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -172,9 +174,11 @@ export async function POST(request: NextRequest) {
   const payload = validation.payload;
 
   const convex = getConvexClient();
-  const project = await convex.query(api.projects.getProjectByApiKey, {
-    apiKeyHash: hashApiKey(apiKey),
-  });
+  const apiKeyHash = hashApiKey(apiKey);
+  // Valid keys are remembered for 30 seconds, so a deleted key can keep working for up to 30 seconds.
+  const project = await cachedProjectForKey<FunctionReturnType<typeof api.projects.getProjectByApiKey>>(apiKeyProjectCache, apiKeyHash, () =>
+    convex.query(api.projects.getProjectByApiKey, { apiKeyHash }),
+  );
 
   if (!project) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
@@ -213,9 +217,10 @@ export async function POST(request: NextRequest) {
   if (!project.apiKeyLastUsedAt || now - project.apiKeyLastUsedAt >= 60_000) {
     await convex.mutation(api.projects.markApiKeyUsed, {
       projectId: projectDocId,
-      apiKeyHash: hashApiKey(apiKey),
+      apiKeyHash,
       lastUsedAt: now,
     });
+    project.apiKeyLastUsedAt = now;
   }
 
   const spanEvent: SpanEvent = {

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { projectCreateError } from "@/lib/project-errors";
 
 export function CreateProjectModal({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -22,6 +23,7 @@ export function CreateProjectModal({ children }: { children?: React.ReactNode })
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
   const createProject = useMutation(api.projects.createProject);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,6 +31,7 @@ export function CreateProjectModal({ children }: { children?: React.ReactNode })
     if (!name.trim()) return;
     
     setIsSubmitting(true);
+    setError("");
     try {
       const result = await createProject({
         name: name.trim(),
@@ -36,7 +39,7 @@ export function CreateProjectModal({ children }: { children?: React.ReactNode })
       
       setApiKey(result.apiKey);
     } catch (err) {
-      console.error(err);
+      setError(projectCreateError(err).message);
     } finally {
       setIsSubmitting(false);
     }
@@ -55,6 +58,7 @@ export function CreateProjectModal({ children }: { children?: React.ReactNode })
         setName("");
         setApiKey(null);
         setCopied(false);
+        setError("");
       }, 200);
     }
     setOpen(newOpen);
@@ -102,6 +106,7 @@ export function CreateProjectModal({ children }: { children?: React.ReactNode })
                   className="bg-white border-black/15 rounded-none h-10 font-mono text-black focus-visible:ring-white/20 transition-all"
                 />
               </div>
+              {error ? <p className="text-sm text-[#EF4444]">{error}</p> : null}
             </div>
             <DialogFooter>
               <Button

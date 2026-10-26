@@ -10,6 +10,7 @@ import { api } from "convex/_generated/api";
 import type { BillingInterval, PaidPlan } from "@/lib/billing-links";
 import { ConvexAuthState } from "@/components/auth/convex-auth-state";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
+import { projectCreateError } from "@/lib/project-errors";
 import { formatPrice, monthlyPrice, planById } from "@/lib/pricing-plans";
 
 function isPaidPlan(value: string | null): value is PaidPlan {
@@ -76,7 +77,7 @@ export default function PricingCheckoutPage() {
       window.localStorage.setItem("tracify.lastProjectId", result.projectId);
       await openCheckout(result.projectId);
     } catch (checkoutError) {
-      setError(checkoutError instanceof Error ? checkoutError.message : "Checkout is unavailable right now.");
+      setError(projectCreateError(checkoutError, "Checkout is unavailable right now.").message);
       setPending(false);
     }
   }

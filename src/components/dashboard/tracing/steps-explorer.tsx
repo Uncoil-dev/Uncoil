@@ -1,4 +1,5 @@
 "use client";
+import { FirstTraceEmpty } from "../first-trace-empty";
 import { SavedViews } from "./saved-views";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -579,6 +580,8 @@ export function StepsExplorer({
               <p role="status" className="py-8 text-[#8B93A1]">
                 Loading steps…
               </p>
+            ) : !rows.length && !error && !Object.keys(query).some((k) => !VIEW_KEYS.has(k) && k !== "range" && k !== "groupBy") ? (
+              <FirstTraceEmpty projectId={projectId} showSnippet={false} title="Every model call and tool call, one row each" description="Steps are the individual actions your agent took. They appear here once your first trace arrives." />
             ) : !rows.length && !error ? (
               <div className="py-12 text-center">
                 <p>No actions match these filters</p>

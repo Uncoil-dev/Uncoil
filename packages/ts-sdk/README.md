@@ -196,6 +196,16 @@ const tracify = new TracifyClient({
 
 Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, set `redact: { pii: false }`.
 
+### Sign in from the terminal
+
+```bash
+npx tracify-sdk login
+```
+
+Opens your browser so you can sign in (or create a free account), pick or create a project, and confirm the code shown in your terminal. The key is then saved to `.env.local` as `TRACIFY_API_KEY`, with `TRACIFY_PROJECT_ID` next to it (and `TRACIFY_REGION` for the US region). In a git repo the file is added to `.gitignore` if it is not already ignored. The key travels encrypted to your machine and is never printed. Options: `--region eu|us`, `--new <name>` (create a project with this name), `--no-browser` (only print the address and code), `--env-file <path>` and `--json`. Picking a project that already sends data replaces its key, and the browser asks you to confirm that first. Plain Node does not read `.env.local` by itself; run `node --env-file=.env.local app.js` or load it with dotenv.
+
+`npx tracify-sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `TRACIFY_PROJECT_ID` points at a different project than the key.
+
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:

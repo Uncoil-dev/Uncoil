@@ -66,6 +66,24 @@ export default defineSchema({
     .index("by_stripeSubscriptionId", ["stripeSubscriptionId"])
     .index("by_apiKeyHash", ["apiKeyHash"]),
 
+  // Terminal sign-in (`tracify-sdk login`). The key is encrypted to the CLI's own public key, so the server never keeps a usable key.
+  deviceLogins: defineTable({
+    deviceCodeHash: v.string(),
+    userCode: v.string(),
+    publicKey: v.string(),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("denied"), v.literal("consumed")),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+    newProjectName: v.optional(v.string()),
+    approvedBy: v.optional(v.string()),
+    projectId: v.optional(v.id("projects")),
+    projectName: v.optional(v.string()),
+    encryptedKey: v.optional(v.string()),
+  })
+    .index("by_deviceCodeHash", ["deviceCodeHash"])
+    .index("by_userCode", ["userCode"])
+    .index("by_expiresAt", ["expiresAt"]),
+
   savedViews: defineTable({
     projectId: v.id("projects"), ownerId: v.string(), name: v.string(),
     target: v.union(v.literal("traces"), v.literal("steps")), shared: v.boolean(),

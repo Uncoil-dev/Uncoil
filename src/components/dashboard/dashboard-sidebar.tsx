@@ -435,10 +435,10 @@ export function DashboardSidebar({
                         href={resolveHref(recent.href)}
                         onClick={close}
                         aria-current={active ? "page" : undefined}
-                        className={cn(leafClass, "h-auto flex-col items-start gap-0 py-1.5", active ? leafActive : leafIdle)}
+                        title={recent.section}
+                        className={cn(leafClass, active ? leafActive : leafIdle)}
                       >
                         <span className="w-full truncate">{recent.title}</span>
-                        <span className="w-full truncate text-[10.5px] !text-white/35">{recent.section}</span>
                       </Link>
                     );
                   })}

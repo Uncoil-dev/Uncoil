@@ -370,9 +370,9 @@ export function DashboardSidebar({
             // eslint-disable-next-line @next/next/no-img-element
             <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" width={176} height={49} className="block h-[49px] w-[176px] max-w-none" />
           ) : (
-            // The small-size version of the official icon, made for tiny sizes.
+            // The official Dissolve icon.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-icon-small.svg" alt="" width={32} height={32} className="block size-8" />
+            <img src="/logos/dissolve/tracify-icon.svg" alt="" width={32} height={32} className="block size-8" />
           )}
         </Link>
       </div>

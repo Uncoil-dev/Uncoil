@@ -5,7 +5,7 @@
   "homepage": "https://www.tracify.tech",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BN-KR/Tracify.git",
+    "url": "git+https://github.com/onTracify/Tracify.git",
     "directory": "packages/ts-sdk"
   },
   "main": "dist/index.js",
@@ -23,7 +23,7 @@
     "prepublishOnly": "npm run build"
   },
   "bugs": {
-    "url": "https://github.com/BN-KR/Tracify/issues"
+    "url": "https://github.com/onTracify/Tracify/issues"
   },
   "keywords": [
     "ai",

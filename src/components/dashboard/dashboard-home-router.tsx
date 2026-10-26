@@ -5,8 +5,7 @@ import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 
-import { DashboardStartState } from "@/components/dashboard/dashboard-start-state";
-import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
+import { NoProjectStart } from "@/components/dashboard/no-project-start";
 import { api } from "convex/_generated/api";
 import { ConvexAuthState } from "@/components/auth/convex-auth-state";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
@@ -25,11 +24,6 @@ export function DashboardHomeRouter() {
   useEffect(() => {
     if (auth.status === "unauthenticated") {
       router.replace(`/sign-in?redirect_url=${encodeURIComponent("/dashboard")}`);
-      return;
-    }
-    // A signed-in account with no project goes straight to onboarding, like a new sign-up does.
-    if (projects && !projects.length) {
-      router.replace("/onboarding");
       return;
     }
     if (!projects?.length) return;
@@ -63,15 +57,5 @@ export function DashboardHomeRouter() {
     );
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <DashboardTopbar
-        title="Dashboard"
-        description="Create a project to start capturing agent traces."
-      />
-      <div className="px-6 pb-10">
-        <DashboardStartState />
-      </div>
-    </div>
-  );
+  return <NoProjectStart />;
 }

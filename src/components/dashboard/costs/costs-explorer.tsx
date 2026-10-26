@@ -1,5 +1,6 @@
 "use client";
 
+import { FirstTraceEmpty } from "../first-trace-empty";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RANGES, TimeRangePicker } from "../tracing/time-range-picker";
 import { decodeValues, encodeValues } from "../tracing/facet-filter";
@@ -204,6 +205,8 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
 
       {loading ? (
         <div className="grid gap-px p-4" aria-busy="true"><div className="h-40 animate-pulse bg-[#111418]" /><div className="mt-4 h-56 animate-pulse bg-[#111418]" /></div>
+      ) : empty && !activeFilters.length ? (
+        <FirstTraceEmpty projectId={projectId} showSnippet={false} title="See what your agent spends" description="Costs show up here as soon as your agent sends traces with model calls: spend per model, per day and per tool." />
       ) : empty ? (
         <div className="m-4 border border-dashed border-[#262C35] p-10 text-center">
           <p className="text-sm font-medium">No spend in this window</p>

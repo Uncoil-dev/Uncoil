@@ -13,6 +13,7 @@ Use the documentation for implementation details and the blog for explanatory gu
 - [What is in a trace](https://www.tracify.tech/docs/trace-anatomy): The fields on every run and span.
 - [Feedback and scores](https://www.tracify.tech/docs/feedback-and-scores): Attach end-user feedback and typed scores to traces.
 - [Troubleshoot your first trace](https://www.tracify.tech/docs/troubleshooting): Fix missing runs, zero cost and duplicate calls.
+- [Set up Tracify with your coding agent](https://www.tracify.tech/docs/agent-setup): One copyable prompt for Claude Code, Cursor and Codex.
 - [API reference](https://www.tracify.tech/docs/api): Tracify API concepts and endpoints.
 - [Evaluation](https://www.tracify.tech/docs/evaluation): Guidance for evaluating agent behavior and quality.
 - [Integrations](https://www.tracify.tech/docs/integrations): Implementation guidance for supported integrations.

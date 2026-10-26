@@ -1,9 +1,22 @@
 #!/usr/bin/env node
 import { formatReport, runDoctor, type DoctorOptions } from "./doctor";
+import { loadTracifyEnv, runLogin, type LoginOptions } from "./login";
 
-const HELP = `Usage: tracify-sdk doctor [options]
+const HELP = `Usage: tracify-sdk login [options]
+       tracify-sdk doctor [options]
 
-Checks your API key, region and network, then sends one test trace.
+login   Sign in through your browser and save the API key for this folder.
+doctor  Check your API key, region and network, then send one test trace.
+
+login options:
+  --region <eu|us>    Data region (default: TRACIFY_REGION, else eu)
+  --new <name>        Create a new project with this name
+  --no-browser        Only print the address and code; do not open a browser
+  --env-file <path>   Where to save the key (default: .env.local)
+  --host <url>        Custom host (default: TRACIFY_HOST)
+  --json              Print machine-readable lines
+
+doctor options:
 
   --key <key>       API key (default: TRACIFY_API_KEY)
   --region <eu|us>  Data region (default: TRACIFY_REGION, else from the key)
@@ -15,9 +28,11 @@ Checks your API key, region and network, then sends one test trace.
 Exit code is 0 when everything passes, 1 when a check fails.`;
 
 async function main(argv: string[]) {
-  const args = argv[0] === "doctor" ? argv.slice(1) : argv;
-  const options: DoctorOptions = {};
+  const command = argv[0] === "login" || argv[0] === "doctor" ? argv[0] : "doctor";
+  const args = argv[0] === "login" || argv[0] === "doctor" ? argv.slice(1) : argv;
+  const options: DoctorOptions & LoginOptions = {};
   let json = false;
+  let newProject: string | undefined;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     const value = () => {
@@ -26,17 +41,26 @@ async function main(argv: string[]) {
       return next;
     };
     if (arg === "-h" || arg === "--help") { console.log(HELP); return 0; }
-    else if (arg === "--key") options.apiKey = value();
+    else if (arg === "--key" && command === "doctor") options.apiKey = value();
     else if (arg === "--region") {
       const region = value().toLowerCase();
       if (region !== "eu" && region !== "us") { console.error('--region must be "eu" or "us".'); return 2; }
       options.region = region;
     }
     else if (arg === "--host") options.host = value();
-    else if (arg === "--no-send") options.send = false;
+    else if (arg === "--no-send" && command === "doctor") options.send = false;
+    else if (arg === "--new" && command === "login") newProject = value();
+    else if (arg === "--no-browser" && command === "login") options.browser = false;
+    else if (arg === "--env-file" && command === "login") options.envFile = value();
     else if (arg === "--json") json = true;
     else { console.error(`Unknown option ${arg}.\n\n${HELP}`); return 2; }
   }
+  if (command === "login") {
+    const result = await runLogin({ ...options, newProject, json });
+    if (!result.ok) console.error(json ? JSON.stringify({ event: "error", message: result.message }) : result.message);
+    return result.ok ? 0 : 1;
+  }
+  loadTracifyEnv(process.cwd());
   const report = await runDoctor(options);
   console.log(json ? JSON.stringify(report, null, 2) : formatReport(report));
   return report.ok ? 0 : 1;

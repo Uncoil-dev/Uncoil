@@ -28,7 +28,7 @@ export function AskAiPanel({ projectId, runId, spans, onSelectStep }: {
     setMessages((current) => [...current, { role: "user", text }]);
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/runs/${encodeURIComponent(runId)}/ask`, {
-        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: text }),
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: text, history: messages.filter((message) => message.role !== "error").slice(-6).map((message) => ({ role: message.role, text: message.text })) }),
       });
       const body = await response.json() as { answer?: string; stepIds?: string[]; source?: "ai" | "basic"; error?: string };
       if (!response.ok || !body.answer) throw new Error(body.error ?? "Something went wrong. Please try again.");
@@ -65,7 +65,7 @@ export function AskAiPanel({ projectId, runId, spans, onSelectStep }: {
                     ) : null)}
                   </div>
                 ) : null}
-                {message.role === "assistant" && message.source === "basic" ? <p className="mt-2 font-mono text-[10px] text-[#6B7380]">Built-in answer, no AI used</p> : null}
+                {message.role === "assistant" ? <p className="mt-2 font-mono text-[10px] text-[#6B7380]">{message.source === "basic" ? "Built-in answer, no AI used" : "AI can be wrong. Check the steps it points to."}</p> : null}
               </li>
             ))}
             {busy ? <li className="font-mono text-xs text-[#8B93A1]">Reading the trace…</li> : null}

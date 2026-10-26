@@ -3,7 +3,7 @@ import { TRACIFY_REGION_HOSTS, type TracifyRegion } from "./index";
 export type DoctorStatus = "ok" | "warn" | "fail" | "skip";
 
 export interface DoctorCheck {
-  id: "runtime" | "key" | "region" | "network" | "trace";
+  id: "runtime" | "key" | "region" | "network" | "project" | "trace";
   title: string;
   status: DoctorStatus;
   message: string;
@@ -17,6 +17,8 @@ export interface DoctorOptions {
   host?: string;
   /** Skip the test trace; only check the key shape, region and network. */
   send?: boolean;
+  /** Project the key is expected to belong to. Defaults to TRACIFY_PROJECT_ID. */
+  projectId?: string;
   /** Seconds before a request is given up on. Defaults to 10. */
   timeoutMs?: number;
 }
@@ -101,6 +103,20 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
     add({ id: "network", title: "Network", status: "fail", message: `Could not reach ${host} (${errorText(error)}).`, hint: `Check your internet connection, firewall and the host setting.${proxyNote}` });
     return report();
   }
+
+  // Which project does this key send to? Older servers have no such route, so anything unexpected is skipped quietly.
+  const expectedProject = (options.projectId || process.env.TRACIFY_PROJECT_ID || "").trim();
+  try {
+    const response = await fetch(`${host}/api/sdk/whoami`, { headers: { Authorization: `Bearer ${apiKey}` }, signal: AbortSignal.timeout(timeoutMs) });
+    const data = response.ok ? await response.json() as { projectId?: string; projectName?: string } : null;
+    if (data?.projectId) {
+      if (expectedProject && expectedProject !== data.projectId) {
+        add({ id: "project", title: "Project", status: "fail", message: `TRACIFY_PROJECT_ID points at a different project than this key ("${data.projectName ?? data.projectId}").`, hint: "Run `npx tracify-sdk login` in this folder again so the key and project are saved together." });
+        return report();
+      }
+      add({ id: "project", title: "Project", status: "ok", message: `Traces will land in: ${data.projectName ?? data.projectId}` });
+    }
+  } catch { /* the trace check below reports connection problems */ }
 
   if (options.send === false) {
     add({ id: "trace", title: "Test trace", status: "skip", message: "Skipped (--no-send)." });

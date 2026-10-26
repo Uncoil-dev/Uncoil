@@ -8,7 +8,7 @@ import { consumeRateLimit } from "@/lib/redis-cache";
 import { getSpansForRun } from "@/lib/tinybird";
 import { completeWithFallback } from "@/lib/llm-chain";
 import { providerForKey } from "@/lib/openai-chat";
-import { buildUserMessage, MAX_QUESTION_LENGTH, quickAnswer, resolveCitations, SYSTEM_PROMPT, type AskAnswer, type AskSpan } from "@/lib/ask-ai";
+import { buildUserMessage, MAX_QUESTION_LENGTH, quickAnswer, resolveCitations, sanitizeHistory, SYSTEM_PROMPT, type AskAnswer, type AskSpan, type AskTurn } from "@/lib/ask-ai";
 
 export const maxDuration = 30;
 
@@ -31,12 +31,12 @@ function altKey() {
 
 type AskResult = { answer: AskAnswer | null; busy?: boolean };
 
-async function askClaude(apiKey: string, spans: AskSpan[], question: string): Promise<{ text: string; busy: boolean }> {
+async function askClaude(apiKey: string, spans: AskSpan[], question: string, history: AskTurn[]): Promise<{ text: string; busy: boolean }> {
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: process.env.TRACIFY_ASK_AI_MODEL || "claude-haiku-5-5", max_tokens: 600, system: SYSTEM_PROMPT, messages: [{ role: "user", content: buildUserMessage(spans, question) }] }),
+      body: JSON.stringify({ model: process.env.TRACIFY_ASK_AI_MODEL || "claude-haiku-5-5", max_tokens: 600, system: SYSTEM_PROMPT, messages: [{ role: "user", content: buildUserMessage(spans, question, history) }] }),
       signal: AbortSignal.timeout(20_000),
     });
     if (!response.ok) {
@@ -51,15 +51,15 @@ async function askClaude(apiKey: string, spans: AskSpan[], question: string): Pr
   }
 }
 
-/** Anthropic key first; otherwise the alternate provider or OpenAI. */
-async function askModel(spans: AskSpan[], question: string): Promise<AskResult> {
+/** Anthropic key first, unless the alternate provider is set (then nothing paid is used); otherwise the alternate provider or OpenAI. */
+async function askModel(spans: AskSpan[], question: string, history: AskTurn[]): Promise<AskResult> {
   const apiKey = askKey();
-  if (apiKey && providerForKey(apiKey) === "anthropic") {
-    const claude = await askClaude(apiKey, spans, question);
+  if (apiKey && !altKey() && providerForKey(apiKey) === "anthropic") {
+    const claude = await askClaude(apiKey, spans, question, history);
     if (claude.text) return { answer: resolveCitations(claude.text, spans) };
     return { answer: null, busy: claude.busy };
   }
-  const result = await completeWithFallback("Ask AI", { alt: altKey() || undefined, openai: altKey() ? undefined : apiKey || undefined }, { alt: process.env.ASK_AI_ALT_MODEL, openai: process.env.TRACIFY_ASK_AI_MODEL }, { system: SYSTEM_PROMPT, user: buildUserMessage(spans, question), temperature: 0.2, maxOutputTokens: 1500, timeoutMs: 25_000 });
+  const result = await completeWithFallback("Ask AI", { alt: altKey() || undefined, openai: altKey() ? undefined : apiKey || undefined }, { alt: process.env.ASK_AI_ALT_MODEL, openai: process.env.TRACIFY_ASK_AI_MODEL }, { system: SYSTEM_PROMPT, user: buildUserMessage(spans, question, history), temperature: 0.2, maxOutputTokens: 1500, timeoutMs: 25_000 });
   if (result.text) return { answer: resolveCitations(result.text, spans) };
   return { answer: null, busy: result.failures.some((failure) => failure === "rate" || failure === "quota") };
 }
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
   const { projectId, runId } = await params;
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json().catch(() => null) as { question?: unknown } | null;
+  const body = await req.json().catch(() => null) as { question?: unknown; history?: unknown } | null;
   const question = typeof body?.question === "string" ? body.question.trim() : "";
   if (!question || question.length > MAX_QUESTION_LENGTH) {
     return NextResponse.json({ error: `Questions must be between 1 and ${MAX_QUESTION_LENGTH} characters.` }, { status: 422 });
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
     return NextResponse.json({ error: "Step data is temporarily unavailable." }, { status: 503 });
   }
 
-  const { answer: ai, busy } = await askModel(spans, question);
+  const { answer: ai, busy } = await askModel(spans, question, sanitizeHistory(body?.history));
   if (ai) return NextResponse.json({ ...ai, source: "ai" });
   const basic = quickAnswer(question, spans);
   if (basic) return NextResponse.json({ ...basic, source: "basic" });

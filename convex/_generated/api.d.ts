@@ -28,6 +28,7 @@ import type * as costCounters from "../costCounters.js";
 import type * as crons from "../crons.js";
 import type * as dashboards from "../dashboards.js";
 import type * as datasets from "../datasets.js";
+import type * as deviceLogins from "../deviceLogins.js";
 import type * as evaluation from "../evaluation.js";
 import type * as evaluationEngine from "../evaluationEngine.js";
 import type * as evaluators from "../evaluators.js";
@@ -78,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   dashboards: typeof dashboards;
   datasets: typeof datasets;
+  deviceLogins: typeof deviceLogins;
   evaluation: typeof evaluation;
   evaluationEngine: typeof evaluationEngine;
   evaluators: typeof evaluators;

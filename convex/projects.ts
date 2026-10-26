@@ -1,9 +1,10 @@
 import { planRetentionDays } from "../src/lib/retention";
-import { v } from "convex/values";
-import { api, internal } from "./_generated/api";
+import { FREE_MAX_PROJECTS } from "../src/lib/plan-limits";
+import { ConvexError, v } from "convex/values";
+import { api, components, internal } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import type { QueryCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 
 type DeploymentRegion = "eu" | "us";
 
@@ -326,6 +327,96 @@ function publicProject(project: Doc<"projects">) {
   };
 }
 
+type KeyIdentity = { subject: string; tokenIdentifier: string; email?: string };
+
+/** Creates a project owned by the signed-in user with a fresh API key. Shared by the dashboard and terminal login. */
+export async function insertProjectWithKey(
+  ctx: MutationCtx,
+  identity: KeyIdentity,
+  name: string,
+  onboardingStep?: "api-key",
+) {
+  // A confirmed email comes before the first key, so throwaway sign-ups cannot send data.
+  if (identity.email) {
+    const account = (await ctx.runQuery(components.betterAuth.adapter.findOne, {
+      model: "user",
+      where: [{ field: "email", value: identity.email.toLowerCase() }],
+    })) as { emailVerified?: boolean } | null;
+    if (account && account.emailVerified === false) {
+      throw new ConvexError({ code: "email_not_verified", message: "Confirm your email first. We sent you a link when you signed up." });
+    }
+  }
+
+  // Each Free project has its own monthly spans, so the number of Free projects per account is capped.
+  const owned = await ctx.db.query("projects").withIndex("by_ownerId", (q) => q.eq("ownerId", identity.subject)).collect();
+  if (owned.filter((p) => (p.planTier ?? "free") === "free").length >= FREE_MAX_PROJECTS) {
+    throw new ConvexError({ code: "project_limit", message: `Free accounts can have up to ${FREE_MAX_PROJECTS} projects. Upgrade a project or delete one you no longer use.` });
+  }
+
+  const clerkOrgId = getOrgId(identity);
+  const slug = `${slugify(name)}-${randomHex(3)}`;
+  const prefix = apiKeyPrefix();
+  const plaintextApiKey = `${prefix}${randomHex(16)}`;
+  const apiKeyHash = await hmacSha256(plaintextApiKey);
+  const now = Date.now();
+
+  const projectId = await ctx.db.insert("projects", {
+    name,
+    slug,
+    clerkUserId: identity.subject,
+    ownerId: identity.subject,
+    clerkOrgId,
+    createdAt: now,
+    updatedAt: now,
+    planTier: "free",
+    apiKeyPrefix: prefix,
+    apiKeyLast4: plaintextApiKey.slice(-4),
+    apiKeyHash,
+    apiKeyStatus: "active",
+    apiKeyCreatedAt: now,
+    costThresholdUsd: 1,
+    maxDurationSeconds: 300,
+    maxStallMinutes: 5,
+    ...(onboardingStep ? { onboardingStep } : {}),
+  });
+
+  return { projectId, slug, plaintextApiKey, apiKeyPrefix: prefix, apiKeyLast4: plaintextApiKey.slice(-4) };
+}
+
+/** Replaces a project's API key and writes the audit entry. The caller must already have checked admin access. */
+export async function rotateProjectKey(
+  ctx: MutationCtx,
+  project: Doc<"projects">,
+  identity: KeyIdentity,
+  summary = "Project API key rotated",
+) {
+  const prefix = apiKeyPrefix();
+  const plaintextApiKey = `${prefix}${randomHex(16)}`;
+  const apiKeyHash = await hmacSha256(plaintextApiKey);
+  const now = Date.now();
+
+  await ctx.db.patch(project._id, {
+    apiKeyHash,
+    apiKeyPrefix: prefix,
+    apiKeyLast4: plaintextApiKey.slice(-4),
+    apiKeyStatus: "active",
+    apiKeyCreatedAt: now,
+    apiKeyLastUsedAt: undefined,
+    updatedAt: now,
+  });
+  await ctx.db.insert("auditLogs", {
+    projectId: project._id,
+    actorId: identity.subject,
+    actorEmail: identity.email,
+    action: "rotated",
+    resource: "api_key",
+    summary,
+    createdAt: now,
+  });
+
+  return { plaintextApiKey, apiKeyPrefix: prefix, apiKeyLast4: plaintextApiKey.slice(-4) };
+}
+
 export const createProject = mutation({
   args: { name: v.string() },
   handler: async (ctx, args): Promise<{
@@ -347,32 +438,7 @@ export const createProject = mutation({
       throw new Error("Project name is required");
     }
 
-    const clerkOrgId = getOrgId(identity);
-    const slug = `${slugify(name)}-${randomHex(3)}`;
-    const prefix = apiKeyPrefix();
-    const plaintextApiKey = `${prefix}${randomHex(16)}`;
-    const apiKeyHash = await hmacSha256(plaintextApiKey);
-    const now = Date.now();
-
-    const projectId = await ctx.db.insert("projects", {
-      name,
-      slug,
-      clerkUserId: identity.subject,
-      ownerId: identity.subject,
-      clerkOrgId,
-      createdAt: now,
-      updatedAt: now,
-      planTier: "free",
-      apiKeyPrefix: prefix,
-      apiKeyLast4: plaintextApiKey.slice(-4),
-      apiKeyHash,
-      apiKeyStatus: "active",
-      apiKeyCreatedAt: now,
-      costThresholdUsd: 1,
-      maxDurationSeconds: 300,
-      maxStallMinutes: 5,
-      onboardingStep: "api-key",
-    });
+    const { projectId, slug, plaintextApiKey, apiKeyPrefix: prefix, apiKeyLast4 } = await insertProjectWithKey(ctx, identity, name, "api-key");
 
     return {
       projectId,
@@ -381,7 +447,7 @@ export const createProject = mutation({
       plaintextApiKey,
       apiKey: plaintextApiKey,
       apiKeyPrefix: prefix,
-      apiKeyLast4: plaintextApiKey.slice(-4),
+      apiKeyLast4,
     };
   },
 });
@@ -493,6 +559,35 @@ export const getProjectByApiKey = query({
       planTier: project.planTier ?? "free",
       apiKeyLastUsedAt: project.apiKeyLastUsedAt ?? null,
     };
+  },
+});
+
+/** True when the key exists but was paused for abuse, so ingest can say so instead of "Invalid API key". */
+export const isApiKeyPaused = query({
+  args: { apiKeyHash: v.string() },
+  handler: async (ctx, { apiKeyHash }) => {
+    const project = await ctx.db.query("projects").withIndex("by_apiKeyHash", (q) => q.eq("apiKeyHash", apiKeyHash)).unique();
+    return project?.apiKeyStatus === "paused";
+  },
+});
+
+/** Called by ingest when a Free key keeps hitting its rate limit. The hash is the credential, as in markApiKeyUsed. */
+export const pauseApiKeyForAbuse = mutation({
+  args: { projectId: v.id("projects"), apiKeyHash: v.string(), reason: v.string() },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.query("projects").withIndex("by_apiKeyHash", (q) => q.eq("apiKeyHash", args.apiKeyHash)).unique();
+    if (!project || project._id !== args.projectId || project.apiKeyStatus !== "active" || (project.planTier ?? "free") !== "free") return null;
+    const now = Date.now();
+    await ctx.db.patch(project._id, { apiKeyStatus: "paused", apiKeyPausedAt: now, apiKeyPauseReason: args.reason, updatedAt: now });
+    await ctx.db.insert("auditLogs", {
+      projectId: project._id,
+      actorId: "system",
+      action: "api_key.paused",
+      resource: "apiKey",
+      summary: `API key paused automatically: ${args.reason}`,
+      createdAt: now,
+    });
+    return null;
   },
 });
 
@@ -862,35 +957,7 @@ export const rotateApiKey = mutation({
       throw new Error("Admin access required");
     }
 
-    const prefix = apiKeyPrefix();
-    const plaintextApiKey = `${prefix}${randomHex(16)}`;
-    const apiKeyHash = await hmacSha256(plaintextApiKey);
-    const now = Date.now();
-
-    await ctx.db.patch(args.projectId, {
-      apiKeyHash,
-      apiKeyPrefix: prefix,
-      apiKeyLast4: plaintextApiKey.slice(-4),
-      apiKeyStatus: "active",
-      apiKeyCreatedAt: now,
-      apiKeyLastUsedAt: undefined,
-      updatedAt: now,
-    });
-    await ctx.db.insert("auditLogs", {
-      projectId: args.projectId,
-      actorId: identity.subject,
-      actorEmail: identity.email,
-      action: "rotated",
-      resource: "api_key",
-      summary: "Project API key rotated",
-      createdAt: now,
-    });
-
-    return {
-      plaintextApiKey,
-      apiKeyPrefix: prefix,
-      apiKeyLast4: plaintextApiKey.slice(-4),
-    };
+    return rotateProjectKey(ctx, project, identity);
   },
 });
 

@@ -83,16 +83,22 @@ Start-Job -ScriptBlock {
 if (-not $isNew) {
   Start-Job -ScriptBlock {
     param($repo, $preview, $pr)
+    $log = Join-Path $preview ".preview-watch.log"
     $last = (git -C $preview rev-parse HEAD)
+    "$(Get-Date -Format s) watching PR $pr from $last" | Add-Content $log
     while ($true) {
       Start-Sleep -Seconds 15
-      git -C $repo fetch origin "pull/$pr/head" 2>$null
-      if ($LASTEXITCODE -ne 0) { continue }
-      $new = (git -C $repo rev-parse FETCH_HEAD)
-      if ($new -ne $last -and -not (git -C $preview status --porcelain --untracked-files=no)) {
-        git -C $preview checkout --detach $new 2>$null
-        if ($LASTEXITCODE -eq 0) { $last = $new }
-      }
+      try {
+        git -C $repo fetch origin "pull/$pr/head" 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { "$(Get-Date -Format s) fetch failed" | Add-Content $log; continue }
+        $new = (git -C $repo rev-parse FETCH_HEAD)
+        if ($new -ne $last) {
+          # The preview folder is throwaway, so follow the PR even if a package install touched a tracked file there.
+          git -C $preview checkout --force --detach $new 2>&1 | Out-Null
+          if ($LASTEXITCODE -eq 0) { "$(Get-Date -Format s) now at $new" | Add-Content $log; $last = $new }
+          else { "$(Get-Date -Format s) checkout of $new failed" | Add-Content $log }
+        }
+      } catch { "$(Get-Date -Format s) error: $_" | Add-Content $log }
     }
   } -ArgumentList $Repo, $Preview, $Pr | Out-Null
 }

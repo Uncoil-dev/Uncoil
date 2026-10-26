@@ -9,7 +9,7 @@ import { pricingCheckoutHref } from "@/lib/billing-links";
 
 // Plans and prices mirror the /pricing page. Change them there first.
 const plans = [
-  { name: "Free", monthly: 0, line: "Try it on a real agent.", spans: "25k", retention: "7 days", members: "1", projects: "1", features: ["Trace viewer", "Cost visibility", "Community support"] },
+  { name: "Free", monthly: 0, line: "Try it on a real agent.", spans: "25k", retention: "7 days", members: "1", projects: "3", features: ["Trace viewer", "Cost visibility", "Community support"] },
   { name: "Pro", monthly: 19, line: "For a builder shipping agents.", spans: "500k", retention: "30 days", members: "5", projects: "3", features: ["Evaluations + datasets", "Prompt versions", "Slack alerts"] },
   { name: "Team", monthly: 39, line: "For teams running agents in prod.", spans: "2m", retention: "90 days", members: "20", projects: "Unlimited", features: ["Release gates", "Collaboration + reviews", "Priority support"] },
 ] as const;

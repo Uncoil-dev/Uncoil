@@ -1,6 +1,6 @@
 {
   "name": "tracify-sdk",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Observability, runtime enforcement, and tracing for AI agents.",
   "homepage": "https://www.tracify.tech",
   "repository": {

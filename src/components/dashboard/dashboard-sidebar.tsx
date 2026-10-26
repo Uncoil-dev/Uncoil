@@ -368,13 +368,11 @@ export function DashboardSidebar({
         <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
           {showPanel ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" height={30} className="block h-[30px] w-auto" />
+            <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" width={176} height={49} className="block h-[49px] w-[176px] max-w-none" />
           ) : (
-            // The official icon at exactly one pixel per dither cell (66px file, cropped to the mark), so it stays crisp.
-            <span className="relative block h-[38px] w-[46px] overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logos/dissolve/tracify-icon.svg" alt="" width={66} height={66} className="absolute -left-[12px] -top-[14px] block max-w-none" />
-            </span>
+            // The small-size version of the official icon, made for tiny sizes.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/logos/dissolve/tracify-icon-small.svg" alt="" width={32} height={32} className="block size-8" />
           )}
         </Link>
       </div>

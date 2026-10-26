@@ -78,6 +78,7 @@ export function CapturedWorkspace({
   onDashboardCreate,
   onProjectSettingsSave,
   dataPanel,
+  tabPanels,
   onAnnotationClaim,
   onSessionAnnotate,
   onSessionAddToDataset,
@@ -94,6 +95,7 @@ export function CapturedWorkspace({
   onDashboardCreate?: (input: { name: string }) => Promise<void>;
   onProjectSettingsSave?: (input: { name: string }) => Promise<void>;
   dataPanel?: ReactNode;
+  tabPanels?: Record<string, ReactNode>;
   onAnnotationClaim?: () => Promise<string | null>;
   onSessionAnnotate?: (input: { sessionId: string }) => Promise<void>;
   onSessionAddToDataset?: (input: { sessionId: string; datasetId: string }) => Promise<void>;
@@ -241,7 +243,7 @@ export function CapturedWorkspace({
       ) : surface === "sessions" && recordId ? (
         <SessionDetailSurface workspace={workspace} sessionId={recordId} basePath={basePath} onReadOnly={handleAction} onAnnotate={onSessionAnnotate} onAddToDataset={onSessionAddToDataset} />
       ) : surface === "settings" ? (
-        <SettingsSurface workspace={workspace} onReadOnly={handleAction} onSave={onProjectSettingsSave} dataPanel={dataPanel} />
+        <SettingsSurface workspace={workspace} onReadOnly={handleAction} onSave={onProjectSettingsSave} dataPanel={dataPanel} tabPanels={tabPanels} />
       ) : surface === "playground" ? (
         <PromptPlaygroundSurface workspace={workspace} onReadOnly={handleAction} />
       ) : surface === "dashboards" ? (
@@ -631,7 +633,7 @@ function PromptPlaygroundSurface({ workspace, onReadOnly }: { workspace: Dashboa
   </main>;
 }
 
-function SettingsSurface({ workspace, onReadOnly, onSave, dataPanel }: { workspace: DashboardWorkspace; onReadOnly: (action: string) => void; onSave?: (input: { name: string }) => Promise<void>; dataPanel?: ReactNode }) {
+function SettingsSurface({ workspace, onReadOnly, onSave, dataPanel, tabPanels }: { workspace: DashboardWorkspace; onReadOnly: (action: string) => void; onSave?: (input: { name: string }) => Promise<void>; dataPanel?: ReactNode; tabPanels?: Record<string, ReactNode> }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabs = ["General", "Members", "API Keys", "LLM Connections", "Model Definitions", "MCP & CLI", "Scores", "Integrations", "Notifications", "Data", "Batch Actions", "Audit log"];
@@ -650,7 +652,7 @@ function SettingsSurface({ workspace, onReadOnly, onSave, dataPanel }: { workspa
     window.history.replaceState(null, "", query ? `${pathname}?${query}` : pathname);
   }
   async function save() { if (!onSave) { onReadOnly("Save project settings"); return; } setSaving(true); setNotice(null); try { await onSave({ name }); setNotice("Settings saved"); } catch (error) { setNotice(error instanceof Error ? error.message : "Unable to save settings"); } finally { setSaving(false); } }
-  return <main className="captured-settings"><nav>{tabs.map((item) => <button key={item} type="button" className={tab === item ? "active" : ""} onClick={() => selectTab(item)}>{item}</button>)}</nav><section><span>Project settings / {tab}</span><h2>{tab === "General" ? name : tab}</h2>{tab === "General" ? <><label>Project name<input value={name} onChange={(event) => setName(event.target.value)} /></label><label>Project ID<input value={workspace.project.id} readOnly /></label><div className="captured-settings-actions"><button type="button" disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : "Save changes"}</button><button type="button" onClick={() => onReadOnly("Open LLM Connections")}>Open LLM Connections</button></div>{notice ? <p role="status">{notice}</p> : null}</> : tab === "Data" && dataPanel ? dataPanel : <><p className="captured-settings-placeholder">{tab} controls are available in the live project workspace.</p><button type="button" onClick={() => onReadOnly(`Open ${tab}`)}>Open {tab}</button></>}</section></main>;
+  return <main className="captured-settings"><nav>{tabs.map((item) => <button key={item} type="button" className={tab === item ? "active" : ""} onClick={() => selectTab(item)}>{item}</button>)}</nav><section><span>Project settings / {tab}</span><h2>{tab === "General" ? name : tab}</h2>{tab === "General" ? <><label>Project name<input value={name} onChange={(event) => setName(event.target.value)} /></label><label>Project ID<input value={workspace.project.id} readOnly /></label><div className="captured-settings-actions"><button type="button" disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : "Save changes"}</button><button type="button" onClick={() => onReadOnly("Open LLM Connections")}>Open LLM Connections</button></div>{notice ? <p role="status">{notice}</p> : null}</> : tab === "Data" && dataPanel ? dataPanel : tabPanels?.[tab] ? tabPanels[tab] : <><p className="captured-settings-placeholder">{tab} controls are available in the live project workspace.</p><button type="button" onClick={() => onReadOnly(`Open ${tab}`)}>Open {tab}</button></>}</section></main>;
 }
 
 function SessionsSurface({ workspace, basePath, recordId, onReadOnly }: { workspace: DashboardWorkspace; basePath: string; recordId?: string; onReadOnly?: (action: string) => void }) {

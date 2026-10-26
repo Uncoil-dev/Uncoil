@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/../convex/_generated/api";
 
@@ -170,6 +171,28 @@ export function AutomationsWorkspace({ projectId }: { projectId: string }) {
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+/** Stand-alone "New automation" page: same sentence form, then back to the list. */
+export function NewAutomationForm({ projectId }: { projectId: string }) {
+  const create = useMutation(api.automations.create);
+  const router = useRouter();
+  return (
+    <div className="mx-auto grid max-w-5xl gap-6 text-[#E8EAED]">
+      <section className="border border-[#262C35] bg-[#0E1115] p-5">
+        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[#7C8591]">New rule</p>
+        <Sentence
+          initial={{ name: "", eventSource: "run.failed", actionType: "webhook", destination: "" }}
+          submitLabel="Turn on"
+          onCancel={() => router.push(`/dashboard/${projectId}/automations`)}
+          onSubmit={async (v) => {
+            await create({ projectId: projectId as never, ...v });
+            router.push(`/dashboard/${projectId}/automations`);
+          }}
+        />
+      </section>
     </div>
   );
 }

@@ -364,15 +364,13 @@ export function DashboardSidebar({
     >
       <DashboardCommandMenu projectId={projectId} showTrigger={false} basePath={demo ? DEMO_BASE_PATH : isSynthetic ? "/playground" : undefined} />
 
-      <div className={cn("flex h-14 shrink-0 items-center", showPanel ? "px-3" : "justify-center")}>
+      <div className="flex h-14 shrink-0 items-center px-3">
         <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
-          {showPanel ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-logo-on-dark.svg" alt="Tracify" height={30} className="block h-[30px] w-auto" />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/dissolve/tracify-icon.svg" alt="" width={36} height={36} className="block size-9" />
-          )}
+          {/* One logo for both states: the icon never moves, collapsing just clips the name away. Smooth-scaling copy of the official lockup (public/logos/sidebar); the original uses crisp edges, which breaks the dither when small. */}
+          <span className={cn("block overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none", showPanel ? "w-[128px]" : "w-[34px]")}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logos/sidebar/tracify-logo-on-dark.svg" alt="Tracify" width={128} height={36} className="block h-[36px] w-[128px] max-w-none" />
+          </span>
         </Link>
       </div>
 
@@ -435,10 +433,10 @@ export function DashboardSidebar({
                         href={resolveHref(recent.href)}
                         onClick={close}
                         aria-current={active ? "page" : undefined}
-                        className={cn(leafClass, "h-auto flex-col items-start gap-0 py-1.5", active ? leafActive : leafIdle)}
+                        title={recent.section}
+                        className={cn(leafClass, active ? leafActive : leafIdle)}
                       >
                         <span className="w-full truncate">{recent.title}</span>
-                        <span className="w-full truncate text-[10.5px] !text-white/35">{recent.section}</span>
                       </Link>
                     );
                   })}

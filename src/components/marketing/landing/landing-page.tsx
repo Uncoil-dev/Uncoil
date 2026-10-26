@@ -10,6 +10,7 @@ import { Anatomy, BeforeAfter, UseCases } from "./more-sections";
 import { Timeline } from "./timeline";
 import { LiveDemo } from "./live-demo";
 import { PricingSection } from "./pricing-section";
+import { AgentSetup } from "./agent-setup";
 import { SmoothScroll } from "./smooth-scroll";
 
 const faqs = [
@@ -28,6 +29,8 @@ export function LandingPage() {
       <section className="border-y border-white/15 bg-[#090909] py-6 text-[#eceae3]" aria-label="Works with">
         <Ticker items={["OpenAI", "Anthropic", "Vercel AI SDK", "LangChain", "LlamaIndex", "OpenTelemetry", "TypeScript", "Python", "HTTP"]} />
       </section>
+
+      <AgentSetup />
 
       <Statement />
       <BeforeAfter />

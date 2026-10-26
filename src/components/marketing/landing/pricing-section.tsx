@@ -68,7 +68,7 @@ export function PricingSection() {
                 </div>
                 <p className={`mt-1 h-4 font-mono text-[9px] uppercase ${featured ? "text-white/50" : "text-black/50"}`}>{annual && plan.monthly ? "billed annually" : ""}</p>
                 <ul className="mt-6 grid gap-2.5 text-sm">
-                  {[`${plan.spans} spans / month`, `${plan.retention} retention`, `${plan.members} member${plan.members === "1" ? "" : "s"} · ${plan.projects} project${plan.projects === "1" ? "" : "s"}`, ...plan.features].map((f) => (
+                  {[`${plan.spans} spans / month`, `${plan.retention} retention`, `${plan.members} member${plan.members === "1" ? "" : "s"} · ${plan.projects} projects`, ...plan.features].map((f) => (
                     <li key={f} className="flex gap-2.5">
                       <span className={`mt-1.5 size-1.5 shrink-0 ${featured ? "bg-[#f4d44d]" : "bg-black"}`} />
                       {f}

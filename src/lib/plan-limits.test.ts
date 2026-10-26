@@ -35,12 +35,12 @@ test("message names the limit", () => {
   assert.match(planLimitMessage(550_000, "pro"), /all 550,000 spans/);
 });
 
-test("free is held to 3 projects, 600 requests a minute and a daily soft cap", () => {
+test("free is held to 3 projects, 600 requests a minute and a daily cap of 1,000 spans", () => {
   assert.equal(FREE_MAX_PROJECTS, 3);
   assert.equal(ingestLimitPerMinute("free", 6_000), 600);
   assert.equal(ingestLimitPerMinute(undefined, 6_000), 600);
   assert.equal(ingestLimitPerMinute("pro", 6_000), 6_000);
-  assert.equal(dailySpanLimit("free"), 4_167);
+  assert.equal(dailySpanLimit("free"), 1_000);
   assert.equal(dailySpanLimit("pro"), null);
 });
 

@@ -59,10 +59,11 @@ export const MAX_SPANS_PER_REQUEST = 1_000;
 /** Largest single native span body (input, output and metadata together) a Free project may send. Paid plans keep the 1 MB request cap. */
 export const FREE_MAX_SPAN_BYTES = 256 * 1024;
 
-/** Daily soft cap for Free: about 5x an even daily share of the monthly spans, so one bad day cannot burn the month. */
+/** Daily cap for Free: 1,000 spans, so one bad day cannot burn the 25k month. */
+export const FREE_DAILY_SPAN_LIMIT = 1_000;
+
 export function dailySpanLimit(tier: string | undefined): number | null {
-  if ((tier ?? "free") !== "free") return null;
-  return Math.ceil((planById("free" as PlanId).spanLimit / 30) * 5);
+  return (tier ?? "free") === "free" ? FREE_DAILY_SPAN_LIMIT : null;
 }
 
 /** Whole seconds until the next UTC midnight (at least 1). */

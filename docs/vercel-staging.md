@@ -37,3 +37,13 @@ Both public Convex endpoints are required during the Next.js build. A missing `N
 ## Production deploys are manual
 
 `vercel.json` sets `git.deploymentEnabled.main` to `false`, so merging to `main` no longer triggers a production deployment on either Vercel project (`tracify`, `tracify-cloud-eu`). Preview deployments for other branches are unchanged. To update production, open the project in Vercel and redeploy the latest `main` commit (or create a production deployment from `main`).
+
+## Preview sample traces
+
+Local previews (`preview <PR>`) read a separate ClickHouse database, `tracify_preview`, never the live `tracify` one. Fill it for the staging test account once:
+
+```powershell
+$env:PREVIEW_PROJECT_ID="<id from the dashboard URL /dashboard/<id>>"; node scripts/seed-preview-db.mjs
+```
+
+The script creates the database from the live table layout on first run, inserts sample traces straight into ClickHouse (no Convex calls), and refuses any database not ending in `_preview`. The ClickHouse user needs permission to create that database; if it lacks it, create it once with an admin user.

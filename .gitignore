@@ -91,3 +91,4 @@ artifacts/reference-parity/
 .tinyb
 .preview-account.json
 public/preview-login.html
+.preview-watch.log

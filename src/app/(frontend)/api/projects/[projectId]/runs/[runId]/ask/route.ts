@@ -51,10 +51,10 @@ async function askClaude(apiKey: string, spans: AskSpan[], question: string): Pr
   }
 }
 
-/** Anthropic key first; otherwise the alternate provider or OpenAI. */
+/** Anthropic key first, unless the alternate provider is set (then nothing paid is used); otherwise the alternate provider or OpenAI. */
 async function askModel(spans: AskSpan[], question: string): Promise<AskResult> {
   const apiKey = askKey();
-  if (apiKey && providerForKey(apiKey) === "anthropic") {
+  if (apiKey && !altKey() && providerForKey(apiKey) === "anthropic") {
     const claude = await askClaude(apiKey, spans, question);
     if (claude.text) return { answer: resolveCitations(claude.text, spans) };
     return { answer: null, busy: claude.busy };

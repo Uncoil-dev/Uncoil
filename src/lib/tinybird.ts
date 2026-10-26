@@ -11,7 +11,10 @@ const TINYBIRD_TOKEN = process.env.TINYBIRD_TOKEN;
 
 // Self-hosted ClickHouse (same SQL dialect) replaces Tinybird when CLICKHOUSE_URL is set.
 const CLICKHOUSE_URL = process.env.CLICKHOUSE_URL?.replace(/\/$/, "");
-const CLICKHOUSE_DATABASE = process.env.CLICKHOUSE_DATABASE ?? "tracify";
+// Anything that is not the live site (local dev, PR previews) reads the sample database,
+// whatever CLICKHOUSE_DATABASE says, so a preview can never touch live traces.
+const IS_PREVIEW_RUNTIME = process.env.NODE_ENV !== "production" || process.env.TRACIFY_PREVIEW === "1" || /\.preview\.tracify\.tech/.test(process.env.COOLIFY_FQDN ?? "");
+const CLICKHOUSE_DATABASE = IS_PREVIEW_RUNTIME ? "tracify_preview" : (process.env.CLICKHOUSE_DATABASE ?? "tracify");
 
 export function analyticsBackend() {
   return CLICKHOUSE_URL ? "clickhouse" : "tinybird";

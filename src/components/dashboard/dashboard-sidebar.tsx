@@ -368,7 +368,7 @@ export function DashboardSidebar({
         <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
           {showPanel ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logos/sidebar/tracify-logo-on-dark.svg" alt="Tracify" width={176} height={49} className="block h-[49px] w-[176px] max-w-none" />
+            <img src="/logos/sidebar/tracify-logo-on-dark.svg" alt="Tracify" width={128} height={36} className="block h-[36px] w-[128px] max-w-none" />
           ) : (
             // Smooth-scaling copies of the official files (public/logos/sidebar); the originals use crisp edges, which breaks the dither when small.
             // eslint-disable-next-line @next/next/no-img-element

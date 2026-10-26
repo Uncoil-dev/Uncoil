@@ -1,5 +1,5 @@
 import { planRetentionDays } from "../src/lib/retention";
-import { FREE_MAX_PROJECTS } from "../src/lib/plan-limits";
+import { FREE_MAX_PROJECTS } from "../src/lib/free-plan-limits";
 import { ConvexError, v } from "convex/values";
 import { api, components, internal } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";

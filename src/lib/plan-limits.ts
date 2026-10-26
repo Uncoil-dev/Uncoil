@@ -46,7 +46,7 @@ export function planLimitMessage(limit: number, tier: string | undefined = "free
 }
 
 /** Free accounts may own this many Free projects; each one gets its own monthly spans, so unlimited projects would mean unlimited free data. */
-export const FREE_MAX_PROJECTS = 3;
+export { FREE_MAX_PROJECTS } from "./free-plan-limits.ts";
 
 /** Requests (or OTLP spans) per minute per project. Free is held lower than paid so a leaked or looping key cannot flood storage. */
 export function ingestLimitPerMinute(tier: string | undefined, paidLimit: number): number {

@@ -11,6 +11,7 @@ import { SearchBox } from "./search-box";
 import { FeedbackCell, useFeedback, type FeedbackState } from "./feedback";
 import { RANGES, TimeRangePicker } from "./time-range-picker";
 import { ColumnsMenu, DEFAULT_COLUMNS, columnLabel, extraCell, extraIdsFor, isKnownColumn, metaKeysFor, orderColumns, type TraceRowExtras } from "./trace-columns";
+import { FirstTraceEmpty } from "../first-trace-empty";
 import { TraceCharts, TracesOverTime, type ChartBucket } from "./trace-charts";
 import { ErrorGroupsPanel, errorGroupLabel, type ErrorGroups } from "./error-groups";
 import { FACETS, FacetGroup, decodeValues, encodeValues, type FacetCounts } from "./facet-filter";
@@ -412,6 +413,8 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
                 <p className="font-medium text-[#FF8A8A]">{error}</p>
                 <button type="button" className="mt-3 rounded-md border border-[#5A2A2A] px-3 py-1.5 text-xs hover:bg-[#2A1A1C]" onClick={() => setNow(Date.now())}>Try again</button>
               </div>
+            ) : !loading && rows.length === 0 && !activeFilters.length && !query.q && projectId !== DEMO_PROJECT_ID ? (
+              <FirstTraceEmpty projectId={projectId} title="Every run of your agent will land here" description="Each trace shows the steps, the model calls, what it cost and where it failed. Send one and this page fills in within seconds." />
             ) : !loading && rows.length === 0 ? (
               <div className="my-10 rounded-lg border border-dashed border-[#262C35] p-8 text-center">
                 <p className="font-medium">No traces in this range</p>

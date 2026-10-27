@@ -2412,3 +2412,9 @@ Automations page is a list of "when X then Y" rules drawn as trigger node -> arr
 
 ## Crash tracking (Oct 25)
 - Server errors (`onRequestError` in `src/instrumentation.ts`) and browser error screens (`/api/crash`) email `CRASH_ALERT_EMAIL` (default `EMAIL_REPLY_TO`/kb@tracify.tech) via Resend. One email per distinct error per hour, max 20/hour, emails and keys scrubbed. Also logged as `[crash]` JSON in the Coolify container log. No new vendor.
+
+## 2026-10-27 Dashboard assistant that takes actions — draft PR (branch `claude/project-thread-plbv0n`)
+- New side-panel chat inside every `/dashboard/*` page (yellow "Assistant" button bottom right, Ctrl+J). Code: `src/lib/assistant.ts` (tool list, checks, prompt, reply parsing, tests in `assistant.test.ts`), `src/app/(frontend)/api/assistant/route.ts` (model call, same provider chain as Ask AI, per-IP limits `TRACIFY_ASSISTANT_ACTIONS_PER_MINUTE/DAY`), `src/components/dashboard/assistant/assistant-panel.tsx` (chat + permission cards + executor).
+- The model only PROPOSES one action per turn. The browser runs it after the person clicks Allow, using their own sign-in and the existing Convex mutations, so it can never do more than they can. Opening pages/saved views runs without a card. API keys and invite links are shown to the person only, never sent back to the model.
+- Actions: create project, new API key (replaces old, red card), alert, budget, invite teammate, open page with filters, open/save view, delete alert, remove teammate, delete project (red cards), change plan (opens Stripe checkout/portal; nothing is charged until confirmed there).
+- Not run against the live model or a signed-in preview yet; needs the `ASK_AI_ALT_*` settings.

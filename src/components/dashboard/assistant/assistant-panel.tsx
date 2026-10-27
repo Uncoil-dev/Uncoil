@@ -8,13 +8,14 @@ import { ArrowUp, Bell, Check, ChevronDown, ChevronRight, Copy, Globe2, KeyRound
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { authClient } from "@/lib/auth-client";
-import { describeAction, findByName, partialReply, TOOL_RISK, tracingHref, type AssistantAction, type AssistantContext, type AssistantTurn } from "@/lib/assistant";
+import { projectCreateError } from "@/lib/project-errors";
+import { describeAction, findByName, partialReply, partialThinking, TOOL_RISK, tracingHref, type AssistantAction, type AssistantContext, type AssistantTurn } from "@/lib/assistant";
 
 type Status = "pending" | "running" | "done" | "denied" | "failed";
 type Message =
   | { kind: "user"; text: string }
-  | { kind: "assistant"; text: string; action?: AssistantAction; status?: Status }
-  | { kind: "result"; text: string; ok: boolean; secret?: string; href?: string; linkLabel?: string };
+  | { kind: "assistant"; text: string; thinking?: string; action?: AssistantAction; status?: Status }
+  | { kind: "result"; text: string; ok: boolean; title?: string; secret?: string; href?: string; linkLabel?: string };
 
 const SUGGESTIONS = [
   { icon: Plus, title: "Create a project", sub: "Set up a project and get its key", prompt: "Create a project for my support agent" },
@@ -25,6 +26,7 @@ const SUGGESTIONS = [
 ];
 const greeting = () => { const hour = new Date().getHours(); return hour < 5 ? "Good evening" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"; };
 const STORAGE_KEY = "tracify.assistant.open";
+const REASONING_KEY = "tracify.assistant.reasoning";
 const CHATS_KEY = "tracify.assistant.chats";
 const MAX_CHATS = 30;
 
@@ -49,17 +51,17 @@ function saveChats(chats: Chat[]) {
   try { window.localStorage.setItem(CHATS_KEY, JSON.stringify(safe)); } catch { /* storage can be blocked or full */ }
 }
 /** Reads the streamed answer line by line, showing the words as they come, and returns the final parsed reply. */
-async function readReply(stream: ReadableStream<Uint8Array>, show: (text: string) => void): Promise<{ reply?: string; action?: AssistantAction | null }> {
+async function readReply(stream: ReadableStream<Uint8Array>, show: (text: string, thinking: string) => void): Promise<{ reply?: string; action?: AssistantAction | null; thinking?: string }> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   let raw = "";
-  let final: { reply?: string; action?: AssistantAction | null } | null = null;
+  let final: { reply?: string; action?: AssistantAction | null; thinking?: string } | null = null;
   const handle = (line: string) => {
     if (!line.trim()) return;
     try {
-      const event = JSON.parse(line) as { delta?: string; done?: { reply?: string; action?: AssistantAction | null } };
-      if (typeof event.delta === "string") { raw += event.delta; show(partialReply(raw)); }
+      const event = JSON.parse(line) as { delta?: string; done?: { reply?: string; action?: AssistantAction | null; thinking?: string } };
+      if (typeof event.delta === "string") { raw += event.delta; show(partialReply(raw), partialThinking(raw)); }
       if (event.done) final = event.done;
     } catch {
       // A broken line is skipped.
@@ -86,6 +88,20 @@ function groupChats(chats: Chat[]) {
   const groups: Array<{ label: string; items: Chat[] }> = [{ label: "Today", items: [] }, { label: "Past week", items: [] }, { label: "Older", items: [] }];
   for (const chat of chats) groups[chat.updatedAt >= startOfToday ? 0 : now - chat.updatedAt < 7 * day ? 1 : 2].items.push(chat);
   return groups.filter((group) => group.items.length);
+}
+
+/** The assistant's short "why", folded away until asked for (or always open if the person chose that). */
+function Reasoning({ text, open, live = false }: { text: string; open: boolean; live?: boolean }) {
+  const [manual, setManual] = useState<boolean | null>(null);
+  const expanded = manual ?? open;
+  return (
+    <div className="mb-2">
+      <button type="button" onClick={() => setManual(!expanded)} aria-expanded={expanded} className="asst-motion flex items-center gap-1 text-[11px] text-white/45 transition hover:text-white/80">
+        <ChevronRight className={`size-3 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`} />{live ? "Thinking…" : "See reasoning"}
+      </button>
+      {expanded ? <p className="asst-rise mt-1.5 whitespace-pre-wrap border-l border-white/15 pl-3 text-[11px] italic leading-5 text-white/50">{text}</p> : null}
+    </div>
+  );
 }
 
 /** The pixel mark: a small grid of squares that twinkle; it flickers faster while the assistant is working. */
@@ -147,6 +163,8 @@ export function DashboardAssistant() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState("");
+  const [liveThinking, setLiveThinking] = useState("");
+  const [showReasoning, setShowReasoning] = useState(false);
   const [copied, setCopied] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -162,13 +180,14 @@ export function DashboardAssistant() {
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    try { if (window.localStorage.getItem(STORAGE_KEY) === "1") setOpen(true); } catch { /* storage can be blocked */ }
+    try { if (window.localStorage.getItem(STORAGE_KEY) === "1") setOpen(true); if (window.localStorage.getItem(REASONING_KEY) === "1") setShowReasoning(true); } catch { /* storage can be blocked */ }
     setChats(loadChats());
     setLoaded(true);
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
   useEffect(() => { openState.current = { open, menu, history: historyOpen, full }; });
   useEffect(() => { try { window.localStorage.setItem(STORAGE_KEY, open ? "1" : "0"); } catch { /* storage can be blocked */ } }, [open]);
+  useEffect(() => { try { window.localStorage.setItem(REASONING_KEY, showReasoning ? "1" : "0"); } catch { /* storage can be blocked */ } }, [showReasoning]);
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [messages, busy, open, live]);
   // Keep this conversation in the saved list as it grows.
   useEffect(() => {
@@ -211,32 +230,36 @@ export function DashboardAssistant() {
     return list.map((message): AssistantTurn => (message.kind === "user" ? { role: "user", text: message.text } : message.kind === "assistant" ? { role: "assistant", text: message.text } : { role: "result", text: message.text }));
   }
 
+  /** Asks the model and shows its words as they are written. Returns the finished message. `history` is what the model is told; the screen keeps whatever is already shown. */
+  async function reply(history: Message[]): Promise<Message> {
+    setLive("");
+    setLiveThinking("");
+    const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: turns(history), context: context(), stream: true }) });
+    if (!response.ok || !response.body) {
+      const failed = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(failed.error ?? "Something went wrong. Try again.");
+    }
+    const body = await readReply(response.body, (text, thinking) => { setLive(text); setLiveThinking(thinking); });
+    if (!body.reply) throw new Error("Something went wrong. Try again.");
+    if (readOnly && body.action && TOOL_RISK[body.action.tool] !== "none") return { kind: "assistant", text: "I'm in read-only mode, so I can't change anything. Switch it off under Permissions and ask again." };
+    return { kind: "assistant", text: body.reply, thinking: body.thinking, action: body.action ?? undefined, status: body.action ? "pending" : undefined };
+  }
+
   async function ask(history: Message[]) {
     setBusy(true);
-    setLive("");
     // The person's message shows at once; it should not wait for the answer.
     setMessages(history);
     try {
-      const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: turns(history), context: context(), stream: true }) });
-      if (!response.ok || !response.body) {
-        const failed = await response.json().catch(() => ({})) as { error?: string };
-        throw new Error(failed.error ?? "Something went wrong. Try again.");
-      }
-      const body = await readReply(response.body, setLive);
-      if (!body.reply) throw new Error("Something went wrong. Try again.");
-      const message: Message = { kind: "assistant", text: body.reply, action: body.action ?? undefined, status: body.action ? "pending" : undefined };
-      if (readOnly && body.action && TOOL_RISK[body.action.tool] !== "none") {
-        setMessages([...history, { kind: "assistant", text: "I'm in read-only mode, so I can't change anything. Switch it off under Permissions and ask again." }]);
-        return;
-      }
+      const message = await reply(history);
       const next = [...history, message];
       setMessages(next);
-      if (body.action && TOOL_RISK[body.action.tool] === "none") await run(next, next.length - 1, body.action);
+      if (message.kind === "assistant" && message.action && TOOL_RISK[message.action.tool] === "none") await run(next, next.length - 1, message.action);
     } catch (error) {
       setMessages([...history, { kind: "result", text: error instanceof Error ? error.message : "Something went wrong. Try again.", ok: false }]);
     } finally {
       setBusy(false);
       setLive("");
+      setLiveThinking("");
     }
   }
 
@@ -257,7 +280,13 @@ export function DashboardAssistant() {
 
   async function execute(action: AssistantAction): Promise<Outcome> {
     const fail = (text: string): Outcome => ({ text, ok: false });
-    const clean = (error: unknown) => (error instanceof Error ? error.message.replace(/^[\s\S]*Uncaught Error:\s*/, "").split("\n")[0] : "Something went wrong.");
+    // The server's own plain-language reason travels in the error data; the error text itself is just "Server Error".
+    const clean = (error: unknown) => {
+      const message = projectCreateError(error, "Something went wrong.").message.replace(/^[\s\S]*Uncaught (?:Convex)?Error:\s*/, "").split("\n")[0];
+      if (!/Server Error/.test(message)) return message;
+      const reference = /Request ID: (\w+)/.exec(message)?.[1];
+      return `That didn't work on our side${reference ? ` (reference ${reference})` : ""}. Try again in a moment.`;
+    };
     try {
       switch (action.tool) {
         case "create_project": {
@@ -347,7 +376,9 @@ export function DashboardAssistant() {
         }
       }
     } catch (error) {
-      return fail(clean(error));
+      const code = projectCreateError(error).code;
+      const hint = code === "project_limit" && currentId ? { href: tracingHref(currentId, "billing"), linkLabel: "See plans" } : {};
+      return { ...fail(clean(error)), ...hint };
     }
   }
 
@@ -358,15 +389,16 @@ export function DashboardAssistant() {
     const done = mark(outcome.ok ? "done" : "failed");
     const next: Message[] = [...done, { kind: "result", text: outcome.forModel ?? outcome.text, ok: outcome.ok, secret: undefined }];
     // The person sees the full result (with any key); the model only sees the plain sentence, never a secret.
-    setMessages([...done, { kind: "result", text: outcome.text, ok: outcome.ok, secret: outcome.secret, href: outcome.href, linkLabel: outcome.linkLabel }]);
-    if (TOOL_RISK[action.tool] !== "none" && outcome.ok) {
+    setMessages([...done, { kind: "result", text: outcome.text, ok: outcome.ok, title: outcome.ok ? undefined : describeAction(action).title, secret: outcome.secret, href: outcome.href, linkLabel: outcome.linkLabel }]);
+    if (TOOL_RISK[action.tool] !== "none") {
       setBusy(true);
       try {
-        const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: turns(next), context: context() }) });
-        const body = await response.json() as { reply?: string; action?: AssistantAction | null };
-        if (response.ok && body.reply) setMessages((existing) => [...existing, { kind: "assistant", text: body.reply!, action: body.action ?? undefined, status: body.action ? "pending" : undefined }]);
+        const message = await reply(outcome.ok ? next : [...done, { kind: "result", text: `Failed: ${outcome.text}`, ok: false }]);
+        setMessages((existing) => [...existing, message]);
       } catch { /* the result line above already told the person what happened */ }
       setBusy(false);
+      setLive("");
+      setLiveThinking("");
     }
   }
 
@@ -475,7 +507,9 @@ export function DashboardAssistant() {
                     {messages.map((message, index) => {
                       if (message.kind === "user") return <li key={index} className="asst-rise max-w-[88%] self-end bg-[#232323] px-3 py-2 text-[12px] leading-5 text-white">{message.text}</li>;
                       if (message.kind === "result") return (
-                        <li key={index} className={`asst-rise border-l-2 bg-[#0b0b0b]/70 px-3 py-1.5 text-[12px] leading-5 ${message.ok ? "border-[#f4d44d] text-white/80" : "border-red-500 text-red-300"}`}>
+                        <li key={index} className={`asst-rise text-[12px] leading-5 ${message.ok ? "border-l-2 border-[#f4d44d] bg-[#0b0b0b]/70 px-3 py-1.5 text-white/80" : "border border-red-500/70 bg-red-950/60 p-3 text-red-100"}`}>
+                          {!message.ok ? <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-red-300"><ShieldAlert className="size-3.5" />{message.title ? "Didn't work" : "Something went wrong"}</p> : null}
+                          {!message.ok && message.title ? <p className="mb-1 font-bold text-white">{message.title}</p> : null}
                           {message.text}
                           {message.secret ? (
                             <div className="mt-2 flex items-center gap-2 border border-white/15 bg-black/60 p-2">
@@ -483,7 +517,7 @@ export function DashboardAssistant() {
                               <button type="button" onClick={() => void copy(message.secret!)} aria-label="Copy" className="asst-motion flex size-7 shrink-0 items-center justify-center border border-white/20 transition hover:border-[#f4d44d] active:scale-90">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button>
                             </div>
                           ) : null}
-                          {message.href ? <button type="button" onClick={() => router.push(message.href!)} className="mt-2 block text-[11px] font-bold uppercase tracking-widest text-[#f4d44d] hover:underline">{message.linkLabel ?? "Open"} →</button> : null}
+                          {message.href ? <button type="button" onClick={() => router.push(message.href!)} className={`mt-2 block text-[11px] font-bold uppercase tracking-widest hover:underline ${message.ok ? "text-[#f4d44d]" : "text-white"}`}>{message.linkLabel ?? "Open"} →</button> : null}
                         </li>
                       );
                       const info = message.action ? describeAction(message.action) : null;
@@ -492,7 +526,8 @@ export function DashboardAssistant() {
                         <li key={index} className="asst-rise flex flex-col gap-2">
                           <div className="border border-white/10 bg-[#121212]/95 p-3">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-[#f4d44d]">Assistant</p>
-                            <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-5 text-white/90">{message.text}</p>
+                            <div className="mt-1.5">{message.thinking ? <Reasoning text={message.thinking} open={showReasoning} /> : null}</div>
+                            <p className="whitespace-pre-wrap text-[12px] leading-5 text-white/90">{message.text}</p>
                           </div>
                           {info && message.action && TOOL_RISK[message.action.tool] !== "none" ? (
                             <div role="group" aria-label="Permission needed" className={`asst-pop border p-3 transition-opacity duration-300 ${danger ? "border-red-500/70 bg-red-950/60" : "border-[#f4d44d]/60 bg-[#1a1708]"} ${message.status === "denied" ? "opacity-50" : ""}`}>
@@ -515,11 +550,12 @@ export function DashboardAssistant() {
                         </li>
                       );
                     })}
-                    {busy && live ? (
+                    {busy && (live || liveThinking) ? (
                       <li className="flex flex-col gap-2">
                         <div className="border border-white/10 bg-[#121212]/95 p-3">
                           <p className="text-[10px] font-bold uppercase tracking-widest text-[#f4d44d]">Assistant</p>
-                          <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-5 text-white/90">{live}<span aria-hidden className="ml-0.5 inline-block h-3 w-1.5 animate-pulse bg-[#f4d44d] align-middle" /></p>
+                          <div className="mt-1.5">{liveThinking ? <Reasoning text={liveThinking} open={showReasoning} live={!live} /> : null}</div>
+                          {live ? <p className="whitespace-pre-wrap text-[12px] leading-5 text-white/90">{live}<span aria-hidden className="ml-0.5 inline-block h-3 w-1.5 animate-pulse bg-[#f4d44d] align-middle" /></p> : null}
                         </div>
                       </li>
                     ) : busy ? (
@@ -537,6 +573,7 @@ export function DashboardAssistant() {
                 <div className="asst-pop absolute bottom-[calc(100%-8px)] right-3 z-10 w-72 origin-bottom-right border border-white/15 bg-[#151515] p-1 shadow-xl">
                   <div className="flex items-start gap-2 px-3 py-2">{readOnly ? <Globe2 className="mt-0.5 size-4 text-white/60" /> : <ShieldCheck className="mt-0.5 size-4 text-[#f4d44d]" />}<div><p className="text-[12px] font-bold text-white">{readOnly ? "Read only" : "Can act, asks first"}</p><p className="text-[11px] leading-4 text-white/55">{readOnly ? "I can look and open pages, but I can't change anything." : "I can change things in your account, but only after you click Allow."}</p></div></div>
                   <button type="button" onClick={() => { setReadOnly((value) => !value); setMenu(false); }} className="w-full px-3 py-2 text-left text-[12px] text-white/80 transition hover:bg-white/10">{readOnly ? "Let me act (ask first)" : "Switch to read only"}</button>
+                  <button type="button" onClick={() => setShowReasoning((value) => !value)} role="switch" aria-checked={showReasoning} className="flex w-full items-center justify-between px-3 py-2 text-left text-[12px] text-white/80 transition hover:bg-white/10">Show reasoning<span className={`h-4 w-7 p-0.5 transition-colors ${showReasoning ? "bg-[#f4d44d]" : "bg-white/20"}`}><span className={`block size-3 transition-transform duration-150 ${showReasoning ? "translate-x-3 bg-[#090909]" : "bg-white"}`} /></span></button>
                 </div>
               ) : null}
               <div className="border border-white/15 bg-[#121212] transition-colors duration-200 focus-within:border-[#f4d44d]/70">

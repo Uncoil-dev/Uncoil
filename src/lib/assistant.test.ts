@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildAssistantPrompt, describeAction, findByName, parseAssistantReply, sanitizeContext, sanitizeTurns, TOOL_RISK, tracingHref, validateAction } from "./assistant.ts";
+import { partialReply, partialThinking, buildAssistantPrompt, describeAction, findByName, parseAssistantReply, sanitizeContext, sanitizeTurns, TOOL_RISK, tracingHref, validateAction } from "./assistant.ts";
 
 test("reads a plain JSON reply with an action", () => {
   const out = parseAssistantReply('```json\n{"reply":"Making it.","action":{"tool":"create_project","args":{"name":"  Support bot "}}}\n```');
@@ -78,4 +78,14 @@ test("partialReply shows the words of a half-written reply", async () => {
   assert.equal(partialReply(`{"reply": "Line one${bs}nLine ${bs}"two${bs}" ${bs}u00e9", "action": null}`), 'Line one\nLine "two" é');
   assert.equal(partialReply(`{"reply": "cut off ${bs}`), "cut off ");
   assert.equal(partialReply("Just plain words"), "Just plain words");
+});
+
+test("reads the reasoning and the reply from half-written output", () => {
+  const raw = '{"thinking": "They want a project, name given.", "reply": "Creating it';
+  assert.equal(partialThinking(raw), "They want a project, name given.");
+  assert.equal(partialReply(raw), "Creating it");
+  assert.equal(partialThinking('{"thinking": "Pond'), "Pond");
+  assert.equal(partialThinking('{"reply":"hi"}'), "");
+  const parsed = parseAssistantReply('{"thinking":"Because.","reply":"Ok","action":null}');
+  assert.equal(parsed.thinking, "Because.");
 });

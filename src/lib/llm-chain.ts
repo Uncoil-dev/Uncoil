@@ -15,12 +15,17 @@ function classify(status: number, message: string): LlmFailure {
   return "error";
 }
 
+/** The alternate provider asks every client to identify itself and to send a session id with each request. */
+function altHeaders(label: string) {
+  return { "user-agent": "Tracify/1.0 (+https://tracify.tech)", "x-opencode-session": `tracify-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${crypto.randomUUID()}` };
+}
+
 /** OpenAI-compatible chat call, shared by OpenAI and the alternate provider. */
 async function callChat(provider: "openai" | "alt", url: string, label: string, apiKey: string, model: string, prompt: Prompt): Promise<LlmAttempt> {
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}`, ...(provider === "alt" ? altHeaders(label) : {}) },
       body: JSON.stringify(buildOpenAiBody(model, [{ role: "system", content: prompt.system }, { role: "user", content: prompt.user }], { temperature: prompt.temperature, maxOutputTokens: prompt.maxOutputTokens })),
       signal: AbortSignal.timeout(prompt.timeoutMs ?? 20_000),
     });

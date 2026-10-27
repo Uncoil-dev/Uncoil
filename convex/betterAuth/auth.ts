@@ -120,10 +120,16 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
   session: {
     expiresIn: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
+    // Signed cookie copy of the session: most session checks are answered from
+    // the cookie and never touch the database. A revoked session is noticed
+    // within five minutes.
+    cookieCache: { enabled: true, maxAge: 60 * 5 },
   },
+  // In memory, not the database. The database store read, wrote and cleaned up
+  // a row on every single /api/auth request (about 3 backend calls each).
   rateLimit: {
     enabled: true,
-    storage: "database",
+    storage: "memory",
   },
   account: {
     encryptOAuthTokens: true,

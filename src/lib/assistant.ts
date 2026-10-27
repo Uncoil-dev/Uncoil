@@ -295,6 +295,35 @@ export function parseAssistantReply(raw: string): { reply: string; action: Assis
   return { reply: plain || "Sorry, I didn't get that. Could you say it another way?", action: null };
 }
 
+/** The words of the reply so far, read from half-finished output, so the chat can show them as they are written. */
+export function partialReply(raw: string): string {
+  const key = /"reply"\s*:\s*"/.exec(raw);
+  if (!key) return /^\s*(\{|```)/.test(raw) ? "" : raw.trim().slice(0, 800);
+  let out = "";
+  for (let i = key.index + key[0].length; i < raw.length; i++) {
+    const char = raw[i];
+    if (char === '"') break;
+    if (char !== "\\") { out += char; continue; }
+    const next = raw[i + 1];
+    if (next === undefined) break;
+    if (next === "u") {
+      const hex = raw.slice(i + 2, i + 6);
+      if (hex.length < 4 || !/^[0-9a-fA-F]{4}$/.test(hex)) break;
+      out += String.fromCharCode(parseInt(hex, 16));
+      i += 5;
+    } else {
+      out += next === "n" ? "\n" : next === "t" ? "\t" : next;
+      i += 1;
+    }
+  }
+  return out.slice(0, 800);
+}
+
+/** What to tell the person when the AI could not answer. */
+export function failureReply(busy: boolean, configured: boolean) {
+  return busy ? "I'm busy right now. Try again in a minute." : configured ? "I couldn't reach the AI just now. Try again in a moment." : "The assistant isn't switched on for this workspace yet.";
+}
+
 /** Finds a project by name: exact (any case) first, then a single partial match. Never guesses between several. */
 export function findByName<T extends { name: string }>(items: T[], wanted: string): { match: T | null; error?: string } {
   const name = wanted.trim().toLowerCase();

@@ -73,3 +73,16 @@ test("the alternate provider gets a user agent and a session id header", async (
     assert.match(seen!.get("user-agent") ?? "", /^Tracify\//);
   } finally { globalThis.fetch = original; }
 });
+
+test("streaming hands out pieces as they arrive and returns the whole answer", async () => {
+  const { streamWithFallback, sseTextPieces } = await import("./llm-chain.ts");
+  assert.deepEqual(sseTextPieces('data: {"choices":[{"delta":{"content":"Hi"}}]}\n\ndata: [DONE]\n\ndata: {"choi'), { pieces: ["Hi"], rest: 'data: {"choi' });
+  const events = ['data: {"choices":[{"delta":{"content":"Hel"}}]}\n\n', 'data: {"choices":[{"delta":{"content":"lo"}}]}\n\ndata: [DONE]\n\n'];
+  const original = globalThis.fetch;
+  globalThis.fetch = (async () => new Response(new ReadableStream({ start(controller) { events.forEach((event) => controller.enqueue(new TextEncoder().encode(event))); controller.close(); } }), { status: 200 })) as typeof fetch;
+  try {
+    const seen: string[] = [];
+    const result = await streamWithFallback("t", { alt: "z" }, { alt: "m1" }, prompt, (piece) => seen.push(piece));
+    assert.deepEqual([result.text, result.provider, seen], ["Hello", "alt", ["Hel", "lo"]]);
+  } finally { globalThis.fetch = original; }
+});

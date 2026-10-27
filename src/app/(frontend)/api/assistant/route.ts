@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { isAuthenticated } from "@/lib/auth-server";
-import { ASSISTANT_SYSTEM_PROMPT, buildAssistantPrompt, parseAssistantReply, sanitizeContext, sanitizeTurns } from "@/lib/assistant";
-import { completeWithFallback } from "@/lib/llm-chain";
+import { ASSISTANT_SYSTEM_PROMPT, buildAssistantPrompt, parseAssistantReply, partialReply, sanitizeContext, sanitizeTurns } from "@/lib/assistant";
+import { streamWithFallback } from "@/lib/llm-chain";
 import { consumeRateLimit } from "@/lib/redis-cache";
 
 export const maxDuration = 30;
@@ -40,20 +40,32 @@ export async function POST(req: NextRequest) {
 
   const alt = process.env.ASK_AI_ALT_API_KEY || "";
   const openai = alt ? undefined : process.env.TRACIFY_ASK_AI_API_KEY || process.env.OPENAI_API_KEY || undefined;
-  const result = await completeWithFallback("Assistant", { alt: alt || undefined, openai }, { alt: process.env.ASK_AI_ALT_MODEL, openai: process.env.TRACIFY_ASK_AI_MODEL }, {
-    system: ASSISTANT_SYSTEM_PROMPT,
-    user: buildAssistantPrompt(context, turns),
-    temperature: 0.2,
-    maxOutputTokens: 700,
-    timeoutMs: 25_000,
+  const prompt = { system: ASSISTANT_SYSTEM_PROMPT, user: buildAssistantPrompt(context, turns), temperature: 0.2, maxOutputTokens: 700, timeoutMs: 25_000 };
+  const encoder = new TextEncoder();
+  // One JSON object per line: {"t":"delta","text":"..."} while the reply is being written, then {"t":"done","reply":"...","action":...}.
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (event: Record<string, unknown>) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+      let raw = "";
+      let sent = 0;
+      try {
+        const result = await streamWithFallback("Assistant", { alt: alt || undefined, openai }, { alt: process.env.ASK_AI_ALT_MODEL, openai: process.env.TRACIFY_ASK_AI_MODEL }, prompt, (piece) => {
+          raw += piece;
+          const reply = partialReply(raw);
+          if (reply.length > sent) { send({ t: "delta", text: reply.slice(sent) }); sent = reply.length; }
+        });
+        if (!result.text) {
+          const busy = result.failures.some((failure) => failure === "rate" || failure === "quota");
+          const configured = Boolean(alt || openai);
+          send({ t: "done", action: null, reply: busy ? "I'm busy right now. Try again in a minute." : configured ? "I couldn't reach the AI just now. Try again in a moment." : "The assistant isn't switched on for this workspace yet." });
+        } else {
+          send({ t: "done", ...parseAssistantReply(result.text) });
+        }
+      } catch {
+        send({ t: "done", action: null, reply: "I couldn't reach the AI just now. Try again in a moment." });
+      }
+      controller.close();
+    },
   });
-  if (!result.text) {
-    const busy = result.failures.some((failure) => failure === "rate" || failure === "quota");
-    const configured = Boolean(alt || openai);
-    return NextResponse.json({
-      reply: busy ? "I'm busy right now. Try again in a minute." : configured ? "I couldn't reach the AI just now. Try again in a moment." : "The assistant isn't switched on for this workspace yet.",
-      action: null,
-    });
-  }
-  return NextResponse.json(parseAssistantReply(result.text));
+  return new Response(stream, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" } });
 }

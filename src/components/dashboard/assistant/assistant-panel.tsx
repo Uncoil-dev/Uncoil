@@ -13,7 +13,7 @@ import { describeAction, findByName, TOOL_RISK, tracingHref, type AssistantActio
 type Status = "pending" | "running" | "done" | "denied" | "failed";
 type Message =
   | { kind: "user"; text: string }
-  | { kind: "assistant"; text: string; action?: AssistantAction; status?: Status }
+  | { kind: "assistant"; text: string; action?: AssistantAction; status?: Status; streaming?: boolean }
   | { kind: "result"; text: string; ok: boolean; secret?: string; href?: string; linkLabel?: string };
 
 const SUGGESTIONS = [
@@ -129,6 +129,8 @@ export function DashboardAssistant() {
   const dots = useRef<HTMLDivElement>(null);
 
   const projects = (projectsQuery ?? []).map((project) => ({ id: String(project._id), name: project.name }));
+  const lastMessage = messages[messages.length - 1];
+  const streaming = lastMessage?.kind === "assistant" && Boolean(lastMessage.streaming);
   const current = projects.find((project) => project.id === currentId) ?? null;
 
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -143,14 +145,14 @@ export function DashboardAssistant() {
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [messages, busy, open]);
   // Keep this conversation in the saved list as it grows.
   useEffect(() => {
-    if (!loaded || !messages.length) return;
+    if (!loaded || !messages.length || streaming) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setChats((existing) => {
       const next = [{ id: chatId, title: chatTitle(messages), updatedAt: Date.now(), messages }, ...existing.filter((chat) => chat.id !== chatId)].slice(0, MAX_CHATS);
       saveChats(next);
       return next;
     });
-  }, [messages, chatId, loaded]);
+  }, [messages, chatId, loaded, streaming]);
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") { event.preventDefault(); setOpen((value) => !value); }
@@ -182,20 +184,53 @@ export function DashboardAssistant() {
     return list.map((message): AssistantTurn => (message.kind === "user" ? { role: "user", text: message.text } : message.kind === "assistant" ? { role: "assistant", text: message.text } : { role: "result", text: message.text }));
   }
 
+  /** Asks the model and shows its reply as it is written. `shown` is what the person sees; `history` is what the model is told (it never gets keys). */
+  async function stream(history: Message[], shown: Message[]): Promise<Message[]> {
+    const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: turns(history), context: context() }) });
+    if (!response.ok || !response.body) {
+      const body = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(body.error ?? "Something went wrong. Try again.");
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let live = "";
+    let final: { reply: string; action: AssistantAction | null } | null = null;
+    const handle = (line: string) => {
+      if (!line.trim()) return;
+      const event = JSON.parse(line) as { t: "delta"; text: string } | { t: "done"; reply: string; action: AssistantAction | null };
+      if (event.t === "delta") {
+        live += event.text;
+        setMessages([...shown, { kind: "assistant", text: live, streaming: true }]);
+      } else final = { reply: event.reply, action: event.action };
+    };
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      lines.forEach(handle);
+    }
+    handle(buffer);
+    const result = final as { reply: string; action: AssistantAction | null } | null;
+    if (!result) throw new Error("The answer was cut off. Try again.");
+    const risky = result.action && TOOL_RISK[result.action.tool] !== "none";
+    const message: Message = readOnly && risky
+      ? { kind: "assistant", text: "I'm in read-only mode, so I can't change anything. Switch it off under Permissions and ask again." }
+      : { kind: "assistant", text: result.reply, action: result.action ?? undefined, status: result.action ? "pending" : undefined };
+    const next = [...shown, message];
+    setMessages(next);
+    return next;
+  }
+
   async function ask(history: Message[]) {
+    setMessages(history); // the person's message appears at once, before the answer starts
     setBusy(true);
     try {
-      const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: turns(history), context: context() }) });
-      const body = await response.json() as { reply?: string; action?: AssistantAction | null; error?: string };
-      if (!response.ok || !body.reply) throw new Error(body.error ?? "Something went wrong. Try again.");
-      const message: Message = { kind: "assistant", text: body.reply, action: body.action ?? undefined, status: body.action ? "pending" : undefined };
-      if (readOnly && body.action && TOOL_RISK[body.action.tool] !== "none") {
-        setMessages([...history, { kind: "assistant", text: "I'm in read-only mode, so I can't change anything. Switch it off under Permissions and ask again." }]);
-        return;
-      }
-      const next = [...history, message];
-      setMessages(next);
-      if (body.action && TOOL_RISK[body.action.tool] === "none") await run(next, next.length - 1, body.action);
+      const next = await stream(history, history);
+      const last = next[next.length - 1];
+      if (last.kind === "assistant" && last.action && TOOL_RISK[last.action.tool] === "none") await run(next, next.length - 1, last.action);
     } catch (error) {
       setMessages([...history, { kind: "result", text: error instanceof Error ? error.message : "Something went wrong. Try again.", ok: false }]);
     } finally {
@@ -321,14 +356,11 @@ export function DashboardAssistant() {
     const done = mark(outcome.ok ? "done" : "failed");
     const next: Message[] = [...done, { kind: "result", text: outcome.forModel ?? outcome.text, ok: outcome.ok, secret: undefined }];
     // The person sees the full result (with any key); the model only sees the plain sentence, never a secret.
-    setMessages([...done, { kind: "result", text: outcome.text, ok: outcome.ok, secret: outcome.secret, href: outcome.href, linkLabel: outcome.linkLabel }]);
+    const displayed: Message[] = [...done, { kind: "result", text: outcome.text, ok: outcome.ok, secret: outcome.secret, href: outcome.href, linkLabel: outcome.linkLabel }];
+    setMessages(displayed);
     if (TOOL_RISK[action.tool] !== "none" && outcome.ok) {
       setBusy(true);
-      try {
-        const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: turns(next), context: context() }) });
-        const body = await response.json() as { reply?: string; action?: AssistantAction | null };
-        if (response.ok && body.reply) setMessages((existing) => [...existing, { kind: "assistant", text: body.reply!, action: body.action ?? undefined, status: body.action ? "pending" : undefined }]);
-      } catch { /* the result line above already told the person what happened */ }
+      try { await stream(next, displayed); } catch { /* the result line above already told the person what happened */ }
       setBusy(false);
     }
   }
@@ -455,7 +487,7 @@ export function DashboardAssistant() {
                         <li key={index} className="asst-rise flex flex-col gap-2">
                           <div className="border border-white/10 bg-[#121212]/95 p-3">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-[#f4d44d]">Assistant</p>
-                            <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-5 text-white/90">{message.text}</p>
+                            <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-5 text-white/90">{message.text}{message.streaming ? <span aria-hidden className="asst-caret ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[2px] bg-[#f4d44d]" /> : null}</p>
                           </div>
                           {info && message.action && TOOL_RISK[message.action.tool] !== "none" ? (
                             <div role="group" aria-label="Permission needed" className={`asst-pop border p-3 transition-opacity duration-300 ${danger ? "border-red-500/70 bg-red-950/60" : "border-[#f4d44d]/60 bg-[#1a1708]"} ${message.status === "denied" ? "opacity-50" : ""}`}>
@@ -470,7 +502,7 @@ export function DashboardAssistant() {
                               ) : null}
                             </div>
                           ) : null}
-                          <div className="flex items-center gap-1 px-1 text-white/35">
+                          <div className={`flex items-center gap-1 px-1 text-white/35 ${message.streaming ? "invisible" : ""}`}>
                             <button type="button" onClick={() => setRated((value) => ({ ...value, [index]: "up" }))} aria-label="Good answer" className={`asst-motion flex size-6 items-center justify-center transition hover:text-white active:scale-75 ${rated[index] === "up" ? "text-[#f4d44d]" : ""}`}><ThumbsUp className="size-3.5" /></button>
                             <button type="button" onClick={() => setRated((value) => ({ ...value, [index]: "down" }))} aria-label="Bad answer" className={`asst-motion flex size-6 items-center justify-center transition hover:text-white active:scale-75 ${rated[index] === "down" ? "text-red-400" : ""}`}><ThumbsDown className="size-3.5" /></button>
                             <button type="button" onClick={() => void copy(message.text)} aria-label="Copy answer" className="asst-motion flex size-6 items-center justify-center transition hover:text-white active:scale-75"><Copy className="size-3.5" /></button>
@@ -478,7 +510,7 @@ export function DashboardAssistant() {
                         </li>
                       );
                     })}
-                    {busy ? (
+                    {busy && !streaming ? (
                       <li className="asst-rise flex items-center gap-3 text-[12px] italic text-white/55"><AssistantMark cell={3} busy />Composing your answer…</li>
                     ) : null}
                   </ol>

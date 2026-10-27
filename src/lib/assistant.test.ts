@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildAssistantPrompt, describeAction, findByName, parseAssistantReply, sanitizeContext, sanitizeTurns, TOOL_RISK, tracingHref, validateAction } from "./assistant.ts";
+import { partialReply, buildAssistantPrompt, describeAction, findByName, parseAssistantReply, sanitizeContext, sanitizeTurns, TOOL_RISK, tracingHref, validateAction } from "./assistant.ts";
 
 test("reads a plain JSON reply with an action", () => {
   const out = parseAssistantReply('```json\n{"reply":"Making it.","action":{"tool":"create_project","args":{"name":"  Support bot "}}}\n```');
@@ -67,4 +67,13 @@ test("context and history are trimmed", () => {
   assert.equal(sanitizeTurns([{ role: "system", text: "hack" }, { role: "user", text: "hi" }]).length, 1);
   assert.match(buildAssistantPrompt(ctx, [{ role: "user", text: "hi" }]), /Person: hi/);
   assert.equal(tracingHref("p1", "tracing", { status: "error" }), "/dashboard/p1/tracing?status=error");
+});
+
+test("shows the reply as it is being written", () => {
+  assert.equal(partialReply('{"rep'), "");
+  assert.equal(partialReply('{"reply": "Making'), "Making");
+  assert.equal(partialReply('{"reply":"Say \\"hi\\"\\nnow'), 'Say "hi"\nnow');
+  assert.equal(partialReply('{"reply":"caf\\u00e9 ok","action":null}'), "café ok");
+  assert.equal(partialReply('{"reply":"half \\u00e'), "half ");
+  assert.equal(partialReply('{"reply":"done","action":{"tool":"x"}}'), "done");
 });

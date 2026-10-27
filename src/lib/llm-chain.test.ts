@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { completeWithFallback } from "./llm-chain.ts";
+import { completeWithFallback, sseDeltas, streamWithFallback } from "./llm-chain.ts";
 
 const prompt = { system: "s", user: "u", maxOutputTokens: 50 };
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status });
@@ -72,4 +72,21 @@ test("the alternate provider gets a user agent and a session id header", async (
     assert.match(seen!.get("x-opencode-session") ?? "", /^tracify-ask-ai-[0-9a-f-]{36}$/);
     assert.match(seen!.get("user-agent") ?? "", /^Tracify\//);
   } finally { globalThis.fetch = original; }
+});
+
+test("streams pieces to the caller and returns the whole text", async () => {
+  const restore = stub(() => new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: "Hel" } }] })}\n\ndata: ${JSON.stringify({ choices: [{ delta: { content: "lo" } }] })}\n\ndata: [DONE]\n\n`, { status: 200 }));
+  try {
+    const pieces: string[] = [];
+    const result = await streamWithFallback("T", { openai: "k" }, {}, prompt, (piece) => pieces.push(piece));
+    assert.deepEqual(pieces, ["Hel", "lo"]);
+    assert.equal(result.text, "Hello");
+  } finally { restore(); }
+});
+
+test("reads a stream line that arrives in two chunks", () => {
+  const first = sseDeltas('data: {"choices":[{"delta":{"content":"a"}}]}\n\ndata: {"choices":[{"del');
+  assert.deepEqual(first.deltas, ["a"]);
+  const second = sseDeltas(first.rest + 'ta":{"content":"b"}}]}\n\n');
+  assert.deepEqual(second.deltas, ["b"]);
 });

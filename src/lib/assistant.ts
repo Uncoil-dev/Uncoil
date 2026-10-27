@@ -310,3 +310,27 @@ export function tracingHref(projectId: string, page: AssistantPage, params?: Rec
   const query = new URLSearchParams(params ?? {}).toString();
   return `/dashboard/${projectId}${ASSISTANT_PAGES[page].path}${query ? `?${query}` : ""}`;
 }
+
+/** While the model is still writing its JSON answer, returns the text of "reply" written so far (so it can be shown live). */
+export function partialReply(raw: string): string {
+  const key = raw.match(/"reply"\s*:\s*"/);
+  if (!key || key.index === undefined) return "";
+  let out = "";
+  for (let i = key.index + key[0].length; i < raw.length; i++) {
+    const char = raw[i];
+    if (char === '"') break;
+    if (char !== "\\") { out += char; continue; }
+    const next = raw[i + 1];
+    if (next === undefined) break;
+    if (next === "u") {
+      const hex = raw.slice(i + 2, i + 6);
+      if (!/^[0-9a-fA-F]{4}$/.test(hex)) break;
+      out += String.fromCharCode(parseInt(hex, 16));
+      i += 5;
+    } else {
+      out += next === "n" ? "\n" : next === "t" ? "\t" : next;
+      i += 1;
+    }
+  }
+  return out;
+}

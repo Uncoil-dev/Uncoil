@@ -76,3 +76,81 @@ export async function completeWithFallback(label: string, keys: { alt?: string; 
   }
   return { text: "", provider: null, failures };
 }
+
+/** Pulls the text pieces out of an OpenAI-style event stream, one `data:` line at a time. */
+export function sseDeltas(buffer: string): { deltas: string[]; rest: string; done: boolean } {
+  const lines = buffer.split("\n");
+  const rest = lines.pop() ?? "";
+  const deltas: string[] = [];
+  let done = false;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line.startsWith("data:")) continue;
+    const payload = line.slice(5).trim();
+    if (payload === "[DONE]") { done = true; continue; }
+    try {
+      const piece = (JSON.parse(payload) as { choices?: Array<{ delta?: { content?: string | null } }> }).choices?.[0]?.delta?.content;
+      if (piece) deltas.push(piece);
+    } catch { /* a half-sent line is finished by the next chunk */ }
+  }
+  return { deltas, rest, done };
+}
+
+/** Same call as `callChat`, but reads the answer as it is written and hands each piece to `onDelta`. */
+async function streamChat(provider: "openai" | "alt", url: string, label: string, apiKey: string, model: string, prompt: Prompt, onDelta: (piece: string) => void): Promise<LlmAttempt> {
+  let text = "";
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}`, ...(provider === "alt" ? altHeaders(label) : {}) },
+      body: JSON.stringify({ ...buildOpenAiBody(model, [{ role: "system", content: prompt.system }, { role: "user", content: prompt.user }], { temperature: prompt.temperature, maxOutputTokens: prompt.maxOutputTokens }), stream: true }),
+      signal: AbortSignal.timeout(prompt.timeoutMs ?? 20_000),
+    });
+    if (!response.ok || !response.body) {
+      const data = await response.json().catch(() => ({})) as { error?: { message?: string } };
+      const message = data.error?.message ?? "";
+      logFailure(label, provider, response.status, message);
+      return { text: "", failure: classify(response.status, message), status: response.status };
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parsed = sseDeltas(buffer);
+      buffer = parsed.rest;
+      for (const piece of parsed.deltas) { text += piece; onDelta(piece); }
+      if (parsed.done) break;
+    }
+    return { text: text.trim() };
+  } catch (error) {
+    console.error(`${label} request failed:`, provider, error instanceof Error ? error.name : "unknown");
+    // Whatever arrived before the connection broke is still a usable answer.
+    return text.trim() ? { text: text.trim() } : { text: "", failure: "error" };
+  }
+}
+
+/** Like `completeWithFallback`, but the first provider that answers streams its text to `onDelta` as it is written. */
+export async function streamWithFallback(label: string, keys: { alt?: string; openai?: string }, models: { alt?: string; openai?: string }, prompt: Prompt, onDelta: (piece: string) => void) {
+  const failures: LlmFailure[] = [];
+  if (keys.alt) {
+    const baseUrl = (process.env.ASK_AI_ALT_BASE_URL ?? "").replace(/\/+$/, "");
+    const chosen = (models.alt ?? "").trim().toLowerCase();
+    if (baseUrl.startsWith("https://") && chosen && isAllowedModel(chosen)) {
+      const first = await streamChat("alt", `${baseUrl}/chat/completions`, label, keys.alt, chosen, prompt, onDelta);
+      if (first.text) return { text: first.text, provider: "alt" as const, failures };
+      failures.push(first.failure ?? "error");
+    } else {
+      console.error(`${label} alternate provider skipped: missing address, or model not on the allowed list:`, chosen || "(none)");
+      failures.push("error");
+    }
+  }
+  if (keys.openai) {
+    const first = await streamChat("openai", "https://api.openai.com/v1/chat/completions", label, keys.openai, models.openai || DEFAULT_OPENAI_MODEL, prompt, onDelta);
+    if (first.text) return { text: first.text, provider: "openai" as const, failures };
+    failures.push(first.failure ?? "error");
+  }
+  return { text: "", provider: null, failures };
+}

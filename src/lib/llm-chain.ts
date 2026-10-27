@@ -2,7 +2,11 @@ import { buildOpenAiBody, DEFAULT_OPENAI_MODEL } from "./openai-chat.ts";
 
 export type LlmFailure = "quota" | "rate" | "auth" | "error";
 export type LlmAttempt = { text: string; failure?: LlmFailure; status?: number };
-type Prompt = { system: string; user: string; temperature?: number; maxOutputTokens: number; timeoutMs?: number };
+type Prompt = { system: string; user: string; temperature?: number; maxOutputTokens: number; timeoutMs?: number; sessionId?: string };
+
+/** Some alternate providers route and cache by a stable session id, and want a client name instead of a bare "node". */
+const PROCESS_SESSION = globalThis.crypto.randomUUID();
+const ALT_USER_AGENT = "Tracify/1.0 (+https://www.tracify.tech)";
 
 /** Server logs only: what the provider said, trimmed, so "429" is never a mystery again. */
 function logFailure(label: string, provider: string, status: number, message: string) {
@@ -20,7 +24,11 @@ async function callChat(provider: "openai" | "alt", url: string, label: string, 
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${apiKey}`,
+        ...(provider === "alt" ? { "user-agent": ALT_USER_AGENT, "x-opencode-session": prompt.sessionId ?? `${label}-${PROCESS_SESSION}` } : {}),
+      },
       body: JSON.stringify(buildOpenAiBody(model, [{ role: "system", content: prompt.system }, { role: "user", content: prompt.user }], { temperature: prompt.temperature, maxOutputTokens: prompt.maxOutputTokens })),
       signal: AbortSignal.timeout(prompt.timeoutMs ?? 20_000),
     });

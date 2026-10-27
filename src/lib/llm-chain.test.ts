@@ -59,3 +59,19 @@ test("the alternate provider never sends a model that is not on the allowed list
     assert.equal((await completeWithFallback("t", { alt: "z" }, { alt: "Demo-Model" }, prompt)).text, "x");
   } finally { restore(); console.error = quiet; }
 });
+
+test("the alternate provider gets a session id and a client name, OpenAI does not", async () => {
+  const seen: Record<string, Headers> = {};
+  const original = globalThis.fetch;
+  globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
+    seen[String(input).includes("alt.example") ? "alt" : "openai"] = new Headers(init?.headers);
+    return json(200, { choices: [{ message: { content: "ok" } }] });
+  }) as typeof fetch;
+  try {
+    await completeWithFallback("t", { alt: "z" }, { alt: "demo-model" }, prompt);
+    await completeWithFallback("t", { openai: "k" }, {}, prompt);
+    assert.ok(seen.alt.get("x-opencode-session"));
+    assert.match(seen.alt.get("user-agent") ?? "", /^Tracify\//);
+    assert.equal(seen.openai.get("x-opencode-session"), null);
+  } finally { globalThis.fetch = original; }
+});

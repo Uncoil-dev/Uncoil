@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { isAuthenticated } from "@/lib/auth-server";
-import { ASSISTANT_SYSTEM_PROMPT, buildAssistantPrompt, parseAssistantReply, sanitizeContext, sanitizeTurns } from "@/lib/assistant";
-import { completeWithFallback } from "@/lib/llm-chain";
+import { ASSISTANT_SYSTEM_PROMPT, buildAssistantPrompt, failureReply, parseAssistantReply, sanitizeContext, sanitizeTurns } from "@/lib/assistant";
+import { completeWithFallback, streamWithFallback } from "@/lib/llm-chain";
 import { consumeRateLimit } from "@/lib/redis-cache";
 
 export const maxDuration = 30;
@@ -18,7 +18,7 @@ function limit(name: string, fallback: number) {
 export async function POST(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
 
-  const body = await req.json().catch(() => null) as { messages?: unknown; context?: unknown } | null;
+  const body = await req.json().catch(() => null) as { messages?: unknown; context?: unknown; stream?: unknown } | null;
   const turns = sanitizeTurns(body?.messages);
   if (!turns.length || turns[turns.length - 1].role === "assistant") return NextResponse.json({ error: "Say something first." }, { status: 422 });
 
@@ -40,20 +40,38 @@ export async function POST(req: NextRequest) {
 
   const alt = process.env.ASK_AI_ALT_API_KEY || "";
   const openai = alt ? undefined : process.env.TRACIFY_ASK_AI_API_KEY || process.env.OPENAI_API_KEY || undefined;
-  const result = await completeWithFallback("Assistant", { alt: alt || undefined, openai }, { alt: process.env.ASK_AI_ALT_MODEL, openai: process.env.TRACIFY_ASK_AI_MODEL }, {
+  const prompt = {
     system: ASSISTANT_SYSTEM_PROMPT,
     user: buildAssistantPrompt(context, turns),
     temperature: 0.2,
     maxOutputTokens: 700,
     timeoutMs: 25_000,
-  });
-  if (!result.text) {
-    const busy = result.failures.some((failure) => failure === "rate" || failure === "quota");
-    const configured = Boolean(alt || openai);
-    return NextResponse.json({
-      reply: busy ? "I'm busy right now. Try again in a minute." : configured ? "I couldn't reach the AI just now. Try again in a moment." : "The assistant isn't switched on for this workspace yet.",
-      action: null,
+  };
+  const keys = { alt: alt || undefined, openai };
+  const models = { alt: process.env.ASK_AI_ALT_MODEL, openai: process.env.TRACIFY_ASK_AI_MODEL };
+  const configured = Boolean(alt || openai);
+  const busyFrom = (failures: string[]) => failures.some((failure) => failure === "rate" || failure === "quota");
+
+  // The chat page asks for a stream: pieces of the answer arrive as they are written, then one final message with the parsed reply.
+  if (body?.stream === true) {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const send = (line: unknown) => controller.enqueue(encoder.encode(`${JSON.stringify(line)}
+`));
+        try {
+          const result = await streamWithFallback("Assistant", keys, models, prompt, (piece) => send({ delta: piece }));
+          send({ done: result.text ? parseAssistantReply(result.text) : { reply: failureReply(busyFrom(result.failures), configured), action: null } });
+        } catch {
+          send({ done: { reply: failureReply(false, configured), action: null } });
+        }
+        controller.close();
+      },
     });
+    return new Response(stream, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store, no-transform", "x-accel-buffering": "no" } });
   }
+
+  const result = await completeWithFallback("Assistant", keys, models, prompt);
+  if (!result.text) return NextResponse.json({ reply: failureReply(busyFrom(result.failures), configured), action: null });
   return NextResponse.json(parseAssistantReply(result.text));
 }

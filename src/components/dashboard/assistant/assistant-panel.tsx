@@ -8,7 +8,7 @@ import { ArrowUp, Bell, Check, ChevronDown, ChevronRight, Copy, Globe2, KeyRound
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { authClient } from "@/lib/auth-client";
-import { describeAction, findByName, TOOL_RISK, tracingHref, type AssistantAction, type AssistantContext, type AssistantTurn } from "@/lib/assistant";
+import { describeAction, findByName, partialReply, TOOL_RISK, tracingHref, type AssistantAction, type AssistantContext, type AssistantTurn } from "@/lib/assistant";
 
 type Status = "pending" | "running" | "done" | "denied" | "failed";
 type Message =
@@ -47,6 +47,34 @@ function saveChats(chats: Chat[]) {
     }),
   }));
   try { window.localStorage.setItem(CHATS_KEY, JSON.stringify(safe)); } catch { /* storage can be blocked or full */ }
+}
+/** Reads the streamed answer line by line, showing the words as they come, and returns the final parsed reply. */
+async function readReply(stream: ReadableStream<Uint8Array>, show: (text: string) => void): Promise<{ reply?: string; action?: AssistantAction | null }> {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let raw = "";
+  let final: { reply?: string; action?: AssistantAction | null } | null = null;
+  const handle = (line: string) => {
+    if (!line.trim()) return;
+    try {
+      const event = JSON.parse(line) as { delta?: string; done?: { reply?: string; action?: AssistantAction | null } };
+      if (typeof event.delta === "string") { raw += event.delta; show(partialReply(raw)); }
+      if (event.done) final = event.done;
+    } catch {
+      // A broken line is skipped.
+    }
+  };
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    lines.forEach(handle);
+  }
+  handle(buffer);
+  return final ?? {};
 }
 const newId = () => `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const chatTitle = (messages: Message[]) => { const first = messages.find((message) => message.kind === "user"); return first ? first.text.slice(0, 60) : "New conversation"; };
@@ -118,6 +146,7 @@ export function DashboardAssistant() {
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [live, setLive] = useState("");
   const [copied, setCopied] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -140,7 +169,7 @@ export function DashboardAssistant() {
   /* eslint-enable react-hooks/set-state-in-effect */
   useEffect(() => { openState.current = { open, menu, history: historyOpen, full }; });
   useEffect(() => { try { window.localStorage.setItem(STORAGE_KEY, open ? "1" : "0"); } catch { /* storage can be blocked */ } }, [open]);
-  useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [messages, busy, open]);
+  useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [messages, busy, open, live]);
   // Keep this conversation in the saved list as it grows.
   useEffect(() => {
     if (!loaded || !messages.length) return;
@@ -184,10 +213,17 @@ export function DashboardAssistant() {
 
   async function ask(history: Message[]) {
     setBusy(true);
+    setLive("");
+    // The person's message shows at once; it should not wait for the answer.
+    setMessages(history);
     try {
-      const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: turns(history), context: context() }) });
-      const body = await response.json() as { reply?: string; action?: AssistantAction | null; error?: string };
-      if (!response.ok || !body.reply) throw new Error(body.error ?? "Something went wrong. Try again.");
+      const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: turns(history), context: context(), stream: true }) });
+      if (!response.ok || !response.body) {
+        const failed = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(failed.error ?? "Something went wrong. Try again.");
+      }
+      const body = await readReply(response.body, setLive);
+      if (!body.reply) throw new Error("Something went wrong. Try again.");
       const message: Message = { kind: "assistant", text: body.reply, action: body.action ?? undefined, status: body.action ? "pending" : undefined };
       if (readOnly && body.action && TOOL_RISK[body.action.tool] !== "none") {
         setMessages([...history, { kind: "assistant", text: "I'm in read-only mode, so I can't change anything. Switch it off under Permissions and ask again." }]);
@@ -200,6 +236,7 @@ export function DashboardAssistant() {
       setMessages([...history, { kind: "result", text: error instanceof Error ? error.message : "Something went wrong. Try again.", ok: false }]);
     } finally {
       setBusy(false);
+      setLive("");
     }
   }
 
@@ -478,7 +515,14 @@ export function DashboardAssistant() {
                         </li>
                       );
                     })}
-                    {busy ? (
+                    {busy && live ? (
+                      <li className="flex flex-col gap-2">
+                        <div className="border border-white/10 bg-[#121212]/95 p-3">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#f4d44d]">Assistant</p>
+                          <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-5 text-white/90">{live}<span aria-hidden className="ml-0.5 inline-block h-3 w-1.5 animate-pulse bg-[#f4d44d] align-middle" /></p>
+                        </div>
+                      </li>
+                    ) : busy ? (
                       <li className="asst-rise flex items-center gap-3 text-[12px] italic text-white/55"><AssistantMark cell={3} busy />Composing your answer…</li>
                     ) : null}
                   </ol>

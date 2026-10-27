@@ -68,3 +68,14 @@ test("context and history are trimmed", () => {
   assert.match(buildAssistantPrompt(ctx, [{ role: "user", text: "hi" }]), /Person: hi/);
   assert.equal(tracingHref("p1", "tracing", { status: "error" }), "/dashboard/p1/tracing?status=error");
 });
+
+test("partialReply shows the words of a half-written reply", async () => {
+  const { partialReply } = await import("./assistant.ts");
+  const bs = String.fromCharCode(92);
+  assert.equal(partialReply('{"reply": "Hello wor'), "Hello wor");
+  assert.equal(partialReply('{"rep'), "");
+  assert.equal(partialReply('```json\n{"re'), "");
+  assert.equal(partialReply(`{"reply": "Line one${bs}nLine ${bs}"two${bs}" ${bs}u00e9", "action": null}`), 'Line one\nLine "two" é');
+  assert.equal(partialReply(`{"reply": "cut off ${bs}`), "cut off ");
+  assert.equal(partialReply("Just plain words"), "Just plain words");
+});

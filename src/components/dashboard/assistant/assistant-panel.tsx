@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useConvex, useQuery } from "convex/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { ArrowUp, Check, ChevronRight, Copy, Globe2, KeyRound, Maximize2, Minimize2, Plus, ShieldAlert, ShieldCheck, Sparkles, Square, ThumbsDown, ThumbsUp, X, Bell, Wallet, UserPlus, Search } from "lucide-react";
+import { ArrowUp, Bell, Check, ChevronDown, ChevronRight, Copy, Globe2, KeyRound, Maximize2, Minimize2, PanelLeft, Plus, Search, ShieldAlert, ShieldCheck, Square, ThumbsDown, ThumbsUp, UserPlus, Wallet, X } from "lucide-react";
 
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
@@ -25,6 +25,73 @@ const SUGGESTIONS = [
 ];
 const greeting = () => { const hour = new Date().getHours(); return hour < 5 ? "Good evening" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"; };
 const STORAGE_KEY = "tracify.assistant.open";
+const CHATS_KEY = "tracify.assistant.chats";
+const MAX_CHATS = 30;
+
+type Chat = { id: string; title: string; updatedAt: number; messages: Message[] };
+
+/** Chats are kept in this browser only. Keys and invite links are never saved, and a card nobody answered is saved as "not allowed". */
+function loadChats(): Chat[] {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CHATS_KEY) ?? "[]") as Chat[];
+    return Array.isArray(parsed) ? parsed.filter((chat) => chat && typeof chat.id === "string" && Array.isArray(chat.messages)).slice(0, MAX_CHATS) : [];
+  } catch { return []; }
+}
+function saveChats(chats: Chat[]) {
+  const safe = chats.slice(0, MAX_CHATS).map((chat) => ({
+    ...chat,
+    messages: chat.messages.map((message): Message => {
+      if (message.kind === "result") return { ...message, secret: undefined };
+      if (message.kind === "assistant" && (message.status === "pending" || message.status === "running")) return { ...message, status: message.status === "pending" ? "denied" : "failed" };
+      return message;
+    }),
+  }));
+  try { window.localStorage.setItem(CHATS_KEY, JSON.stringify(safe)); } catch { /* storage can be blocked or full */ }
+}
+const newId = () => `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+const chatTitle = (messages: Message[]) => { const first = messages.find((message) => message.kind === "user"); return first ? first.text.slice(0, 60) : "New conversation"; };
+
+function groupChats(chats: Chat[]) {
+  const now = Date.now();
+  const day = 86_400_000;
+  const startOfToday = new Date().setHours(0, 0, 0, 0);
+  const groups: Array<{ label: string; items: Chat[] }> = [{ label: "Today", items: [] }, { label: "Past week", items: [] }, { label: "Older", items: [] }];
+  for (const chat of chats) groups[chat.updatedAt >= startOfToday ? 0 : now - chat.updatedAt < 7 * day ? 1 : 2].items.push(chat);
+  return groups.filter((group) => group.items.length);
+}
+
+/** The pixel mark: a small grid of squares that twinkle; it flickers faster while the assistant is working. */
+const MARK_ON = [2, 6, 7, 8, 10, 11, 12, 13, 14, 16, 17, 18, 22];
+const MARK_DIM = [1, 3, 5, 9, 15, 19, 21, 23];
+function AssistantMark({ cell = 12, busy = false }: { cell?: number; busy?: boolean }) {
+  return (
+    <span aria-hidden className="inline-grid shrink-0 grid-cols-5 gap-[2px]">
+      {Array.from({ length: 25 }, (_, n) => {
+        const on = MARK_ON.includes(n);
+        const dim = MARK_DIM.includes(n);
+        return <span key={n} style={{ width: cell, height: cell, animationDelay: `${(n * 137) % 1600}ms` }} className={on || dim ? `${busy ? "asst-twinkle-fast" : "asst-twinkle"} bg-[#f4d44d]` : ""} />;
+      })}
+    </span>
+  );
+}
+
+/** Types the greeting out one letter at a time (instantly for people who prefer less motion). */
+function Greeting({ text }: { text: string }) {
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setShown(text.length); return; } // eslint-disable-line react-hooks/set-state-in-effect
+    setShown(0);
+    const timer = window.setInterval(() => setShown((count) => { if (count >= text.length) { window.clearInterval(timer); return count; } return count + 1; }), 38);
+    return () => window.clearInterval(timer);
+  }, [text]);
+  const done = shown >= text.length;
+  return (
+    <div className="text-center">
+      <p aria-label={text} className="min-h-7 text-[17px] font-bold text-white">{text.slice(0, shown)}<span aria-hidden className={`ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[3px] bg-[#f4d44d] ${done ? "asst-caret" : ""}`} /></p>
+      <p className={`mt-1 text-[12px] text-white/55 transition-opacity duration-500 ${done ? "opacity-100" : "opacity-0"}`}>What are we doing today?</p>
+    </div>
+  );
+}
 
 type Outcome = { text: string; ok: boolean; secret?: string; href?: string; linkLabel?: string; forModel?: string };
 
@@ -41,34 +108,71 @@ export function DashboardAssistant() {
   const views = useQuery(api.savedViews.list, currentId ? { projectId: currentId as Id<"projects"> } : "skip");
 
   const [open, setOpen] = useState(false);
+  const [full, setFull] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [chatId, setChatId] = useState(newId);
+  const [loaded, setLoaded] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [wide, setWide] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
   const [menu, setMenu] = useState(false);
   const [rated, setRated] = useState<Record<number, "up" | "down">>({});
+  const openState = useRef({ open, menu, history: historyOpen, full });
   const end = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
+  const glow = useRef<HTMLDivElement>(null);
+  const dots = useRef<HTMLDivElement>(null);
 
   const projects = (projectsQuery ?? []).map((project) => ({ id: String(project._id), name: project.name }));
   const current = projects.find((project) => project.id === currentId) ?? null;
 
   /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => { try { if (window.localStorage.getItem(STORAGE_KEY) === "1") setOpen(true); } catch { /* storage can be blocked */ } }, []);
+  useEffect(() => {
+    try { if (window.localStorage.getItem(STORAGE_KEY) === "1") setOpen(true); } catch { /* storage can be blocked */ }
+    setChats(loadChats());
+    setLoaded(true);
+  }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
+  useEffect(() => { openState.current = { open, menu, history: historyOpen, full }; });
   useEffect(() => { try { window.localStorage.setItem(STORAGE_KEY, open ? "1" : "0"); } catch { /* storage can be blocked */ } }, [open]);
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [messages, busy, open]);
+  // Keep this conversation in the saved list as it grows.
+  useEffect(() => {
+    if (!loaded || !messages.length) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setChats((existing) => {
+      const next = [{ id: chatId, title: chatTitle(messages), updatedAt: Date.now(), messages }, ...existing.filter((chat) => chat.id !== chatId)].slice(0, MAX_CHATS);
+      saveChats(next);
+      return next;
+    });
+  }, [messages, chatId, loaded]);
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") { event.preventDefault(); setOpen((value) => !value); }
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape" && openState.current.open) {
+        const { menu: menuOpen, history, full: fullView } = openState.current;
+        if (menuOpen || history) { setMenu(false); setHistoryOpen(false); } else if (fullView) setFull(false); else setOpen(false);
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  useEffect(() => { if (open) input.current?.focus(); }, [open]);
+  useEffect(() => { if (open) { const timer = window.setTimeout(() => input.current?.focus(), 240); return () => window.clearTimeout(timer); } }, [open]);
+
+  /** The dotted background follows the pointer: a soft yellow glow, brighter dots under it, and a slight drift. */
+  function trackPointer(event: React.PointerEvent<HTMLDivElement>) {
+    const box = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - box.left;
+    const y = event.clientY - box.top;
+    glow.current?.style.setProperty("--mx", `${x}px`);
+    glow.current?.style.setProperty("--my", `${y}px`);
+    if (dots.current) dots.current.style.backgroundPosition = `${((x / box.width) - 0.5) * -10}px ${((y / box.height) - 0.5) * -10}px`;
+  }
 
   function context(): AssistantContext {
     return { projectId: currentId, projectName: current?.name ?? null, projects, alerts: (rules?.rules ?? []).map((rule) => rule.name), views: (views ?? []).map((view) => view.name), page: pathname ?? "" };
@@ -240,121 +344,173 @@ export function DashboardAssistant() {
     try { await navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* clipboard can be blocked */ }
   }
 
-  const title = messages.find((message) => message.kind === "user")?.text ?? "New conversation";
-  function reset() { setMessages([]); setDraft(""); setRated({}); input.current?.focus(); }
+
+  const title = chatTitle(messages);
+  const grouped = useMemo(() => groupChats(chats.filter((chat) => !search.trim() || chat.title.toLowerCase().includes(search.trim().toLowerCase()))), [chats, search]);
+
+  function startChat() {
+    if (busy) return;
+    setMessages([]); setChatId(newId()); setDraft(""); setRated({}); setHistoryOpen(false);
+    input.current?.focus();
+  }
+  function openChat(chat: Chat) {
+    if (busy) return;
+    setMessages(chat.messages); setChatId(chat.id); setRated({}); setHistoryOpen(false);
+  }
+  function removeChat(id: string) {
+    setChats((existing) => { const next = existing.filter((chat) => chat.id !== id); saveChats(next); return next; });
+    if (id === chatId) { setMessages([]); setChatId(newId()); }
+  }
+
+  const iconButton = "asst-motion flex size-9 items-center justify-center text-white/60 transition duration-150 hover:bg-white/10 hover:text-white active:scale-90";
 
   return (
     <>
-      {!open ? (
-        <button type="button" onClick={() => setOpen(true)} aria-label="Open the assistant" title="Assistant (Ctrl+J)" className="fixed bottom-4 right-4 z-40 flex h-11 items-center gap-2 border border-[#f4d44d] bg-[#f4d44d] px-4 font-mono text-[11px] font-bold uppercase tracking-widest text-[#090909] shadow-[4px_4px_0_#090909] outline-none hover:bg-[#fff4b5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-          <Sparkles className="size-4" /> Assistant
-        </button>
-      ) : null}
-      {open ? (
-        <aside aria-label="Assistant" className={`fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-white/10 bg-[#0b0b0b] font-mono text-[#eceae3] shadow-[-16px_0_48px_rgba(0,0,0,0.55)] ${wide ? "sm:w-[640px]" : "sm:w-[420px]"}`}>
-          <header className="flex h-14 shrink-0 items-center gap-2 border-b border-white/10 px-3">
-            <div className="flex min-w-0 flex-1 items-center gap-2 bg-white/[0.04] px-3 py-2 text-[12px] font-bold text-white"><span className="size-2 shrink-0 bg-[#f4d44d]" /><span className="truncate">{title}</span></div>
-            <button type="button" onClick={reset} aria-label="New conversation" title="New conversation" className="flex size-9 items-center justify-center text-white/60 hover:bg-white/10 hover:text-white"><Plus className="size-4" /></button>
-            <button type="button" onClick={() => setWide((value) => !value)} aria-label={wide ? "Make narrower" : "Make wider"} className="hidden size-9 items-center justify-center text-white/60 hover:bg-white/10 hover:text-white sm:flex">{wide ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</button>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant" className="flex size-9 items-center justify-center text-white/60 hover:bg-white/10 hover:text-white"><X className="size-4" /></button>
-          </header>
-          <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[radial-gradient(rgba(255,255,255,0.07)_1px,transparent_1px)] [background-size:14px_14px] p-4">
-            {messages.length === 0 ? (
-              <div className="flex min-h-full flex-col justify-center gap-6 pb-6">
-                <div className="flex flex-col items-center text-center">
-                  <div aria-hidden className="mb-5 grid grid-cols-5 gap-[3px]">
-                    {Array.from({ length: 25 }, (_, n) => <span key={n} className={`size-3 ${[2, 6, 7, 8, 10, 11, 12, 13, 14, 16, 17, 18, 22].includes(n) ? "bg-[#f4d44d]" : [1, 3, 5, 9, 15, 19, 21, 23].includes(n) ? "bg-[#f4d44d]/35" : "bg-transparent"}`} />)}
-                  </div>
-                  <p className="text-[17px] font-bold text-white">{greeting()}{session?.user.name ? `, ${session.user.name.split(" ")[0]}` : ""}.</p>
-                  <p className="mt-1 text-[12px] text-white/55">What are we doing today?</p>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  {SUGGESTIONS.map(({ icon: Icon, title: label, sub, prompt }) => (
-                    <button key={label} type="button" onClick={() => send(prompt)} className="group flex items-center gap-3 border border-white/10 bg-[#121212] px-3 py-2.5 text-left hover:border-[#f4d44d]/70 hover:bg-[#161616]">
-                      <span className="flex size-8 shrink-0 items-center justify-center border border-white/10 bg-white/[0.04] text-white/60 group-hover:text-[#f4d44d]"><Icon className="size-4" /></span>
-                      <span className="min-w-0 flex-1"><span className="block text-[12px] font-bold text-white">{label}</span><span className="block truncate text-[11px] text-white/50">{sub}</span></span>
-                      <ChevronRight className="size-4 text-white/30 group-hover:text-[#f4d44d]" />
-                    </button>
+      <button type="button" onClick={() => setOpen(true)} aria-label="Open the assistant" title="Assistant (Ctrl+J)" tabIndex={open ? -1 : 0} className={`asst-motion fixed bottom-4 right-4 z-40 flex h-11 items-center gap-2.5 border border-[#f4d44d] bg-[#f4d44d] px-4 font-mono text-[11px] font-bold uppercase tracking-widest text-[#090909] shadow-[4px_4px_0_#090909] outline-none transition duration-200 hover:-translate-y-0.5 hover:bg-[#fff4b5] hover:shadow-[6px_6px_0_#090909] active:translate-y-0 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${open ? "pointer-events-none translate-y-3 scale-90 opacity-0" : ""}`}>
+        <span className="[&_span]:!bg-[#090909]"><AssistantMark cell={3} /></span> Assistant
+      </button>
+      <aside aria-label="Assistant" aria-hidden={!open} inert={!open} style={{ width: full ? "100vw" : "min(420px, 100vw)" }} className={`asst-motion fixed inset-y-0 right-0 z-50 flex border-l border-white/10 bg-[#0b0b0b] font-mono text-[#eceae3] shadow-[-16px_0_48px_rgba(0,0,0,0.55)] transition-[width,transform,opacity] duration-300 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${open ? "translate-x-0 opacity-100" : "pointer-events-none invisible translate-x-8 opacity-0"}`}>
+        {full ? (
+          <nav aria-label="Conversations" className={`hidden shrink-0 flex-col border-r border-white/10 bg-[#0e0e0e] transition-[width] duration-300 md:flex ${sidebarOpen ? "w-[272px]" : "w-0 overflow-hidden border-r-0"}`}>
+            <div className="flex h-14 shrink-0 items-center justify-between px-4"><span className="flex items-center gap-2.5 text-[12px] font-bold text-white"><AssistantMark cell={3} busy={busy} />Chat</span><button type="button" onClick={() => setSidebarOpen(false)} aria-label="Hide conversations" className={iconButton}><PanelLeft className="size-4" /></button></div>
+            <div className="flex flex-col gap-0.5 px-2 pb-2">
+              <button type="button" onClick={startChat} disabled={busy} className="asst-motion flex items-center gap-2.5 px-3 py-2 text-left text-[12px] text-white/85 transition hover:bg-white/10 disabled:opacity-40"><Plus className="size-4" />New chat</button>
+              <label className="flex items-center gap-2.5 px-3 py-2 text-[12px] text-white/85 focus-within:bg-white/10"><Search className="size-4 shrink-0" /><span className="sr-only">Search chats</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search" className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-white/85" /></label>
+            </div>
+            <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
+              {grouped.length === 0 ? <p className="px-3 py-3 text-[11px] text-white/40">{chats.length ? "No chats match." : "Your chats will show up here."}</p> : grouped.map((group) => (
+                <div key={group.label} className="mt-3">
+                  <p className="px-3 pb-1 text-[11px] font-bold text-white">{group.label}</p>
+                  {group.items.map((chat) => (
+                    <div key={chat.id} className={`group asst-motion flex items-center transition ${chat.id === chatId ? "bg-white/[0.09]" : "hover:bg-white/[0.05]"}`}>
+                      <button type="button" onClick={() => openChat(chat)} disabled={busy} className={`min-w-0 flex-1 truncate px-3 py-2 text-left text-[12px] disabled:opacity-60 ${chat.id === chatId ? "font-bold text-white" : "text-white/65"}`}>{chat.title}</button>
+                      <button type="button" onClick={() => removeChat(chat.id)} aria-label={`Delete chat ${chat.title}`} className="mr-1 flex size-6 shrink-0 items-center justify-center text-white/0 transition hover:text-red-300 group-hover:text-white/40 focus-visible:text-white/60"><X className="size-3.5" /></button>
+                    </div>
                   ))}
                 </div>
-              </div>
-            ) : (
-              <ol aria-live="polite" className="flex flex-col gap-4">
-                {messages.map((message, index) => {
-                  if (message.kind === "user") return <li key={index} className="max-w-[88%] self-end bg-[#232323] px-3 py-2 text-[12px] leading-5 text-white">{message.text}</li>;
-                  if (message.kind === "result") return (
-                    <li key={index} className={`border-l-2 px-3 py-1.5 text-[12px] leading-5 ${message.ok ? "border-[#f4d44d] text-white/80" : "border-red-500 text-red-300"}`}>
-                      {message.text}
-                      {message.secret ? (
-                        <div className="mt-2 flex items-center gap-2 border border-white/15 bg-black/60 p-2">
-                          <code className="min-w-0 flex-1 break-all text-[11px] text-[#f4d44d]">{message.secret}</code>
-                          <button type="button" onClick={() => void copy(message.secret!)} aria-label="Copy" className="flex size-7 shrink-0 items-center justify-center border border-white/20 hover:border-[#f4d44d]">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button>
-                        </div>
-                      ) : null}
-                      {message.href ? <button type="button" onClick={() => router.push(message.href!)} className="mt-2 block text-[11px] font-bold uppercase tracking-widest text-[#f4d44d] hover:underline">{message.linkLabel ?? "Open"} →</button> : null}
-                    </li>
-                  );
-                  const info = message.action ? describeAction(message.action) : null;
-                  const danger = message.action ? TOOL_RISK[message.action.tool] === "danger" : false;
-                  return (
-                    <li key={index} className="flex flex-col gap-2">
-                      <div className="border border-white/10 bg-[#121212] p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#f4d44d]">Assistant</p>
-                        <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-5 text-white/90">{message.text}</p>
-                      </div>
-                      {info && message.action && TOOL_RISK[message.action.tool] !== "none" ? (
-                        <div role="group" aria-label="Permission needed" className={`border p-3 ${danger ? "border-red-500/70 bg-red-500/[0.07]" : "border-[#f4d44d]/60 bg-[#f4d44d]/[0.06]"} ${message.status === "denied" ? "opacity-50" : ""}`}>
-                          <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${danger ? "text-red-300" : "text-[#f4d44d]"}`}>{danger ? <ShieldAlert className="size-3.5" /> : <KeyRound className="size-3.5" />}{message.status === "pending" ? "Permission needed" : message.status === "running" ? "Working…" : message.status === "done" ? "Allowed" : message.status === "denied" ? "Not allowed" : "Didn't work"}</div>
-                          <p className="mt-1.5 text-[12px] font-bold leading-5 text-white">{info.title}</p>
-                          {info.detail ? <p className="mt-0.5 text-[11px] leading-5 text-white/60">{info.detail}</p> : null}
-                          {message.status === "pending" ? (
-                            <div className="mt-3 flex gap-2">
-                              <button type="button" onClick={() => decide(index, true)} className={`h-8 px-3 text-[10px] font-bold uppercase tracking-widest ${danger ? "bg-red-500 text-white hover:bg-red-400" : "bg-[#f4d44d] text-[#090909] hover:bg-[#fff4b5]"}`}>{info.confirmLabel}</button>
-                              <button type="button" onClick={() => decide(index, false)} className="h-8 border border-white/25 px-3 text-[10px] uppercase tracking-widest text-white/75 hover:border-white/60">Not now</button>
+              ))}
+            </div>
+          </nav>
+        ) : null}
+        <div className="relative flex min-w-0 flex-1 flex-col">
+          <header className="relative z-20 flex h-14 shrink-0 items-center gap-2 border-b border-white/10 px-3">
+            {full && !sidebarOpen ? <button type="button" onClick={() => setSidebarOpen(true)} aria-label="Show conversations" className={`${iconButton} max-md:hidden`}><PanelLeft className="size-4" /></button> : null}
+            <div className="relative min-w-0 flex-1">
+              <button type="button" onClick={() => setHistoryOpen((value) => !value)} aria-expanded={historyOpen} aria-haspopup="listbox" className={`asst-motion flex w-full min-w-0 items-center gap-2 bg-white/[0.04] px-3 py-2 text-[12px] font-bold text-white transition hover:bg-white/[0.08] ${full ? "justify-center" : ""}`}>
+                {!full ? <AssistantMark cell={2} busy={busy} /> : null}<span className="truncate">{title}</span><ChevronDown className={`size-3.5 shrink-0 text-white/50 transition-transform duration-200 ${historyOpen ? "rotate-180" : ""}`} />
+              </button>
+              {historyOpen ? (
+                <div role="listbox" aria-label="Conversations" className="asst-pop absolute inset-x-0 top-[calc(100%+4px)] z-30 max-h-80 origin-top overflow-y-auto border border-white/15 bg-[#151515] p-1 shadow-xl">
+                  <button type="button" onClick={startChat} disabled={busy} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-[#f4d44d] hover:bg-white/10 disabled:opacity-40"><Plus className="size-4" />New chat</button>
+                  {chats.length === 0 ? <p className="px-3 py-2 text-[11px] text-white/40">Past chats show up here.</p> : chats.slice(0, 12).map((chat) => (
+                    <button key={chat.id} type="button" role="option" aria-selected={chat.id === chatId} onClick={() => openChat(chat)} disabled={busy} className={`block w-full truncate px-3 py-2 text-left text-[12px] hover:bg-white/10 disabled:opacity-60 ${chat.id === chatId ? "font-bold text-white" : "text-white/65"}`}>{chat.title}</button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            <button type="button" onClick={startChat} disabled={busy} aria-label="New conversation" title="New conversation" className={`${iconButton} disabled:opacity-40`}><Plus className="size-4" /></button>
+            <button type="button" onClick={() => setFull((value) => !value)} aria-label={full ? "Back to side panel" : "Open full view"} title={full ? "Back to side panel" : "Full view with all chats"} className={`${iconButton} max-sm:hidden`}>{full ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</button>
+            <button type="button" onClick={() => { setFull(false); setOpen(false); }} aria-label="Close assistant" className={iconButton}><X className="size-4" /></button>
+          </header>
+          <div className="relative min-h-0 flex-1" onPointerMove={trackPointer} onPointerEnter={() => glow.current?.style.setProperty("opacity", "1")} onPointerLeave={() => glow.current?.style.setProperty("opacity", "0")}>
+            <div ref={dots} aria-hidden className="pointer-events-none absolute -inset-3 [background-image:radial-gradient(rgba(255,255,255,0.07)_1px,transparent_1px)] [background-size:14px_14px] transition-[background-position] duration-200 ease-out" />
+            <div ref={glow} aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 [--mx:50%] [--my:40%] [background-image:radial-gradient(rgba(244,212,77,0.85)_1px,transparent_1.5px)] [background-size:14px_14px] [mask-image:radial-gradient(150px_circle_at_var(--mx)_var(--my),black,transparent)] [-webkit-mask-image:radial-gradient(150px_circle_at_var(--mx)_var(--my),black,transparent)]" />
+            <div data-lenis-prevent className="absolute inset-0 overflow-y-auto overscroll-contain p-4">
+              <div className="mx-auto flex min-h-full w-full max-w-[720px] flex-col">
+                {messages.length === 0 ? (
+                  <div className="flex flex-1 flex-col justify-center gap-6 pb-6">
+                    <div className="flex flex-col items-center gap-5">
+                      <AssistantMark cell={full ? 14 : 12} />
+                      <Greeting key={open ? "open" : "closed"} text={`${greeting()}${session?.user.name ? `, ${session.user.name.split(" ")[0]}` : ""}.`} />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      {SUGGESTIONS.map(({ icon: Icon, title: label, sub, prompt }, index) => (
+                        <button key={label} type="button" onClick={() => send(prompt)} style={{ animationDelay: `${500 + index * 70}ms` }} className="asst-rise asst-motion group flex items-center gap-3 border border-white/10 bg-[#121212]/90 px-3 py-2.5 text-left transition duration-150 hover:-translate-y-px hover:border-[#f4d44d]/70 hover:bg-[#161616] active:translate-y-0 active:scale-[0.99]">
+                          <span className="flex size-8 shrink-0 items-center justify-center border border-white/10 bg-white/[0.04] text-white/60 transition group-hover:text-[#f4d44d]"><Icon className="size-4" /></span>
+                          <span className="min-w-0 flex-1"><span className="block text-[12px] font-bold text-white">{label}</span><span className="block truncate text-[11px] text-white/50">{sub}</span></span>
+                          <ChevronRight className="size-4 text-white/30 transition duration-150 group-hover:translate-x-0.5 group-hover:text-[#f4d44d]" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <ol aria-live="polite" className="flex flex-col gap-4">
+                    {messages.map((message, index) => {
+                      if (message.kind === "user") return <li key={index} className="asst-rise max-w-[88%] self-end bg-[#232323] px-3 py-2 text-[12px] leading-5 text-white">{message.text}</li>;
+                      if (message.kind === "result") return (
+                        <li key={index} className={`asst-rise border-l-2 bg-[#0b0b0b]/70 px-3 py-1.5 text-[12px] leading-5 ${message.ok ? "border-[#f4d44d] text-white/80" : "border-red-500 text-red-300"}`}>
+                          {message.text}
+                          {message.secret ? (
+                            <div className="mt-2 flex items-center gap-2 border border-white/15 bg-black/60 p-2">
+                              <code className="min-w-0 flex-1 break-all text-[11px] text-[#f4d44d]">{message.secret}</code>
+                              <button type="button" onClick={() => void copy(message.secret!)} aria-label="Copy" className="asst-motion flex size-7 shrink-0 items-center justify-center border border-white/20 transition hover:border-[#f4d44d] active:scale-90">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button>
                             </div>
                           ) : null}
-                        </div>
-                      ) : null}
-                      <div className="flex items-center gap-1 px-1 text-white/35">
-                        <button type="button" onClick={() => setRated((value) => ({ ...value, [index]: "up" }))} aria-label="Good answer" className={`flex size-6 items-center justify-center hover:text-white ${rated[index] === "up" ? "text-[#f4d44d]" : ""}`}><ThumbsUp className="size-3.5" /></button>
-                        <button type="button" onClick={() => setRated((value) => ({ ...value, [index]: "down" }))} aria-label="Bad answer" className={`flex size-6 items-center justify-center hover:text-white ${rated[index] === "down" ? "text-red-400" : ""}`}><ThumbsDown className="size-3.5" /></button>
-                        <button type="button" onClick={() => void copy(message.text)} aria-label="Copy answer" className="flex size-6 items-center justify-center hover:text-white"><Copy className="size-3.5" /></button>
-                      </div>
-                    </li>
-                  );
-                })}
-                {busy ? (
-                  <li className="flex items-center gap-2 text-[12px] italic text-white/55">
-                    <span aria-hidden className="grid grid-cols-3 gap-[2px]">{[0, 1, 2].map((n) => <span key={n} className="size-1.5 animate-pulse bg-[#f4d44d]" style={{ animationDelay: `${n * 150}ms` }} />)}</span>
-                    Composing your answer…
-                  </li>
-                ) : null}
-              </ol>
-            )}
-            <div ref={end} />
-          </div>
-          <form onSubmit={(event) => { event.preventDefault(); send(draft); }} className="relative shrink-0 p-3">
-            {menu ? (
-              <div className="absolute bottom-[calc(100%-8px)] right-3 z-10 w-72 border border-white/15 bg-[#151515] p-1 shadow-xl">
-                <div className="flex items-start gap-2 px-3 py-2">{readOnly ? <Globe2 className="mt-0.5 size-4 text-white/60" /> : <ShieldCheck className="mt-0.5 size-4 text-[#f4d44d]" />}<div><p className="text-[12px] font-bold text-white">{readOnly ? "Read only" : "Can act, asks first"}</p><p className="text-[11px] leading-4 text-white/55">{readOnly ? "I can look and open pages, but I can't change anything." : "I can change things in your account, but only after you click Allow."}</p></div></div>
-                <button type="button" onClick={() => { setReadOnly((value) => !value); setMenu(false); }} className="w-full px-3 py-2 text-left text-[12px] text-white/80 hover:bg-white/10">{readOnly ? "Let me act (ask first)" : "Switch to read only"}</button>
-              </div>
-            ) : null}
-            <div className="border border-white/15 bg-[#121212] focus-within:border-[#f4d44d]/70">
-              <label htmlFor="assistant-input" className="sr-only">Message the assistant</label>
-              <input ref={input} id="assistant-input" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={1000} placeholder="Tell me what to do, or ask anything" autoComplete="off" className="h-11 w-full bg-transparent px-3 text-[12px] text-white outline-none placeholder:text-white/35" />
-              <div className="flex items-center justify-between px-2 pb-2">
-                <span className="flex items-center gap-1.5 bg-white/[0.05] px-2 py-1 text-[10px] uppercase tracking-widest text-white/60">{readOnly ? "Ask" : "Do"}</span>
-                <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => setMenu((value) => !value)} aria-label="Permissions" aria-expanded={menu} title="Permissions" className={`flex size-8 items-center justify-center hover:bg-white/10 ${readOnly ? "text-white/50" : "text-[#f4d44d]"}`}><ShieldCheck className="size-4" /></button>
-                  <button type="submit" disabled={busy || !draft.trim()} aria-label={busy ? "Working" : "Send"} className="flex size-8 items-center justify-center bg-[#f4d44d] text-[#090909] disabled:opacity-40">{busy ? <Square className="size-3.5 fill-current" /> : <ArrowUp className="size-4" />}</button>
-                </div>
+                          {message.href ? <button type="button" onClick={() => router.push(message.href!)} className="mt-2 block text-[11px] font-bold uppercase tracking-widest text-[#f4d44d] hover:underline">{message.linkLabel ?? "Open"} →</button> : null}
+                        </li>
+                      );
+                      const info = message.action ? describeAction(message.action) : null;
+                      const danger = message.action ? TOOL_RISK[message.action.tool] === "danger" : false;
+                      return (
+                        <li key={index} className="asst-rise flex flex-col gap-2">
+                          <div className="border border-white/10 bg-[#121212]/95 p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#f4d44d]">Assistant</p>
+                            <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-5 text-white/90">{message.text}</p>
+                          </div>
+                          {info && message.action && TOOL_RISK[message.action.tool] !== "none" ? (
+                            <div role="group" aria-label="Permission needed" className={`asst-pop border p-3 transition-opacity duration-300 ${danger ? "border-red-500/70 bg-red-950/60" : "border-[#f4d44d]/60 bg-[#1a1708]"} ${message.status === "denied" ? "opacity-50" : ""}`}>
+                              <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${danger ? "text-red-300" : "text-[#f4d44d]"}`}>{danger ? <ShieldAlert className="size-3.5" /> : <KeyRound className="size-3.5" />}{message.status === "pending" ? "Permission needed" : message.status === "running" ? "Working…" : message.status === "done" ? "Allowed" : message.status === "denied" ? "Not allowed" : "Didn't work"}</div>
+                              <p className="mt-1.5 text-[12px] font-bold leading-5 text-white">{info.title}</p>
+                              {info.detail ? <p className="mt-0.5 text-[11px] leading-5 text-white/60">{info.detail}</p> : null}
+                              {message.status === "pending" ? (
+                                <div className="mt-3 flex gap-2">
+                                  <button type="button" onClick={() => decide(index, true)} className={`asst-motion h-8 px-3 text-[10px] font-bold uppercase tracking-widest transition duration-150 hover:-translate-y-px active:translate-y-0 active:scale-95 ${danger ? "bg-red-500 text-white hover:bg-red-400" : "bg-[#f4d44d] text-[#090909] hover:bg-[#fff4b5]"}`}>{info.confirmLabel}</button>
+                                  <button type="button" onClick={() => decide(index, false)} className="asst-motion h-8 border border-white/25 px-3 text-[10px] uppercase tracking-widest text-white/75 transition duration-150 hover:border-white/60 active:scale-95">Not now</button>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          <div className="flex items-center gap-1 px-1 text-white/35">
+                            <button type="button" onClick={() => setRated((value) => ({ ...value, [index]: "up" }))} aria-label="Good answer" className={`asst-motion flex size-6 items-center justify-center transition hover:text-white active:scale-75 ${rated[index] === "up" ? "text-[#f4d44d]" : ""}`}><ThumbsUp className="size-3.5" /></button>
+                            <button type="button" onClick={() => setRated((value) => ({ ...value, [index]: "down" }))} aria-label="Bad answer" className={`asst-motion flex size-6 items-center justify-center transition hover:text-white active:scale-75 ${rated[index] === "down" ? "text-red-400" : ""}`}><ThumbsDown className="size-3.5" /></button>
+                            <button type="button" onClick={() => void copy(message.text)} aria-label="Copy answer" className="asst-motion flex size-6 items-center justify-center transition hover:text-white active:scale-75"><Copy className="size-3.5" /></button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                    {busy ? (
+                      <li className="asst-rise flex items-center gap-3 text-[12px] italic text-white/55"><AssistantMark cell={3} busy />Composing your answer…</li>
+                    ) : null}
+                  </ol>
+                )}
+                <div ref={end} />
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-white/35">AI can be wrong. It only acts after you say yes. Ctrl+J opens and closes this.</p>
+          </div>
+          <form onSubmit={(event) => { event.preventDefault(); send(draft); }} className="relative z-10 shrink-0 p-3">
+            <div className="mx-auto w-full max-w-[720px]">
+              {menu ? (
+                <div className="asst-pop absolute bottom-[calc(100%-8px)] right-3 z-10 w-72 origin-bottom-right border border-white/15 bg-[#151515] p-1 shadow-xl">
+                  <div className="flex items-start gap-2 px-3 py-2">{readOnly ? <Globe2 className="mt-0.5 size-4 text-white/60" /> : <ShieldCheck className="mt-0.5 size-4 text-[#f4d44d]" />}<div><p className="text-[12px] font-bold text-white">{readOnly ? "Read only" : "Can act, asks first"}</p><p className="text-[11px] leading-4 text-white/55">{readOnly ? "I can look and open pages, but I can't change anything." : "I can change things in your account, but only after you click Allow."}</p></div></div>
+                  <button type="button" onClick={() => { setReadOnly((value) => !value); setMenu(false); }} className="w-full px-3 py-2 text-left text-[12px] text-white/80 transition hover:bg-white/10">{readOnly ? "Let me act (ask first)" : "Switch to read only"}</button>
+                </div>
+              ) : null}
+              <div className="border border-white/15 bg-[#121212] transition-colors duration-200 focus-within:border-[#f4d44d]/70">
+                <label htmlFor="assistant-input" className="sr-only">Message the assistant</label>
+                <input ref={input} id="assistant-input" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={1000} placeholder="Tell me what to do, or ask anything" autoComplete="off" className="h-11 w-full bg-transparent px-3 text-[12px] text-white outline-none placeholder:text-white/35" />
+                <div className="flex items-center justify-between px-2 pb-2">
+                  <span className="flex items-center gap-1.5 bg-white/[0.05] px-2 py-1 text-[10px] uppercase tracking-widest text-white/60">{readOnly ? "Ask" : "Do"}</span>
+                  <div className="flex items-center gap-1.5">
+                    <button type="button" onClick={() => setMenu((value) => !value)} aria-label="Permissions" aria-expanded={menu} title="Permissions" className={`asst-motion flex size-8 items-center justify-center transition hover:bg-white/10 active:scale-90 ${readOnly ? "text-white/50" : "text-[#f4d44d]"}`}><ShieldCheck className="size-4" /></button>
+                    <button type="submit" disabled={busy || !draft.trim()} aria-label={busy ? "Working" : "Send"} className="asst-motion flex size-8 items-center justify-center bg-[#f4d44d] text-[#090909] transition duration-150 hover:bg-[#fff4b5] active:scale-90 disabled:opacity-40">{busy ? <Square className="size-3.5 fill-current" /> : <ArrowUp className="size-4" />}</button>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-2 text-[10px] text-white/35">AI can be wrong. It only acts after you say yes. Chats stay in this browser. Ctrl+J opens and closes this.</p>
+            </div>
           </form>
-        </aside>
-      ) : null}
+        </div>
+      </aside>
     </>
   );
 }

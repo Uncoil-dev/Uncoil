@@ -15,7 +15,7 @@ type Status = "pending" | "running" | "done" | "denied" | "failed";
 type Message =
   | { kind: "user"; text: string }
   | { kind: "assistant"; text: string; thinking?: string; action?: AssistantAction; status?: Status }
-  | { kind: "result"; text: string; ok: boolean; secret?: string; href?: string; linkLabel?: string };
+  | { kind: "result"; text: string; ok: boolean; title?: string; secret?: string; href?: string; linkLabel?: string };
 
 const SUGGESTIONS = [
   { icon: Plus, title: "Create a project", sub: "Set up a project and get its key", prompt: "Create a project for my support agent" },
@@ -376,7 +376,9 @@ export function DashboardAssistant() {
         }
       }
     } catch (error) {
-      return fail(clean(error));
+      const code = projectCreateError(error).code;
+      const hint = code === "project_limit" && currentId ? { href: tracingHref(currentId, "billing"), linkLabel: "See plans" } : {};
+      return { ...fail(clean(error)), ...hint };
     }
   }
 
@@ -387,7 +389,7 @@ export function DashboardAssistant() {
     const done = mark(outcome.ok ? "done" : "failed");
     const next: Message[] = [...done, { kind: "result", text: outcome.forModel ?? outcome.text, ok: outcome.ok, secret: undefined }];
     // The person sees the full result (with any key); the model only sees the plain sentence, never a secret.
-    setMessages([...done, { kind: "result", text: outcome.text, ok: outcome.ok, secret: outcome.secret, href: outcome.href, linkLabel: outcome.linkLabel }]);
+    setMessages([...done, { kind: "result", text: outcome.text, ok: outcome.ok, title: outcome.ok ? undefined : describeAction(action).title, secret: outcome.secret, href: outcome.href, linkLabel: outcome.linkLabel }]);
     if (TOOL_RISK[action.tool] !== "none") {
       setBusy(true);
       try {
@@ -505,7 +507,9 @@ export function DashboardAssistant() {
                     {messages.map((message, index) => {
                       if (message.kind === "user") return <li key={index} className="asst-rise max-w-[88%] self-end bg-[#232323] px-3 py-2 text-[12px] leading-5 text-white">{message.text}</li>;
                       if (message.kind === "result") return (
-                        <li key={index} className={`asst-rise border-l-2 bg-[#0b0b0b]/70 px-3 py-1.5 text-[12px] leading-5 ${message.ok ? "border-[#f4d44d] text-white/80" : "border-red-500 text-red-300"}`}>
+                        <li key={index} className={`asst-rise text-[12px] leading-5 ${message.ok ? "border-l-2 border-[#f4d44d] bg-[#0b0b0b]/70 px-3 py-1.5 text-white/80" : "border border-red-500/70 bg-red-950/60 p-3 text-red-100"}`}>
+                          {!message.ok ? <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-red-300"><ShieldAlert className="size-3.5" />{message.title ? "Didn't work" : "Something went wrong"}</p> : null}
+                          {!message.ok && message.title ? <p className="mb-1 font-bold text-white">{message.title}</p> : null}
                           {message.text}
                           {message.secret ? (
                             <div className="mt-2 flex items-center gap-2 border border-white/15 bg-black/60 p-2">
@@ -513,7 +517,7 @@ export function DashboardAssistant() {
                               <button type="button" onClick={() => void copy(message.secret!)} aria-label="Copy" className="asst-motion flex size-7 shrink-0 items-center justify-center border border-white/20 transition hover:border-[#f4d44d] active:scale-90">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button>
                             </div>
                           ) : null}
-                          {message.href ? <button type="button" onClick={() => router.push(message.href!)} className="mt-2 block text-[11px] font-bold uppercase tracking-widest text-[#f4d44d] hover:underline">{message.linkLabel ?? "Open"} →</button> : null}
+                          {message.href ? <button type="button" onClick={() => router.push(message.href!)} className={`mt-2 block text-[11px] font-bold uppercase tracking-widest hover:underline ${message.ok ? "text-[#f4d44d]" : "text-white"}`}>{message.linkLabel ?? "Open"} →</button> : null}
                         </li>
                       );
                       const info = message.action ? describeAction(message.action) : null;

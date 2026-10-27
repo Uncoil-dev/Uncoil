@@ -59,3 +59,17 @@ test("the alternate provider never sends a model that is not on the allowed list
     assert.equal((await completeWithFallback("t", { alt: "z" }, { alt: "Demo-Model" }, prompt)).text, "x");
   } finally { restore(); console.error = quiet; }
 });
+
+test("the alternate provider gets a user agent and a session id header", async () => {
+  process.env.ASK_AI_ALT_BASE_URL = "https://alt.example/v1";
+  process.env.ASK_AI_ALT_MODELS_ALLOWED = "m1";
+  const original = globalThis.fetch;
+  let seen: Headers | null = null;
+  globalThis.fetch = (async (_url: unknown, init?: RequestInit) => { seen = new Headers(init?.headers); return json(200, { choices: [{ message: { content: "hi" } }] }); }) as typeof fetch;
+  try {
+    const result = await completeWithFallback("Ask AI", { alt: "k" }, { alt: "m1" }, prompt);
+    assert.equal(result.text, "hi");
+    assert.match(seen!.get("x-opencode-session") ?? "", /^tracify-ask-ai-[0-9a-f-]{36}$/);
+    assert.match(seen!.get("user-agent") ?? "", /^Tracify\//);
+  } finally { globalThis.fetch = original; }
+});

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useConvex, useQuery } from "convex/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { Check, Copy, KeyRound, Send, ShieldAlert, Sparkles, X } from "lucide-react";
+import { ArrowUp, Check, ChevronRight, Copy, Globe2, KeyRound, Maximize2, Minimize2, Plus, ShieldAlert, ShieldCheck, Sparkles, Square, ThumbsDown, ThumbsUp, X, Bell, Wallet, UserPlus, Search } from "lucide-react";
 
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
@@ -16,7 +16,14 @@ type Message =
   | { kind: "assistant"; text: string; action?: AssistantAction; status?: Status }
   | { kind: "result"; text: string; ok: boolean; secret?: string; href?: string; linkLabel?: string };
 
-const SUGGESTIONS = ["Create a project for my support agent", "Alert me when runs start failing", "Set a $50 monthly budget", "Show me failed traces from the last 7 days"];
+const SUGGESTIONS = [
+  { icon: Plus, title: "Create a project", sub: "Set up a project and get its key", prompt: "Create a project for my support agent" },
+  { icon: Bell, title: "Alert me on failures", sub: "Get told when runs start failing", prompt: "Alert me when runs start failing" },
+  { icon: Wallet, title: "Set a spending budget", sub: "Warn me before costs run away", prompt: "Set a $50 monthly budget" },
+  { icon: UserPlus, title: "Invite a teammate", sub: "Share this workspace", prompt: "Invite a teammate" },
+  { icon: Search, title: "Show failed traces", sub: "Jump to the last 7 days of errors", prompt: "Show me failed traces from the last 7 days" },
+];
+const greeting = () => { const hour = new Date().getHours(); return hour < 5 ? "Good evening" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"; };
 const STORAGE_KEY = "tracify.assistant.open";
 
 type Outcome = { text: string; ok: boolean; secret?: string; href?: string; linkLabel?: string; forModel?: string };
@@ -38,6 +45,10 @@ export function DashboardAssistant() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [wide, setWide] = useState(false);
+  const [readOnly, setReadOnly] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [rated, setRated] = useState<Record<number, "up" | "down">>({});
   const end = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
 
@@ -74,6 +85,10 @@ export function DashboardAssistant() {
       const body = await response.json() as { reply?: string; action?: AssistantAction | null; error?: string };
       if (!response.ok || !body.reply) throw new Error(body.error ?? "Something went wrong. Try again.");
       const message: Message = { kind: "assistant", text: body.reply, action: body.action ?? undefined, status: body.action ? "pending" : undefined };
+      if (readOnly && body.action && TOOL_RISK[body.action.tool] !== "none") {
+        setMessages([...history, { kind: "assistant", text: "I'm in read-only mode, so I can't change anything. Switch it off under Permissions and ask again." }]);
+        return;
+      }
       const next = [...history, message];
       setMessages(next);
       if (body.action && TOOL_RISK[body.action.tool] === "none") await run(next, next.length - 1, body.action);
@@ -225,6 +240,9 @@ export function DashboardAssistant() {
     try { await navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* clipboard can be blocked */ }
   }
 
+  const title = messages.find((message) => message.kind === "user")?.text ?? "New conversation";
+  function reset() { setMessages([]); setDraft(""); setRated({}); input.current?.focus(); }
+
   return (
     <>
       {!open ? (
@@ -233,31 +251,42 @@ export function DashboardAssistant() {
         </button>
       ) : null}
       {open ? (
-        <aside aria-label="Assistant" className="fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-white/15 bg-[#0c0c0c] font-mono text-[#eceae3] shadow-[-12px_0_40px_rgba(0,0,0,0.5)] sm:w-[420px]">
-          <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/15 px-4">
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest"><span className="size-2 bg-[#f4d44d]" />Assistant<span className="font-normal normal-case tracking-normal text-white/45">{current ? `· ${current.name}` : ""}</span></div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant" className="flex size-8 items-center justify-center text-white/60 hover:bg-white/10 hover:text-white"><X className="size-4" /></button>
+        <aside aria-label="Assistant" className={`fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-white/10 bg-[#0b0b0b] font-mono text-[#eceae3] shadow-[-16px_0_48px_rgba(0,0,0,0.55)] ${wide ? "sm:w-[640px]" : "sm:w-[420px]"}`}>
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b border-white/10 px-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2 bg-white/[0.04] px-3 py-2 text-[12px] font-bold text-white"><span className="size-2 shrink-0 bg-[#f4d44d]" /><span className="truncate">{title}</span></div>
+            <button type="button" onClick={reset} aria-label="New conversation" title="New conversation" className="flex size-9 items-center justify-center text-white/60 hover:bg-white/10 hover:text-white"><Plus className="size-4" /></button>
+            <button type="button" onClick={() => setWide((value) => !value)} aria-label={wide ? "Make narrower" : "Make wider"} className="hidden size-9 items-center justify-center text-white/60 hover:bg-white/10 hover:text-white sm:flex">{wide ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</button>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant" className="flex size-9 items-center justify-center text-white/60 hover:bg-white/10 hover:text-white"><X className="size-4" /></button>
           </header>
-          <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+          <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[radial-gradient(rgba(255,255,255,0.07)_1px,transparent_1px)] [background-size:14px_14px] p-4">
             {messages.length === 0 ? (
-              <div className="flex flex-col gap-4">
-                <div>
-                  <p className="text-[15px] font-bold leading-6 text-white">What should I do for you?</p>
-                  <p className="mt-1 text-[12px] leading-5 text-white/55">I can create projects and keys, set alerts and budgets, invite teammates and jump to the right page. I always ask before I change anything.</p>
+              <div className="flex min-h-full flex-col justify-center gap-6 pb-6">
+                <div className="flex flex-col items-center text-center">
+                  <div aria-hidden className="mb-5 grid grid-cols-5 gap-[3px]">
+                    {Array.from({ length: 25 }, (_, n) => <span key={n} className={`size-3 ${[2, 6, 7, 8, 10, 11, 12, 13, 14, 16, 17, 18, 22].includes(n) ? "bg-[#f4d44d]" : [1, 3, 5, 9, 15, 19, 21, 23].includes(n) ? "bg-[#f4d44d]/35" : "bg-transparent"}`} />)}
+                  </div>
+                  <p className="text-[17px] font-bold text-white">{greeting()}{session?.user.name ? `, ${session.user.name.split(" ")[0]}` : ""}.</p>
+                  <p className="mt-1 text-[12px] text-white/55">What are we doing today?</p>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  {SUGGESTIONS.map((suggestion) => <button key={suggestion} type="button" onClick={() => send(suggestion)} className="border border-white/15 bg-white/[0.03] px-3 py-2.5 text-left text-[12px] text-white/85 hover:border-[#f4d44d] hover:bg-white/[0.06]">{suggestion}</button>)}
+                  {SUGGESTIONS.map(({ icon: Icon, title: label, sub, prompt }) => (
+                    <button key={label} type="button" onClick={() => send(prompt)} className="group flex items-center gap-3 border border-white/10 bg-[#121212] px-3 py-2.5 text-left hover:border-[#f4d44d]/70 hover:bg-[#161616]">
+                      <span className="flex size-8 shrink-0 items-center justify-center border border-white/10 bg-white/[0.04] text-white/60 group-hover:text-[#f4d44d]"><Icon className="size-4" /></span>
+                      <span className="min-w-0 flex-1"><span className="block text-[12px] font-bold text-white">{label}</span><span className="block truncate text-[11px] text-white/50">{sub}</span></span>
+                      <ChevronRight className="size-4 text-white/30 group-hover:text-[#f4d44d]" />
+                    </button>
+                  ))}
                 </div>
               </div>
             ) : (
-              <ol aria-live="polite" className="flex flex-col gap-3">
+              <ol aria-live="polite" className="flex flex-col gap-4">
                 {messages.map((message, index) => {
-                  if (message.kind === "user") return <li key={index} className="max-w-[88%] self-end bg-[#f4d44d] px-3 py-2 text-[12px] leading-5 text-[#090909]">{message.text}</li>;
+                  if (message.kind === "user") return <li key={index} className="max-w-[88%] self-end bg-[#232323] px-3 py-2 text-[12px] leading-5 text-white">{message.text}</li>;
                   if (message.kind === "result") return (
                     <li key={index} className={`border-l-2 px-3 py-1.5 text-[12px] leading-5 ${message.ok ? "border-[#f4d44d] text-white/80" : "border-red-500 text-red-300"}`}>
                       {message.text}
                       {message.secret ? (
-                        <div className="mt-2 flex items-center gap-2 border border-white/15 bg-black/50 p-2">
+                        <div className="mt-2 flex items-center gap-2 border border-white/15 bg-black/60 p-2">
                           <code className="min-w-0 flex-1 break-all text-[11px] text-[#f4d44d]">{message.secret}</code>
                           <button type="button" onClick={() => void copy(message.secret!)} aria-label="Copy" className="flex size-7 shrink-0 items-center justify-center border border-white/20 hover:border-[#f4d44d]">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button>
                         </div>
@@ -269,7 +298,10 @@ export function DashboardAssistant() {
                   const danger = message.action ? TOOL_RISK[message.action.tool] === "danger" : false;
                   return (
                     <li key={index} className="flex flex-col gap-2">
-                      <p className="whitespace-pre-wrap text-[12px] leading-5 text-white/90">{message.text}</p>
+                      <div className="border border-white/10 bg-[#121212] p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#f4d44d]">Assistant</p>
+                        <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-5 text-white/90">{message.text}</p>
+                      </div>
                       {info && message.action && TOOL_RISK[message.action.tool] !== "none" ? (
                         <div role="group" aria-label="Permission needed" className={`border p-3 ${danger ? "border-red-500/70 bg-red-500/[0.07]" : "border-[#f4d44d]/60 bg-[#f4d44d]/[0.06]"} ${message.status === "denied" ? "opacity-50" : ""}`}>
                           <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${danger ? "text-red-300" : "text-[#f4d44d]"}`}>{danger ? <ShieldAlert className="size-3.5" /> : <KeyRound className="size-3.5" />}{message.status === "pending" ? "Permission needed" : message.status === "running" ? "Working…" : message.status === "done" ? "Allowed" : message.status === "denied" ? "Not allowed" : "Didn't work"}</div>
@@ -283,20 +315,44 @@ export function DashboardAssistant() {
                           ) : null}
                         </div>
                       ) : null}
+                      <div className="flex items-center gap-1 px-1 text-white/35">
+                        <button type="button" onClick={() => setRated((value) => ({ ...value, [index]: "up" }))} aria-label="Good answer" className={`flex size-6 items-center justify-center hover:text-white ${rated[index] === "up" ? "text-[#f4d44d]" : ""}`}><ThumbsUp className="size-3.5" /></button>
+                        <button type="button" onClick={() => setRated((value) => ({ ...value, [index]: "down" }))} aria-label="Bad answer" className={`flex size-6 items-center justify-center hover:text-white ${rated[index] === "down" ? "text-red-400" : ""}`}><ThumbsDown className="size-3.5" /></button>
+                        <button type="button" onClick={() => void copy(message.text)} aria-label="Copy answer" className="flex size-6 items-center justify-center hover:text-white"><Copy className="size-3.5" /></button>
+                      </div>
                     </li>
                   );
                 })}
-                {busy ? <li className="text-[11px] text-white/45">Thinking…</li> : null}
+                {busy ? (
+                  <li className="flex items-center gap-2 text-[12px] italic text-white/55">
+                    <span aria-hidden className="grid grid-cols-3 gap-[2px]">{[0, 1, 2].map((n) => <span key={n} className="size-1.5 animate-pulse bg-[#f4d44d]" style={{ animationDelay: `${n * 150}ms` }} />)}</span>
+                    Composing your answer…
+                  </li>
+                ) : null}
               </ol>
             )}
             <div ref={end} />
           </div>
-          <form onSubmit={(event) => { event.preventDefault(); send(draft); }} className="flex shrink-0 gap-2 border-t border-white/15 p-3">
-            <label htmlFor="assistant-input" className="sr-only">Message the assistant</label>
-            <input ref={input} id="assistant-input" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={1000} placeholder="Tell me what to do…" autoComplete="off" className="h-10 min-w-0 flex-1 border border-white/20 bg-black/40 px-3 text-[12px] text-white outline-none placeholder:text-white/35 focus:border-[#f4d44d]" />
-            <button type="submit" disabled={busy || !draft.trim()} aria-label="Send" className="flex size-10 items-center justify-center bg-[#f4d44d] text-[#090909] disabled:opacity-40"><Send className="size-4" /></button>
+          <form onSubmit={(event) => { event.preventDefault(); send(draft); }} className="relative shrink-0 p-3">
+            {menu ? (
+              <div className="absolute bottom-[calc(100%-8px)] right-3 z-10 w-72 border border-white/15 bg-[#151515] p-1 shadow-xl">
+                <div className="flex items-start gap-2 px-3 py-2">{readOnly ? <Globe2 className="mt-0.5 size-4 text-white/60" /> : <ShieldCheck className="mt-0.5 size-4 text-[#f4d44d]" />}<div><p className="text-[12px] font-bold text-white">{readOnly ? "Read only" : "Can act, asks first"}</p><p className="text-[11px] leading-4 text-white/55">{readOnly ? "I can look and open pages, but I can't change anything." : "I can change things in your account, but only after you click Allow."}</p></div></div>
+                <button type="button" onClick={() => { setReadOnly((value) => !value); setMenu(false); }} className="w-full px-3 py-2 text-left text-[12px] text-white/80 hover:bg-white/10">{readOnly ? "Let me act (ask first)" : "Switch to read only"}</button>
+              </div>
+            ) : null}
+            <div className="border border-white/15 bg-[#121212] focus-within:border-[#f4d44d]/70">
+              <label htmlFor="assistant-input" className="sr-only">Message the assistant</label>
+              <input ref={input} id="assistant-input" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={1000} placeholder="Tell me what to do, or ask anything" autoComplete="off" className="h-11 w-full bg-transparent px-3 text-[12px] text-white outline-none placeholder:text-white/35" />
+              <div className="flex items-center justify-between px-2 pb-2">
+                <span className="flex items-center gap-1.5 bg-white/[0.05] px-2 py-1 text-[10px] uppercase tracking-widest text-white/60">{readOnly ? "Ask" : "Do"}</span>
+                <div className="flex items-center gap-1.5">
+                  <button type="button" onClick={() => setMenu((value) => !value)} aria-label="Permissions" aria-expanded={menu} title="Permissions" className={`flex size-8 items-center justify-center hover:bg-white/10 ${readOnly ? "text-white/50" : "text-[#f4d44d]"}`}><ShieldCheck className="size-4" /></button>
+                  <button type="submit" disabled={busy || !draft.trim()} aria-label={busy ? "Working" : "Send"} className="flex size-8 items-center justify-center bg-[#f4d44d] text-[#090909] disabled:opacity-40">{busy ? <Square className="size-3.5 fill-current" /> : <ArrowUp className="size-4" />}</button>
+                </div>
+              </div>
+            </div>
+            <p className="mt-2 text-[10px] text-white/35">AI can be wrong. It only acts after you say yes. Ctrl+J opens and closes this.</p>
           </form>
-          <p className="shrink-0 px-4 pb-3 text-[10px] text-white/35">AI can be wrong. It only acts after you say yes. Ctrl+J opens and closes this.</p>
         </aside>
       ) : null}
     </>

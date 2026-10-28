@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowUp, ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
-import { TracifyMark } from "@/components/brand/tracify-mark";
+import { UncoilMark } from "@/components/brand/uncoil-mark";
 import { LocaleSwitcher } from "@/components/marketing/locale/locale-switcher";
 
 const groups = [
@@ -62,7 +62,7 @@ export function LandingFooter() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            <TracifyMark className="block h-[0.65em]" />
+            <UncoilMark className="block h-[0.65em]" />
           </motion.span>
           {word.map((ch, i) => (
             <motion.span

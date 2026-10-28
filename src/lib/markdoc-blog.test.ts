@@ -7,7 +7,7 @@ import test from "node:test";
 import { blogMarkdocConfig, createBlogRepository, extractBlogFaqItems } from "./markdoc-blog.ts";
 
 function withContentDirectory(files: Record<string, string>, run: (directory: string) => void) {
-  const directory = mkdtempSync(path.join(tmpdir(), "tracify-markdoc-"));
+  const directory = mkdtempSync(path.join(tmpdir(), "uncoil-markdoc-"));
   try {
     for (const [filename, source] of Object.entries(files)) {
       writeFileSync(path.join(directory, filename), source, "utf8");

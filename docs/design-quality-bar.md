@@ -4,7 +4,7 @@ The owner set this rule on 2026-10-15: the landing page rebuilt in PR #171 is th
 
 ## The benchmark
 
-The reference implementation is the landing page in `src/components/marketing/landing/`, plus the Dissolve logo (`src/components/brand/tracify-mark.tsx`, `scripts/generate-logo.py`, `public/logos/dissolve/`). Before starting any design work, open that page locally, scroll the whole thing on desktop and phone, and compare your work against it side by side.
+The reference implementation is the landing page in `src/components/marketing/landing/`, plus the Dissolve logo (`src/components/brand/uncoil-mark.tsx`, `scripts/generate-logo.py`, `public/logos/dissolve/`). Before starting any design work, open that page locally, scroll the whole thing on desktop and phone, and compare your work against it side by side.
 
 What makes it the bar:
 

@@ -63,7 +63,7 @@ function titleCase(segment: string) {
   return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Page";
 }
 
-const MARKETING_ORIGIN = process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech";
+const MARKETING_ORIGIN = process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.uncoil.dev";
 
 function isActivePath(pathname: string, href: string, projectId: string, isPreview = false, currentSearch = "") {
   if (href.startsWith("http")) return false;
@@ -77,7 +77,7 @@ function isActivePath(pathname: string, href: string, projectId: string, isPrevi
   // Without a project every in-app link falls back to "/dashboard"; as a prefix it would match every page (e.g. Account).
   if (hrefPath === "/dashboard") return pathname === hrefPath;
   if (hrefPath === `/dashboard/${projectId}`) {
-    return pathname === "/dashboard" || pathname === hrefPath || (isPreview && pathname.startsWith("/tracify-preview"));
+    return pathname === "/dashboard" || pathname === hrefPath || (isPreview && pathname.startsWith("/uncoil-preview"));
   }
   return pathname === hrefPath || pathname.startsWith(`${hrefPath}/`);
 }
@@ -319,8 +319,8 @@ export function DashboardSidebar({
       }
       onCollapsedChange(!isCollapsed);
     }
-    window.addEventListener("tracify:toggle-sidebar", onShellToggle);
-    return () => window.removeEventListener("tracify:toggle-sidebar", onShellToggle);
+    window.addEventListener("uncoil:toggle-sidebar", onShellToggle);
+    return () => window.removeEventListener("uncoil:toggle-sidebar", onShellToggle);
   }, [isCollapsed, onCollapsedChange, onMobileToggle]);
 
   const close = () => onMobileClose?.();
@@ -330,7 +330,7 @@ export function DashboardSidebar({
     onCollapsedChange(false);
   }
   function openSearch() {
-    window.dispatchEvent(new Event("tracify:open-command"));
+    window.dispatchEvent(new Event("uncoil:open-command"));
   }
 
   const ctx: RowContext = {
@@ -350,7 +350,7 @@ export function DashboardSidebar({
   return (
     <aside
       className={cn(
-        "tracify-shell-sidebar fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-[#0b0b0b] text-white overflow-hidden transition-[width,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
+        "uncoil-shell-sidebar fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-[#0b0b0b] text-white overflow-hidden transition-[width,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
         isMobileOpen && "is-mobile-open",
         peekOverlay && "shadow-[12px_0_32px_rgb(0_0_0/0.45)]",
       )}

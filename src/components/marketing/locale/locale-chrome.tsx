@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { TracifyMark } from "@/components/brand/tracify-mark";
+import { UncoilMark } from "@/components/brand/uncoil-mark";
 import { getCopy, htmlLang, localizedPath, type Locale } from "@/lib/i18n";
 import { LocaleSwitcher } from "./locale-switcher";
 
@@ -19,7 +19,7 @@ export function LocaleNav({ locale }: { locale: Locale }) {
     <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#090909]/90 text-[#eceae3] backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-5 md:px-8">
         <Link href={localizedPath(locale, "/")} aria-label="Uncoil" className="flex items-baseline gap-[0.12em] font-pixel text-2xl">
-          <TracifyMark className="block translate-y-[0.03em]" />
+          <UncoilMark className="block translate-y-[0.03em]" />
           <span className="tracking-[-0.06em]">uncoil</span>
         </Link>
         <div className="flex items-center gap-2 md:gap-5">

@@ -37,10 +37,10 @@ const DISSOLVE_PATH = buildPath(true);
 const SOLID_PATH = buildPath(false);
 
 /**
- * Tracify icon. `solid` is the small-size version (browser tabs, tiny UI)
+ * Uncoil icon. `solid` is the small-size version (browser tabs, tiny UI)
  * where the dithered pixels would blur together.
  */
-export function TracifyMark({ className, solid = false }: { className?: string; solid?: boolean }) {
+export function UncoilMark({ className, solid = false }: { className?: string; solid?: boolean }) {
   return (
     <svg viewBox="0 0 50 38" className={cn("h-[0.76em] w-auto", className)} shapeRendering="crispEdges" aria-hidden="true">
       <path d={solid ? SOLID_PATH : DISSOLVE_PATH} fill="#f4d44d" />

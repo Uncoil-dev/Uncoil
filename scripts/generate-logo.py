@@ -1,12 +1,25 @@
-"""Generate the Tracify Dissolve logo files into public/logos/dissolve/ and the
-site icons (favicon, app icons). Run from the repo root: python3 scripts/generate-logo.py
-The name is the Geist Pixel wordmark from public/logos/cascade-t-a/cascade-logo-main.svg."""
+"""Generate the Uncoil Dissolve logo files into public/logos/uncoil/.
+Run from the repo root: python3 scripts/generate-logo.py [--site]
+--site also writes the site icons (favicon, apple icon) into src/app.
+The name is set in Geist Pixel Square (src/lib/og-fonts/GeistPixel-Square.ttf)."""
 import os
-import re
-src=open('public/logos/cascade-t-a/cascade-logo-main.svg').read()
-WORD=re.search(r'id="tracify"[^>]*?d="([^"]+)"',src).group(1)
+import sys
+from fontTools.ttLib import TTFont
+from fontTools.pens.svgPathPen import SVGPathPen
+from fontTools.pens.transformPen import TransformPen
+NAME="uncoil"; OUT='public/logos/uncoil'
+font=TTFont('src/lib/og-fonts/GeistPixel-Square.ttf')
+gs=font.getGlyphSet(); cmap=font.getBestCmap()
+S=7.3/38  # one font pixel (38 units) = 7.3 svg units, as in the original wordmark
+def word_path(x0,base):
+    pen=SVGPathPen(gs,lambda v:f'{v:.1f}'.rstrip('0').rstrip('.')); x=x0
+    for ch in NAME:
+        g=gs[cmap[ord(ch)]]
+        g.draw(TransformPen(pen,(S,0,0,-S,x,base))); x+=g.width*S
+    return pen.getCommands(),x
 Y="#f4d44d"; K="#090909"; C="#eceae3"
-U=138/19; TOP=42; BASE=180; TX0=240; TX1=838; DESC=208
+U=138/19; TOP=42; BASE=180; TX0=240; DESC=BASE
+WORD,TX1=word_path(TX0,BASE)
 B=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]]
 ROWS=[(0,50),(14,26),(28,18)]  # half-size pixels: bars 10 tall, gaps 4, right aligned, 50 wide
 def icon_cells(dither=True):
@@ -35,14 +48,14 @@ def icon(bg=None,dither=True,col=Y,size=None):
     body=(f'<rect width="66" height="66" fill="{bg}"/>' if bg else '')+rects(icon_cells(dither),8,14,1,col)
     return wsvg('0 0 66 66',body,size,size)
 files={
- 'tracify-logo-on-dark.svg':lockup(C),'tracify-logo-on-light.svg':lockup(K),
- 'tracify-name-on-dark.svg':wordmark(C),'tracify-name-on-light.svg':wordmark(K),
- 'tracify-icon.svg':icon(),'tracify-icon-black.svg':icon(col=K),
- 'tracify-app-icon.svg':icon(K),'tracify-app-icon-yellow.svg':icon(Y,col=K),
- 'tracify-icon-small.svg':icon(K,dither=False),
+ f'{NAME}-logo-on-dark.svg':lockup(C),f'{NAME}-logo-on-light.svg':lockup(K),
+ f'{NAME}-name-on-dark.svg':wordmark(C),f'{NAME}-name-on-light.svg':wordmark(K),
+ f'{NAME}-icon.svg':icon(),f'{NAME}-icon-black.svg':icon(col=K),
+ f'{NAME}-app-icon.svg':icon(K),f'{NAME}-app-icon-yellow.svg':icon(Y,col=K),
+ f'{NAME}-icon-small.svg':icon(K,dither=False),
 }
-os.makedirs('public/logos/dissolve',exist_ok=True)
-for n,s in files.items(): open('public/logos/dissolve/'+n,'w').write(s)
+os.makedirs(OUT,exist_ok=True)
+for n,s in files.items(): open(OUT+'/'+n,'w').write(s)
 
 # Raster icons. The tab icon is drawn natively at each size (no resampling),
 # with a transparent background, using the same dissolve as the logo.
@@ -65,8 +78,8 @@ def tab_icon(n):
                 f=(x-x0+0.5)/w
                 if B[y%4][x%4]/16 < f*1.9-0.15: px[x,y]=yellow+(255,)
     return im
-raster(180,black,yellow).save('src/app/(frontend)/apple-icon.png')
+if '--site' in sys.argv: raster(180,black,yellow).save('src/app/(frontend)/apple-icon.png')
 ico=[tab_icon(n) for n in (16,32,48)]
-for p in ('src/app/favicon.ico','src/app/(frontend)/favicon.ico'):
+for p in (('src/app/favicon.ico','src/app/(frontend)/favicon.ico') if '--site' in sys.argv else ()):
     ico[2].save(p,sizes=[(16,16),(32,32),(48,48)],append_images=ico[:2])
-for n,im in zip((16,32,48),ico): im.save(f'public/logos/dissolve/tracify-tab-icon-{n}.png')
+for n,im in zip((16,32,48),ico): im.save(f'{OUT}/{NAME}-tab-icon-{n}.png')

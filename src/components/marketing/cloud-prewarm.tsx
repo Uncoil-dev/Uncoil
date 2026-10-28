@@ -1,6 +1,6 @@
-import { TRACIFY_REGIONS } from "@/lib/regions";
+import { UNCOIL_REGIONS } from "@/lib/regions";
 
-const cloud = TRACIFY_REGIONS.eu.origin;
+const cloud = UNCOIL_REGIONS.eu.origin;
 
 // Pages people reach from the marketing site's Sign in / Start building / Playground buttons.
 // The cloud host is a different origin, so without this the first click pays for DNS, TLS and

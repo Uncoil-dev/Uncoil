@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createRequire } from "node:module";
-import { init, uninit, wrapOpenAI, TracifyClient } from "../src/index";
+import { init, uninit, wrapOpenAI, UncoilClient } from "../src/index";
 
 // init() patches the package's CommonJS build (the one `require` gets), so load that build here.
 const cjs = createRequire(import.meta.url);
 const OpenAI = cjs("openai").OpenAI as typeof import("openai").default;
 const Anthropic = cjs("@anthropic-ai/sdk").Anthropic as typeof import("@anthropic-ai/sdk").default;
 const records: any[] = [];
-const telemetry = new TracifyClient({ apiKey: "test-key" });
+const telemetry = new UncoilClient({ apiKey: "test-key" });
 telemetry.ingest = vi.fn(async (data: any) => { records.push({ ...data }); });
 const json = (body: any) => new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } });
 const completion = {

@@ -1,0 +1,62 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lamUncoilCostTitle">
+  <title id="lamUncoilCostTitle">Annual total cost of ownership at 50 million monthly traces: Laminar totals $102,300 dominated by engineering overhead from incomplete traces, while Uncoil totals $61,500 including evaluation, a $40,800 annual advantage</title>
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="42" font-size="26" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    ANNUAL TCO AT 50M TRACES/MONTH
+  </text>
+  <text x="600" y="66" font-size="14" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Storage + engineering overhead + evaluation, fully loaded
+  </text>
+
+  <!-- Y axis gridlines and $ labels (scale: 0 to 110000, 110px = 10000) -->
+  <line x1="140" y1="600" x2="1120" y2="600" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="140" y1="120" x2="140" y2="600" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="60" y="605" font-size="12" fill="#888888" font-family="'Geist Mono', monospace">$0</text>
+  <text x="20" y="365" font-size="12" fill="#888888" font-family="'Geist Mono', monospace">$60,000</text>
+  <text x="20" y="130" font-size="12" fill="#888888" font-family="'Geist Mono', monospace">$110,000</text>
+  <line x1="140" y1="365" x2="1120" y2="365" stroke="#333333" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Laminar stacked bar: storage $4,800 + overhead $97,500 = $102,300 -->
+  <!-- scale: 480px available (120 to 600) for ~110000 -> 1$ = 0.00436px; use simpler: 1000$ = 4.36px -->
+  <text x="330" y="150" font-size="18" font-weight="bold" fill="#FF6666" text-anchor="middle" font-family="'Geist Mono', monospace">LAMINAR</text>
+
+  <!-- overhead block (top, largest): 97500 -> height 425px -->
+  <rect x="230" y="153" width="200" height="425" fill="#FF4444" opacity="0.85" stroke="#FF4444" stroke-width="1"/>
+  <text x="330" y="330" font-size="15" fill="#220000" text-anchor="middle" font-weight="bold" font-family="'Geist Mono', monospace">Engineering overhead</text>
+  <text x="330" y="352" font-size="15" fill="#220000" text-anchor="middle" font-weight="bold" font-family="'Geist Mono', monospace">$97,500/yr</text>
+  <text x="330" y="374" font-size="11" fill="#330000" text-anchor="middle" font-family="'Geist Mono', monospace">replay, manual QA, missed regressions</text>
+
+  <!-- storage block (bottom, small): 4800 -> height 21px -->
+  <rect x="230" y="578" width="200" height="21" fill="#552222" stroke="#FF4444" stroke-width="1"/>
+
+  <text x="330" y="618" font-size="12" fill="#FF8888" text-anchor="middle" font-family="'Geist Mono', monospace">Storage: $4,800/yr</text>
+  <rect x="230" y="130" width="200" height="448" fill="none" stroke="#FF4444" stroke-width="2"/>
+  <text x="330" y="115" font-size="19" fill="#FF4444" text-anchor="middle" font-weight="bold" font-family="'Geist Mono', monospace">$102,300/yr</text>
+
+  <!-- Uncoil stacked bar: storage $24,000 + overhead $15,000 + evaluation $22,500 = $61,500 -->
+  <text x="870" y="150" font-size="18" font-weight="bold" fill="#66FF66" text-anchor="middle" font-family="'Geist Mono', monospace">UNCOIL</text>
+
+  <!-- evaluation block (top): 22500 -> height 98px -->
+  <rect x="770" y="332" width="200" height="98" fill="#224422" stroke="#44FF44" stroke-width="1"/>
+  <text x="870" y="368" font-size="13" fill="#AAFFAA" text-anchor="middle" font-weight="bold" font-family="'Geist Mono', monospace">Evaluation: $22,500/yr</text>
+  <text x="870" y="386" font-size="10" fill="#77BB77" text-anchor="middle" font-family="'Geist Mono', monospace">setup + runs + maintenance</text>
+
+  <!-- overhead block (middle): 15000 -> height 65px -->
+  <rect x="770" y="430" width="200" height="65" fill="#336633" stroke="#44FF44" stroke-width="1"/>
+  <text x="870" y="468" font-size="12" fill="#CCFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">Overhead: $15,000/yr</text>
+
+  <!-- storage block (bottom): 24000 -> height 105px -->
+  <rect x="770" y="495" width="200" height="105" fill="#001a00" stroke="#44FF44" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="870" y="540" font-size="13" fill="#66FF66" text-anchor="middle" font-weight="bold" font-family="'Geist Mono', monospace">Storage</text>
+  <text x="870" y="560" font-size="13" fill="#66FF66" text-anchor="middle" font-weight="bold" font-family="'Geist Mono', monospace">$24,000/yr</text>
+
+  <rect x="770" y="332" width="200" height="268" fill="none" stroke="#44FF44" stroke-width="2"/>
+  <text x="870" y="317" font-size="19" fill="#44FF44" text-anchor="middle" font-weight="bold" font-family="'Geist Mono', monospace">$61,500/yr</text>
+
+  <!-- Callout -->
+  <rect x="150" y="630" width="900" height="45" fill="none" stroke="#FFFF00" stroke-width="2"/>
+  <text x="600" y="658" font-size="14" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">
+    Uncoil costs 5x more to store but $40,800/year less overall — overhead from incomplete traces dominates Laminar's bill
+  </text>
+</svg>

@@ -16,8 +16,8 @@ import {
   dismissOnboarding,
 } from "@/lib/onboarding-client-state";
 
-const PROJECT_ID_STORAGE_KEY = "tracify.onboarding.projectId";
-const API_KEY_COPIED_STORAGE_KEY = "tracify.onboarding.apiKeyCopied";
+const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
+const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
 
 function getSessionSnapshot() {
   const projectId = window.sessionStorage.getItem(PROJECT_ID_STORAGE_KEY) ?? "";

@@ -1,17 +1,17 @@
-# tracify Project Manager Summary
+# uncoil Project Manager Summary
 
 Last updated: 2026-05-17
 
 ## Executive Summary
 
-tracify is an agent observability SaaS for tracking AI agent runs, spans, cost, latency, failures, alerts, comments, and project-level usage. The product now has a working Next.js 16 dashboard, Clerk authentication, Convex app metadata storage, Tinybird span analytics, Inngest background processing, TypeScript and Python SDK packages, API-key based ingestion, onboarding, project management, safer project deletion, run detail views, costs dashboards, demo data seeding, and deployment wiring for Vercel and Convex.
+uncoil is an agent observability SaaS for tracking AI agent runs, spans, cost, latency, failures, alerts, comments, and project-level usage. The product now has a working Next.js 16 dashboard, Clerk authentication, Convex app metadata storage, Tinybird span analytics, Inngest background processing, TypeScript and Python SDK packages, API-key based ingestion, onboarding, project management, safer project deletion, run detail views, costs dashboards, demo data seeding, and deployment wiring for Vercel and Convex.
 
 The current MVP supports a real end-to-end flow:
 
 1. A user signs in with Clerk.
 2. The user creates or opens a Convex-backed project.
 3. The user gets an API key.
-4. A customer app installs `npm install tracify-sdk` or `pip install tracify-sdk`.
+4. A customer app installs `npm install uncoil-sdk` or `pip install uncoil-sdk`.
 5. The SDK sends spans to `POST /api/ingest`.
 6. The API validates the key, sends a span event to Inngest, writes raw span data to Tinybird, and updates Convex run summaries.
 7. The dashboard updates with runs, trace detail, costs, model breakdowns, alerts, saved stats, and project management data.
@@ -27,7 +27,7 @@ The current MVP supports a real end-to-end flow:
 | Background jobs | Inngest | Async span processing and alert processing |
 | Hosting | Vercel | Frontend and Next.js API deployment |
 | Styling | Tailwind 4, shadcn-style local UI, Base UI, lucide-react, Recharts | Dashboard UI and charts |
-| SDKs | TypeScript package `tracify`, Python package `tracify` | Customer instrumentation |
+| SDKs | TypeScript package `uncoil`, Python package `uncoil` | Customer instrumentation |
 
 ## Product Areas Completed
 
@@ -35,7 +35,7 @@ The current MVP supports a real end-to-end flow:
 
 Implemented:
 
-- Landing page with tracify positioning and developer-focused aesthetic.
+- Landing page with uncoil positioning and developer-focused aesthetic.
 - Legal pages:
   - `/privacy`
   - `/terms`
@@ -115,7 +115,7 @@ Implemented:
 
 Important behavior:
 
-- API keys are accepted by ingest only when they match the `tracify_sk_live_` prefix.
+- API keys are accepted by ingest only when they match the `uncoil_sk_live_` prefix.
 - Full plaintext API keys are not meant to be stored in Convex; the app stores hashes and display metadata.
 - The API-key hash secret must match between the environment that creates keys and the environment that validates ingest.
 
@@ -173,7 +173,7 @@ Implemented end-to-end ingestion:
    - cost/model/tool/metadata field types
 3. API route hashes the API key and looks up the project in Convex.
 4. API route marks API key last-used time in Convex.
-5. API route sends `tracify/span.received` event to Inngest.
+5. API route sends `uncoil/span.received` event to Inngest.
 6. Inngest writes span to Tinybird.
 7. Inngest upserts Convex run summary.
 8. Inngest checks alert thresholds and error spans.
@@ -221,7 +221,7 @@ Implemented:
 
 Trigger:
 
-- `tracify/span.received`
+- `uncoil/span.received`
 
 Responsibilities:
 
@@ -236,7 +236,7 @@ Responsibilities:
 
 Trigger:
 
-- `tracify/alert.triggered`
+- `uncoil/alert.triggered`
 
 Responsibilities:
 
@@ -603,10 +603,10 @@ Implemented:
 
 Demo data:
 
-- `scratch/user-test-tracify/seed-history.mjs`
+- `scratch/user-test-uncoil/seed-history.mjs`
   - Seeds previous-day dashboard data.
 
-- `scratch/user-test-tracify/seed-savings.mjs`
+- `scratch/user-test-uncoil/seed-savings.mjs`
   - Seeds an expensive-to-optimized pattern to show savings.
 
 ### 16. Alerts and Notifications
@@ -641,17 +641,17 @@ Implemented:
 
 Package:
 
-- `tracify`
+- `uncoil`
 
 Install:
 
 ```bash
-npm install tracify-sdk
+npm install uncoil-sdk
 ```
 
 Implemented exports:
 
-- `TracifyClient`
+- `UncoilClient`
 - `traceAgent`
 - `llmCall`
 - `toolCall`
@@ -659,36 +659,36 @@ Implemented exports:
 
 Package status:
 
-- `packages/ts-sdk/package.json` publishes as `tracify`.
+- `packages/ts-sdk/package.json` publishes as `uncoil`.
 - Build output configured through TypeScript.
-- `npm publish` succeeded for `tracify@0.1.0`.
-- Site/docs/onboarding install copy updated away from old `tracify`.
+- `npm publish` succeeded for `uncoil@0.1.0`.
+- Site/docs/onboarding install copy updated away from old `uncoil`.
 
 #### Python SDK
 
 Distribution:
 
-- `tracify`
+- `uncoil`
 
 Install:
 
 ```bash
-pip install tracify-sdk
+pip install uncoil-sdk
 ```
 
 Import module:
 
 ```python
-from tracify import TracifyClient, trace_agent, llm_call, tool_call
+from uncoil import UncoilClient, trace_agent, llm_call, tool_call
 ```
 
 Reason:
 
-- PyPI package is named `tracify`, with a `tracify` import package and a legacy `tracify` compatibility import.
+- PyPI package is named `uncoil`, with a `uncoil` import package and a legacy `uncoil` compatibility import.
 
 Package status:
 
-- `packages/python-sdk/pyproject.toml` uses distribution name `tracify`.
+- `packages/python-sdk/pyproject.toml` uses distribution name `uncoil`.
 - Local wheel build passed.
 - Local wheel smoke test imported the expected symbols.
 - PyPI upload eventually succeeded after using a valid PyPI API token through `uv publish --token`.
@@ -697,16 +697,16 @@ Package status:
 
 Implemented local scripts:
 
-- `scratch/user-test-tracify/send-test-span.mjs`
+- `scratch/user-test-uncoil/send-test-span.mjs`
   - Sends a basic span through local ingest.
 
-- `scratch/user-test-tracify/agentic-workflow.mjs`
+- `scratch/user-test-uncoil/agentic-workflow.mjs`
   - Sends a more comprehensive agentic workflow with expensive model spans.
 
-- `scratch/user-test-tracify/seed-history.mjs`
+- `scratch/user-test-uncoil/seed-history.mjs`
   - Seeds previous days of dashboard telemetry.
 
-- `scratch/user-test-tracify/seed-savings.mjs`
+- `scratch/user-test-uncoil/seed-savings.mjs`
   - Seeds savings-impact demo data.
 
 Tested behavior:
@@ -836,13 +836,13 @@ Fix:
 
 Problem:
 
-- Docs and prompts still referenced old package names like `tracify` or Python install variants.
+- Docs and prompts still referenced old package names like `uncoil` or Python install variants.
 
 Fix:
 
 - Standardized installs:
-  - `npm install tracify-sdk`
-  - `pip install tracify-sdk`
+  - `npm install uncoil-sdk`
+  - `pip install uncoil-sdk`
 
 ### 22. Known Limitations and Open Work
 
@@ -921,7 +921,7 @@ The app is in a functional MVP state:
 - Users can authenticate.
 - Users can create projects.
 - API keys can be issued and rotated.
-- SDK installs are published/standardized as `tracify`.
+- SDK installs are published/standardized as `uncoil`.
 - Spans can be ingested.
 - Runs and costs appear in dashboard.
 - Trace detail pages can show span timelines.

@@ -1,16 +1,16 @@
 # ERPNext integration design
 
-The first ERPNext integration will be an outbound, project-scoped connector from Tracify to an ERPNext/Frappe instance. It will send selected operational events—initially failed runs and configured alert breaches—as `ToDo` records, while keeping raw trace evidence in Tracify.
+The first ERPNext integration will be an outbound, project-scoped connector from Uncoil to an ERPNext/Frappe instance. It will send selected operational events—initially failed runs and configured alert breaches—as `ToDo` records, while keeping raw trace evidence in Uncoil.
 
 ## Proposed flow
 
-`Tracify alert -> project integration settings -> server-side delivery action -> ERPNext REST API -> linked ERPNext record`
+`Uncoil alert -> project integration settings -> server-side delivery action -> ERPNext REST API -> linked ERPNext record`
 
 Use a dedicated least-privilege ERPNext API user. Frappe’s REST API supports token authentication with `token api_key:api_secret`, exposes DocTypes at `/api/resource/:doctype`, and provides `/api/method/frappe.auth.get_logged_user` for a connection test.
 
 ## Initial mapping
 
-| Tracify event | ERPNext record | Data sent |
+| Uncoil event | ERPNext record | Data sent |
 | --- | --- | --- |
 | Failed agent run | ToDo | run ID, status, failure message, project, environment, release, trace URL |
 | Cost/duration threshold alert | ToDo | alert type, message, run ID, triggered time, trace URL |
@@ -39,8 +39,8 @@ Use a dedicated least-privilege ERPNext API user. Frappe’s REST API supports t
 - ERPNext site or sandbox URL.
 - Confirmation that `ToDo` is the target DocType (rather than `Issue`).
 - Dedicated API user key and secret supplied through deployment secrets, never committed.
-- Tracify public base URL for links back to trace evidence.
+- Uncoil public base URL for links back to trace evidence.
 
 ## Deployment secret
 
-Before enabling project-scoped ERPNext credentials, configure `TRACIFY_INTEGRATION_ENCRYPTION_KEY` as a randomly generated, stable 32-byte AES key encoded as base64 in the server/Convex environment. Never put an ERPNext API secret in `.env.local.example`, source control, browser state, or a client-visible Convex query. Rotating this key requires re-encrypting stored integration credentials before removing the old key.
+Before enabling project-scoped ERPNext credentials, configure `UNCOIL_INTEGRATION_ENCRYPTION_KEY` as a randomly generated, stable 32-byte AES key encoded as base64 in the server/Convex environment. Never put an ERPNext API secret in `.env.local.example`, source control, browser state, or a client-visible Convex query. Rotating this key requires re-encrypting stored integration credentials before removing the old key.

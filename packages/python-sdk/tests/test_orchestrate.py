@@ -2,15 +2,15 @@ import time
 import json
 import pytest
 from unittest.mock import patch, MagicMock, PropertyMock
-from tracify import (
-    TracifyClient,
+from uncoil import (
+    UncoilClient,
     RuntimePolicy,
     CancellationToken,
     LatencyBudgetExceeded,
     _is_retryable_error,
 )
 
-HTTP_TARGET = "tracify.httpx.Client.post" if True else "tracify._requests_fallback.post"
+HTTP_TARGET = "uncoil.httpx.Client.post" if True else "uncoil._requests_fallback.post"
 
 try:
     import httpx
@@ -18,7 +18,7 @@ try:
 except ImportError:
     _HAS_HTTPX = False
 
-MOCK_TARGET = "tracify.httpx.Client.post" if _HAS_HTTPX else "tracify._requests_fallback.post"
+MOCK_TARGET = "uncoil.httpx.Client.post" if _HAS_HTTPX else "uncoil._requests_fallback.post"
 
 
 class TestRuntimePolicy:
@@ -85,24 +85,24 @@ class TestCancellationToken:
         t.check()
 
 
-class TestTracifyClient:
+class TestUncoilClient:
     def test_selects_requested_region(self):
-        client = TracifyClient(api_key="test-key", region="us")
-        assert client.host == "https://us.cloud.tracify.tech"
+        client = UncoilClient(api_key="test-key", region="us")
+        assert client.host == "https://us.cloud.uncoil.dev"
 
     def test_rejects_wrong_region_key(self):
         with pytest.raises(ValueError, match="belongs to EU"):
-            TracifyClient(api_key="tracify_sk_live_eu_example", region="us")
+            UncoilClient(api_key="uncoil_sk_live_eu_example", region="us")
 
     def test_legacy_keys_belong_to_eu(self):
         with pytest.raises(ValueError, match="belongs to EU"):
-            TracifyClient(api_key="tracify_sk_live_legacy", region="us")
+            UncoilClient(api_key="uncoil_sk_live_legacy", region="us")
 
     @patch(MOCK_TARGET)
     def test_ingest_sends_correct_payload(self, mock_http):
         mock_http.return_value = MagicMock(status_code=202)
 
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
         client.ingest(
             runId="run-1",
             spanType="llm_call",
@@ -125,7 +125,7 @@ class TestTracifyClient:
     def test_ingest_preserves_custom_metadata(self, mock_http):
         mock_http.return_value = MagicMock(status_code=202)
 
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
         client.ingest(
             runId="run-1",
             spanType="llm_call",
@@ -144,7 +144,7 @@ class TestTracifyClient:
     @patch(MOCK_TARGET)
     def test_client_context_is_added_to_ingested_payload(self, mock_http):
         mock_http.return_value = MagicMock(status_code=202)
-        client = TracifyClient(
+        client = UncoilClient(
             api_key="test-key",
             release="release-42",
             environment="production",
@@ -163,7 +163,7 @@ class TestTracifyClient:
     @patch(MOCK_TARGET)
     def test_orchestrate_success_on_first_model(self, mock_http):
         mock_http.return_value = MagicMock(status_code=202)
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
 
         def mock_call(model, token):
             return {"result": "ok", "model": model}
@@ -180,7 +180,7 @@ class TestTracifyClient:
     @patch(MOCK_TARGET)
     def test_orchestrate_fallback_on_error(self, mock_http):
         mock_http.return_value = MagicMock(status_code=202)
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
 
         def mock_call(model, token):
             if model == "gpt-4o":
@@ -203,7 +203,7 @@ class TestTracifyClient:
     @patch(MOCK_TARGET)
     def test_orchestrate_terminal_error_when_all_fail(self, mock_http):
         mock_http.return_value = MagicMock(status_code=202)
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
 
         def mock_call(model, token):
             raise Exception(f"{model} failed")
@@ -223,7 +223,7 @@ class TestTracifyClient:
     @patch(MOCK_TARGET)
     def test_orchestrate_passes_cancellation_token(self, mock_http):
         mock_http.return_value = MagicMock(status_code=202)
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
         received_tokens = []
 
         def mock_call(model, token):
@@ -244,7 +244,7 @@ class TestTracifyClient:
     @patch(MOCK_TARGET)
     def test_orchestrate_latency_abort_falls_back(self, mock_http):
         mock_http.return_value = MagicMock(status_code=202)
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
 
         def mock_call(model, token):
             if model == "gpt-4o":
@@ -266,7 +266,7 @@ class TestTracifyClient:
     @patch(MOCK_TARGET)
     def test_orchestrate_failopen_on_check_cost_failure(self, mock_http):
         mock_http.return_value = MagicMock(status_code=500)
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
         policy = RuntimePolicy(
             enforcement_mode="enforce",
             fallback_chain=["gpt-4o"],
@@ -297,7 +297,7 @@ class TestTracifyClient:
             return ok
 
         mock_http.side_effect = side_effect
-        client = TracifyClient(api_key="test-key")
+        client = UncoilClient(api_key="test-key")
         policy = RuntimePolicy(
             enforcement_mode="enforce",
             fallback_chain=["gpt-4o"],

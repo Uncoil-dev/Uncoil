@@ -44,9 +44,9 @@ export default function AuthCallbackPage() {
     if (action === "continue") {
       // Every sign-up lands here, email or Google or GitHub. The server decides whether this account is new and not yet welcomed.
       try {
-        if (!window.sessionStorage.getItem("tracify.welcome.checked")) {
+        if (!window.sessionStorage.getItem("uncoil.welcome.checked")) {
           void fetch("/api/lifecycle/welcome", { method: "POST", keepalive: true })
-            .then((response) => { if (response.ok) window.sessionStorage.setItem("tracify.welcome.checked", "1"); })
+            .then((response) => { if (response.ok) window.sessionStorage.setItem("uncoil.welcome.checked", "1"); })
             .catch(() => undefined);
         }
       } catch { /* storage can be blocked; the server still sends at most once */ }

@@ -3,7 +3,7 @@ title: "OpenTelemetry for LLM Tracing: A Practical Starting Point"
 slug: opentelemetry-llm-tracing
 excerpt: Map model calls, retrieval, tools, and agent runs into traceable spans without losing the business outcome that gives telemetry meaning.
 publishedAt: 2026-08-20T09:45:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories: [engineering]
 tags: [OpenTelemetry, LLM tracing, observability]
@@ -51,9 +51,9 @@ Create a parent span for the task, then child spans for retrieval, model calls, 
 
 ```ts
 const span = tracer.startSpan("agent.run", { attributes: {
-  "tracify.workflow": "support-answer",
-  "tracify.release": release,
-  "tracify.environment": "production",
+  "uncoil.workflow": "support-answer",
+  "uncoil.release": release,
+  "uncoil.environment": "production",
 } });
 ```
 
@@ -119,7 +119,7 @@ Use a small fixture with a model decision, retrieval hit, tool error, retry, and
 
 Telemetry can fail too. Decide whether ingestion is fail-open or fail-closed for each workflow, bound exporter retries, and monitor dropped spans. Do not block a critical user action indefinitely because a telemetry backend is unavailable unless the data is itself a required control. If the trace is incomplete, record that fact on the run.
 
-Keep the canonical source of each fact clear. OpenTelemetry can carry portable context, while Tracify can add task-level metadata, evaluation, and cost fields that give the trace operational meaning. Avoid two competing definitions of release, status, or duration.
+Keep the canonical source of each fact clear. OpenTelemetry can carry portable context, while Uncoil can add task-level metadata, evaluation, and cost fields that give the trace operational meaning. Avoid two competing definitions of release, status, or duration.
 
 ## OpenTelemetry rollout checklist
 

@@ -8,7 +8,7 @@ import { Check, Copy } from "lucide-react";
 /* ---------- Terminal: a first trace, typed out ---------- */
 
 const script = [
-  { text: "npm install tracify-sdk", kind: "cmd" },
+  { text: "npm install uncoil-sdk", kind: "cmd" },
   { text: "added 1 package in 2s", kind: "dim" },
   { text: "node agent.js", kind: "cmd" },
   { text: "▸ run_9f3a  support-agent", kind: "ok" },
@@ -52,11 +52,11 @@ export function DocsTerminal() {
 
 /* ---------- Journey: install, instrument, inspect, improve ---------- */
 
-const wrap = `import { traceAgent } from "tracify-sdk";
+const wrap = `import { traceAgent } from "uncoil-sdk";
 
 const runAgent = traceAgent(
   async (question: string) => callModel(question),
-  { apiKey: process.env.TRACIFY_API_KEY },
+  { apiKey: (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) },
 );
 
 await runAgent("Where is my order?");`;
@@ -108,10 +108,10 @@ function Panel({ index }: { index: number }) {
     return (
       <Screen title="1 · install">
         <div className="space-y-3">
-          <CopyLine text="npm install tracify-sdk" />
-          <CopyLine text="pip install tracify-sdk" />
+          <CopyLine text="npm install uncoil-sdk" />
+          <CopyLine text="pip install uncoil-sdk" />
           <p className="pt-2 font-mono text-[11px] uppercase tracking-[0.12em] text-white/45">.env</p>
-          <pre className="font-mono text-[13px] text-white/80">TRACIFY_API_KEY=tracify_sk_live_…</pre>
+          <pre className="font-mono text-[13px] text-white/80">UNCOIL_API_KEY=uncoil_sk_live_…</pre>
         </div>
       </Screen>
     );

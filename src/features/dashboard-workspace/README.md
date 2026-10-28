@@ -2,7 +2,7 @@
 
 ## Surface
 
-Owns the capture-faithful Tracify dashboard presentation shared by authenticated live projects and the public populated Sandbox.
+Owns the capture-faithful Uncoil dashboard presentation shared by authenticated live projects and the public populated Sandbox.
 
 ## Entry points
 
@@ -13,7 +13,7 @@ Owns the capture-faithful Tracify dashboard presentation shared by authenticated
 ## Structure
 
 - `contracts.ts` defines the shared live/Sandbox view-model boundary.
-- `sandbox-data.ts` owns versioned deterministic Tracify fixtures.
+- `sandbox-data.ts` owns versioned deterministic Uncoil fixtures.
 - `components/` owns view-only captured dashboard surfaces.
 
 ## State ownership
@@ -22,4 +22,4 @@ Server state stays in the live Convex/Tinybird adapters. Route state stays in Ne
 
 ## Stability boundaries
 
-The supplied static captures are the visual authority. Product names and example records are Tracify-owned, while layout, density, controls, and empty/populated behavior remain aligned with the references.
+The supplied static captures are the visual authority. Product names and example records are Uncoil-owned, while layout, density, controls, and empty/populated behavior remain aligned with the references.

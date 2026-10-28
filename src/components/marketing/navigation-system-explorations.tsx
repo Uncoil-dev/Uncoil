@@ -442,7 +442,7 @@ export function NavigationSystemExplorations({
               <pre className="mt-7 overflow-x-auto">
                 <code>
                   <span className="text-white/62">01</span>
-                  {"  import { traceAgent } from 'tracify-sdk'\n"}
+                  {"  import { traceAgent } from 'uncoil-sdk'\n"}
                   <span className="text-white/62">02</span>
                   {"\n"}
                   <span className="text-white/62">03</span>
@@ -515,7 +515,7 @@ export function NavigationSystemExplorations({
                   <th className="p-5">Operating model</th>
                   <th className="p-5">Logs</th>
                   <th className="p-5">Dashboards</th>
-                  <th className="bg-[#f4d44d] p-5 text-black">Tracify</th>
+                  <th className="bg-[#f4d44d] p-5 text-black">Uncoil</th>
                 </tr>
               </thead>
               <tbody>
@@ -636,7 +636,7 @@ export function NavigationSystemExplorations({
             <div className="mt-10 grid gap-10 border-b border-black/15 pb-14 md:grid-cols-[1fr_auto]">
               <div>
                 <p className="relative isolate inline-block px-1 font-pixel text-3xl tracking-[-0.05em] before:absolute before:-inset-x-1 before:bottom-0.5 before:-z-10 before:h-[68%] before:-rotate-1 before:skew-x-[-7deg] before:bg-[#f4d44d]/80 before:content-['']">
-                  tracify
+                  uncoil
                 </p>
                 <p className="mt-5 max-w-sm text-sm leading-7 text-black/70">
                   The operating record for the agents your team ships.
@@ -648,7 +648,7 @@ export function NavigationSystemExplorations({
                 >
                   <input type="hidden" name="intent" value="newsletter" />
                   <label htmlFor="future19-newsletter" className="sr-only">
-                    Work email for the Tracify newsletter
+                    Work email for the Uncoil newsletter
                   </label>
                   <input
                     id="future19-newsletter"
@@ -734,7 +734,7 @@ export function NavigationSystemExplorations({
               </div>
             </div>
             <div className="select-none pt-8 font-pixel text-[clamp(5.5rem,18.2vw,18rem)] leading-[0.66] tracking-[-0.1em] text-black">
-              tracify
+              uncoil
             </div>
           </div>
           <div className="h-4 bg-[#f4d44d]" />

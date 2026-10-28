@@ -1,0 +1,62 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="46" font-size="26" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Two axes, one decision
+  </text>
+  <text x="600" y="70" font-size="13" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Plot your team against infrastructure breadth and agent-specific depth to see which zone you land in
+  </text>
+
+  <!-- Quadrant background quarters -->
+  <rect x="150" y="120" width="440" height="410" fill="#111111"/>
+  <rect x="590" y="120" width="440" height="410" fill="#161600"/>
+  <rect x="150" y="530" width="440" height="0" fill="none"/>
+
+  <!-- Axes -->
+  <line x1="150" y1="530" x2="1030" y2="530" stroke="#666666" stroke-width="2"/>
+  <line x1="150" y1="120" x2="150" y2="530" stroke="#666666" stroke-width="2"/>
+  <line x1="590" y1="120" x2="590" y2="530" stroke="#333333" stroke-width="1" stroke-dasharray="5 5"/>
+  <line x1="150" y1="325" x2="1030" y2="325" stroke="#333333" stroke-width="1" stroke-dasharray="5 5"/>
+
+  <text x="590" y="558" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">infrastructure breadth needed (logs + metrics + traces, many services) →</text>
+  <text x="130" y="330" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" transform="rotate(-90 130 330)">agent-specific depth needed (evaluation, cost, sessions) →</text>
+
+  <!-- Quadrant labels -->
+  <text x="370" y="150" font-size="15" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">low / low</text>
+  <text x="370" y="170" font-size="11" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace">early prototype —</text>
+  <text x="370" y="186" font-size="11" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace">either tool is overkill</text>
+
+  <text x="810" y="150" font-size="15" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">low breadth / high depth</text>
+  <text x="810" y="172" font-size="12" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">Uncoil zone</text>
+  <text x="810" y="192" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">agent-only or agent-first product,</text>
+  <text x="810" y="208" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">little non-agent infra to watch</text>
+
+  <text x="370" y="480" font-size="15" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">high breadth / low depth</text>
+  <text x="370" y="502" font-size="12" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">OpenObserve zone</text>
+  <text x="370" y="509" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace"> </text>
+  <text x="370" y="518" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">many services, agents are a minor slice</text>
+
+  <text x="810" y="480" font-size="15" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">high / high</text>
+  <text x="810" y="502" font-size="12" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">run both, on purpose</text>
+  <text x="810" y="518" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">OpenObserve for infra, Uncoil for agents</text>
+
+  <!-- Example dots -->
+  <circle cx="250" cy="230" r="7" fill="#FFD400"/>
+  <text x="264" y="234" font-size="11" fill="#FFD400" font-family="'Geist Mono', monospace">weekend agent demo</text>
+
+  <circle cx="920" cy="200" r="7" fill="#FFD400"/>
+  <text x="880" y="230" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">support-agent SaaS</text>
+
+  <circle cx="250" cy="440" r="7" fill="#FFFFFF"/>
+  <text x="250" y="465" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">e-commerce platform, one</text>
+  <text x="250" y="480" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">internal support agent</text>
+
+  <circle cx="880" cy="440" r="7" fill="#FFFFFF"/>
+  <text x="880" y="465" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">fintech: 60 services +</text>
+  <text x="880" y="480" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">multi-agent underwriting</text>
+
+  <text x="600" y="655" font-size="12" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace">
+    The dots are illustrative profiles, not tracked customers — use them to place your own team.
+  </text>
+</svg>

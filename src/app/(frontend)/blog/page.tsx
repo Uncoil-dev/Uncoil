@@ -7,7 +7,7 @@ import { getCategoryOptions, getPostDate, getPublishedPosts } from "@/lib/markdo
 import Link from "next/link";
 
 export const revalidate = 60;
-export const metadata = pageMetadata({ title: "AI agent observability blog", description: "Guides on AI agent observability, tracing, evaluation, cost control and debugging in production, plus honest Tracify vs alternatives comparisons.", path: "/blog" });
+export const metadata = pageMetadata({ title: "AI agent observability blog", description: "Guides on AI agent observability, tracing, evaluation, cost control and debugging in production, plus honest Uncoil vs alternatives comparisons.", path: "/blog" });
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
@@ -37,7 +37,7 @@ export default async function BlogPage() {
     <main className="bg-[#eceae3] text-black">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdString([breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Blog", path: "/blog" }]), itemListJsonLd("Tracify blog", journal.map((p) => ({ name: p.title, path: `/blog/${p.slug}` })))]) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString([breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Blog", path: "/blog" }]), itemListJsonLd("Uncoil blog", journal.map((p) => ({ name: p.title, path: `/blog/${p.slug}` })))]) }}
       />
       <JournalHero posts={journal} total={journal.length} />
 

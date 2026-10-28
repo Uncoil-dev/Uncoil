@@ -20,7 +20,7 @@ export interface ColumnVisibilityDef {
 
 /**
  * Persists which optional columns are shown for a table, keyed by
- * `storageKey` in localStorage (matching this project's `tracify.*`
+ * `storageKey` in localStorage (matching this project's `uncoil.*`
  * localStorage naming convention). Required columns are always visible and
  * never persisted.
  */

@@ -7,7 +7,7 @@ export const buildArticle = (mediaIdBySlug: Record<string, number>) => buildLong
   audience: "engineers implementing instrumentation for LLM and agent workflows",
   framework: "Boundary, Propagate, Annotate, Correlate, Inspect",
   outcome: "a connected execution narrative that makes a production diagnosis reproducible",
-  tracifyLink: "/docs/typescript",
+  uncoilLink: "/docs/typescript",
   related: ["debug-ai-agents-in-production", "ai-agent-observability-complete-guide"],
   topics: ["Choose meaningful trace boundaries", "Propagate context across asynchronous work", "Model spans around decisions", "Add attributes with purpose", "Inspect traces as narratives"],
   signals: ["root run duration and outcome", "parent-child context continuity", "model, retrieval, tool, and validation spans", "version identifiers and error classification", "cross-run comparison and root-cause confidence"],

@@ -11,7 +11,7 @@ import type { CostBreakdown, CostDimension, CostGroup } from "@/lib/tinybird";
 type Query = Record<string, string>;
 type Data = CostBreakdown;
 
-const LIVE_STORAGE = "tracify.costs.live";
+const LIVE_STORAGE = "uncoil.costs.live";
 const DEFAULT_RANGE = "30d";
 /** Each ledger tab filters by the URL parameter the Tracing page already understands. */
 const TABS: Array<{ id: CostDimension; label: string; param: string; one: string }> = [

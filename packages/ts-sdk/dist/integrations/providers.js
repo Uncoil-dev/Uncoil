@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isInsideWrapped = void 0;
+exports.traced = traced;
 exports.wrapOpenAI = wrapOpenAI;
 exports.wrapAnthropic = wrapAnthropic;
 const observation_1 = require("./observation");
@@ -133,6 +135,37 @@ function observeResult(result, obs, provider) {
         return observeStream(result, obs, provider);
     return consume(result);
 }
+/** True while a wrapped client is calling the provider, so auto-instrumentation does not record the call twice. */
+let insideWrapped = false;
+const isInsideWrapped = () => insideWrapped;
+exports.isInsideWrapped = isInsideWrapped;
+/** Record one provider call. `call` receives the (possibly adjusted) params and returns the provider's result. */
+function traced(provider, endpoint, call, rawParams, options, markWrapped = true) {
+    const params = { ...(rawParams ?? {}) };
+    if (provider === "openai" &&
+        endpoint.startsWith("chat.") &&
+        params.stream &&
+        params.stream_options?.include_usage === undefined)
+        params.stream_options = { ...params.stream_options, include_usage: true };
+    const obs = (0, observation_1.observation)(provider, params.model ?? "", params.system
+        ? [{ role: "system", content: params.system }, ...(params.messages ?? [])]
+        : params.instructions
+            ? { instructions: params.instructions, input: params.input }
+            : (params.messages ?? params.input ?? params.prompt ?? ""), options);
+    const before = insideWrapped;
+    if (markWrapped)
+        insideWrapped = true;
+    try {
+        return observeResult(call(params), obs, provider);
+    }
+    catch (error) {
+        obs.finish(undefined, error);
+        throw error;
+    }
+    finally {
+        insideWrapped = before;
+    }
+}
 function wrap(client, provider, options) {
     if (wrapped.has(client))
         return client;
@@ -160,32 +193,7 @@ function wrap(client, provider, options) {
                         "beta.messages.stream",
                     ];
                 if (typeof value === "function" && allowed.includes(endpoint))
-                    return (...args) => {
-                        const params = { ...(args[0] ?? {}) };
-                        if (provider === "openai" &&
-                            endpoint.startsWith("chat.") &&
-                            params.stream &&
-                            params.stream_options?.include_usage === undefined)
-                            params.stream_options = {
-                                ...params.stream_options,
-                                include_usage: true,
-                            };
-                        const obs = (0, observation_1.observation)(provider, params.model ?? "", params.system
-                            ? [
-                                { role: "system", content: params.system },
-                                ...(params.messages ?? []),
-                            ]
-                            : params.instructions
-                                ? { instructions: params.instructions, input: params.input }
-                                : (params.messages ?? params.input ?? params.prompt ?? ""), options);
-                        try {
-                            return observeResult(value.apply(obj, [params, ...args.slice(1)]), obs, provider);
-                        }
-                        catch (error) {
-                            obs.finish(undefined, error);
-                            throw error;
-                        }
-                    };
+                    return (...args) => traced(provider, endpoint, (params) => value.apply(obj, [params, ...args.slice(1)]), args[0], options);
                 if (value &&
                     typeof value === "object" &&
                     (path.length === 0 ||

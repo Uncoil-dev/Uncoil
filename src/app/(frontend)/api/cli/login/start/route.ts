@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const POLL_INTERVAL_SECONDS = 3;
 
-/** `tracify-sdk login` calls this first. No account is needed; nothing is created until a signed-in person confirms in the browser. */
+/** `uncoil-sdk login` calls this first. No account is needed; nothing is created until a signed-in person confirms in the browser. */
 export async function POST(request: NextRequest) {
   if (await overLimit(`cli-login-start:${requestIp(request)}`, 10, 600)) {
     return NextResponse.json({ error: "Too many sign-in attempts. Try again in a few minutes." }, { status: 429, headers: { "Retry-After": "600" } });

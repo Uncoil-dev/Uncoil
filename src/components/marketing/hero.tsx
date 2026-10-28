@@ -134,7 +134,7 @@ export function Hero() {
                 letterSpacing: "-0.01em",
               }}
             >
-              Tracify shows what your AI agent did, why it failed, what it cost,
+              Uncoil shows what your AI agent did, why it failed, what it cost,
               and what to fix next. Trace every step, tool call, retry, and
               alert across production AI workflows.
             </motion.p>

@@ -16,7 +16,7 @@ export function AuthorBio({ author }: { author: string }) {
           {author}
         </span>
         <p className="mt-2 max-w-lg text-sm leading-6 text-black/60">
-          Practical field notes from the team building Tracify and operating AI agents in production.
+          Practical field notes from the team building Uncoil and operating AI agents in production.
         </p>
       </div>
     </div>

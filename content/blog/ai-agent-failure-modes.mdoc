@@ -3,7 +3,7 @@ title: "AI Agent Failure Taxonomy: 12 Failure Modes Every Production Team Should
 slug: ai-agent-failure-modes
 excerpt: A 12-type taxonomy for classifying AI agent failures fast — the trace evidence that proves each one, the team that owns the fix, and how to turn the incident into a regression test.
 publishedAt: 2026-09-03T09:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories:
   - engineering
@@ -121,7 +121,7 @@ A **tool-execution error** is different: the right tool was selected, but the ca
 A specific and common execution failure deserves its own callout: the model selects the correct tool but constructs arguments that don't match its schema — a string where a number was expected, a missing required field, a date in the wrong format. This produces the most confusing trace pattern in this category, because the tool-call span exists, has the right name, and still fails. The fix is schema validation before execution (reject and return a structured error the model can act on, rather than letting a malformed call reach a live dependency) plus, if it recurs for one tool, tightening that tool's parameter descriptions so the model constructs arguments correctly more often.
 
 ```json
-// Illustrative trace excerpt — not sampled from a live Tracify trace.
+// Illustrative trace excerpt — not sampled from a live Uncoil trace.
 // Contrasts a tool-selection failure with a tool-execution failure for the same user request.
 
 {
@@ -141,7 +141,7 @@ A specific and common execution failure deserves its own callout: the model sele
 ```
 
 ```json
-// Illustrative trace excerpt — not sampled from a live Tracify trace.
+// Illustrative trace excerpt — not sampled from a live Uncoil trace.
 // The same request, this time with a tool-execution error instead of a selection error.
 
 {
@@ -269,7 +269,7 @@ Walking the decision tree: no span returned an explicit error, so type 6/7 are o
 The healthy version of this trace and the failing version differ in exactly one place — which fields survived context assembly — while every other span is identical:
 
 ```json
-// Illustrative comparison — not sampled from a live Tracify trace.
+// Illustrative comparison — not sampled from a live Uncoil trace.
 // Healthy run: the resolved-status field survives into the final model input.
 
 {
@@ -284,7 +284,7 @@ The healthy version of this trace and the failing version differ in exactly one 
 ```
 
 ```json
-// Illustrative comparison — not sampled from a live Tracify trace.
+// Illustrative comparison — not sampled from a live Uncoil trace.
 // Failing run: the same field was produced upstream but dropped before the final model call.
 
 {
@@ -302,7 +302,7 @@ The fix wasn't a bigger context window — the team instead pinned status-determ
 
 ## Try it: classify a symptom
 
-Pick a short symptom description below to see which of the 12 failure types it maps to, the reasoning behind the classification, and the trace field that would confirm it. This reuses Tracify's existing failure-mode explorer component as a fixed, deterministic lookup — selecting an option only swaps locally rendered text; it does not call a model, run a live classifier, or read production data. If you'd rather see the full mapping as a static table, the taxonomy table earlier in this article and the symptom-to-cause table above cover the same ground without the widget.
+Pick a short symptom description below to see which of the 12 failure types it maps to, the reasoning behind the classification, and the trace field that would confirm it. This reuses Uncoil's existing failure-mode explorer component as a fixed, deterministic lookup — selecting an option only swaps locally rendered text; it does not call a model, run a live classifier, or read production data. If you'd rather see the full mapping as a static table, the taxonomy table earlier in this article and the symptom-to-cause table above cover the same ground without the widget.
 
 {% failure-mode-explorer title="Failure classifier" intro="Choose the symptom that best matches what you're seeing. Each option shows the failure type, the one-line justification, and the trace field that confirms it." %}
 {% failure-mode-option label="Confident wrong policy" symptom="The agent states a specific policy or fact confidently and fluently, but it's outdated. Retrieval succeeded and returned a document." strategy="Stale retrieval (type 4). The right document was found, but its version or updated_at timestamp predates a known change. Reasoning over the document was correct — the input was wrong." code="retrieved_doc.updated_at < known_change_date" /%}

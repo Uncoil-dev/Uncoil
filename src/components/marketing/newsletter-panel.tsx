@@ -5,7 +5,7 @@ export function NewsletterPanel({ source, heading = "One email when we publish s
   return (
     <aside aria-label="Newsletter" className="mt-14 grid overflow-hidden border border-black bg-[#090909] text-[#eceae3] md:grid-cols-[1.2fr_1fr]">
       <div className="p-6 md:p-10">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">The Tracify letter</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">The Uncoil letter</p>
         <p className="mt-4 text-balance font-pixel text-[clamp(1.8rem,3.4vw,2.8rem)] leading-[0.95] tracking-[-0.06em]">{heading}</p>
         <p className="mt-4 max-w-md text-sm leading-6 text-white/65">New guides on tracing, cost and reliability for AI agents, plus product updates. No spam, unsubscribe any time.</p>
       </div>

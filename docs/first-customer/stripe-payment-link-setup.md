@@ -20,7 +20,7 @@ No payment code or SaaS subscription change is required for the founding review.
 3. Create a Payment Link for that price with quantity fixed at one.
 4. Require the buyer’s name and email. Collect billing address only if accounting or tax requirements need it.
 5. Add a custom field for **Company name** if the sales record needs it.
-6. Set the post-payment message to: “Payment received. Reply to the scope email with the confirmed technical owner. Do not send traces until Tracify confirms the sanitized staging evidence channel and deletion date.”
+6. Set the post-payment message to: “Payment received. Reply to the scope email with the confirmed technical owner. Do not send traces until Uncoil confirms the sanitized staging evidence channel and deletion date.”
 7. Keep payment methods managed by Stripe rather than hard-coding method types.
 8. Do not enable automatic tax unless the Stripe account has an active, verified registration for the relevant jurisdiction.
 9. Complete a test-mode payment and verify the receipt, buyer email, amount, currency, and success message.

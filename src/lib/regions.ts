@@ -1,7 +1,7 @@
-export type TracifyRegionId = "eu" | "us";
+export type UncoilRegionId = "eu" | "us";
 
-export type TracifyRegion = {
-  id: TracifyRegionId;
+export type UncoilRegion = {
+  id: UncoilRegionId;
   name: string;
   shortName: string;
   flag: string;
@@ -17,17 +17,17 @@ export type TracifyRegion = {
   available: boolean;
 };
 
-export const DEFAULT_TRACIFY_REGION: TracifyRegionId = "eu";
-export const TRACIFY_REGION_COOKIE = "tracify_region";
+export const DEFAULT_UNCOIL_REGION: UncoilRegionId = "eu";
+export const UNCOIL_REGION_COOKIE = "uncoil_region";
 
-export const TRACIFY_REGIONS: Record<TracifyRegionId, TracifyRegion> = {
+export const UNCOIL_REGIONS: Record<UncoilRegionId, UncoilRegion> = {
   eu: {
     id: "eu",
     name: "Europe",
     shortName: "EU",
     flag: "🇪🇺",
-    origin: "https://eu.cloud.tracify.tech",
-    hostname: "eu.cloud.tracify.tech",
+    origin: "https://eu.cloud.uncoil.dev",
+    hostname: "eu.cloud.uncoil.dev",
     location: "Ireland",
     infrastructure: "EU West",
     available: true,
@@ -37,8 +37,8 @@ export const TRACIFY_REGIONS: Record<TracifyRegionId, TracifyRegion> = {
     name: "United States",
     shortName: "US",
     flag: "🇺🇸",
-    origin: "https://us.cloud.tracify.tech",
-    hostname: "us.cloud.tracify.tech",
+    origin: "https://us.cloud.uncoil.dev",
+    hostname: "us.cloud.uncoil.dev",
     location: "Virginia",
     infrastructure: "US East",
     available: false,
@@ -47,53 +47,56 @@ export const TRACIFY_REGIONS: Record<TracifyRegionId, TracifyRegion> = {
 
 /**
  * Regions offered to customers. Use this for every public-facing surface — the region
- * selector, docs, status board, onboarding — rather than iterating TRACIFY_REGIONS
+ * selector, docs, status board, onboarding — rather than iterating UNCOIL_REGIONS
  * directly, so a dormant region can never be advertised by accident.
  */
-export function getAvailableRegions(): TracifyRegion[] {
-  return Object.values(TRACIFY_REGIONS).filter((region) => region.available);
+export function getAvailableRegions(): UncoilRegion[] {
+  return Object.values(UNCOIL_REGIONS).filter((region) => region.available);
 }
 
-export function isRegionAvailable(id: TracifyRegionId): boolean {
-  return TRACIFY_REGIONS[id].available;
+export function isRegionAvailable(id: UncoilRegionId): boolean {
+  return UNCOIL_REGIONS[id].available;
 }
 
-export function parseTracifyRegion(value: string | null | undefined): TracifyRegionId | null {
+export function parseUncoilRegion(value: string | null | undefined): UncoilRegionId | null {
   const normalized = value?.trim().toLowerCase();
   return normalized === "eu" || normalized === "us" ? normalized : null;
 }
 
-export function getDeploymentRegion(): TracifyRegionId {
+export function getDeploymentRegion(): UncoilRegionId {
   return (
-    parseTracifyRegion(process.env.NEXT_PUBLIC_TRACIFY_REGION) ??
-    parseTracifyRegion(process.env.TRACIFY_REGION) ??
-    DEFAULT_TRACIFY_REGION
+    parseUncoilRegion((process.env.NEXT_PUBLIC_UNCOIL_REGION ?? process.env.NEXT_PUBLIC_TRACIFY_REGION)) ??
+    parseUncoilRegion((process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)) ??
+    DEFAULT_UNCOIL_REGION
   );
 }
 
-export function getTracifyRegion(id: TracifyRegionId = getDeploymentRegion()) {
-  return TRACIFY_REGIONS[id];
+export function getUncoilRegion(id: UncoilRegionId = getDeploymentRegion()) {
+  return UNCOIL_REGIONS[id];
 }
 
-export function getRegionForHostname(hostname: string | null | undefined): TracifyRegionId | null {
+export function getRegionForHostname(hostname: string | null | undefined): UncoilRegionId | null {
   const normalized = hostname?.split(":")[0].toLowerCase();
   if (!normalized) return null;
-  return (Object.values(TRACIFY_REGIONS).find((region) => region.hostname === normalized)?.id ?? null);
+  return (Object.values(UNCOIL_REGIONS).find((region) => region.hostname === normalized)?.id ?? null);
 }
 
-export function getRegionalApiKeyPrefix(region: TracifyRegionId = getDeploymentRegion()) {
-  return `tracify_sk_live_${region}_`;
+export function getRegionalApiKeyPrefix(region: UncoilRegionId = getDeploymentRegion()) {
+  return `uncoil_sk_live_${region}_`;
 }
 
-export function getApiKeyRegion(apiKey: string): TracifyRegionId | null {
+export function getApiKeyRegion(apiKey: string): UncoilRegionId | null {
   if (apiKey.startsWith(getRegionalApiKeyPrefix("eu"))) return "eu";
   if (apiKey.startsWith(getRegionalApiKeyPrefix("us"))) return "us";
   // Keys issued before regional cloud are assigned to the original EU deployment.
+  if (apiKey.startsWith("uncoil_sk_live_")) return "eu";
+  // Keys issued under the previous product name stay valid.
+  if (apiKey.startsWith("tracify_sk_live_us_")) return "us";
   if (apiKey.startsWith("tracify_sk_live_")) return "eu";
   return null;
 }
 
 export function getWrongRegion(apiKey: string, deploymentRegion = getDeploymentRegion()) {
   const keyRegion = getApiKeyRegion(apiKey);
-  return keyRegion && keyRegion !== deploymentRegion ? TRACIFY_REGIONS[keyRegion] : null;
+  return keyRegion && keyRegion !== deploymentRegion ? UNCOIL_REGIONS[keyRegion] : null;
 }

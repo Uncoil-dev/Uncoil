@@ -18,7 +18,7 @@ export function SuccessStep({
     <div>
       <OnboardingHeader
         title="It's alive. First trace in."
-        description="Tracify heard your agent. Every step, tool call and token is mapped. Open it and see what your agent really did."
+        description="Uncoil heard your agent. Every step, tool call and token is mapped. Open it and see what your agent really did."
       />
       <div className="mb-6 flex items-center gap-4 border border-black bg-[#f4d44d] p-5">
         <span className="grid size-10 shrink-0 place-items-center bg-black font-mono text-lg text-[#f4d44d]" aria-hidden="true">✓</span>

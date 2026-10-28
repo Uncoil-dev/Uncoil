@@ -161,7 +161,7 @@ export function LeadGenerationExplorations() {
               </h3>
               <p className="mt-6 max-w-[600px] text-lg leading-8 text-black/60">
                 A quarterly benchmark gives technical buyers useful reference
-                points and gives Tracify a repeatable reason to publish,
+                points and gives Uncoil a repeatable reason to publish,
                 promote, and follow up.
               </p>
               <form

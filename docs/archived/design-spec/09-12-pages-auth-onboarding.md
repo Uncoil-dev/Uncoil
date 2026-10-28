@@ -21,7 +21,7 @@ AGENT OBSERVABILITY INFRASTRUCTURE
 
 Every step your agent takes.
 
-tracify instruments your AI agents in two lines of code.
+uncoil instruments your AI agents in two lines of code.
 See every tool call, LLM decision, and dollar spent —
 in real time. Debug in minutes, not hours.
 
@@ -99,16 +99,16 @@ without blocking your agent's execution.
 
 ```
 01 INSTALL
-pip install tracify-sdk
-or: npm install tracify-sdk
+pip install uncoil-sdk
+or: npm install uncoil-sdk
 
 02 INSTRUMENT
-@trace_agent(api_key="tracify_sk_live_sk_...")
+@trace_agent(api_key="uncoil_sk_live_sk_...")
 async def my_agent(query):
     ...
 
 03 OBSERVE
-Open tracify. See every span, cost, and failure in real time.
+Open uncoil. See every span, cost, and failure in real time.
 ```
 
 ---
@@ -134,9 +134,9 @@ Panel shows: span timeline, cost breakdown, LLM call details with token counts.
 
 **Python:**
 ```python
-from tracify import trace_agent
+from uncoil import trace_agent
 
-@trace_agent(api_key="tracify_sk_live_sk_your_key_here")
+@trace_agent(api_key="uncoil_sk_live_sk_your_key_here")
 async def research_agent(query: str) -> str:
     result = await llm_call(query)
     sources = await search_tool(query)
@@ -145,7 +145,7 @@ async def research_agent(query: str) -> str:
 
 **TypeScript:**
 ```typescript
-import { traceAgent } from "tracify-sdk"
+import { traceAgent } from "uncoil-sdk"
 
 const researchAgent = traceAgent(
   async (query: string) => {
@@ -153,7 +153,7 @@ const researchAgent = traceAgent(
     const sources = await searchTool(query)
     return result
   },
-  { apiKey: "tracify_sk_live_sk_your_key_here" }
+  { apiKey: "uncoil_sk_live_sk_your_key_here" }
 )
 ```
 
@@ -189,7 +189,7 @@ Gemini · AWS Bedrock · Cohere · Pinecone · Weaviate
 **Layout:** 3-column testimonial cards.
 
 ```
-"tracify is the first observability tool that actually understands 
+"uncoil is the first observability tool that actually understands 
 what an AI agent is doing. We caught a $400/day runaway loop 
 in 20 minutes."
 — Priya S., Head of AI Engineering, Arco
@@ -241,13 +241,13 @@ Do you know what they're doing?
 #### SECTION 12 — Footer
 
 ```
-■ tracify                 Product      Developers   Company
+■ uncoil                 Product      Developers   Company
                         Overview     Docs         Blog
 Agent observability     Trace Viewer Python SDK   Privacy
 infrastructure for      Pricing      TypeScript   Terms
 developers.             Changelog    API Ref      Security
 
-© 2026 tracify Inc. · Privacy · Terms · Status
+© 2026 uncoil Inc. · Privacy · Terms · Status
 ```
 
 ---
@@ -291,7 +291,7 @@ Q: Do unused spans roll over?
 Q: What happens at the end of my trial?
 Q: Is there a startup discount?
 Q: Do you offer annual invoicing for Enterprise?
-Q: Can I self-host tracify?
+Q: Can I self-host uncoil?
 ```
 
 **CTA:** "Talk to sales" link below Enterprise card.
@@ -370,12 +370,12 @@ const clerkAppearance = {
 
 ```
 Left panel:
-  ■ tracify
+  ■ uncoil
   "You left something running."
   (animated terminal showing a trace arriving)
 
 Right panel:
-  SIGN IN TO tracify
+  SIGN IN TO uncoil
 
   [Clerk SignIn component]
   
@@ -396,7 +396,7 @@ Right panel:
 
 ```
 Left panel:
-  ■ tracify
+  ■ uncoil
   "Instrument your agent in 2 lines of code."
   (code snippet + animated span arriving)
 
@@ -419,7 +419,7 @@ Right panel:
 Layout: Centered single column (no left panel). Max-width 400px.
 
 Headline: RESET YOUR PASSWORD
-Subtext:  Enter the email connected to your tracify account. 
+Subtext:  Enter the email connected to your uncoil account. 
           We'll send you a reset link.
 
 [Email input]
@@ -545,11 +545,11 @@ Your project is an isolated environment with its own API key.
 ```
 YOUR API KEY
 
-This key authenticates your agent with tracify.
+This key authenticates your agent with uncoil.
 Copy it now — you won't see it again.
 
 ┌─────────────────────────────────────────────────┐
-│ tracify_sk_live_sk_a8f3c2b1d9e4f6a2b8c3d1e9f4a6b2        │ [Copy]
+│ uncoil_sk_live_sk_a8f3c2b1d9e4f6a2b8c3d1e9f4a6b2        │ [Copy]
 └─────────────────────────────────────────────────┘
 
 ⚠ Store this key securely. Do not commit it to source control.
@@ -571,13 +571,13 @@ Choose your runtime:
 ─────────────────────────────────────────────────
 PYTHON
 
-pip install tracify-sdk
+pip install uncoil-sdk
 
 ─────────────────────────────────────────────────
 
-from tracify import trace_agent
+from uncoil import trace_agent
 
-@trace_agent(api_key="tracify_sk_live_sk_your_key")
+@trace_agent(api_key="uncoil_sk_live_sk_your_key")
 async def my_agent(query: str) -> str:
     # your agent code here
     result = await llm_call(query)
@@ -586,19 +586,19 @@ async def my_agent(query: str) -> str:
 ─────────────────────────────────────────────────
 TYPESCRIPT
 
-npm install tracify-sdk
-# or: yarn add tracify
+npm install uncoil-sdk
+# or: yarn add uncoil
 
 ─────────────────────────────────────────────────
 
-import { traceAgent } from "tracify-sdk"
+import { traceAgent } from "uncoil-sdk"
 
 const myAgent = traceAgent(
   async (query: string) => {
     const result = await llmCall(query)
     return result
   },
-  { apiKey: "tracify_sk_live_sk_your_key" }
+  { apiKey: "uncoil_sk_live_sk_your_key" }
 )
 
 [My SDK is installed →]
@@ -646,7 +646,7 @@ Run ID: run_a3f2b1c9
 ```
 ■ YOU'RE READY
 
-tracify is now observing your agent.
+uncoil is now observing your agent.
 
 What's next:
 → Open your Dashboard to see live runs
@@ -676,7 +676,7 @@ What's next:
 
 ```
 ┌──────────────────────────────┐
-│  ■ tracify   [project name ▾] │  ← project switcher dropdown
+│  ■ uncoil   [project name ▾] │  ← project switcher dropdown
 ├──────────────────────────────┤
 │  Overview                    │
 │  Runs                        │

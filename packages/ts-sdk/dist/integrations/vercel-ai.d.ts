@@ -3,11 +3,11 @@ type Value = Record<string, any>;
 /**
  * One-line tracing for the Vercel AI SDK. Pass it to `wrapLanguageModel`:
  *
- *   const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: tracifyMiddleware() });
+ *   const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: uncoilMiddleware() });
  *
- * Every `generateText`, `streamText` or `generateObject` call made with that model becomes a Tracify step.
+ * Every `generateText`, `streamText` or `generateObject` call made with that model becomes an Uncoil step.
  */
-export declare function tracifyMiddleware(options?: IntegrationOptions): {
+export declare function uncoilMiddleware(options?: IntegrationOptions): {
     wrapGenerate({ doGenerate, params, model }: {
         doGenerate: () => Promise<Value>;
         params: unknown;

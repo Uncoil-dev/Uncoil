@@ -18,7 +18,7 @@ Disqualify no-live-user experiments, vague reliability interest, missing technic
 
 > Hi [name], I saw that [specific evidence about their customer-facing agent]. When these systems fail, the difficult part is usually proving whether the cause was retrieval, a tool result, model behavior, or a release change.
 >
-> I’m offering three founding Agent Failure Reviews through Tracify: one real staging failure, five business days, an annotated trace, the evidence-backed mechanism, and five regression cases. The fixed price is $1,000, with a refund if I cannot produce an evidence-backed finding from the agreed data.
+> I’m offering three founding Agent Failure Reviews through Uncoil: one real staging failure, five business days, an annotated trace, the evidence-backed mechanism, and five regression cases. The fixed price is $1,000, with a refund if I cannot produce an evidence-backed finding from the agreed data.
 >
 > Has your team had a failure recently that was difficult to reproduce or prevent?
 
@@ -106,9 +106,9 @@ Ask only after delivering the readout:
 
 1. Was the finding new and credible?
 2. Did it change an engineering or release decision?
-3. Would the team keep sending traces to Tracify?
+3. Would the team keep sending traces to Uncoil?
 4. What would they pay monthly?
 5. Which product or evidence step was hardest?
-6. May Tracify publish an anonymized case study?
+6. May Uncoil publish an anonymized case study?
 
 Request continued paid use only after the customer confirms value. Do not promise a future $299–$499 plan in advance.

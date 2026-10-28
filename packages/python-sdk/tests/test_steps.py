@@ -1,13 +1,13 @@
 import asyncio
 import threading
 import pytest
-import tracify
-from tracify import TracifyClient
+import uncoil
+from uncoil import UncoilClient
 
 
-class Recorder(TracifyClient):
+class Recorder(UncoilClient):
     def __init__(self):
-        super().__init__(api_key="tracify_sk_live_eu_test")
+        super().__init__(api_key="uncoil_sk_live_eu_test")
         self.sent = []
 
     def _send_span(self, span):
@@ -24,12 +24,12 @@ def by_name(spans):
 
 
 def test_nested_steps_link_to_their_parent_and_root(client):
-    @tracify.trace_agent(client=client, name="answer")
+    @uncoil.trace_agent(client=client, name="answer")
     def answer(question):
-        with tracify.span("plan", type="agent", client=client):
-            with tracify.span("search", type="tool", input=question, client=client) as step:
+        with uncoil.span("plan", type="agent", client=client):
+            with uncoil.span("search", type="tool", input=question, client=client) as step:
                 step.set_output(["doc"])
-            tracify.llm_call("prompt", "reply", "claude", 0.01, 5, client=client, input_tokens=10, output_tokens=3, name="chat")
+            uncoil.llm_call("prompt", "reply", "claude", 0.01, 5, client=client, input_tokens=10, output_tokens=3, name="chat")
         return "done"
 
     assert answer("why?") == "done"
@@ -45,9 +45,9 @@ def test_nested_steps_link_to_their_parent_and_root(client):
 
 
 def test_failure_marks_step_and_root(client):
-    @tracify.trace_agent(client=client)
+    @uncoil.trace_agent(client=client)
     def run():
-        with tracify.span("lookup", type="tool", client=client):
+        with uncoil.span("lookup", type="tool", client=client):
             raise ValueError("boom")
 
     with pytest.raises(ValueError):
@@ -58,9 +58,9 @@ def test_failure_marks_step_and_root(client):
 
 
 def test_concurrent_runs_stay_apart(client):
-    @tracify.trace_agent(client=client)
+    @uncoil.trace_agent(client=client)
     def run(tag):
-        with tracify.span(f"step-{tag}", client=client):
+        with uncoil.span(f"step-{tag}", client=client):
             threading.Event().wait(0.02)
 
     threads = [threading.Thread(target=run, args=(i,)) for i in range(4)]
@@ -74,11 +74,11 @@ def test_concurrent_runs_stay_apart(client):
 
 
 def test_async_observe_nests(client):
-    @tracify.observe(type="tool", client=client)
+    @uncoil.observe(type="tool", client=client)
     async def fetch(url):
         return {"url": url}
 
-    @tracify.trace_agent(client=client)
+    @uncoil.trace_agent(client=client)
     async def run():
         return await asyncio.gather(fetch("a"), fetch("b"))
 
@@ -90,7 +90,7 @@ def test_async_observe_nests(client):
 
 def test_payloads_are_redacted_and_capped(client):
     secret = "sk-ant-" + "a" * 30
-    with tracify.span("call", input={"api_key": "hunter2hunter2", "auth": f"Bearer {'x' * 40}", "k": secret}, client=client) as step:
+    with uncoil.span("call", input={"api_key": "hunter2hunter2", "auth": f"Bearer {'x' * 40}", "k": secret}, client=client) as step:
         step.set_output("y" * 20_000)
     sent = client.sent[-1]
     assert "hunter2" not in sent["input"] and secret not in sent["input"] and "x" * 40 not in sent["input"]

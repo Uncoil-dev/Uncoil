@@ -8,7 +8,7 @@
  *   npx tsx packages/ts-sdk/harness/chaos.ts --iterations 20 --policy enforce
  */
 
-import { TracifyClient, RuntimePolicy } from "../src/index";
+import { UncoilClient, RuntimePolicy } from "../src/index";
 
 // ─── Failure modes ────────────────────────────────────────────────
 type FailureMode =
@@ -152,7 +152,7 @@ function pickFailureMode(mix: Record<FailureMode, number>): FailureMode {
 
 // ─── Run harness ──────────────────────────────────────────────────
 async function runChaosHarness(config: ChaosConfig): Promise<IterationResult[]> {
-  const client = new TracifyClient({
+  const client = new UncoilClient({
     apiKey: config.apiKey,
     host: "http://localhost:3000",  // point at local dev server
   });

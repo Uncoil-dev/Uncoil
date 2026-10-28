@@ -25,9 +25,9 @@ const SUGGESTIONS = [
   { icon: Search, title: "Show failed traces", sub: "Jump to the last 7 days of errors", prompt: "Show me failed traces from the last 7 days" },
 ];
 const greeting = () => { const hour = new Date().getHours(); return hour < 5 ? "Good evening" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"; };
-const STORAGE_KEY = "tracify.assistant.open";
-const REASONING_KEY = "tracify.assistant.reasoning";
-const CHATS_KEY = "tracify.assistant.chats";
+const STORAGE_KEY = "uncoil.assistant.open";
+const REASONING_KEY = "uncoil.assistant.reasoning";
+const CHATS_KEY = "uncoil.assistant.chats";
 const MAX_CHATS = 30;
 
 type Chat = { id: string; title: string; updatedAt: number; messages: Message[] };

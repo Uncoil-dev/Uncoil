@@ -3,7 +3,7 @@ title: "How to Estimate AI Agent Costs Before You Launch"
 slug: how-to-estimate-ai-agent-costs
 excerpt: A step-by-step method for turning traffic, token counts and retry rates into a monthly cost range, and for checking the estimate against real traces afterward.
 publishedAt: 2026-10-16T18:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories: [operations]
 tags: [AI cost estimation, LLM costs, token pricing, AI agents]
@@ -104,7 +104,7 @@ Pricing sounds like the easy part: look up the rate. It rarely is, for three rea
 
 Providers publish prices per million tokens, with separate rates for input and output. Rates change, differ between models, and may differ from what you pay under a contract or credit agreement. Always take {% highlight %}the rate from your provider's current price page{% /highlight %} or your invoice, and write down the date you read it. The estimator on this site ships with three round example rates so that it works out of the box, but they are placeholders, not anyone's price list.
 
-The same rule applies in Tracify. The platform records token counts exactly as the provider reports them, and it never guesses a price. If you want USD cost on a span, you supply your own rates, which keeps the numbers honest when your prices change.
+The same rule applies in Uncoil. The platform records token counts exactly as the provider reports them, and it never guesses a price. If you want USD cost on a span, you supply your own rates, which keeps the numbers honest when your prices change.
 
 ### Account for caching
 
@@ -256,7 +256,7 @@ An estimate says what you expect. A budget limit says what you will allow. If an
 3. A daily or hourly spend alert, so a runaway surfaces within hours, not at the end of the month.
 4. A kill switch for the most expensive path.
 
-None of these requires new infrastructure. Even a counter in the agent loop that stops at a hard cap turns an unbounded risk into a bounded one. Pair it with a budget alert so a human sees the spike. Tracify's cost views and alert rules are designed for exactly this watching job, but the cap in your own code is the first line of defense and does not depend on any dashboard.
+None of these requires new infrastructure. Even a counter in the agent loop that stops at a hard cap turns an unbounded risk into a bounded one. Pair it with a budget alert so a human sees the spike. Uncoil's cost views and alert rules are designed for exactly this watching job, but the cap in your own code is the first line of defense and does not depend on any dashboard.
 
 ## Verify with traces in the first week
 
@@ -279,7 +279,7 @@ You do not need a special system for this. With the TypeScript SDK you can recor
 
 ```ts
 import OpenAI from "openai";
-import { wrapOpenAI } from "tracify-sdk";
+import { wrapOpenAI } from "uncoil-sdk";
 
 // Your own rates in USD per token. These numbers are placeholders.
 const rates: Record<string, { input: number; output: number }> = {
@@ -352,4 +352,4 @@ A good estimate is {% highlight %}humble about what it knows{% /highlight %}. Gi
 {% faq-item question="Why is my real bill higher than my estimate?" answer="Usually because the agent makes more model calls per run than the test run suggested, input grows across a long conversation, or retries and failed runs were left out. Compare the 90th percentile of calls per run and the retry rate with your assumptions. The average often matches while the tail drives the cost." /%}
 {% faq-item question="Should I estimate cost per run or cost per finished task?" answer="Use both. Cost per run is what you pay. Cost per finished task divides that by the share of runs that succeed, so it shows what a delivered result really costs and makes quality problems visible in the price." /%}
 {% faq-item question="How accurate can a cost estimate be before launch?" answer="Expect a range, not a point. The estimate is only as good as its inputs, and calls per run and input tokens on long runs vary the most. Treat the first week of traces as the moment the estimate becomes a measurement, and report both numbers." /%}
-{% faq-item question="Does Tracify guess model prices for me?" answer="No. Tracify records token counts exactly as the provider reports them and leaves cost at zero until you supply your own rate card, so the cost you see reflects your actual prices rather than a guess. The free estimator on this site uses round example rates that you replace with your own." /%}
+{% faq-item question="Does Uncoil guess model prices for me?" answer="No. Uncoil records token counts exactly as the provider reports them and leaves cost at zero until you supply your own rate card, so the cost you see reflects your actual prices rather than a guess. The free estimator on this site uses round example rates that you replace with your own." /%}

@@ -8,10 +8,10 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 
-const EVENT = "tracify:sidebar-extras";
-const pinsKey = (projectId: string) => `tracify.sidebar.pins.${projectId}`;
-const recentsKey = (projectId: string) => `tracify.sidebar.recents.${projectId || "none"}`;
-const setupKey = (projectId: string) => `tracify.sidebar.setupDismissed.${projectId}`;
+const EVENT = "uncoil:sidebar-extras";
+const pinsKey = (projectId: string) => `uncoil.sidebar.pins.${projectId}`;
+const recentsKey = (projectId: string) => `uncoil.sidebar.recents.${projectId || "none"}`;
+const setupKey = (projectId: string) => `uncoil.sidebar.setupDismissed.${projectId}`;
 
 function read(key: string) {
   try {
@@ -95,7 +95,7 @@ export function recordRecent(projectId: string, entry: Recent) {
   write(recentsKey(projectId), JSON.stringify(next));
 }
 
-const closedSectionsKey = "tracify.sidebar.closedSections";
+const closedSectionsKey = "uncoil.sidebar.closedSections";
 
 /** Sidebar groups the person folded shut, remembered in this browser. */
 export function useClosedSections() {

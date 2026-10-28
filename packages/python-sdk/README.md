@@ -1,28 +1,28 @@
-# Tracify Python SDK
+# Uncoil Python SDK
 
 Observability and tracing for AI agents. Gain full visibility into your agent's decision-making process, tool usage, and LLM costs.
 
-Tracify records each agent run as one trace: every model call, tool call, retry, failure and cost. It also ingests OpenTelemetry. Free plan available. Docs: [tracify.tech/docs](https://www.tracify.tech/docs). New to agent observability? Read the [complete guide](https://www.tracify.tech/blog/ai-agent-observability-complete-guide).
+Uncoil records each agent run as one trace: every model call, tool call, retry, failure and cost. It also ingests OpenTelemetry. Free plan available. Docs: [uncoil.dev/docs](https://www.uncoil.dev/docs). New to agent observability? Read the [complete guide](https://www.uncoil.dev/blog/ai-agent-observability-complete-guide).
 
 ## Installation
 
 ```bash
-pip install tracify-sdk
+pip install uncoil-sdk
 ```
 
 ## Quickstart
 
-1. Get your API Key from the [Tracify Dashboard](https://www.tracify.tech).
+1. Get your API Key from the [Uncoil Dashboard](https://www.uncoil.dev).
 2. Set it as an environment variable:
 
 ```bash
-export TRACIFY_API_KEY=your_sk_live_...
+export UNCOIL_API_KEY=your_sk_live_...
 ```
 
 3. Instrument your agent:
 
 ```python
-from tracify import trace_agent, llm_call, tool_call
+from uncoil import trace_agent, llm_call, tool_call
 
 @trace_agent(environment="development", release="quickstart")
 async def my_agent(query: str):
@@ -52,17 +52,17 @@ Inside a `@trace_agent` function, every step you record is linked to the step it
 shows which step called which and how loops repeat. Use `span` for a block and `observe` for a function:
 
 ```python
-import tracify
+import uncoil
 
-@tracify.observe(type="tool")
+@uncoil.observe(type="tool")
 def search_docs(query):
     return search(query)
 
-@tracify.trace_agent()
+@uncoil.trace_agent()
 def answer(question):
     for turn in range(5):
-        with tracify.span("think", type="agent"):
-            with tracify.span("chat", type="llm", input=question) as step:
+        with uncoil.span("think", type="agent"):
+            with uncoil.span("chat", type="llm", input=question) as step:
                 reply = call_model(question)
                 step.set_output(reply.text)
                 step.set(model="claude-sonnet-5-5", input_tokens=reply.usage.input, output_tokens=reply.usage.output)
@@ -89,7 +89,7 @@ avoid sending anything else you would not want stored.
 Pass `project_id` when constructing the client to attach end-user feedback and typed scores to traces:
 
 ```python
-client = TracifyClient(project_id="your-project-id")
+client = UncoilClient(project_id="your-project-id")
 client.feedback(run_id, True, kind="thumb", comment="Helpful answer")
 client.score(run_id, "answer_quality", 0.92, data_type="numeric")
 ```
@@ -113,17 +113,17 @@ MIT
 
 ## Provider integrations (0.4.0)
 
-Install the optional provider/framework extras you use: `pip install 'tracify-sdk[openai,anthropic,langgraph]'`.
-Set `TRACIFY_API_KEY` and the existing regional configuration.
+Install the optional provider/framework extras you use: `pip install 'uncoil-sdk[openai,anthropic,langgraph]'`.
+Set `UNCOIL_API_KEY` and the existing regional configuration.
 
 ```python
-import tracify
+import uncoil
 from openai import OpenAI, AsyncOpenAI
 from anthropic import Anthropic
 
-openai = tracify.wrap_openai(OpenAI())
-anthropic = tracify.wrap_anthropic(Anthropic())
-async_openai = tracify.wrap_openai(AsyncOpenAI())
+openai = uncoil.wrap_openai(OpenAI())
+anthropic = uncoil.wrap_anthropic(Anthropic())
+async_openai = uncoil.wrap_openai(AsyncOpenAI())
 # Existing create calls keep their provider response types and exceptions.
 reply = openai.responses.create(model=MODEL, input="Hello")
 with anthropic.messages.stream(model=MODEL, max_tokens=100,
@@ -132,7 +132,7 @@ with anthropic.messages.stream(model=MODEL, max_tokens=100,
         print(text, end="")
 
 # Add a callback to a compiled LangGraph invocation.
-graph.invoke(inputs, config={"callbacks": [tracify.langgraph_callback()]})
+graph.invoke(inputs, config={"callbacks": [uncoil.langgraph_callback()]})
 ```
 
 Wrap sync or async clients once. Supported: OpenAI chat completions and Responses `create` APIs,
@@ -157,20 +157,20 @@ usage breakdown remains in metadata for rate-card calculations. See the [provide
 
 ## Framework one-liners
 
-Quickest start: call `tracify.init()` once at startup. Every OpenAI, Anthropic and LangChain / LangGraph call is traced, sync and async, with no client wrapping (`TRACIFY_API_KEY` is read from the environment). Libraries that are not installed are skipped, and `tracify.uninit()` switches it off.
+Quickest start: call `uncoil.init()` once at startup. Every OpenAI, Anthropic and LangChain / LangGraph call is traced, sync and async, with no client wrapping (`UNCOIL_API_KEY` is read from the environment). Libraries that are not installed are skipped, and `uncoil.uninit()` switches it off.
 
 ```python
-import tracify
-tracify.init()
+import uncoil
+uncoil.init()
 ```
 
 Calls made through a client you also wrapped with `wrap_openai` are recorded once, and model calls inside LangChain are recorded by the LangChain handler only. The Vercel AI SDK is JavaScript-only.
 
 ```python
-import tracify
+import uncoil
 
-tools = tracify.trace_tools({"search_docs": search_docs, "send_email": send_email})  # plain or async functions
-client = tracify.wrap_openai(OpenAI())   # also wrap_anthropic, langgraph_callback
+tools = uncoil.trace_tools({"search_docs": search_docs, "send_email": send_email})  # plain or async functions
+client = uncoil.wrap_openai(OpenAI())   # also wrap_anthropic, langgraph_callback
 ```
 
 Copy-paste starters live in [`templates/`](./templates).
@@ -178,7 +178,7 @@ Copy-paste starters live in [`templates/`](./templates).
 ## Sampling, redaction and clearer errors
 
 ```python
-client = tracify.TracifyClient(
+client = uncoil.UncoilClient(
     sample_rate=0.1,                                   # record about 1 in 10 runs; each run is kept or dropped whole
     redact={"patterns": [re.compile(r"ACME-\d{6}")]},  # emails, phones and card numbers are masked by default; add your own
     on_error=lambda error: log(str(error)),            # problems come with a plain-language fix (error.hint)
@@ -192,7 +192,7 @@ Spans that report an error are kept even when their run was not sampled (`keep_e
 Not seeing traces? One command checks your key, region and network, then sends a test trace:
 
 ```bash
-tracify-doctor            # or: python -m tracify doctor
+uncoil-doctor            # or: python -m uncoil doctor
 ```
 
-It reads `TRACIFY_API_KEY` (and `TRACIFY_REGION` / `TRACIFY_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Tracify setup check" and tagged `tracify-doctor`; it counts as one trace on your plan.
+It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.

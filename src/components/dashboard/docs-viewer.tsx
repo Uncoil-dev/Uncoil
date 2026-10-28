@@ -12,7 +12,7 @@ const DOCS = {
     content: `
 # Quickstart
 
-Welcome to **Tracify**. This guide will help you integrate our observability SDK into your agentic workflow in less than 2 minutes.
+Welcome to **Uncoil**. This guide will help you integrate our observability SDK into your agentic workflow in less than 2 minutes.
 
 ## 1. Install the SDK
 
@@ -20,10 +20,10 @@ Depending on your environment, run one of the following commands:
 
 \`\`\`bash
 # Python
-pip install tracify-sdk
+pip install uncoil-sdk
 
 # TypeScript / Node.js
-npm install tracify-sdk
+npm install uncoil-sdk
 \`\`\`
 
 ## 2. Instrument your Agent
@@ -31,7 +31,7 @@ npm install tracify-sdk
 Wrap your agent's main execution loop with the \`@trace_agent\` decorator.
 
 \`\`\`python
-from tracify import trace_agent
+from uncoil import trace_agent
 
 @trace_agent()
 def run_agent(task):
@@ -49,7 +49,7 @@ Once your agent runs, traces will appear in the [Runs](/dashboard/runs) list in 
     content: `
 # Python SDK Reference
 
-The Tracify Python SDK provides deep instrumentation for LLM-based agents.
+The Uncoil Python SDK provides deep instrumentation for LLM-based agents.
 
 ## Core Decorators
 
@@ -81,16 +81,16 @@ High-performance observability for Node.js and Browser-based agents.
 
 ## Installation
 \`\`\`bash
-npm install tracify-sdk
+npm install uncoil-sdk
 \`\`\`
 
 ## Usage
 \`\`\`typescript
-import { traceAgent } from "tracify-sdk";
+import { traceAgent } from "uncoil-sdk";
 
 const runAgent = traceAgent(
   async (task: string) => runTask(task),
-  { apiKey: process.env.TRACIFY_API_KEY },
+  { apiKey: (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) },
 );
 
 async function main() {
@@ -116,7 +116,7 @@ Send each partial as a span with \`isStreamChunk: true\`, an increasing \`stream
 
 ## Privacy and retention
 
-Redaction is enabled by default and configurable under **Project settings → Privacy & Retention**. Data older than your plan keeps (Free 7 days, Pro 30, Team 90) is removed every day by a built-in schedule. You can also run it with \`POST /api/retention\` and the \`x-retention-secret\` header; set \`TRACIFY_RETENTION_SECRET\` in the deployment environment.
+Redaction is enabled by default and configurable under **Project settings → Privacy & Retention**. Data older than your plan keeps (Free 7 days, Pro 30, Team 90) is removed every day by a built-in schedule. You can also run it with \`POST /api/retention\` and the \`x-retention-secret\` header; set \`UNCOIL_RETENTION_SECRET\` in the deployment environment.
     `,
   },
 };

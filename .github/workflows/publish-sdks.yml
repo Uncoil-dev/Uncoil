@@ -21,7 +21,7 @@ on:
 
 jobs:
   npm:
-    name: "npm: tracify-sdk"
+    name: "npm: uncoil-sdk"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,7 +45,7 @@ jobs:
         run: npm pack --dry-run
       - name: Confirm which npm account will own the package
         run: |
-          # Publishing is first-come: whoever runs this owns `tracify-sdk`
+          # Publishing is first-come: whoever runs this owns `uncoil-sdk`
           # permanently. Fail loudly if NPM_TOKEN belongs to the wrong account.
           who=$(npm whoami)
           echo "Publishing as npm user: $who"
@@ -63,7 +63,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   pypi:
-    name: "pypi: tracify-sdk"
+    name: "pypi: uncoil-sdk"
     runs-on: ubuntu-latest
     permissions:
       contents: read

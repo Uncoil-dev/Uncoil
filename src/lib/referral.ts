@@ -1,6 +1,6 @@
 /** Referral codes travel as ?ref=code. They are remembered in the browser and sent along with newsletter and contact forms. */
 
-export const REFERRAL_STORAGE_KEY = "tracify.ref";
+export const REFERRAL_STORAGE_KEY = "uncoil.ref";
 
 export function normalizeReferral(value: string | null | undefined): string | null {
   if (!value) return null;
@@ -8,7 +8,7 @@ export function normalizeReferral(value: string | null | undefined): string | nu
   return code.length >= 2 ? code : null;
 }
 
-export function referralLink(code: string, origin = "https://www.tracify.tech"): string {
+export function referralLink(code: string, origin = "https://www.uncoil.dev"): string {
   const clean = normalizeReferral(code);
   return clean ? `${origin}/?ref=${clean}` : origin;
 }

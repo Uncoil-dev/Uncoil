@@ -4,7 +4,7 @@ import httpx2 as httpx
 import pytest
 from openai import OpenAI, AsyncOpenAI
 from anthropic import Anthropic, AsyncAnthropic
-import tracify
+import uncoil
 from test_steps import Recorder
 
 CHAT = dict(id='chat-test', object='chat.completion', created=1, model='test-model', choices=[dict(index=0,message=dict(role='assistant',content='hello'),finish_reason='stop')],usage=dict(prompt_tokens=8,completion_tokens=3,total_tokens=11))
@@ -16,9 +16,9 @@ def llms(client): return [s for s in client.sent if s['spanType']=='llm_call']
 def test_openai_preserves_typed_response_and_nested_context():
     recorder=Recorder()
     raw=OpenAI(api_key='test',http_client=httpx.Client(transport=transport(CHAT)))
-    wrapped=tracify.wrap_openai(raw,client=recorder,calculate_cost=lambda usage: .02)
-    assert tracify.wrap_openai(wrapped) is wrapped
-    with tracify.span('parent',type='agent',client=recorder):
+    wrapped=uncoil.wrap_openai(raw,client=recorder,calculate_cost=lambda usage: .02)
+    assert uncoil.wrap_openai(wrapped) is wrapped
+    with uncoil.span('parent',type='agent',client=recorder):
         result=wrapped.chat.completions.create(model='test-model',messages=[])
     assert result.choices[0].message.content=='hello'
     child=llms(recorder)[0]; parent=recorder.sent[-1]
@@ -30,7 +30,7 @@ def test_openai_preserves_typed_response_and_nested_context():
 async def test_async_provider_concurrency():
     recorder=Recorder()
     raw=AsyncOpenAI(api_key='test',http_client=httpx.AsyncClient(transport=transport(CHAT)))
-    wrapped=tracify.wrap_openai(raw,client=recorder)
+    wrapped=uncoil.wrap_openai(raw,client=recorder)
     await asyncio.gather(*(wrapped.chat.completions.create(model='test-model',messages=[]) for _ in range(3)))
     assert len(llms(recorder))==3 and len({s['runId'] for s in llms(recorder)})==3
     assert all(s['runId']!='unknown' for s in recorder.sent)
@@ -39,7 +39,7 @@ async def test_async_provider_concurrency():
 def test_provider_exception_is_unchanged_and_recorded():
     recorder=Recorder(); raw=OpenAI(api_key='test',max_retries=0,http_client=httpx.Client(transport=transport(dict(error=dict(message='bad',type='invalid_request_error')),400)))
     with pytest.raises(Exception) as error:
-        tracify.wrap_openai(raw,client=recorder).chat.completions.create(model='test-model',messages=[])
+        uncoil.wrap_openai(raw,client=recorder).chat.completions.create(model='test-model',messages=[])
     assert error.value.status_code==400 and llms(recorder)[0]['errorType']=='BadRequestError'
     raw.close()
 
@@ -54,7 +54,7 @@ def message_events():
 
 def test_openai_stream_usage_and_close():
     recorder=Recorder(); raw=OpenAI(api_key='test',http_client=httpx.Client(transport=streaming_transport(chat_events())))
-    wrapped=tracify.wrap_openai(raw,client=recorder)
+    wrapped=uncoil.wrap_openai(raw,client=recorder)
     stream=wrapped.chat.completions.create(model='test-model',messages=[],stream=True)
     values=list(stream)
     assert values[0].choices[0].delta.content=='hello'
@@ -65,7 +65,7 @@ def test_openai_stream_usage_and_close():
 
 def test_anthropic_helper_final_message_and_usage():
     recorder=Recorder(); raw=Anthropic(api_key='test',http_client=httpx.Client(transport=streaming_transport(message_events(),True)))
-    with tracify.wrap_anthropic(raw,client=recorder).messages.stream(model='test-model',messages=[],max_tokens=10) as stream:
+    with uncoil.wrap_anthropic(raw,client=recorder).messages.stream(model='test-model',messages=[],max_tokens=10) as stream:
         assert ''.join(stream.text_stream)=='hello'
         assert stream.get_final_message().content[0].text=='hello'
     row=llms(recorder)[0]
@@ -75,7 +75,7 @@ def test_anthropic_helper_final_message_and_usage():
 @pytest.mark.asyncio
 async def test_async_anthropic_and_stream():
     recorder=Recorder(); raw=AsyncAnthropic(api_key='test',http_client=httpx.AsyncClient(transport=streaming_transport(message_events(),True)))
-    async with tracify.wrap_anthropic(raw,client=recorder).messages.stream(model='test-model',messages=[],max_tokens=10) as stream:
+    async with uncoil.wrap_anthropic(raw,client=recorder).messages.stream(model='test-model',messages=[],max_tokens=10) as stream:
         assert ''.join([text async for text in stream.text_stream])=='hello'
         assert (await stream.get_final_message()).content[0].text=='hello'
     assert llms(recorder)[0]['inputTokens']==58 and llms(recorder)[0]['outputTokens']==3
@@ -92,7 +92,7 @@ def test_real_langgraph_nodes_and_tools():
         return value+'!'
     def node(state,config): return dict(value=lookup.invoke(dict(value=state['value']),config))
     graph=StateGraph(State); graph.add_node('answer',node); graph.add_edge(START,'answer'); graph.add_edge('answer',END)
-    recorder=Recorder(); handler=tracify.langgraph_callback(client=recorder,name='test-graph')
+    recorder=Recorder(); handler=uncoil.langgraph_callback(client=recorder,name='test-graph')
     assert graph.compile().invoke(dict(value='hi'),dict(callbacks=[handler]))['value']=='hi!'
     rows={s['toolName']:s for s in recorder.sent}
     assert rows['lookup']['spanType']=='tool_call' and rows['lookup']['parentSpanId']==rows['answer']['spanId']
@@ -108,8 +108,8 @@ def test_optional_unset_fields_are_omitted_for_ingestion():
 
 
 def test_langgraph_inside_a_manual_root_uses_its_context():
-    recorder=Recorder(); handler=tracify.langgraph_callback(client=recorder)
-    with tracify.span('outer',root=True,client=recorder):
+    recorder=Recorder(); handler=uncoil.langgraph_callback(client=recorder)
+    with uncoil.span('outer',root=True,client=recorder):
         handler.on_chain_start({}, {}, run_id='graph-id', name='graph')
         handler.on_chain_end({}, run_id='graph-id')
     child,root=recorder.sent
@@ -120,7 +120,7 @@ def test_langgraph_inside_a_manual_root_uses_its_context():
 def test_anthropic_cache_reads_and_writes_are_counted():
     recorder=Recorder(); body=dict(MESSAGE,usage=dict(input_tokens=8,output_tokens=3,cache_creation_input_tokens=20,cache_read_input_tokens=30))
     raw=Anthropic(api_key='test',http_client=httpx.Client(transport=transport(body)))
-    tracify.wrap_anthropic(raw,client=recorder).messages.create(model='test-model',max_tokens=20,messages=[])
+    uncoil.wrap_anthropic(raw,client=recorder).messages.create(model='test-model',max_tokens=20,messages=[])
     row=llms(recorder)[0]
     assert row['inputTokens']==58 and row['metadata']['usage']['input_tokens']==8
     raw.close()

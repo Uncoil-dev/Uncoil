@@ -7,7 +7,7 @@ export const buildArticle = (mediaIdBySlug: Record<string, number>) => buildLong
   audience: "AI engineers and quality-minded leaders building repeatable release practices",
   framework: "Isolate, Simulate, Evaluate, Observe, Improve",
   outcome: "a safer release process that catches deterministic defects and behavior regressions",
-  tracifyLink: "/product/tool-calls",
+  uncoilLink: "/product/tool-calls",
   related: ["ai-agent-evaluation-practical-guide", "debug-ai-agents-in-production"],
   topics: ["Unit test deterministic boundaries", "Simulate tools and dependencies", "Evaluate realistic task behavior", "Observe production feedback", "Turn incidents into tests"],
   signals: ["unit pass rate and contract coverage", "simulated tool error handling", "scenario quality and criterion outcomes", "production correction and escalation patterns", "regression recurrence after a fix"],

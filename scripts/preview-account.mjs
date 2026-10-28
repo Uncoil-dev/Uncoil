@@ -13,7 +13,7 @@ const file = ".preview-account.json";
 const origin = `http://localhost:${process.env.PREVIEW_PORT ?? "4000"}`;
 const account = existsSync(file)
   ? JSON.parse(readFileSync(file, "utf8"))
-  : { email: "preview-local@tracify.tech", password: `Pv-${randomBytes(9).toString("hex")}`, name: "Preview Tester" };
+  : { email: "preview-local@uncoil.dev", password: `Pv-${randomBytes(9).toString("hex")}`, name: "Preview Tester" };
 
 async function post(path, body) {
   const res = await fetch(`${site}/api/auth/${path}`, {

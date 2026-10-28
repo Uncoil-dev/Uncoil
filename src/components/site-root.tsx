@@ -25,32 +25,32 @@ const GeistPixelSquare = localFont({
   adjustFontFallback: false,
 });
 
-const isCloudDeployment = process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND === "cloud";
+const isCloudDeployment = (process.env.NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND ?? process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND) === "cloud";
 
 export const rootMetadata: Metadata = {
-  metadataBase: new URL("https://www.tracify.tech"),
-  title: { default: "Tracify | AI agent observability and evaluation", template: "%s | Tracify" },
+  metadataBase: new URL("https://www.uncoil.dev"),
+  title: { default: "Uncoil | AI agent observability and evaluation", template: "%s | Uncoil" },
   description: "Trace, evaluate, and improve AI agents with one operational record for failures, cost, quality, prompts, and releases.",
-  applicationName: "Tracify",
+  applicationName: "Uncoil",
   category: "AI agent observability",
   keywords: ["AI agent observability", "LLM observability", "AI agent evaluation", "OpenTelemetry tracing", "agent tracing", "LLM cost monitoring"],
   robots: isCloudDeployment
     ? { index: false, follow: false }
     : { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
   openGraph: {
-    title: "Tracify | AI agent observability and evaluation",
+    title: "Uncoil | AI agent observability and evaluation",
     description: "Trace every decision, tool call, cost, quality signal, and deployment change in one debugging timeline.",
     type: "website",
-    siteName: "Tracify",
+    siteName: "Uncoil",
     locale: "en_US",
-    images: [{ url: ogImageUrl({ title: "Every agent run, on the record.", kicker: "AI agent observability", sub: "Traces, cost, quality and alerts in one place.", kind: "home" }), width: 1200, height: 630, alt: "Tracify | AI agent observability" }],
+    images: [{ url: ogImageUrl({ title: "Every agent run, on the record.", kicker: "AI agent observability", sub: "Traces, cost, quality and alerts in one place.", kind: "home" }), width: 1200, height: 630, alt: "Uncoil | AI agent observability" }],
   },
-  twitter: { card: "summary_large_image", title: "Tracify | AI agent observability and evaluation", description: "Agent observability for traces, cost, quality, prompts, and alerts.", images: [ogImageUrl({ title: "Every agent run, on the record.", kicker: "AI agent observability", sub: "Traces, cost, quality and alerts in one place.", kind: "home" })] },
+  twitter: { card: "summary_large_image", title: "Uncoil | AI agent observability and evaluation", description: "Agent observability for traces, cost, quality, prompts, and alerts.", images: [ogImageUrl({ title: "Every agent run, on the record.", kicker: "AI agent observability", sub: "Traces, cost, quality and alerts in one place.", kind: "home" })] },
 };
 
 const structuredData = [
-  { "@context": "https://schema.org", "@type": "Organization", name: "Tracify", url: "https://www.tracify.tech", logo: "https://www.tracify.tech/logo.png", alternateName: ["Tracify AI agent observability", "tracify.tech"], description: "Tracify is an observability and evaluation platform for AI agents, at tracify.tech.", sameAs: ORG_PROFILES },
-  { "@context": "https://schema.org", "@type": "WebSite", name: "Tracify", url: "https://www.tracify.tech", description: "AI agent observability and evaluation." },
+  { "@context": "https://schema.org", "@type": "Organization", name: "Uncoil", url: "https://www.uncoil.dev", logo: "https://www.uncoil.dev/logo.png", alternateName: ["Uncoil AI agent observability", "uncoil.dev"], description: "Uncoil is an observability and evaluation platform for AI agents, at uncoil.dev.", sameAs: ORG_PROFILES },
+  { "@context": "https://schema.org", "@type": "WebSite", name: "Uncoil", url: "https://www.uncoil.dev", description: "AI agent observability and evaluation." },
 ];
 
 /** Shared document shell. `lang` is rendered on the server so crawlers see the page language that matches its hreflang. */

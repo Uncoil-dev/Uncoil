@@ -23,8 +23,8 @@ export const submit = mutation({
 });
 
 function isLeadAdmin(identity: { email?: string | null; subject: string }) {
-  const emails = (process.env.TRACIFY_LIBRARY_ADMIN_EMAILS ?? "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
-  const ids = (process.env.TRACIFY_ADMIN_USER_IDS ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  const emails = ((process.env.UNCOIL_LIBRARY_ADMIN_EMAILS ?? process.env.TRACIFY_LIBRARY_ADMIN_EMAILS) ?? "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+  const ids = ((process.env.UNCOIL_ADMIN_USER_IDS ?? process.env.TRACIFY_ADMIN_USER_IDS) ?? "").split(",").map((x) => x.trim()).filter(Boolean);
   return ids.includes(identity.subject) || (!!identity.email && emails.includes(identity.email.toLowerCase()));
 }
 
@@ -73,7 +73,7 @@ export const recordDelivery = mutation({
     emailError: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (!process.env.TRACIFY_LEAD_DELIVERY_SECRET || args.deliverySecret !== process.env.TRACIFY_LEAD_DELIVERY_SECRET) throw new Error("Invalid delivery secret");
+    if (!(process.env.UNCOIL_LEAD_DELIVERY_SECRET ?? process.env.TRACIFY_LEAD_DELIVERY_SECRET) || args.deliverySecret !== (process.env.UNCOIL_LEAD_DELIVERY_SECRET ?? process.env.TRACIFY_LEAD_DELIVERY_SECRET)) throw new Error("Invalid delivery secret");
     const { deliverySecret: _deliverySecret, leadId, ...delivery } = args;
     await ctx.db.patch(leadId, delivery);
   },

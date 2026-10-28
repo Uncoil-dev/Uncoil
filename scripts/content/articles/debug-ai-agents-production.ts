@@ -7,7 +7,7 @@ export const buildArticle = (mediaIdBySlug: Record<string, number>) => buildLong
   audience: "on-call engineers, workflow owners, and technical leaders handling production AI incidents",
   framework: "Stabilize, Reconstruct, Compare, Correct, Verify",
   outcome: "a safe restoration of the affected workflow and a verified prevention step",
-  tracifyLink: "/docs/troubleshooting",
+  uncoilLink: "/docs/troubleshooting",
   related: ["llm-tracing-explained", "ai-agent-reliability-failures-retries-guardrails"],
   topics: ["Stabilize users before diagnosis", "Reconstruct the execution timeline", "Compare a failing run with a healthy run", "Classify the failure mechanism", "Verify the fix in production"],
   signals: ["user impact and fallback activation", "span chronology and correlated identifiers", "version and input-class differences", "tool, retrieval, model, and policy outcomes", "recurrence rate and post-release samples"],

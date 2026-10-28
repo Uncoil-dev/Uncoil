@@ -1,0 +1,113 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="38" font-size="26" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Which Platform Fits Your Volume?
+  </text>
+  <text x="600" y="60" font-size="13" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Start with your current monthly trace volume, not your aspirational one.
+  </text>
+
+  <!-- Start node -->
+  <rect x="500" y="80" width="200" height="45" rx="22" fill="#1a1a1a" stroke="#FFFF00" stroke-width="2"/>
+  <text x="600" y="107" font-size="13" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Monthly trace volume?</text>
+
+  <line x1="600" y1="125" x2="600" y2="150" stroke="#FFFFFF" stroke-width="2"/>
+
+  <!-- Branch row 1 -->
+  <line x1="180" y1="150" x2="1020" y2="150" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="180" y1="150" x2="180" y2="175" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="470" y1="150" x2="470" y2="175" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="740" y1="150" x2="740" y2="175" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="1020" y1="150" x2="1020" y2="175" stroke="#FFFFFF" stroke-width="2"/>
+
+  <!-- Node: <1M -->
+  <rect x="60" y="175" width="240" height="50" fill="#111111" stroke="#FFFFFF" stroke-width="1"/>
+  <text x="180" y="196" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">&lt; 1M / month</text>
+  <text x="180" y="213" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">prototyping, inside most quotas</text>
+
+  <!-- Node: 1-10M -->
+  <rect x="350" y="175" width="240" height="50" fill="#111111" stroke="#FFFFFF" stroke-width="1"/>
+  <text x="470" y="196" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">1M - 10M / month</text>
+  <text x="470" y="213" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">overage begins to bite</text>
+
+  <!-- Node: 10-50M -->
+  <rect x="620" y="175" width="240" height="50" fill="#111111" stroke="#FFFFFF" stroke-width="1"/>
+  <text x="740" y="196" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">10M - 50M / month</text>
+  <text x="740" y="213" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">overage &gt; base cost, often 100x+</text>
+
+  <!-- Node: 50M+ -->
+  <rect x="900" y="175" width="240" height="50" fill="#111111" stroke="#FFFFFF" stroke-width="1"/>
+  <text x="1020" y="196" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">50M+ / month</text>
+  <text x="1020" y="213" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">overage dominates the bill</text>
+
+  <!-- down arrows to gates -->
+  <line x1="180" y1="225" x2="180" y2="255" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="180,263 174,253 186,253" fill="#FFFFFF"/>
+  <line x1="470" y1="225" x2="470" y2="255" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="470,263 464,253 476,253" fill="#FFFFFF"/>
+  <line x1="740" y1="225" x2="740" y2="255" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="740,263 734,253 746,253" fill="#FFFFFF"/>
+  <line x1="1020" y1="225" x2="1020" y2="255" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="1020,263 1014,253 1026,253" fill="#FFFFFF"/>
+
+  <!-- Gate: <1M -->
+  <rect x="70" y="265" width="220" height="55" fill="#1a1a1a" stroke="#FFFF00" stroke-width="1"/>
+  <text x="180" y="288" font-size="12" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">LangChain-native stack?</text>
+  <text x="180" y="305" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">either works -- pick by DX</text>
+
+  <!-- Gate: 1-10M -->
+  <rect x="360" y="265" width="220" height="55" fill="#1a1a1a" stroke="#FFFF00" stroke-width="1"/>
+  <text x="470" y="288" font-size="12" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">Willing to sample to control cost?</text>
+  <text x="470" y="305" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">tradeoff: fidelity vs. bill</text>
+
+  <!-- Gate: 10-50M -->
+  <rect x="630" y="265" width="220" height="55" fill="#1a1a1a" stroke="#FFFF00" stroke-width="1"/>
+  <text x="740" y="288" font-size="12" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">On-prem / data residency required?</text>
+  <text x="740" y="305" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">the one real exception</text>
+
+  <!-- Gate: 50M+ -->
+  <rect x="910" y="265" width="220" height="55" fill="#1a1a1a" stroke="#FFFF00" stroke-width="1"/>
+  <text x="1020" y="288" font-size="12" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">On-prem / data residency required?</text>
+  <text x="1020" y="305" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">same exception, larger stakes</text>
+
+  <!-- down arrows to results -->
+  <line x1="180" y1="320" x2="180" y2="350" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="180,358 174,348 186,348" fill="#FFFFFF"/>
+  <line x1="470" y1="320" x2="470" y2="350" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="470,358 464,348 476,348" fill="#FFFFFF"/>
+  <line x1="740" y1="320" x2="740" y2="350" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="740,358 734,348 746,348" fill="#FFFFFF"/>
+  <line x1="1020" y1="320" x2="1020" y2="350" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="1020,358 1014,348 1026,348" fill="#FFFFFF"/>
+
+  <!-- Result boxes -->
+  <rect x="60" y="368" width="240" height="70" fill="#0f2a0f" stroke="#44FF44" stroke-width="2"/>
+  <text x="180" y="392" font-size="13" fill="#88FF88" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Either platform</text>
+  <text x="180" y="410" font-size="11" fill="#CCFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">cost is a rounding error</text>
+  <text x="180" y="426" font-size="11" fill="#CCFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">choose on UX / ecosystem fit</text>
+
+  <rect x="350" y="368" width="240" height="70" fill="#2a2a0f" stroke="#FFFF00" stroke-width="2"/>
+  <text x="470" y="392" font-size="13" fill="#FFFF66" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Lean Uncoil</text>
+  <text x="470" y="410" font-size="11" fill="#FFFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">avoid the sampling tradeoff</text>
+  <text x="470" y="426" font-size="11" fill="#FFFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">LangSmith viable if committed</text>
+
+  <rect x="620" y="368" width="240" height="70" fill="#0f2a0f" stroke="#44FF44" stroke-width="2"/>
+  <text x="740" y="392" font-size="13" fill="#88FF88" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil, decisively</text>
+  <text x="740" y="410" font-size="11" fill="#CCFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">unless on-prem is required --</text>
+  <text x="740" y="426" font-size="11" fill="#CCFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">then negotiate LangSmith on-prem</text>
+
+  <rect x="900" y="368" width="240" height="70" fill="#0f2a0f" stroke="#44FF44" stroke-width="2"/>
+  <text x="1020" y="392" font-size="13" fill="#88FF88" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil, without question</text>
+  <text x="1020" y="410" font-size="11" fill="#CCFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">100-300x cost gap at this scale</text>
+  <text x="1020" y="426" font-size="11" fill="#CCFFCC" text-anchor="middle" font-family="'Geist Mono', monospace">on-prem is the only exception</text>
+
+  <rect x="140" y="470" width="920" height="50" fill="none" stroke="#FFFF00" stroke-width="2"/>
+  <text x="600" y="500" font-size="13" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">
+    Rule of thumb: divide your LangSmith overage estimate by your Uncoil tier price. If it's over 10x, stop debating.
+  </text>
+
+  <text x="600" y="560" font-size="12" fill="#888888" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Re-run this decision whenever volume grows 2x -- the crossover point arrives faster than most roadmaps plan for.
+  </text>
+</svg>

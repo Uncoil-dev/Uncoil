@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { TracifyTracingPreview } from "@/components/dashboard/tracify-tracing-preview";
+import { UncoilTracingPreview } from "@/components/dashboard/uncoil-tracing-preview";
 
 export default function TracingPreviewPage() {
   if (process.env.NODE_ENV === "production") notFound();
-  return <TracifyTracingPreview />;
+  return <UncoilTracingPreview />;
 }

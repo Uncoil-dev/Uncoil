@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/marketing/page-header";
 import { Reveal } from "@/components/marketing/landing/reveal";
 import { ClosingBand, CreamBand, Eyebrow, HeaderAction, SectionTitle , StatStrip } from "@/components/marketing/company/blocks";
 
-export const metadata = pageMetadata({ title: "Tracify status: uptime and incidents", description: "Live operational status for Tracify ingestion, dashboards and API, with regional health checks for the US and EU clouds.", path: "/status" });
+export const metadata = pageMetadata({ title: "Uncoil status: uptime and incidents", description: "Live operational status for Uncoil ingestion, dashboards and API, with regional health checks for the US and EU clouds.", path: "/status" });
 
 const services = [
   { name: "Dashboard + authentication", owner: "Application", icon: Activity },
@@ -29,7 +29,7 @@ export default function StatusPage() {
         lede="A direct view of the surfaces needed to ingest, inspect and act on agent telemetry. Automated uptime history is not public yet, so support stays the honest source of truth."
         image="/images/company/status-pulse.png"
       >
-        <HeaderAction href="mailto:hello@tracify.tech?subject=Service%20incident">Report an incident</HeaderAction>
+        <HeaderAction href="mailto:hello@uncoil.dev?subject=Service%20incident">Report an incident</HeaderAction>
         <HeaderAction href="/security" kind="secondary">How we handle incidents</HeaderAction>
       </PageHeader>
       <StatStrip stats={[["2","Surfaces probed live"],["EU","Region online"],["Manual","Review until monitors land"],["Human","Reply to every report"]]} />
@@ -86,8 +86,8 @@ export default function StatusPage() {
 
       <ClosingBand
         title="Tell us. We will answer."
-        body="Email the affected surface and time window to hello@tracify.tech."
-        actions={[{ href: "mailto:hello@tracify.tech?subject=Service%20incident", label: "Report an incident", primary: true }, { href: "/contact", label: "Other contact options" }]}
+        body="Email the affected surface and time window to hello@uncoil.dev."
+        actions={[{ href: "mailto:hello@uncoil.dev?subject=Service%20incident", label: "Report an incident", primary: true }, { href: "/contact", label: "Other contact options" }]}
       />
     </div>
   );

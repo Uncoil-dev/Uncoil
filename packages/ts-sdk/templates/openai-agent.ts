@@ -1,10 +1,10 @@
 import OpenAI from "openai";
-import { TracifyClient, wrapOpenAI, traceTools, span } from "tracify-sdk";
+import { UncoilClient, wrapOpenAI, traceTools, span } from "uncoil-sdk";
 
-// TRACIFY_API_KEY is read from the environment.
-const tracify = new TracifyClient({ environment: "development" });
-const openai = wrapOpenAI(new OpenAI(), { client: tracify });
-const tools = traceTools({ getWeather: async (city: string) => `Sunny in ${city}` }, { client: tracify });
+// UNCOIL_API_KEY is read from the environment.
+const uncoil = new UncoilClient({ environment: "development" });
+const openai = wrapOpenAI(new OpenAI(), { client: uncoil });
+const tools = traceTools({ getWeather: async (city: string) => `Sunny in ${city}` }, { client: uncoil });
 
 async function main() {
   await span("weather-agent", async () => {

@@ -1,7 +1,7 @@
 # Architecture
 
 ## Overview
-tracify is built to handle high-throughput telemetry ingestion and provide real-time, reactive observability dashboards for AI agents.
+uncoil is built to handle high-throughput telemetry ingestion and provide real-time, reactive observability dashboards for AI agents.
 
 ## Core Components
 1. **Next.js 16 App Router**: The primary framework for the UI and API endpoints.

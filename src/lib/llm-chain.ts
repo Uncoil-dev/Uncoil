@@ -17,7 +17,7 @@ function classify(status: number, message: string): LlmFailure {
 
 /** The alternate provider asks every client to identify itself and to send a session id with each request. */
 function altHeaders(label: string) {
-  return { "user-agent": "Tracify/1.0 (+https://tracify.tech)", "x-opencode-session": `tracify-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${crypto.randomUUID()}` };
+  return { "user-agent": "Uncoil/1.0 (+https://uncoil.dev)", "x-opencode-session": `uncoil-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${crypto.randomUUID()}` };
 }
 
 /** OpenAI-compatible chat call, shared by OpenAI and the alternate provider. */

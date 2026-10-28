@@ -10,7 +10,7 @@ const NOW = Date.now();
 const P = "proj_groups_test";
 
 async function run(sql: string) {
-  const res = await fetch(`${url}/?database=${process.env.CLICKHOUSE_DATABASE ?? "tracify"}`, { method: "POST", body: sql });
+  const res = await fetch(`${url}/?database=${process.env.CLICKHOUSE_DATABASE ?? "uncoil"}`, { method: "POST", body: sql });
   if (!res.ok) throw new Error(await res.text());
 }
 const ts = (minutesAgo: number) => `toDateTime(${Math.floor((NOW - minutesAgo * 60_000) / 1000)})`;

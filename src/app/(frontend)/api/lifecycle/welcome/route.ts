@@ -11,7 +11,7 @@ import { renderWelcomeEmail } from "@/lib/email-templates";
 export async function POST() {
   const claim = await fetchAuthMutation(api.welcomeEmail.claim, {}).catch(() => null);
   if (!claim) return NextResponse.json({ ok: true, sent: false });
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://www.tracify.tech";
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://www.uncoil.dev";
   try {
     await sendTransactionalEmail({ to: claim.email, ...renderWelcomeEmail({ name: claim.name, origin }), idempotencyKey: `welcome-${claim.email}` });
     return NextResponse.json({ ok: true, sent: true });

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-const SNIPPET = `import tracify
-tracify.init()  # reads TRACIFY_API_KEY`;
+const SNIPPET = `import uncoil
+uncoil.init()  # reads UNCOIL_API_KEY`;
 
 /**
  * Shown on a dashboard page when the project has no data at all yet: says what the page will show

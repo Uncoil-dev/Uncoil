@@ -1,0 +1,61 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="44" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    The continuous loop: prompt iteration and production observability
+  </text>
+  <text x="600" y="70" font-size="13" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Neither stage is a one-time event — each ships better results into the other
+  </text>
+
+  <!-- Center hub -->
+  <circle cx="600" cy="370" r="92" fill="#0a0a0a" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="600" y="360" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Agent quality</text>
+  <text x="600" y="380" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">&amp; cost, over time</text>
+  <text x="600" y="402" font-size="11" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">improves one loop at a time</text>
+
+  <!-- Left node: Parea dev step -->
+  <rect x="90" y="120" width="330" height="120" fill="#151515" stroke="#FFFFFF" stroke-width="1.5"/>
+  <text x="255" y="148" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Parea: iterate offline</text>
+  <text x="255" y="172" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">New prompt version, tested against</text>
+  <text x="255" y="190" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">a growing golden dataset before</text>
+  <text x="255" y="208" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">anything reaches a real user</text>
+
+  <!-- Right node: Uncoil prod step -->
+  <rect x="780" y="120" width="330" height="120" fill="#0f0f00" stroke="#FFFF00" stroke-width="1.5"/>
+  <text x="945" y="148" font-size="14" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil: observe live</text>
+  <text x="945" y="172" font-size="12" fill="#DDDDAA" text-anchor="middle" font-family="'Geist Mono', monospace">Real traces, real cost per call,</text>
+  <text x="945" y="190" font-size="12" fill="#DDDDAA" text-anchor="middle" font-family="'Geist Mono', monospace">continuous evaluation surface</text>
+  <text x="945" y="208" font-size="12" fill="#DDDDAA" text-anchor="middle" font-family="'Geist Mono', monospace">exactly where quality slips</text>
+
+  <!-- Bottom node: failures become dataset -->
+  <rect x="435" y="540" width="330" height="120" fill="#151515" stroke="#666666" stroke-width="1.5"/>
+  <text x="600" y="568" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Shared: failure library</text>
+  <text x="600" y="592" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Flagged production traces become</text>
+  <text x="600" y="610" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">new offline test cases for the</text>
+  <text x="600" y="628" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">next round of prompt work</text>
+
+  <!-- Arrows: dev -> hub -->
+  <path d="M 420 210 L 545 335" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+  <polygon points="545,335 528,332 536,317" fill="#FFFFFF"/>
+  <text x="440" y="260" font-size="11" fill="#FFFFFF" font-family="'Geist Mono', monospace">ship approved version</text>
+
+  <!-- Arrows: hub -> prod -->
+  <path d="M 655 335 L 780 210" stroke="#FFFF00" stroke-width="2" fill="none"/>
+  <polygon points="780,210 762,214 768,229" fill="#FFFF00"/>
+  <text x="700" y="260" font-size="11" fill="#FFFF00" font-family="'Geist Mono', monospace">runs at production scale</text>
+
+  <!-- Arrows: prod -> failure library -->
+  <path d="M 945 240 L 700 545" stroke="#FFFF00" stroke-width="2" fill="none"/>
+  <polygon points="700,545 705,527 719,536" fill="#FFFF00"/>
+  <text x="850" y="420" font-size="11" fill="#FFFF00" font-family="'Geist Mono', monospace">low-score traces flagged</text>
+
+  <!-- Arrows: failure library -> dev -->
+  <path d="M 500 545 L 300 245" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+  <polygon points="300,245 297,263 313,255" fill="#FFFFFF"/>
+  <text x="330" y="420" font-size="11" fill="#FFFFFF" font-family="'Geist Mono', monospace">imported as new test cases</text>
+
+  <text x="600" y="690" font-size="12" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Teams that skip the bottom step keep re-discovering the same failures in production
+  </text>
+</svg>

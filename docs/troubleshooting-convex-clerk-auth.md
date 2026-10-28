@@ -57,7 +57,7 @@ export default {
       applicationID: "convex",
     },
     {
-      domain: "https://clerk.tracify.tech",
+      domain: "https://clerk.uncoil.dev",
       applicationID: "convex",
     },
   ],
@@ -97,7 +97,7 @@ The production Clerk instance must have:
 The Convex prod deployment must have:
 
 ```text
-CLERK_JWT_ISSUER_DOMAIN=https://clerk.tracify.tech
+CLERK_JWT_ISSUER_DOMAIN=https://clerk.uncoil.dev
 ```
 
 Vercel production must point browser clients at production Convex:
@@ -122,7 +122,7 @@ npx.cmd convex env list --prod
 Expected important value:
 
 ```text
-CLERK_JWT_ISSUER_DOMAIN=https://clerk.tracify.tech
+CLERK_JWT_ISSUER_DOMAIN=https://clerk.uncoil.dev
 ```
 
 2. Deployed the current Convex functions and auth config to production:
@@ -174,9 +174,9 @@ npx.cmd vercel env ls production
 5. Pushed the documentation commit, which triggered a production Vercel deployment. The deployment was ready and aliased to:
 
 ```text
-https://tracify.tech
-https://tracify.tech
-https://tracify.vercel.app
+https://uncoil.dev
+https://uncoil.dev
+https://uncoil.vercel.app
 ```
 
 ## Dev vs Production Checklist
@@ -203,7 +203,7 @@ name = convex
 aud = convex
 ```
 
-The template name is not cosmetic. `ConvexProviderWithClerk` asks for `template: "convex"`, so a template named `Convex`, `convex-prod`, or `tracify` will not satisfy this flow.
+The template name is not cosmetic. `ConvexProviderWithClerk` asks for `template: "convex"`, so a template named `Convex`, `convex-prod`, or `uncoil` will not satisfy this flow.
 
 ### 3. Convex auth provider config
 
@@ -275,7 +275,7 @@ Fix:
 
 - Confirm the Clerk issuer domain in Convex matches the actual environment.
 - Dev: `https://many-crab-79.clerk.accounts.dev`
-- Prod: `https://clerk.tracify.tech`
+- Prod: `https://clerk.uncoil.dev`
 
 ### Stale Convex functions
 
@@ -306,7 +306,7 @@ Fix:
 
 ## Quick Recovery Commands
 
-Use these commands from `C:\tracify`.
+Use these commands from `C:\uncoil`.
 
 Check prod Convex env:
 

@@ -100,7 +100,7 @@ const output = posts.map((post) => {
     excerpt: String(post.excerpt),
     publishedAt,
     updatedAt: String(post.updated_at),
-    author: String(post.author || "Tracify Team"),
+    author: String(post.author || "Uncoil Team"),
     draft: post._status !== "published",
     categories: relations.categories,
     tags: tagsByPost.get(id) ?? [],

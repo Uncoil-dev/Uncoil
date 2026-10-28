@@ -17,7 +17,7 @@ export function LiveCapturedPrompts({ projectId }: { projectId: string }) {
     const version = prompt.versions[0];
     return { id: prompt._id, name: prompt.name, status: version?.labels.includes("production") ? "Production" : "Draft", environment: "all", timestamp: new Date(prompt.updatedAt).toLocaleDateString(), model: version?.model ?? "—", input: version?.content ?? "" };
   });
-  const workspace = { ...sandboxWorkspace, mode: "live" as const, readOnly: false, dataSource: "tracify-live" as const, project: { id: projectId, name: project.name, organizationName: "Workspace" }, collections: { ...sandboxWorkspace.collections, prompts: { description: "Version, test, and promote prompts used by your agents.", records } } };
+  const workspace = { ...sandboxWorkspace, mode: "live" as const, readOnly: false, dataSource: "uncoil-live" as const, project: { id: projectId, name: project.name, organizationName: "Workspace" }, collections: { ...sandboxWorkspace.collections, prompts: { description: "Version, test, and promote prompts used by your agents.", records } } };
   async function savePrompt(input: { promptId?: string; name: string; type: "text" | "chat"; content: string }) {
     const typedProjectId = projectId as Id<"projects">;
     if (input.promptId) {

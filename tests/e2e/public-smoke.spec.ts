@@ -15,7 +15,7 @@ test("sign-in route redirects safely when auth is unavailable", async ({ request
 
 test("first visit shows consent and preference changes persist", async ({ page }) => {
   await page.goto("/robots.txt");
-  await page.evaluate(() => window.localStorage.removeItem("tracify.consent"));
+  await page.evaluate(() => window.localStorage.removeItem("uncoil.consent"));
   await page.goto("/", { waitUntil: "commit", timeout: 120_000 });
   await expect(page.getByRole("dialog", { name: "Privacy preferences" })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("button", { name: "Reject optional" })).toBeVisible();
@@ -26,5 +26,5 @@ test("first visit shows consent and preference changes persist", async ({ page }
   await expect(page.getByRole("dialog", { name: "Privacy preferences" })).toBeHidden();
   await page.reload();
   await expect(page.getByRole("dialog", { name: "Privacy preferences" })).toBeHidden();
-  expect(await page.evaluate(() => JSON.parse(window.localStorage.getItem("tracify.consent") ?? "null").analytics)).toBe(true);
+  expect(await page.evaluate(() => JSON.parse(window.localStorage.getItem("uncoil.consent") ?? "null").analytics)).toBe(true);
 });

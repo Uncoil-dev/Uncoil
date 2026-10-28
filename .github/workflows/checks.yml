@@ -26,7 +26,7 @@ jobs:
         site: [marketing, cloud]
     env:
       NEXT_TELEMETRY_DISABLED: "1"
-      NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND: ${{ matrix.site }}
+      NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND: ${{ matrix.site }}
       NEXT_PUBLIC_CONVEX_URL: https://example.convex.cloud
       NEXT_PUBLIC_CONVEX_SITE_URL: https://example.convex.site
       NEXT_PUBLIC_SITE_URL: https://example.com

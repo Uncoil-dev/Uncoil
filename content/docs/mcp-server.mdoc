@@ -1,14 +1,14 @@
 ---
 slug: mcp-server
 title: MCP and agent access
-description: Give AI agents read-only access to the full public Tracify documentation corpus.
+description: Give AI agents read-only access to the full public Uncoil documentation corpus.
 section: Connect
 order: 16
 ---
 
 # MCP and agent access
 
-The Tracify Docs MCP server gives AI agents read-only access to every public Tracify documentation chapter. It supports listing, searching, and reading Markdown documentation without exposing project data, API keys, traces, or dashboard actions.
+The Uncoil Docs MCP server gives AI agents read-only access to every public Uncoil documentation chapter. It supports listing, searching, and reading Markdown documentation without exposing project data, API keys, traces, or dashboard actions.
 
 ## Install the remote server
 
@@ -17,17 +17,17 @@ Use the Streamable HTTP endpoint in an MCP client that supports remote servers:
 ```json
 {
   "mcpServers": {
-    "tracify-docs": {
-      "url": "https://www.tracify.tech/api/docs/mcp"
+    "uncoil-docs": {
+      "url": "https://www.uncoil.dev/api/docs/mcp"
     }
   }
 }
 ```
 
-The server exposes three read-only tools: `list_docs`, `search_docs`, and `read_doc`. It also exposes each document as a `tracify://docs/<slug>` Markdown resource.
+The server exposes three read-only tools: `list_docs`, `search_docs`, and `read_doc`. It also exposes each document as a `uncoil://docs/<slug>` Markdown resource.
 
 ## Send a page to an AI chat
 
 Each documentation page has a **Send to** menu. Choose **Copy Markdown**, **Send to ChatGPT**, or **Send to Claude**. The chat actions open a new conversation with the page text as context; review the content before sharing it with any third-party service.
 
-The docs MCP server is for public documentation only. Project traces, prompts, evaluations, API keys, and other workspace data stay behind Tracify authentication and are not available through this endpoint.
+The docs MCP server is for public documentation only. Project traces, prompts, evaluations, API keys, and other workspace data stay behind Uncoil authentication and are not available through this endpoint.

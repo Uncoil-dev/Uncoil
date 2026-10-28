@@ -1,4 +1,4 @@
-# tracify — Full Frontend Design Package
+# uncoil — Full Frontend Design Package
 **Index of design specification files**
 
 ---
@@ -41,7 +41,7 @@
 ## Corrections vs. Original Brief
 
 1. **Free tier:** 50,000 spans/month (not 1,000/day as in original draft)
-2. **Hero code sample:** Uses actual `tracify` API: `trace_agent`, `llm_call`, `tool_call`
+2. **Hero code sample:** Uses actual `uncoil` API: `trace_agent`, `llm_call`, `tool_call`
 3. **Tagline:** "Five signals. One truth." (not "every step your agent takes" as tagline)
 4. **Integrations:** Autogen, CrewAI, Haystack, DSPy, Semantic Kernel added to framework grid
 5. **Auth:** Clerk `colorInputBackground: "#1C1C1C"` (Surface 3, not Surface 2)

@@ -1,4 +1,4 @@
-import { parseTracifyRegion, TRACIFY_REGIONS } from "@/lib/regions";
+import { parseUncoilRegion, UNCOIL_REGIONS } from "@/lib/regions";
 
 export function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
@@ -8,16 +8,16 @@ export function register() {
   // repository-owned test launcher to provide its isolated fixture environment.
   if (process.env.PLAYWRIGHT_LOCAL_SERVER === "1") return;
 
-  const deploymentKind = process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND ?? "marketing";
+  const deploymentKind = (process.env.NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND ?? process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND) ?? "marketing";
   if (deploymentKind !== "cloud") return;
 
   const required = [
-    "NEXT_PUBLIC_TRACIFY_REGION",
-    "TRACIFY_REGION",
+    "NEXT_PUBLIC_UNCOIL_REGION",
+    "UNCOIL_REGION",
     "NEXT_PUBLIC_SITE_URL",
     "NEXT_PUBLIC_CONVEX_URL",
     "NEXT_PUBLIC_CONVEX_SITE_URL",
-    "TRACIFY_API_KEY_HASH_SECRET",
+    "UNCOIL_API_KEY_HASH_SECRET",
     "REDIS_URL",
     "INNGEST_EVENT_KEY",
   ] as const;
@@ -25,18 +25,18 @@ export function register() {
   const analytics = process.env.CLICKHOUSE_URL?.trim()
     ? ["CLICKHOUSE_URL", "CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD"]
     : ["TINYBIRD_HOST", "TINYBIRD_TOKEN"];
-  const missing = [...required, ...analytics].filter((name) => !process.env[name]?.trim());
+  const missing = [...required, ...analytics].filter((name) => !(process.env[name] ?? process.env[name.replace("UNCOIL_", "TRACIFY_")])?.trim());
   if (missing.length) {
     throw new Error(`Regional cloud deployment is missing required environment variables: ${missing.join(", ")}`);
   }
 
-  const publicRegion = parseTracifyRegion(process.env.NEXT_PUBLIC_TRACIFY_REGION);
-  const serverRegion = parseTracifyRegion(process.env.TRACIFY_REGION);
+  const publicRegion = parseUncoilRegion((process.env.NEXT_PUBLIC_UNCOIL_REGION ?? process.env.NEXT_PUBLIC_TRACIFY_REGION));
+  const serverRegion = parseUncoilRegion((process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION));
   if (!publicRegion || publicRegion !== serverRegion) {
-    throw new Error("NEXT_PUBLIC_TRACIFY_REGION and TRACIFY_REGION must identify the same supported region");
+    throw new Error("NEXT_PUBLIC_UNCOIL_REGION and UNCOIL_REGION must identify the same supported region");
   }
 
-  const expectedOrigin = TRACIFY_REGIONS[publicRegion].origin;
+  const expectedOrigin = UNCOIL_REGIONS[publicRegion].origin;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   // Outside production, allow a localhost origin. Pinning NEXT_PUBLIC_SITE_URL to the
   // regional host on a developer machine makes the app treat production as its own
@@ -45,10 +45,10 @@ export function register() {
     process.env.NODE_ENV !== "production" &&
     /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(siteUrl ?? "");
   // Staging and PR preview copies run on their own hosts. Opt in explicitly with
-  // TRACIFY_ENVIRONMENT=staging; production never sets it.
+  // UNCOIL_ENVIRONMENT=staging; production never sets it.
   const isStagingOrigin =
-    process.env.TRACIFY_ENVIRONMENT === "staging" &&
-    /^https:\/\/(staging|pr-\d+\.preview)\.eu\.cloud\.tracify\.tech$/.test(siteUrl ?? "");
+    (process.env.UNCOIL_ENVIRONMENT ?? process.env.TRACIFY_ENVIRONMENT) === "staging" &&
+    /^https:\/\/(staging|pr-\d+\.preview)\.eu\.cloud\.uncoil\.tech$/.test(siteUrl ?? "");
   if (siteUrl !== expectedOrigin && !isLocalOrigin && !isStagingOrigin) {
     throw new Error(`NEXT_PUBLIC_SITE_URL must be ${expectedOrigin} for the ${publicRegion.toUpperCase()} deployment`);
   }

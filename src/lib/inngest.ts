@@ -1,10 +1,10 @@
 import { Inngest } from "inngest";
 
-export const inngest = new Inngest({ id: "tracify" });
+export const inngest = new Inngest({ id: "uncoil" });
 
 // Typed event map for all Inngest events used in this app
 export type SpanIngestedEvent = {
-  name: "tracify/span.received";
+  name: "uncoil/span.received";
   data: {
     spanId: string;
     runId: string;
@@ -44,6 +44,6 @@ export type SpanIngestedEvent = {
 };
 
 export type OnboardingReminderEvent = {
-  name: "tracify/onboarding.reminder";
+  name: "uncoil/onboarding.reminder";
   data: { email: string; name?: string; projectId: string; projectName?: string };
 };

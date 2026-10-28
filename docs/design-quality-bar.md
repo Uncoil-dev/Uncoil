@@ -1,6 +1,6 @@
 # Design quality bar
 
-The owner set this rule on 2026-10-15: the landing page rebuilt in PR #171 is the **minimum standard** for every future visual change to Tracify. New design work must match it or beat it. Anything that looks plainer, flatter, more generic or less polished than that page is not acceptable and must not be proposed or merged.
+The owner set this rule on 2026-10-15: the landing page rebuilt in PR #171 is the **minimum standard** for every future visual change to Uncoil. New design work must match it or beat it. Anything that looks plainer, flatter, more generic or less polished than that page is not acceptable and must not be proposed or merged.
 
 ## The benchmark
 

@@ -1,16 +1,16 @@
 /**
  * End-to-end verification for the EU regional cloud.
  *
- * Sends a real span through https://eu.cloud.tracify.tech and confirms it lands in
+ * Sends a real span through https://eu.cloud.uncoil.dev and confirms it lands in
  * Tinybird, exercising SDK -> /api/ingest -> Inngest -> Tinybird. This is the one
  * launch-checklist item that cannot be automated without a real account, so it is
  * packaged as a single command.
  *
  * Usage (PowerShell):
- *   $env:TRACIFY_SMOKE_API_KEY="tracify_sk_live_eu_..."; node scripts/verify-eu-trace.mjs
+ *   $env:UNCOIL_SMOKE_API_KEY="uncoil_sk_live_eu_..."; node scripts/verify-eu-trace.mjs
  *
  * Optional:
- *   TRACIFY_SMOKE_BASE_URL   defaults to https://eu.cloud.tracify.tech
+ *   UNCOIL_SMOKE_BASE_URL   defaults to https://eu.cloud.uncoil.dev
  *   TINYBIRD_HOST / TINYBIRD_TOKEN  read from .tinyb automatically when present, so
  *                                   the script also polls Tinybird directly to prove
  *                                   the span was persisted, not merely accepted.
@@ -30,15 +30,15 @@ function tinybirdFromCli() {
 }
 const cli = tinybirdFromCli();
 
-const BASE = process.env.TRACIFY_SMOKE_BASE_URL ?? "https://eu.cloud.tracify.tech";
-const KEY = process.env.TRACIFY_SMOKE_API_KEY;
+const BASE = process.env.UNCOIL_SMOKE_BASE_URL ?? "https://eu.cloud.uncoil.dev";
+const KEY = process.env.UNCOIL_SMOKE_API_KEY;
 const TB_HOST = process.env.TINYBIRD_HOST ?? cli.host;
 const TB_TOKEN = process.env.TINYBIRD_TOKEN ?? cli.token;
 
 if (!KEY) {
-  console.error("TRACIFY_SMOKE_API_KEY is required.");
-  console.error("Create a project at https://eu.cloud.tracify.tech, copy the key shown once, then:");
-  console.error('  $env:TRACIFY_SMOKE_API_KEY="tracify_sk_live_eu_..."; npm run verify:eu-trace');
+  console.error("UNCOIL_SMOKE_API_KEY is required.");
+  console.error("Create a project at https://eu.cloud.uncoil.dev, copy the key shown once, then:");
+  console.error('  $env:UNCOIL_SMOKE_API_KEY="uncoil_sk_live_eu_..."; npm run verify:eu-trace');
   process.exit(2);
 }
 

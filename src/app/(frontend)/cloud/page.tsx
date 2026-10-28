@@ -6,8 +6,8 @@ import { RegionOptions } from "@/components/cloud/region-options";
 import { getAvailableRegions } from "@/lib/regions";
 
 export const metadata: Metadata = {
-  title: "Choose your Tracify region",
-  description: "Choose a regional Tracify cloud before entering Sandbox or Build.",
+  title: "Choose your Uncoil region",
+  description: "Choose a regional Uncoil cloud before entering Sandbox or Build.",
   alternates: { canonical: "/cloud" },
   robots: { index: false, follow: false },
 };
@@ -25,7 +25,7 @@ export default async function CloudRegionPage({ searchParams }: { searchParams: 
       step="step 01 of 02"
       eyebrow="Regional cloud"
       title="Choose your region."
-      body="First choose where Tracify runs. Next you pick Sandbox or Build on that regional cloud."
+      body="First choose where Uncoil runs. Next you pick Sandbox or Build on that regional cloud."
       image="/images/company/region-link.png"
       footer={<p className="text-xs leading-6 text-white/55">Regions are isolated. Choosing another region does not move an existing account or its data.</p>}
     >

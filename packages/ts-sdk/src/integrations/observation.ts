@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 import {
-  TracifyClient,
+  UncoilClient,
   currentTraceContext,
   currentRunId,
   integrationPayload,
   type SpanData,
 } from "../index";
 export type IntegrationOptions = {
-  client?: TracifyClient;
+  client?: UncoilClient;
   name?: string;
   captureInput?: boolean;
   captureOutput?: boolean;
@@ -39,7 +39,7 @@ export function observation(
   const runId = scope?.runId ?? (implicit ? randomUUID() : inheritedRun);
   const id = scope?.spanId ?? randomUUID(),
     rootId = implicit ? randomUUID() : undefined;
-  const client = options.client ?? context?.client ?? new TracifyClient();
+  const client = options.client ?? context?.client ?? new UncoilClient();
   const start = Date.now();
   let ended = false;
   const data: SpanData = {

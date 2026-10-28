@@ -1,6 +1,6 @@
 # SharePoint discovery package
 
-Run `npm run prepare:m365-index` to create `artifacts/m365-sharepoint/`. Upload that folder to a SharePoint document library named `Tracify`.
+Run `npm run prepare:m365-index` to create `artifacts/m365-sharepoint/`. Upload that folder to a SharePoint document library named `Uncoil`.
 
 ## Recommended library layout
 

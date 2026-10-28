@@ -1,6 +1,6 @@
 # Regional cloud deployment and migration runbook
 
-This runbook is the operating contract for `eu.cloud.tracify.tech` and `us.cloud.tracify.tech`. The application source is shared; all stateful services and credentials are isolated.
+This runbook is the operating contract for `eu.cloud.uncoil.dev` and `us.cloud.uncoil.dev`. The application source is shared; all stateful services and credentials are isolated.
 
 ## Deployment inventory
 
@@ -22,11 +22,11 @@ Deploy the same verified commit to EU and US. Do not promote one region if the o
 
 ## Environment invariants
 
-Set `NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND=cloud`. Set both `NEXT_PUBLIC_TRACIFY_REGION` and `TRACIFY_REGION` to the deployment's region. `NEXT_PUBLIC_SITE_URL` must equal the regional origin. Startup validation intentionally fails a cloud deployment when regional or stateful-service variables are absent or inconsistent.
+Set `NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND=cloud`. Set both `NEXT_PUBLIC_UNCOIL_REGION` and `UNCOIL_REGION` to the deployment's region. `NEXT_PUBLIC_SITE_URL` must equal the regional origin. Startup validation intentionally fails a cloud deployment when regional or stateful-service variables are absent or inconsistent.
 
 Better Auth `SITE_URL` and trusted origins must point to the same regional origin. OAuth applications require a callback URL for each region. Stripe requires a separately signed webhook endpoint per region. Do not reuse API-key hash secrets, webhook secrets, Tinybird tokens, Redis URLs, or Inngest signing keys across regions.
 
-`TRACIFY_INGEST_LIMIT_PER_MINUTE` defaults to 6,000 spans per project. The native and OTLP endpoints share an atomic Redis counter, return `429` with `Retry-After` when exhausted, and therefore inherit the regional Redis isolation boundary.
+`UNCOIL_INGEST_LIMIT_PER_MINUTE` defaults to 6,000 spans per project. The native and OTLP endpoints share an atomic Redis counter, return `429` with `Retry-After` when exhausted, and therefore inherit the regional Redis isolation boundary.
 
 ## Account and data migration
 
@@ -61,7 +61,7 @@ originally built on `europe-west2` for both Tinybird and Redis and had to be reb
 | Service | Location | How verified |
 | --- | --- | --- |
 | Convex | `jovial-owl-711`, AWS eu-west-1 (Ireland) | deployment region |
-| Tinybird | `tracify_eu_west1`, `https://api.eu-west-1.aws.tinybird.co` | `52.211.129.79` in AWS `eu-west-1` |
+| Tinybird | `uncoil_eu_west1`, `https://api.eu-west-1.aws.tinybird.co` | `52.211.129.79` in AWS `eu-west-1` |
 | Redis | Upstash `concrete-buffalo-140061`, primary eu-west-1 | `52.214.68.234` in AWS `eu-west-1` |
 | Inngest | AWS **us-east-2 (Ohio, United States)** | `3.20.90.35`, `18.221.3.32` et al. |
 
@@ -92,24 +92,24 @@ pre-release sequence; a non-EU read region silently breaks residency.
   re-add it.
 - Vercel environment variables marked *Sensitive* are write-only: `vercel env pull` returns
   `[SENSITIVE]`, so their values cannot be read back by anyone. Audit names with
-  `npx vercel env ls production --project <project> --scope tracify-tech`. `vercel` is not on
+  `npx vercel env ls production --project <project> --scope uncoil-tech`. `vercel` is not on
   PATH; use `npx vercel`.
-- `/cloud` renders only when `NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND=marketing`; `src/proxy.ts`
-  redirects it to `www.tracify.tech` on a cloud deployment. **The region selector ships with the
+- `/cloud` renders only when `NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND=marketing`; `src/proxy.ts`
+  redirects it to `www.uncoil.dev` on a cloud deployment. **The region selector ships with the
   marketing project, not the regional projects.** A regional-only deploy will not update it.
 - Deploy from a clean detached worktree at the merged commit, never from a dirty working tree,
   so `scratch/` and unrelated local files are never uploaded.
 
 ## Provisioned resources and handoff
 
-- Vercel EU: `tracify-tech/tracify-cloud-eu`; Next.js preset; production and preview region/Convex settings applied.
-- Vercel US: `tracify-tech/tracify-cloud-us`; Next.js preset; production and preview region/Convex settings applied.
+- Vercel EU: `uncoil-tech/uncoil-cloud-eu`; Next.js preset; production and preview region/Convex settings applied.
+- Vercel US: `uncoil-tech/uncoil-cloud-us`; Next.js preset; production and preview region/Convex settings applied.
 - Convex EU: `jovial-owl-711` in `eu-west-1`; isolated runtime secrets; `/health` must report `region: eu`.
 - Convex US: `flexible-anaconda-752` in `us-east-1`; isolated runtime secrets; `/health` must report `region: us`.
 - Domains are attached to their matching Vercel projects. DNS remains at Domeneshop and requires A records to Vercel before certificates can issue.
 
-Git automation was intentionally disconnected from both regional Vercel projects. Vercel classified the first branch deployment in each empty project as production even though the production branch was `main`. Those feature deployments were deleted. Reconnect `BN-KR/Tracify` only after this change is merged and all regional launch gates pass, then verify the deployed Git SHA is an ancestor of `origin/main` before assigning traffic.
+Git automation was intentionally disconnected from both regional Vercel projects. Vercel classified the first branch deployment in each empty project as production even though the production branch was `main`. Those feature deployments were deleted. Reconnect `Uncoil-dev/Uncoil` only after this change is merged and all regional launch gates pass, then verify the deployed Git SHA is an ancestor of `origin/main` before assigning traffic.
 
-As of 2026-08-19 the EU project has a real production deployment on `main` (commit `091d9da`, deployed manually with `vercel deploy --prod` and a locally written `.vercel/project.json`), so the first-deployment misclassification can no longer occur and Git may safely be reconnected. `eu.cloud.tracify.tech` is attached and now resolves via CNAME to `5ee7be47305fd6c5.vercel-dns-017.com` rather than the legacy `76.76.21.21` A record. Note that an earlier claim that both regional domains were already attached was wrong — the EU domain was attached only on 2026-08-19, and the US domain remains unattached by design.
+As of 2026-08-19 the EU project has a real production deployment on `main` (commit `091d9da`, deployed manually with `vercel deploy --prod` and a locally written `.vercel/project.json`), so the first-deployment misclassification can no longer occur and Git may safely be reconnected. `eu.cloud.uncoil.dev` is attached and now resolves via CNAME to `5ee7be47305fd6c5.vercel-dns-017.com` rather than the legacy `76.76.21.21` A record. Note that an earlier claim that both regional domains were already attached was wrong — the EU domain was attached only on 2026-08-19, and the US domain remains unattached by design.
 
-Regional deploy-key files are local operator artifacts under the ignored `scratch/tracify-regional/` directory. They must never be committed. Rotate them if that directory leaves the trusted workstation. Values are also stored as sensitive Vercel environment variables for production and preview.
+Regional deploy-key files are local operator artifacts under the ignored `scratch/uncoil-regional/` directory. They must never be committed. Rotate them if that directory leaves the trusted workstation. Values are also stored as sensitive Vercel environment variables for production and preview.

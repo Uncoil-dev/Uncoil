@@ -2,14 +2,14 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { TRACIFY_REGIONS, parseTracifyRegion } from "@/lib/regions";
+import { UNCOIL_REGIONS, parseUncoilRegion } from "@/lib/regions";
 
 export default function CloudConnectingPage() {
   const params = useSearchParams();
-  const regionId = parseTracifyRegion(params.get("region")) ?? "eu";
+  const regionId = parseUncoilRegion(params.get("region")) ?? "eu";
   const next = params.get("next") || "/sign-in";
   const intent = params.get("intent") || "build";
-  const region = TRACIFY_REGIONS[regionId];
+  const region = UNCOIL_REGIONS[regionId];
 
   useEffect(() => {
     const target = `/api/region/select?region=${encodeURIComponent(regionId)}&next=${encodeURIComponent(next)}&intent=${encodeURIComponent(intent)}`;

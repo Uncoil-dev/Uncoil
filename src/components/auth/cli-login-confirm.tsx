@@ -12,7 +12,7 @@ import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 
 const NEW_PROJECT = "new";
 
-/** The browser half of `tracify-sdk login`: confirm the code, pick a project, send the key to the terminal. */
+/** The browser half of `uncoil-sdk login`: confirm the code, pick a project, send the key to the terminal. */
 export function CliLoginConfirm() {
   const code = useSearchParams().get("code") ?? "";
   const auth = useConvexAuthReadiness();
@@ -59,7 +59,7 @@ export function CliLoginConfirm() {
   }
 
   let body;
-  if (!code) body = <Notice>This link is missing its code. Run <Mono>npx tracify-sdk login</Mono> in your terminal again.</Notice>;
+  if (!code) body = <Notice>This link is missing its code. Run <Mono>npx uncoil-sdk login</Mono> in your terminal again.</Notice>;
   else if (auth.status === "loading") body = <Notice>Checking your account…</Notice>;
   else if (auth.status === "error") body = <Notice>We could not check your sign-in. Reload this page.</Notice>;
   else if (!signedIn) {
@@ -79,15 +79,15 @@ export function CliLoginConfirm() {
     );
   } else if (phase === "denied") body = <Notice>Cancelled. Nothing was connected.</Notice>;
   else if (request === undefined || projects === undefined) body = <Notice>Loading…</Notice>;
-  else if (!request || request.state === "invalid") body = <Notice>We do not know this code. Run <Mono>npx tracify-sdk login</Mono> again and open the new link.</Notice>;
-  else if (request.state === "expired") body = <Notice>This code has expired. Run <Mono>npx tracify-sdk login</Mono> again.</Notice>;
+  else if (!request || request.state === "invalid") body = <Notice>We do not know this code. Run <Mono>npx uncoil-sdk login</Mono> again and open the new link.</Notice>;
+  else if (request.state === "expired") body = <Notice>This code has expired. Run <Mono>npx uncoil-sdk login</Mono> again.</Notice>;
   else if (request.state === "done") body = <Notice>This code was already used.</Notice>;
   else {
     body = (
       <>
         <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">Code from your terminal</p>
         <p className="mt-1 font-mono text-3xl tracking-[0.18em]">{request.userCode}</p>
-        <Notice>Only continue if you just ran <Mono>npx tracify-sdk login</Mono> yourself and the same code is on your screen. If someone sent you this link, close it.</Notice>
+        <Notice>Only continue if you just ran <Mono>npx uncoil-sdk login</Mono> yourself and the same code is on your screen. If someone sent you this link, close it.</Notice>
         <fieldset className="mt-6">
           <legend className="font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">Send traces to</legend>
           <div className="mt-3 grid gap-2">
@@ -120,7 +120,7 @@ export function CliLoginConfirm() {
     <AuthShell mode="device">
       <div>
         <h2 className="font-pixel text-4xl tracking-[-0.06em]">Connect your terminal</h2>
-        <p className="mt-3 text-sm leading-6 text-black/55">Link this machine to a Tracify project in one step.</p>
+        <p className="mt-3 text-sm leading-6 text-black/55">Link this machine to an Uncoil project in one step.</p>
         {body}
       </div>
     </AuthShell>

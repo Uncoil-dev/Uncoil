@@ -2,7 +2,7 @@ import httpx2 as httpx
 import pytest
 from openai import OpenAI, AsyncOpenAI
 from anthropic import Anthropic
-import tracify
+import uncoil
 from test_steps import Recorder
 from test_integrations import CHAT, MESSAGE, transport, llms, streaming_transport, message_events
 
@@ -10,12 +10,12 @@ from test_integrations import CHAT, MESSAGE, transport, llms, streaming_transpor
 @pytest.fixture(autouse=True)
 def off():
     yield
-    tracify.uninit()
+    uncoil.uninit()
 
 
 def test_init_traces_unwrapped_clients():
     recorder = Recorder()
-    active = tracify.init(client=recorder)
+    active = uncoil.init(client=recorder)
     assert "openai" in active and "anthropic" in active
     raw = OpenAI(api_key='test', http_client=httpx.Client(transport=transport(CHAT)))
     assert raw.chat.completions.create(model='test-model', messages=[]).choices[0].message.content == 'hello'
@@ -28,7 +28,7 @@ def test_init_traces_unwrapped_clients():
 @pytest.mark.asyncio
 async def test_init_traces_async_clients():
     recorder = Recorder()
-    tracify.init(client=recorder)
+    uncoil.init(client=recorder)
     raw = AsyncOpenAI(api_key='test', http_client=httpx.AsyncClient(transport=transport(CHAT)))
     await raw.chat.completions.create(model='test-model', messages=[])
     assert len(llms(recorder)) == 1
@@ -37,7 +37,7 @@ async def test_init_traces_async_clients():
 
 def test_init_traces_anthropic_stream_helper():
     recorder = Recorder()
-    tracify.init(client=recorder)
+    uncoil.init(client=recorder)
     raw = Anthropic(api_key='test', http_client=httpx.Client(transport=streaming_transport(message_events(), True)))
     with raw.messages.stream(model='test-model', messages=[], max_tokens=10) as stream:
         assert ''.join(stream.text_stream) == 'hello'
@@ -46,15 +46,15 @@ def test_init_traces_anthropic_stream_helper():
 
 def test_wrapped_client_is_not_recorded_twice():
     recorder = Recorder()
-    tracify.init(client=recorder)
+    uncoil.init(client=recorder)
     raw = OpenAI(api_key='test', http_client=httpx.Client(transport=transport(CHAT)))
-    tracify.wrap_openai(raw, client=recorder).chat.completions.create(model='test-model', messages=[])
+    uncoil.wrap_openai(raw, client=recorder).chat.completions.create(model='test-model', messages=[])
     assert len(llms(recorder)) == 1
 
 
 def test_provider_error_is_recorded_and_raised():
     recorder = Recorder()
-    tracify.init(client=recorder)
+    uncoil.init(client=recorder)
     raw = OpenAI(api_key='test', max_retries=0, http_client=httpx.Client(transport=transport(dict(error=dict(message='bad', type='invalid_request_error')), 400)))
     with pytest.raises(Exception):
         raw.chat.completions.create(model='test-model', messages=[])
@@ -63,8 +63,8 @@ def test_provider_error_is_recorded_and_raised():
 
 def test_uninit_restores_everything():
     recorder = Recorder()
-    tracify.init(client=recorder)
-    tracify.uninit()
+    uncoil.init(client=recorder)
+    uncoil.uninit()
     raw = OpenAI(api_key='test', http_client=httpx.Client(transport=transport(CHAT)))
     raw.chat.completions.create(model='test-model', messages=[])
     assert recorder.sent == []
@@ -73,9 +73,9 @@ def test_uninit_restores_everything():
 def test_langchain_model_is_recorded_once_and_stops_after_uninit():
     from langchain_core.language_models.fake_chat_models import FakeListChatModel
     recorder = Recorder()
-    tracify.init(client=recorder)
+    uncoil.init(client=recorder)
     assert FakeListChatModel(responses=['hi']).invoke('hello').content == 'hi'
     assert len(recorder.sent) == 1 and recorder.sent[0]['modelId'] == 'FakeListChatModel'
-    tracify.uninit()
+    uncoil.uninit()
     FakeListChatModel(responses=['hi']).invoke('hello')
     assert len(recorder.sent) == 1

@@ -37,7 +37,7 @@ export function LiveCapturedTracing({ projectId, runId }: { projectId: string; r
     ...sandboxWorkspace,
     mode: "live" as const,
     readOnly: false,
-    dataSource: "tracify-live" as const,
+    dataSource: "uncoil-live" as const,
     project: { id: projectId, name: project.name, organizationName: "Workspace" },
     environments,
     models: models.length ? models : sandboxWorkspace.models,

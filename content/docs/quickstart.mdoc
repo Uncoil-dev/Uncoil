@@ -1,7 +1,7 @@
 ---
 slug: quickstart
 title: Start with your first trace
-description: Install Tracify, send one real agent run, and verify it in the trace viewer.
+description: Install Uncoil, send one real agent run, and verify it in the trace viewer.
 section: Start here
 order: 1
 contentType: quickstart
@@ -9,38 +9,38 @@ contentType: quickstart
 
 # Start with your first trace
 
-Tracify connects the model calls, tool calls, prompts, costs, failures, and evaluation signals inside an agent run. This guide takes you from an empty project to one useful trace in the dashboard. Plan on about five minutes.
+Uncoil connects the model calls, tool calls, prompts, costs, failures, and evaluation signals inside an agent run. This guide takes you from an empty project to one useful trace in the dashboard. Plan on about five minutes.
 
-You need a Tracify project and its API key. The key belongs to one region, EU or US, so create the project in the region where you want your data stored. See [Choose a Tracify Cloud region](/docs/data-regions) if you are unsure.
+You need an Uncoil project and its API key. The key belongs to one region, EU or US, so create the project in the region where you want your data stored. See [Choose an Uncoil Cloud region](/docs/data-regions) if you are unsure.
 
 ## 1. Install the SDK
 
 ```bash
-npm install tracify-sdk
+npm install uncoil-sdk
 ```
 
-Using Python? Install `tracify-sdk` with pip instead and follow the [Python SDK guide](/docs/python) for the matching calls.
+Using Python? Install `uncoil-sdk` with pip instead and follow the [Python SDK guide](/docs/python) for the matching calls.
 
 ```bash
-pip install tracify-sdk
+pip install uncoil-sdk
 ```
 
 ## 2. Set your API key
 
-Keep the key in a server-side environment variable. The SDK reads `TRACIFY_API_KEY` automatically, so you do not need to pass it in code.
+Keep the key in a server-side environment variable. The SDK reads `UNCOIL_API_KEY` automatically, so you do not need to pass it in code.
 
 ```bash
-export TRACIFY_API_KEY=tracify_sk_live_...
+export UNCOIL_API_KEY=uncoil_sk_live_...
 ```
 
-> Never put a project API key in browser code. If the variable is missing, the TypeScript SDK prints a `TRACIFY_API_KEY is not set` warning and records nothing, and the Python SDK raises a `ValueError` when the client is created.
+> Never put a project API key in browser code. If the variable is missing, the TypeScript SDK prints a `UNCOIL_API_KEY is not set` warning and records nothing, and the Python SDK raises a `ValueError` when the client is created.
 
 ## 3. Wrap one run
 
 `traceAgent` turns every call of your function into one trace. Each call gets a new run, and everything you record inside it hangs from that run.
 
 ```ts
-import { traceAgent, span } from "tracify-sdk";
+import { traceAgent, span } from "uncoil-sdk";
 
 export const answer = traceAgent(
   async (question: string) => {

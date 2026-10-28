@@ -1,0 +1,428 @@
+---
+title: "Portkey vs Uncoil: LLM Gateway vs Native Observability"
+slug: portkey-vs-uncoil
+excerpt: "Portkey is an LLM gateway that routes, fails over, and caches requests across providers. Uncoil is a native observability platform that traces, evaluates, and prices every call. Compare what each actually does, where they overlap, and why most production stacks end up running both."
+publishedAt: 2026-08-29T12:00:00.000Z
+author: Uncoil Team
+draft: false
+categories:
+  - engineering
+  - platform-comparison
+tags:
+  - llm gateway
+  - platform comparison
+  - observability
+  - routing
+relatedPosts:
+  - ai-agent-observability-complete-guide
+  - ai-agent-production-checklist
+heroImage:
+  src: /media/portkey-vs-uncoil-hero.svg
+  alt: "Architecture diagram contrasting Portkey's inline gateway that routes requests between your app and LLM providers with Uncoil's out-of-band observability layer that traces the same calls without adding a network hop"
+  card: /media/portkey-vs-uncoil-hero.svg
+  og: /media/portkey-vs-uncoil-hero.svg
+  caption: "Portkey sits inline and decides where a request goes. Uncoil observes out-of-band and explains what the request did."
+seo:
+  metaTitle: "Portkey vs Uncoil: Gateway Routing vs Observability"
+  metaDescription: "Compare Portkey's LLM gateway (routing, failover, caching) with Uncoil's native observability (tracing, evaluation, cost). See worked scenarios, TCO, and when teams need both."
+---
+
+{% trace-scenario title="A 3 a.m. page and a very different Tuesday morning" prompt="Anthropic's API starts returning 529s at 3:14 a.m. Your on-call engineer gets paged. Twenty minutes later, someone on the growth team asks why last month's LLM bill jumped 18% with no traffic increase. Two separate problems, two separate mornings — which tool answers which page?" outcome="The 3 a.m. outage is a routing problem: something needs to detect the failure and move traffic to a backup provider automatically. The billing question is a visibility problem: something needs to show, per call, which model handled which request and why it cost what it cost. Portkey answers the first. Uncoil answers the second. Most teams eventually need both." /%}
+
+## At a glance
+
+| Dimension | Portkey | Uncoil |
+| --- | --- | --- |
+| **Category** | LLM gateway / proxy | Native observability platform |
+| **Where it sits** | Inline, in the request path | Out-of-band, alongside the request |
+| **Core job** | Route, retry, fail over, cache | Trace, evaluate, cost, experiment |
+| **Provider routing** | Native, configurable at the gateway | Not a routing layer; you route in app code |
+| **Automatic failover** | Yes — conditional, rule-based | No — Uncoil does not sit inline |
+| **Response caching** | Simple + semantic caching, gateway-side | No caching layer |
+| **Tracing depth** | Request/response logs at the gateway | Full span trees, tool calls, sub-agent steps |
+| **Evaluation framework** | Not built in | Native test cases, LLM-as-judge, batch runs |
+| **Cost tracking** | Per-request cost estimate at the gateway | Per-call, per-session, per-experiment cost rollups |
+| **Added network hop** | Yes — every call passes through the gateway | No — SDK calls providers directly |
+| **Best for** | Multi-provider reliability and request-level cost control | Understanding, evaluating, and optimizing what already happened |
+
+Portkey and Uncoil answer different questions. Portkey answers "which provider should handle this request, and what happens if it fails?" Uncoil answers "what actually happened on that request, was it good, and what did it cost us to find out?" Neither question makes the other one go away.
+
+## The operating model: proxy vs. platform
+
+**Portkey** is built around a single architectural decision: put a gateway between your application and every LLM provider you use. That gateway becomes the place where routing rules live — send simple queries to a cheap model, send complex queries to a capable one, retry on 5xx, fail over to a backup provider after N failures, cache identical requests, and enforce per-team or per-key rate limits. Because Portkey sits inline, it can act on a request before the response comes back: reroute it, retry it, block it, or serve a cached answer instead of hitting the provider at all. That inline position is Portkey's whole value proposition, and it comes with an inline position's trade-offs — every call now depends on the gateway being up, correctly configured, and fast.
+
+**Uncoil** is built around a different decision: instrument every call at the SDK level and stream what happened to a platform that never sits between your app and the provider. Your request goes straight from your code to Anthropic, OpenAI, or whichever provider you called — no extra hop, no additional point of failure in the critical path. Uncoil's spans arrive asynchronously, after (or alongside) the real call, and get assembled into traces, evaluated against test cases, priced against current provider rates, and rolled up into sessions and experiments. Because Uncoil never intercepts the request, it cannot fail a call over to a backup provider or serve a cached response. It can tell you, in detail, what happened and whether it was good.
+
+{% highlight %}The distinction is not "better" vs. "worse" — it is inline vs. out-of-band. A gateway can act on a request before the provider sees it. An observability platform can only describe a request after the fact, in exchange for adding zero latency and zero failure surface to the call itself.{% /highlight %}
+
+This is why teams that reach for one rarely feel like the other is redundant. A gateway with no observability behind it can route flawlessly for months while quietly burning 20% more budget than necessary, because routing rules encode assumptions that nobody is checking. An observability platform with no gateway in front of it can catch that same 20% instantly — and be completely unable to do anything about an outage happening right now, because it was never positioned to intervene.
+
+## Opening situation: the pager and the spreadsheet
+
+Picture a mid-size team running a customer-facing agent across Claude and GPT-4, roughly 400,000 LLM calls a month, ten engineers, and two stakeholders who ask different questions in the same standup.
+
+**The on-call engineer's question:** "If Anthropic has a bad night, does the product stay up, or do our users see errors?"
+
+**The finance/product question:** "We're spending $9,200/month on LLM calls. Is that number defensible, and where would we cut it without hurting response quality?"
+
+Neither question is answerable by wishing the other tool existed. The on-call engineer needs something watching provider health in real time and empowered to reroute traffic before a human wakes up. The finance stakeholder needs something that can show, call by call, which model handled which request, what it cost, and whether a cheaper model would have scored the same on your evaluation criteria. This article works through both questions with real numbers, then gets specific about running both tools together — which is what most teams past a certain scale actually do.
+
+## Scenario 1: building a multi-provider failover system
+
+You run a support agent that must stay available even when Anthropic or OpenAI has a partial outage. You've budgeted for 99.9% availability and need automatic failover, not a 2 a.m. Slack thread.
+
+### With Portkey
+
+1. **Configure a routing config** (typically JSON) that defines a primary provider, one or more fallback providers, and the failure conditions that trigger a switch — HTTP status codes, timeout thresholds, or a rolling error-rate window.
+2. **Point your SDK calls at the Portkey gateway** instead of calling providers directly. Portkey exposes an OpenAI-compatible interface, so most existing integrations need only a base URL and API key change.
+3. **Set retry and fallback behavior**: retry the primary provider up to N times with backoff, then fail over to the configured backup, then optionally fail over again to a third provider.
+4. **Enable semantic or exact-match caching** for repeated queries (FAQ-style support questions are a common case), which reduces both cost and the blast radius of a provider outage — cached answers don't depend on any provider being up.
+5. **Monitor the gateway dashboard** for real-time provider health, failover events, and latency by route.
+
+```typescript
+// Illustrative: calling through a Portkey-style gateway configuration
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.portkey.ai/v1",
+  apiKey: process.env.PORTKEY_API_KEY,
+  defaultHeaders: {
+    "x-portkey-config": process.env.PORTKEY_CONFIG_ID, // routing + fallback rules live here
+  },
+});
+
+async function askSupportAgent(userMessage: string) {
+  // Your code is unaware of which provider actually served this —
+  // the gateway decides based on the configured fallback chain.
+  const response = await client.chat.completions.create({
+    model: "@primary-route", // resolved by the gateway config, not hardcoded
+    messages: [{ role: "user", content: userMessage }],
+  });
+  return response.choices[0].message.content;
+}
+```
+
+**Result:** When Anthropic degrades, the gateway detects the failure pattern within its configured window (commonly a handful of failed requests or a latency threshold breach) and reroutes subsequent calls to the fallback provider automatically. No application code changes, no manual intervention, no user-visible errors beyond the calls that were in flight during the detection window.
+
+### With Uncoil
+
+Uncoil has no routing or fallback mechanism. If you're on Uncoil alone and Anthropic degrades, your calls fail exactly as they would with no observability platform at all — Uncoil will show you, clearly and immediately, that they're failing (error rate spike, latency spike, provider tagged in every span), but it cannot reroute a single request. You'd need to build your own retry/fallback logic in application code, which is exactly the problem Portkey exists to solve.
+
+**Result:** Uncoil gives you excellent visibility into the outage as it happens — which is valuable for the retro and for deciding whether to add a gateway — but it does not prevent the outage from reaching your users.
+
+{% editorial-panel eyebrow="Reliability engineering" title="Failover is an architecture decision, not an observability feature." body="If automatic multi-provider failover is a hard requirement — SLA-backed uptime, contractual availability, or just an on-call team that doesn't want 3 a.m. pages for a single provider's bad night — you need something inline. That is Portkey's job, and no amount of tracing depth substitutes for it. This is the one scenario in this article where the two tools are not really comparable: one intervenes, the other reports." tone="dark" /%}
+
+![Side-by-side comparison of two production failure modes: a provider outage that Portkey's gateway fails over automatically, and a silent cost/quality bleed from a bad routing rule that only Uncoil's per-call evaluation surfaces, with worked monthly figures for each](/media/portkey-vs-uncoil-two-failure-modes.svg "Two failure modes: an outage Portkey catches, and a silent cost bleed only Uncoil catches")
+
+Neither failure mode announces itself the same way. An outage is loud — error rates spike, pages fire, everyone knows within minutes. A misconfigured routing rule that quietly overspends is silent by comparison: every call still returns 200 OK, nothing pages anyone, and the only evidence is a monthly bill that's higher than it should be. The diagram above works through both with the same illustrative traffic volume, and the two "fixes" don't overlap at all — which is the core argument for running both tools rather than picking a favorite.
+
+## Scenario 2: cost optimization without sacrificing quality
+
+Your team suspects you're overpaying for LLM calls but doesn't want to cut costs by silently degrading response quality. You need to know, with evidence, which calls can move to a cheaper model without hurting outcomes.
+
+### With Portkey
+
+Portkey gives you request-level cost visibility at the gateway: each request logs which model handled it and an estimated cost based on token counts and provider pricing. You can build routing rules that send requests below a complexity threshold to a cheaper model, and Portkey's dashboard will show you the resulting spend shift. What Portkey does not give you is a way to verify that the cheaper model's outputs are actually as good as the more expensive model's outputs — it can tell you what you spent, not whether you got the same quality for less. Building that verification means exporting Portkey's logs and wiring up your own evaluation pipeline, which is engineering work outside the gateway's scope.
+
+**Illustrative cost picture from the gateway alone:**
+
+| Metric | Value |
+| --- | --- |
+| Monthly call volume | 400,000 |
+| Current spend (mostly GPT-4-class) | $9,200/mo |
+| Requests re-routed to a cheaper model via rule | 30% of volume |
+| Gateway-estimated savings | ~$1,380/mo |
+| Confidence that quality held steady | Unverified — no evaluation signal |
+
+### With Uncoil
+
+Uncoil's evaluation framework is built exactly for this question. You define test cases that describe what "good" looks like for your agent's task — exact match, semantic similarity, or an LLM-as-judge rubric — and run them against historical traces to score every call, regardless of which model handled it. Then you look at cost and eval score side by side, per model, per call type.
+
+```typescript
+// Illustrative: defining a quality gate before touching routing
+import { Uncoil } from "@uncoil/sdk";
+
+const uncoil = new Uncoil({ apiKey: process.env.UNCOIL_API_KEY });
+
+// Test case: does the response answer the actual question asked?
+await uncoil.evals.createTestCase({
+  name: "support-response-relevance",
+  type: "llm-judge",
+  rubric: "Score 0-1: does the response directly address the user's stated question, without hedging or deflecting to a human?",
+  passThreshold: 0.85,
+});
+
+// Batch-run this test case against the last 30 days of traces,
+// grouped by which model actually served the call.
+const results = await uncoil.evals.runBatch({
+  testCase: "support-response-relevance",
+  filter: { dateRange: "last-30-days" },
+  groupBy: "model",
+});
+```
+
+Running this kind of evaluation against real traffic typically surfaces a pattern: a meaningful slice of calls currently routed to the expensive model score identically on your quality rubric when re-run against a cheaper one, because the underlying question was simple even though it didn't look simple by whatever heuristic picked the model. That's the number a gateway alone cannot give you, because a gateway only knows what it spent — it has no opinion on whether the answer was good.
+
+**Illustrative outcome with evaluation evidence:**
+
+| Metric | Value |
+| --- | --- |
+| Calls where cheaper model scores within 0.02 of current model | 22% of volume (88,000 calls/mo) |
+| Average cost delta per call (GPT-4-class vs. cheaper tier) | $0.022 |
+| Verified monthly savings, quality held | ~$1,940/mo |
+| Confidence that quality held steady | Verified against 85%-threshold rubric |
+
+{% highlight %}The gateway can move spend around instantly. Only an evaluation layer can tell you whether moving that spend cost you anything in quality — which is the difference between a cost cut and a quality regression wearing a cost cut's clothes.{% /highlight %}
+
+**Result:** Portkey can execute the routing change once you know it's safe. Uncoil is what tells you it's safe. In practice, teams that get real savings here use Uncoil's evaluation to identify the safe routing change, then either apply it in application logic or encode it as a Portkey routing rule — which is the combined workflow covered later in this article.
+
+## Scenario 3: debugging production failures at scale
+
+A customer reports that your agent gave a wrong answer three days ago. You don't have a request ID, a timestamp, or any detail beyond "it told me the wrong return policy." You need to find that interaction among hundreds of thousands of calls and understand exactly what went wrong — which tool call fired, what context the model had, and whether it was a model error or a bad retrieval.
+
+### With Portkey
+
+Portkey's logs give you request and response bodies, latency, the model and provider that handled each call, and gateway-level metadata like which fallback path (if any) was taken. This is useful for narrowing down *when* something happened and *which provider* served it, and searchable logs can help you find a plausible candidate request by approximate content or timestamp. What Portkey's logs generally don't give you is the internal structure of a multi-step agent run: which tool calls fired in what order, what a retrieval step returned before the model saw it, or how a sub-agent's output fed into a parent step. The gateway sees the LLM call; it doesn't see the surrounding agent logic that produced the prompt or consumed the response.
+
+### With Uncoil
+
+This is squarely a tracing problem, and full span trees are what tracing is for. Every step of the agent run — retrieval, tool calls, sub-agent invocations, the final LLM call — is captured as a span in a session, so you can open the specific customer interaction and walk through exactly what the agent saw and did at each step.
+
+```typescript
+// Illustrative: instrumenting an agent step so it is traceable end-to-end
+import { Uncoil } from "@uncoil/sdk";
+
+const uncoil = new Uncoil({ apiKey: process.env.UNCOIL_API_KEY });
+
+async function handleSupportQuery(userId: string, sessionId: string, question: string) {
+  const session = uncoil.session({ userId, sessionId });
+
+  const retrieval = session.span({ name: "policy-lookup" });
+  const policyDocs = await searchPolicyDocs(question);
+  retrieval.end({ output: { docsFound: policyDocs.length, topDoc: policyDocs[0]?.id } });
+
+  const llmSpan = session.span({ name: "generate-response", input: { question, context: policyDocs } });
+  const response = await callLLM(question, policyDocs);
+  llmSpan.end({ output: response }); // cost, tokens, latency captured automatically
+
+  return response;
+}
+```
+
+With this instrumentation in place, tracking down the customer's bad interaction means filtering sessions by user ID and approximate timestamp, then reading the trace directly: the retrieval span shows exactly which policy document was pulled (and if it was the wrong one, or outdated, that's visible immediately), and the generation span shows exactly what context the model had when it produced the wrong answer. In most cases this narrows a vague complaint down to a root cause — stale retrieval index, a prompt template that dropped a field, or a genuine model error — in minutes rather than hours of log-grepping.
+
+**Result:** Portkey's logs can confirm which provider and model handled a request. Uncoil's traces show why that request produced the output it did, across every step of the agent, not just the final LLM call. For debugging complex agent behavior — as opposed to debugging provider connectivity — trace depth is the deciding factor, and it's Uncoil's core strength.
+
+## Deep comparison: feature by feature
+
+### Provider integration
+
+**Portkey** exposes an OpenAI-compatible API surface in front of dozens of providers, so switching or adding a provider is often a configuration change rather than a code change — you add credentials to the gateway config and reference a new route. This is a genuine strength if you expect to add or swap providers frequently, or if you want a single integration point for teams that don't want provider-specific SDK knowledge.
+
+**Uncoil** integrates at the SDK level with native instrumentation for the major providers (Anthropic, OpenAI, and others), plus framework integrations for common orchestration libraries. Adding a new provider means adding that provider's SDK call in your code, instrumented the same way as your existing calls — there's no central gateway config, because there's no gateway.
+
+**Practical difference:** Portkey centralizes provider swaps at the infrastructure layer. Uncoil centralizes trace/eval/cost data regardless of which providers you call directly. If you swap providers often, Portkey removes friction. If you mostly care about understanding calls regardless of provider, that friction doesn't matter as much.
+
+### Failover and reliability
+
+**Portkey**: native, configurable failover chains, retry policies with backoff, circuit-breaker-style detection, and load balancing across multiple keys or providers to distribute traffic and avoid rate limits. This is the feature the product is built around.
+
+**Uncoil**: none. Not a gap in maturity — it's out of scope for an out-of-band observability platform by design. Adding failover to Uncoil would require it to sit inline, which would undermine the "zero added latency, zero added failure surface" property that makes it safe to add broadly across a codebase.
+
+**Practical difference:** if uptime through a provider outage is a hard requirement, this category alone can decide the question in Portkey's favor — Uncoil simply doesn't compete here.
+
+### Caching
+
+**Portkey**: gateway-side response caching, both exact-match (identical request hits a cached response) and semantic (similar-meaning requests can hit a cached response within a configured similarity threshold). Caching reduces both latency and cost for repeated or near-duplicate queries, and it has the side benefit of reducing exposure to provider outages for cached queries.
+
+**Uncoil**: no caching layer. Uncoil records what happened; it does not intervene to prevent a call from happening. If you want caching, it has to live in your application code or in a gateway like Portkey.
+
+**Practical difference:** high-repetition workloads (FAQ-style support, common lookups) benefit meaningfully from gateway-side caching in a way that no observability platform, including Uncoil, can replicate without becoming a different kind of product.
+
+### Cost visibility
+
+**Portkey**: per-request cost estimates at the gateway, based on token counts and provider pricing, visible in the routing dashboard alongside which route handled the request. Good for a real-time view of "what did this call cost" as requests pass through.
+
+**Uncoil**: automatic per-call cost calculation using live provider pricing, rolled up not just per call but per session, per experiment, and per evaluation cohort — so you can see cost broken down by whether a call passed or failed your quality bar, not just by which model served it. Cost and quality live in the same view.
+
+**Practical difference:** Portkey answers "what did we spend, by route." Uncoil answers "what did we spend, and was it worth it" — because cost is joined to evaluation data rather than reported alongside it separately.
+
+### Observability depth
+
+**Portkey**: request/response logging at the gateway boundary — you see the call that entered the gateway and the response that left it, plus routing metadata (which provider, which fallback path, latency, retries). This is genuinely useful for diagnosing routing and provider-connectivity issues.
+
+**Uncoil**: full span trees across an entire agent run — retrieval steps, tool calls, sub-agent invocations, and the LLM calls themselves, all nested under a session with shared context. This is built for debugging *agent behavior*, not just LLM connectivity.
+
+**Practical difference:** if your failures are almost always "the provider was slow or down," gateway logs are sufficient. If your failures are "the agent did something wrong three steps before the final answer," you need span-level tracing that a gateway's request logs don't provide.
+
+### Evaluation
+
+**Portkey**: not a built-in feature. Some gateway products in this category offer basic guardrails or content filters, but a structured evaluation framework — test cases, LLM-as-judge scoring, regression tracking over time — is outside a routing gateway's core scope.
+
+**Uncoil**: native test case library, batch evaluation runner, LLM-as-judge and exact/semantic-match scorers, and an experiment framework for comparing prompt or model changes with before/after evaluation deltas.
+
+**Practical difference:** this is the widest gap in the comparison. If your team needs a systematic way to answer "did this change make quality better or worse," that capability exists in Uncoil and does not meaningfully exist in Portkey.
+
+{% editorial-panel eyebrow="Reading the comparison" title="Five of six categories, not five of six wins." body="Portkey wins decisively on failover and caching — categories where sitting inline is a structural requirement, not a feature choice. Uncoil wins decisively on evaluation and trace depth — categories where being out-of-band and unopinionated about routing is what makes deep instrumentation practical. Cost visibility and provider integration are closer calls that depend on what you're optimizing for. Read this as evidence for using both, not as a scorecard with one winner." tone="yellow" /%}
+
+## Cost and total cost of ownership
+
+Assume the same illustrative team throughout: 400,000 LLM calls/month, ten engineers, customer-facing agent across two to three providers.
+
+### Portkey alone
+
+| Category | Item | Cost |
+| --- | --- | --- |
+| Gateway platform | Usage-based pricing on request volume (illustrative, tiered) | ~$400-800/mo at this volume |
+| Setup | Route config, fallback rules, SDK base-URL swap (2-4 days) | ~$800 one-time |
+| Operations | Monitoring gateway health, tuning routing rules | ~0.1 FTE ongoing |
+| Evaluation tooling | Not included — build or buy separately if needed | $0-2,000/mo depending on approach |
+| **Total monthly (without separate evaluation)** | | **~$500-900/mo** |
+| **What you get** | | Routing, failover, caching, gateway-level cost logs |
+| **What you don't get** | | Evaluation, deep trace, quality-verified cost optimization |
+
+### Uncoil alone
+
+| Category | Item | Cost |
+| --- | --- | --- |
+| Platform | Tracing, evaluation, cost tracking, experiments (illustrative, at this call volume) | ~$1,000-1,500/mo |
+| Setup | SDK instrumentation, first test cases (2-3 days) | ~$600 one-time |
+| Operations | Minimal — managed platform, no infrastructure to run | ~0.05 FTE ongoing |
+| Failover tooling | Not included — build retry/fallback in app code if needed | Engineering time, variable |
+| **Total monthly (without separate routing)** | | **~$1,000-1,500/mo** |
+| **What you get** | | Full tracing, evaluation, verified cost optimization |
+| **What you don't get** | | Automatic failover, gateway-side caching |
+
+### Portkey + Uncoil together
+
+| Category | Item | Cost |
+| --- | --- | --- |
+| Portkey (routing/failover/caching) | Gateway platform | ~$500-900/mo |
+| Uncoil (trace/eval/cost) | Observability platform, instrumented on the same calls | ~$1,000-1,500/mo |
+| Integration | Send gateway metadata (route, provider, fallback status) into Uncoil spans as attributes | ~1-2 days one-time |
+| **Total monthly** | | **~$1,500-2,400/mo** |
+| **What you get** | | Everything above, in one stack |
+
+{% highlight %}Running both is not double-paying for the same thing. Portkey's ~$500-900/mo buys inline routing that Uncoil structurally cannot provide. Uncoil's ~$1,000-1,500/mo buys evaluation and trace depth that Portkey structurally does not provide. The combined cost is additive because the capabilities are additive, not overlapping.{% /highlight %}
+
+> **Where the real ROI shows up:** in scenario 2 above, verified cost optimization (Uncoil's evaluation catching a safe 22% shift to a cheaper model) was worth roughly $1,940/mo — more than either platform's standalone monthly cost. That number only exists because evaluation and cost data were joined. A gateway alone would have shown the same $9,200 spend with no signal about where the safe cuts were.
+
+## Honest trade-offs
+
+### Choose Portkey (or a gateway like it) when:
+
+**1. Automatic failover is a hard requirement.** If your SLA, your on-call rotation, or your users cannot tolerate a provider outage translating into a user-visible failure, you need something inline that can reroute traffic without a human in the loop. No observability platform, including Uncoil, does this — it's a structural property of not being in the request path.
+
+**2. You expect to add or swap providers frequently.** A gateway centralizes that churn into configuration changes instead of code changes across every call site.
+
+**3. Caching would meaningfully cut cost or latency.** High-repetition workloads — FAQ bots, common lookups, templated responses — benefit from gateway-side caching in a way application-level caching often doesn't replicate cleanly across a team.
+
+**4. Your evaluation needs are minimal or handled elsewhere.** If you already have a separate evaluation process (manual review, a different tool, or genuinely low stakes for output quality), the gap in Portkey's evaluation coverage may not matter to you.
+
+### Choose Uncoil when:
+
+**1. You need to verify quality, not just observe cost.** Any cost optimization that isn't backed by evaluation evidence is a bet, not a decision. If leadership is asking "are we sure this didn't hurt quality," you need an evaluation framework, and that's not a gateway feature.
+
+**2. Debugging means understanding multi-step agent behavior.** If your failures are rarely "the provider was down" and usually "the agent did the wrong thing three steps into a tool-calling sequence," you need span-level tracing that a gateway's request/response logs don't provide.
+
+**3. You don't need inline routing at all.** Single-provider systems, systems where failover is handled elsewhere (e.g., at the infrastructure or DNS level for a different kind of service), or systems where the team has explicitly decided routing complexity isn't worth it yet — for these, adding a gateway is unnecessary infrastructure.
+
+**4. You want zero added latency and zero added failure surface on the critical path.** Because Uncoil instruments out-of-band, adding it does not introduce a new thing that can go down and take your LLM calls with it. That property matters more as call volume and criticality grow.
+
+### The trade-off neither tool eliminates
+
+Running a gateway means the gateway itself is now a dependency — if Portkey (or any gateway) has an incident, every call through it is affected, which is the classic proxy trade-off: you've traded N provider dependencies for N+1 dependencies (N providers plus the gateway), in exchange for the gateway's ability to route around failures in the N. This is usually still a good trade for reliability, but it's not a free one, and it's worth confirming the gateway's own uptime track record and failure-mode behavior (does it fail open or fail closed if the gateway itself has an issue?) before treating it as a pure reliability win.
+
+Running Uncoil without a gateway means you retain whatever reliability characteristics your application code already has — no new dependency in the request path, but also no automatic protection if a provider degrades. That's not a flaw in Uncoil; it's the direct consequence of the design choice that keeps it out of the critical path.
+
+## Using both together: a practical integration pattern
+
+Most teams past early-stage traffic volumes don't choose between these tools — they route through Portkey and trace through Uncoil, with Portkey's routing decisions surfaced as metadata inside Uncoil's traces so you can see both what happened and why the gateway chose that path.
+
+**1. Keep your existing Portkey gateway configuration.** Routing rules, fallback chains, and caching stay exactly as they are — nothing about adding observability requires changing how requests get routed.
+
+**2. Instrument the call site with Uncoil, capturing gateway metadata as span attributes.**
+
+```typescript
+// Illustrative: Uncoil tracing a call that is routed through Portkey
+import { Uncoil } from "@uncoil/sdk";
+import OpenAI from "openai";
+
+const uncoil = new Uncoil({ apiKey: process.env.UNCOIL_API_KEY });
+const gateway = new OpenAI({
+  baseURL: "https://api.portkey.ai/v1",
+  apiKey: process.env.PORTKEY_API_KEY,
+  defaultHeaders: { "x-portkey-config": process.env.PORTKEY_CONFIG_ID },
+});
+
+async function askSupportAgent(userId: string, sessionId: string, question: string) {
+  const session = uncoil.session({ userId, sessionId });
+  const span = session.span({ name: "llm-call-via-gateway", input: { question } });
+
+  const response = await gateway.chat.completions.create({
+    model: "@primary-route",
+    messages: [{ role: "user", content: question }],
+  });
+
+  // Gateway response headers commonly expose which provider/route actually served the call —
+  // capture that as span metadata so Uncoil's trace shows the routing decision, not just the output.
+  span.end({
+    output: response.choices[0].message.content,
+    metadata: {
+      resolvedProvider: response.model,
+      gatewayFallbackTriggered: response.headers?.["x-portkey-fallback"] ?? false,
+    },
+  });
+
+  return response.choices[0].message.content;
+}
+```
+
+**3. Evaluate across routing decisions, not just across calls.** Because the fallback flag and resolved provider are now span metadata, you can run evaluations grouped by "was this call a fallback or the primary route" — which answers a question neither tool answers alone: does failover traffic score worse on quality than primary traffic? If it does, that's a signal to reconsider the fallback provider, not just accept that it kept you online.
+
+**4. Feed evaluation results back into routing decisions.** When Uncoil's evaluation surfaces a safe cost optimization (as in scenario 2), encode the finding as a Portkey routing rule — the two tools close the loop: Uncoil finds the safe change, Portkey executes it at the infrastructure layer for every future request.
+
+For teams building this kind of stack from scratch, the deeper instrumentation patterns — session structure, span hierarchy for multi-step agents, and how to structure evaluation test cases around real production traffic — are covered in [Uncoil's complete guide to agent observability](/blog/ai-agent-observability-complete-guide), and the reliability side of this same decision (what "production-ready" actually requires before turning an agent loose on real users) is covered in the [production readiness checklist](/blog/ai-agent-production-checklist).
+
+## Decision framework
+
+![Two-by-two decision quadrant plotting need for multi-provider routing and failover on one axis against need for deep observability and evaluation on the other, showing that most mature production teams land in the top-right quadrant needing both Portkey and Uncoil](/media/portkey-vs-uncoil-decision-quadrant.svg "Decision quadrant: routing needs vs. observability needs are independent axes")
+
+The two axes in the diagram above are genuinely independent — a system's need for failover says nothing about its need for evaluation, and vice versa. Plot your own system honestly before picking a starting point, using the weighted table below to make the placement concrete rather than a gut call.
+
+| Question | Weight toward Portkey | Weight toward Uncoil |
+| --- | --- | --- |
+| Is automatic failover a hard SLA requirement? | +10 | — |
+| Do failures usually trace back to provider outages, not agent logic? | +6 | — |
+| Would gateway-side caching meaningfully cut cost/latency? | +5 | — |
+| Do you add or swap providers often? | +4 | — |
+| Do you need to verify a cost change didn't hurt quality? | — | +8 |
+| Are your failures usually multi-step agent bugs, not connectivity? | — | +7 |
+| Does leadership ask for defensible cost-per-outcome numbers? | — | +6 |
+| Is zero added latency/failure-surface on the critical path a requirement? | — | +5 |
+
+**Scoring:** if one side scores meaningfully higher, start there and add the other tool when the corresponding need shows up — most teams add the second tool within a quarter of the first. If both sides score high, you likely need both from day one; the combined-use pattern above is the standard path, not an edge case.
+
+> **Decision rule:** Use Portkey when provider routing and failover are the immediate reliability problem; use Uncoil when the failure is inside the agent’s multi-step behavior or its quality/cost outcome.
+
+## Action checklist
+
+- [ ] **Name your actual failure mode.** Are recent incidents mostly "provider was down" (Portkey territory) or mostly "the agent did something wrong" (Uncoil territory)? Look at your last five incidents before deciding.
+- [ ] **Check whether you already have failover logic.** If retry/fallback is already hand-rolled in application code, evaluate whether a gateway would simplify or replace it before adding one.
+- [ ] **Run one evaluation before making any cost-cutting routing change.** Verify with test cases that a cheaper model holds quality before encoding the change as a routing rule anywhere.
+- [ ] **Instrument spans with gateway metadata if you use both.** Capture resolved provider and fallback status as span attributes so evaluation can be grouped by routing decision.
+- [ ] **Confirm the gateway's own failure behavior.** Does it fail open (pass through to a default provider) or fail closed (reject requests) if the gateway itself has an issue? This changes your actual reliability math.
+- [ ] **Set a 30-day review point.** Revisit cost, quality scores, and incident count after both tools have been running for a month; adjust routing rules based on evaluation evidence, not intuition.
+- [ ] **Avoid running either tool "just in case."** Add Portkey when failover is a real requirement, not a hypothetical. Add Uncoil when you need to answer a quality or cost question you currently can't answer.
+
+## Frequently asked questions
+
+{% faq-item question="Does Portkey provide any observability at all?" answer="Yes, but at the gateway boundary rather than at the agent level. Portkey logs each request and response, which model and provider handled it, latency, retries, and whether a fallback path was triggered. This is genuinely useful for diagnosing routing and provider-connectivity issues. What it does not provide is span-level tracing across a multi-step agent run (retrieval, tool calls, sub-agent steps) or a structured evaluation framework for scoring output quality. If your debugging needs stop at 'which provider handled this and how fast was it,' gateway logs may be sufficient. If you need to understand why a multi-step agent produced a specific output, you need trace depth that a gateway's request logs don't provide." /%}
+
+{% faq-item question="Can I use Portkey and Uncoil at the same time without conflicts?" answer="Yes. They operate at different layers and don't compete for the same position in your stack. Point your SDK calls at the Portkey gateway as normal, and wrap those same calls in Uncoil spans to capture tracing, evaluation, and cost data. The two integrations are independent — Portkey doesn't need to know Uncoil exists, and Uncoil doesn't need to know a gateway is in front of the providers it's tracing. The one integration detail worth doing deliberately is capturing gateway metadata (resolved provider, fallback status) as Uncoil span attributes, so you can evaluate routing decisions rather than just individual calls." /%}
+
+{% faq-item question="Is a gateway like Portkey actually necessary, or can I build failover myself?" answer="You can build retry and fallback logic yourself, and plenty of teams do, especially at lower call volumes or with a single provider. The case for a dedicated gateway grows as you add providers, as routing rules get more complex (cost-based routing, load balancing across API keys, semantic caching), and as you want that logic centralized rather than duplicated across every service that calls an LLM. If you're calling one provider from one service, hand-rolled retry logic is often sufficient. If you're routing across three providers from a dozen services with shared rate limits, a gateway earns its cost quickly in reduced duplicated logic alone." /%}
+
+{% faq-item question="Which tool should I add first if I can only add one right now?" answer="Look at your last five production incidents. If most of them trace back to a provider being slow or unavailable, add gateway-style routing and failover first — that's the more urgent gap, and it's the category where an observability platform structurally cannot help, since it doesn't sit inline. If most of your incidents trace back to the agent doing something wrong, producing a bad answer, or a cost figure nobody can explain, add observability and evaluation first — a gateway won't tell you why an answer was wrong or whether a cost change hurt quality. Most teams end up needing both within a quarter; the ordering question is really about which gap is costing you more right now." /%}
+
+{% faq-item question="Does Uncoil replace the need for a gateway if I only use one LLM provider?" answer="If you have deliberately committed to a single provider and failover to a different provider is not on your roadmap, a gateway's core value proposition — routing between providers — doesn't apply to you, and Uncoil alone covers tracing, evaluation, and cost tracking for that single-provider setup. You may still want retry logic for transient errors from that one provider, which you can build directly in application code without a full gateway. The calculus changes the moment multi-provider failover becomes a requirement; at that point, a gateway's routing and fallback configuration is faster to stand up than hand-rolling the equivalent logic yourself." /%}

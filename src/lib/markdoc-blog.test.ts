@@ -23,7 +23,7 @@ title: First post
 slug: first-post
 excerpt: The first excerpt.
 publishedAt: 2026-01-02T12:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories: [Engineering]
 tags: [agents]
@@ -45,7 +45,7 @@ title: Second post
 slug: second-post
 excerpt: The second excerpt.
 publishedAt: 2026-02-03T12:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories: [Observability]
 tags: []
@@ -59,7 +59,7 @@ title: Draft post
 slug: draft-post
 excerpt: This must stay private.
 publishedAt: 2026-03-04T12:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: true
 categories: [Engineering]
 tags: []

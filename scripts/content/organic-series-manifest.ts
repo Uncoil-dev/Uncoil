@@ -8,7 +8,7 @@ export type SeriesManifestEntry = {
   seo: { metaTitle: string; metaDescription: string };
   unsplash: { sourceUrl: string; description: string };
   relatedSlugs: string[];
-  tracifyLink: string;
+  uncoilLink: string;
 };
 
 /** Metadata for the draft-only AI-agent observability search cluster. */
@@ -23,7 +23,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "AI Agent Observability: The Complete Guide", metaDescription: "Learn how to instrument, measure, and operate AI agent observability systems that make production behavior understandable and actionable." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/a-rack-of-servers-in-a-server-room-2JJ3wBHu4_0", description: "Operations console showing interconnected system signals" },
     relatedSlugs: ["llm-observability-metrics-that-matter", "llm-tracing-explained", "building-production-ready-ai-agents"],
-    tracifyLink: "/product/trace-viewer",
+    uncoilLink: "/product/trace-viewer",
   },
   {
     slug: "llm-observability-metrics-that-matter",
@@ -35,7 +35,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "LLM Observability: Metrics That Actually Matter", metaDescription: "Choose LLM observability metrics for quality, latency, cost, and failures, then turn them into decisions your engineering team can act on." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/graphical-user-interface--WXQm_NTK0U", description: "Analyst reviewing measured system performance" },
     relatedSlugs: ["ai-agent-observability-complete-guide", "reduce-llm-costs-without-hurting-quality", "ai-agent-evaluation-practical-guide"],
-    tracifyLink: "/product/cost-dashboard",
+    uncoilLink: "/product/cost-dashboard",
   },
   {
     slug: "debug-ai-agents-in-production",
@@ -47,7 +47,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "How to Debug AI Agents in Production", metaDescription: "Debug production AI agents with a repeatable workflow for tracing failures, isolating root causes, and verifying fixes before they recur." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/black-computer-keyboard-DuHKoV44prg", description: "Engineer investigating a production incident" },
     relatedSlugs: ["llm-tracing-explained", "ai-agent-reliability-failures-retries-guardrails", "ai-agent-testing-unit-tests-production-evals"],
-    tracifyLink: "/docs/troubleshooting",
+    uncoilLink: "/docs/troubleshooting",
   },
   {
     slug: "ai-agent-evaluation-practical-guide",
@@ -59,7 +59,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "AI Agent Evaluation: A Practical Guide", metaDescription: "Build practical AI agent evaluations with representative datasets, useful metrics, release gates, and production feedback loops." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/person-working-on-blue-and-white-paper-on-board-qWwpHwip31M", description: "Team assessing results on a planning wall" },
     relatedSlugs: ["ai-agent-testing-unit-tests-production-evals", "llm-observability-metrics-that-matter", "building-production-ready-ai-agents"],
-    tracifyLink: "/product/failures",
+    uncoilLink: "/product/failures",
   },
   {
     slug: "reduce-llm-costs-without-hurting-quality",
@@ -71,7 +71,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "How to Reduce LLM Costs Without Hurting Quality", metaDescription: "Reduce LLM costs without sacrificing quality using trace-level cost analysis, measured optimizations, routing, and evaluation safeguards." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/a-calculator-sitting-on-top-of-a-table-next-to-a-laptop-LgE3whpa5VA", description: "Financial planning notes beside a laptop" },
     relatedSlugs: ["llm-observability-metrics-that-matter", "prompt-versioning-and-prompt-management", "ai-agent-evaluation-practical-guide"],
-    tracifyLink: "/product/cost-dashboard",
+    uncoilLink: "/product/cost-dashboard",
   },
   {
     slug: "llm-tracing-explained",
@@ -83,7 +83,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "LLM Tracing Explained: Spans, Context, and Debugging", metaDescription: "Understand LLM tracing, spans, context propagation, and how to use trace data to debug AI agent behavior in production." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/a-bunch-of-blue-wires-connected-to-each-other-PSpf_XgOM5w", description: "Network cables representing connected execution paths" },
     relatedSlugs: ["debug-ai-agents-in-production", "ai-agent-observability-complete-guide", "ai-agent-reliability-failures-retries-guardrails"],
-    tracifyLink: "/docs/typescript",
+    uncoilLink: "/docs/typescript",
   },
   {
     slug: "ai-agent-reliability-failures-retries-guardrails",
@@ -95,7 +95,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "AI Agent Reliability: Failures, Retries, Guardrails", metaDescription: "Make AI agents reliable with failure taxonomy, bounded retries, guardrails, recovery paths, and observability-driven improvement." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/red-hard-hat-on-pavement-9OB46apMbC4", description: "Safety equipment arranged for careful field work" },
     relatedSlugs: ["debug-ai-agents-in-production", "llm-tracing-explained", "building-production-ready-ai-agents"],
-    tracifyLink: "/product/failures",
+    uncoilLink: "/product/failures",
   },
   {
     slug: "prompt-versioning-and-prompt-management",
@@ -107,7 +107,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "Prompt Versioning and Prompt Management", metaDescription: "Establish prompt versioning and management practices that connect changes to quality, cost, approvals, experiments, and safe rollback." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/black-pen-on-white-notebook-Hx-4TbpsoIw", description: "Version-controlled notes and editing tools on a desk" },
     relatedSlugs: ["ai-agent-testing-unit-tests-production-evals", "reduce-llm-costs-without-hurting-quality", "building-production-ready-ai-agents"],
-    tracifyLink: "/product/llm-calls",
+    uncoilLink: "/product/llm-calls",
   },
   {
     slug: "ai-agent-testing-unit-tests-production-evals",
@@ -119,7 +119,7 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "AI Agent Testing: From Unit Tests to Production Evals", metaDescription: "Test AI agents with layered unit tests, scenario suites, evaluations, and production feedback that make releases safer and faster." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/woman-in-black-shirt-sitting-beside-black-flat-screen-computer-monitor-Im_cQ6hQo10", description: "Quality assurance workspace with test materials" },
     relatedSlugs: ["ai-agent-evaluation-practical-guide", "debug-ai-agents-in-production", "prompt-versioning-and-prompt-management"],
-    tracifyLink: "/product/tool-calls",
+    uncoilLink: "/product/tool-calls",
   },
   {
     slug: "building-production-ready-ai-agents",
@@ -131,6 +131,6 @@ export const SERIES_MANIFEST: readonly SeriesManifestEntry[] = [
     seo: { metaTitle: "Building Production-Ready AI Agents", metaDescription: "Build production-ready AI agents with clear operating goals, observability, evaluation, reliability controls, and accountable release practices." },
     unsplash: { sourceUrl: "https://unsplash.com/photos/group-of-people-using-laptop-computer-QckxruozjRg", description: "Team collaborating around a production deployment" },
     relatedSlugs: ["ai-agent-observability-complete-guide", "ai-agent-reliability-failures-retries-guardrails", "ai-agent-evaluation-practical-guide"],
-    tracifyLink: "/docs/typescript",
+    uncoilLink: "/docs/typescript",
   },
 ];

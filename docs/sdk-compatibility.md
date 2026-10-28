@@ -1,6 +1,6 @@
 # SDK compatibility matrix
 
-The TypeScript and Python SDKs expose equivalent concepts with language-native naming. The package name is `tracify-sdk` in both registries.
+The TypeScript and Python SDKs expose equivalent concepts with language-native naming. The package name is `uncoil-sdk` in both registries.
 
 | Capability | TypeScript | Python | Wire field |
 | --- | --- | --- | --- |

@@ -70,14 +70,14 @@ export async function GET(request: NextRequest) {
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: INK, color: CREAM, paddingTop: 56, paddingLeft: 64, overflow: "hidden" }}>
         <div style={{ display: "flex", flexDirection: "column", paddingRight: 64, gap: 36 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", fontFamily: "Pixel", fontSize: 40, letterSpacing: "-0.02em", color: CREAM }}>tracify</div>
+            <div style={{ display: "flex", fontFamily: "Pixel", fontSize: 40, letterSpacing: "-0.02em", color: CREAM }}>uncoil</div>
             <div style={{ display: "flex", fontFamily: "Mono", fontSize: 22, letterSpacing: "0.16em", textTransform: "uppercase", color: YELLOW }}>{kicker}</div>
           </div>
           <div style={{ display: "flex", fontFamily: "Pixel", fontSize: titleSize(title, kind), lineHeight: 1.04, letterSpacing: "-0.03em", color: CREAM, maxWidth: 1060 }}>{title}</div>
           {sub ? <div style={{ display: "flex", fontFamily: "Mono", fontSize: 26, color: "#a9a79f", maxWidth: 980 }}>{sub}</div> : null}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ display: "flex", fontFamily: "Mono", fontSize: 20, letterSpacing: "0.1em", color: "#8d8b84", paddingLeft: 0 }}>tracify.tech</div>
+          <div style={{ display: "flex", fontFamily: "Mono", fontSize: 20, letterSpacing: "0.1em", color: "#8d8b84", paddingLeft: 0 }}>uncoil.dev</div>
           <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: 36, marginLeft: -64 }}>
             <DissolveBars seed={seedOf(title)} />
           </div>

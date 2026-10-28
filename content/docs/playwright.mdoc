@@ -1,14 +1,14 @@
 ---
 slug: playwright
 title: Playwright agent observability
-description: Add the @tracify/playwright reporter to trace browser-agent test runs, actions, assertions and trace.zip artifacts in Tracify, without replacing Playwright.
+description: Add the @uncoil/playwright reporter to trace browser-agent test runs, actions, assertions and trace.zip artifacts in Uncoil, without replacing Playwright.
 section: Instrument
 order: 4
 ---
 
 # Playwright agent observability
 
-Use the `@tracify/playwright` reporter when an agent acts through a browser and you need the test outcome beside the agent's model, tool, and API spans. Playwright remains the runner and the owner of `trace.zip`; Tracify receives the execution evidence and links back to the artifact.
+Use the `@uncoil/playwright` reporter when an agent acts through a browser and you need the test outcome beside the agent's model, tool, and API spans. Playwright remains the runner and the owner of `trace.zip`; Uncoil receives the execution evidence and links back to the artifact.
 
 ## Install from the workspace
 
@@ -18,14 +18,14 @@ The adapter is currently maintained in this repository and is not presented as a
 npm install ./packages/playwright @playwright/test
 ```
 
-Set `TRACIFY_API_KEY` in the CI environment, then register the reporter:
+Set `UNCOIL_API_KEY` in the CI environment, then register the reporter:
 
 ```ts
 import { defineConfig } from "@playwright/test";
-import TracifyReporter from "@tracify/playwright";
+import UncoilReporter from "@uncoil/playwright";
 
 export default defineConfig({
-  reporter: [[TracifyReporter, {
+  reporter: [[UncoilReporter, {
     environment: "ci",
     release: process.env.GITHUB_SHA,
     traceArtifactUrl: process.env.PLAYWRIGHT_TRACE_URL,
@@ -35,7 +35,7 @@ export default defineConfig({
 
 ## Event contract
 
-The reporter maps Playwright lifecycle data into the existing Tracify span shape. The first contract covers:
+The reporter maps Playwright lifecycle data into the existing Uncoil span shape. The first contract covers:
 
 - `run` and `ci_metadata` for the test run and CI context.
 - `test_step` for test cases and Playwright steps.
@@ -51,7 +51,7 @@ reporter.recordNetworkRequest("POST /api/orders", { statusCode: 201 });
 reporter.recordConsoleError("Unhandled page error", { page: "/checkout" });
 ```
 
-Each event preserves its status, timing, parent relationship, metadata, and error details. `traceArtifactUrl` links the original Playwright artifact; Tracify does not reimplement the Playwright Trace Viewer.
+Each event preserves its status, timing, parent relationship, metadata, and error details. `traceArtifactUrl` links the original Playwright artifact; Uncoil does not reimplement the Playwright Trace Viewer.
 
 ## Data boundaries
 

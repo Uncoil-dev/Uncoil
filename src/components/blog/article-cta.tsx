@@ -11,7 +11,7 @@ const bars = [
 /** End-of-article call to action: a yellow panel with a mini trace waterfall. */
 export function ArticleCta() {
   return (
-    <aside className="mt-16 grid overflow-hidden border border-black bg-[#f4d44d] text-black md:grid-cols-[1.1fr_1fr]" aria-label="Try Tracify">
+    <aside className="mt-16 grid overflow-hidden border border-black bg-[#f4d44d] text-black md:grid-cols-[1.1fr_1fr]" aria-label="Try Uncoil">
       <div className="p-6 md:p-10">
         <p className="font-mono text-[10px] uppercase tracking-[0.16em]">Put it into practice</p>
         <p className="mt-4 text-balance font-pixel text-[clamp(2rem,4vw,3.2rem)] leading-[0.92] tracking-[-0.06em]">Watch your own agent think.</p>

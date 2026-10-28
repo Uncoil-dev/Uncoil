@@ -53,7 +53,7 @@ export function WeeklySummaryPanel({ projectId }: { projectId: string }) {
               <input aria-label="Slack webhook link" type="password" autoComplete="off" value={slackUrl} onChange={(event) => setSlackUrl(event.target.value)} placeholder={data.hasSlack ? "Paste a new link to replace it" : "https://hooks.slack.com/services/…"} className={`${input} mt-1`} />
             </label>
             {data.hasSlack ? <button type="button" disabled={busy} onClick={() => void run(() => persist(data.enabled, true), "Slack link removed.")} className="mt-1.5 text-[11px] text-[#8B93A1] underline hover:text-[#E6E9EE]">Remove saved Slack link</button> : null}
-            {!data.emailConfigured && list.length > 0 ? <p className="mt-3 border border-[#F4D44D]/40 bg-[#17150a] p-2 text-[12px] text-[#F4D44D]">Email sending isn’t switched on for this Tracify yet, so emails won’t go out until it is. Slack works either way.</p> : null}
+            {!data.emailConfigured && list.length > 0 ? <p className="mt-3 border border-[#F4D44D]/40 bg-[#17150a] p-2 text-[12px] text-[#F4D44D]">Email sending isn’t switched on for this Uncoil yet, so emails won’t go out until it is. Slack works either way.</p> : null}
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {data.enabled ? (
                 <>

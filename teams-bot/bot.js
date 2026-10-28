@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 
 const TEAM_ID = "19fb0b36-9d03-490c-a294-5a3ffec0da58";
-const ALLOWED_CHANNELS = ["Team Tracify Devs"];
+const ALLOWED_CHANNELS = ["Team Uncoil Devs"];
 const GRAPH_SCOPE = "https://graph.microsoft.com/.default";
 const NGROK_URL = "https://dried-encrust-scoop.ngrok-free.dev";
 let channelList = [];
@@ -42,7 +42,7 @@ async function createGraphSubscription() {
     notificationUrl: `${NGROK_URL}/api/graph-webhook`,
     resource: `/teams/${TEAM_ID}/channels/${encodeURIComponent(CHANNEL_ID)}/messages`,
     expirationDateTime: new Date(Date.now() + 55 * 60 * 1000).toISOString(), // 55 min
-    clientState: "tracify-bot",
+    clientState: "uncoil-bot",
   };
   const res = await fetch("https://graph.microsoft.com/v1.0/subscriptions", {
     method: "POST",
@@ -118,7 +118,7 @@ async function processMessageFromGraph(msg, serviceUrl, parentMsgId) {
       await fetch(`${baseUrl}v3/conversations/${encodeURIComponent(threadConvId)}/activities`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ ...activity, from: { id: botId, name: "Team Tracify" } }),
+        body: JSON.stringify({ ...activity, from: { id: botId, name: "Team Uncoil" } }),
       });
     };
 
@@ -303,7 +303,7 @@ app.post("/api/webhook", async (req, res) => {
       const res = await fetch(`${baseUrl}v3/conversations/${encodeURIComponent(threadId)}/activities`, {
         method: "POST",
         headers: baseHeaders,
-        body: JSON.stringify({ ...activity, from: { id: botId, name: "Team Tracify" } }),
+        body: JSON.stringify({ ...activity, from: { id: botId, name: "Team Uncoil" } }),
       });
       return res;
     };

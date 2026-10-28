@@ -9,14 +9,14 @@
 ## Google Analytics 4 — 2026-09-15
 
 - Implemented the consent-aware GA4 tag, environment contract, cookie-policy disclosure, and deterministic browser coverage.
-- Created the live Tracify GA4 property/web stream and configured the production Vercel measurement ID.
+- Created the live Uncoil GA4 property/web stream and configured the production Vercel measurement ID.
 - Release gate: publish and merge the clean analytics branch, allow the GitHub/Vercel integration to deploy once, verify the deployment SHA, then confirm a production page view in GA4.
 
 ## Captured dashboard integration hardening — 2026-09-08
 
 - [pending owner] Run provider-backed signed-in workflows with EU credentials; these cannot be verified from the public/local deterministic Sandbox.
 
-## Captured Tracify dashboard implementation — 2026-09-08
+## Captured Uncoil dashboard implementation — 2026-09-08
 
 ### Current implementation slice
 
@@ -24,8 +24,8 @@
 
 Implementation contract:
 
-1. Treat `C:\opencrawl\output\langfuse-capture` only as the supplied visual authority; the product, routes, fixtures, and visible labels remain Tracify-branded.
-2. Maintain two distinct adapters behind one visual system: a deterministic, populated, public read-only Sandbox and authenticated Build routes backed by existing Tracify APIs.
+1. Treat `C:\opencrawl\output\langfuse-capture` only as the supplied visual authority; the product, routes, fixtures, and visible labels remain Uncoil-branded.
+2. Maintain two distinct adapters behind one visual system: a deterministic, populated, public read-only Sandbox and authenticated Build routes backed by existing Uncoil APIs.
 3. Match the captured shell and 14 primary surfaces without a redesign; keep nested list/detail URLs, filters, selectors, prompt execution, and explicit Sandbox write boundaries functional.
 4. Select region first at `/cloud`; show Sandbox and Build only after the browser reaches `/cloud/mode` on the selected regional host.
 5. Keep the capture-style Home stable before and after first trace data arrives, rather than switching authenticated projects to a second dashboard design.
@@ -50,11 +50,11 @@ Verification passed: production build, TypeScript, focused ESLint, local EU-back
 
 ## Objective
 
-Build a Tracify-native version of the complete trace-to-release workflow signaled by the Langfuse August update, with a sharper focus on consequential agent failures: fast investigation, trustworthy evidence, repeatable evaluation, cost-aware decisions, and an operational path from finding to ship/rollback. “Everything they have, just better” means covering the capability surface, not copying the implementation or committing to one giant release.
+Build an Uncoil-native version of the complete trace-to-release workflow signaled by the Langfuse August update, with a sharper focus on consequential agent failures: fast investigation, trustworthy evidence, repeatable evaluation, cost-aware decisions, and an operational path from finding to ship/rollback. “Everything they have, just better” means covering the capability surface, not copying the implementation or committing to one giant release.
 
 ## Product thesis
 
-Langfuse’s release is one coherent system: capture observations → select comparable evidence → configure and preview an evaluator → run scores across text and rich media → compare versions → alert and visualize → operate through APIs/CLI/self-hosting. Tracify should own the stronger outcome: explain why an agent failed, prove whether a fix works, and make the release decision auditable.
+Langfuse’s release is one coherent system: capture observations → select comparable evidence → configure and preview an evaluator → run scores across text and rich media → compare versions → alert and visualize → operate through APIs/CLI/self-hosting. Uncoil should own the stronger outcome: explain why an agent failed, prove whether a fix works, and make the release decision auditable.
 
 ## Detailed capability backlog
 
@@ -99,7 +99,7 @@ Langfuse’s release is one coherent system: capture observations → select com
 25. **Prompt and configuration portability** — import/export prompts, evaluators, rules, templates, and release gates as versioned JSON with validation and secret redaction.
 26. **SDK parity** — add typed TypeScript and Python helpers for tracing rich evidence, starting evaluations, retrieving scores, and checking release gates; publish compatibility and clean-install smoke tests.
 27. **Integration breadth** — prioritize integrations by customer demand and failure-review relevance, beginning with model providers, agent frameworks, browser/voice tooling, RAG/retrieval, and MCP/tool servers.
-28. **OpenTelemetry compatibility** — accept and normalize OTel-compatible spans without weakening Tracify’s agent-specific evidence model.
+28. **OpenTelemetry compatibility** — accept and normalize OTel-compatible spans without weakening Uncoil’s agent-specific evidence model.
 
 ### P2 — Trust, governance, and deployment depth
 
@@ -125,7 +125,7 @@ Phase 1 should make the first paid review repeatable. Phase 2 should make the ev
 
 ## Epic acceptance criteria
 
-1. A user can create a named evidence set from real Tracify runs, freeze its membership, and see the source trace/span for every case.
+1. A user can create a named evidence set from real Uncoil runs, freeze its membership, and see the source trace/span for every case.
 2. A user can configure an evaluator against a real observation, preview missing mappings, matched volume, estimated cost, and sample count, then run it without writing a path expression by hand.
 3. Two evaluator configurations can score the same frozen evidence set, and the result records enough version metadata to reproduce and compare the run.
 4. A result opens the source trace and explains the score, evaluator inputs, execution status, and any missing or unsupported evidence.
@@ -136,7 +136,7 @@ Phase 1 should make the first paid review repeatable. Phase 2 should make the ev
 
 ## Planning rule
 
-Each numbered capability becomes its own 1–3 day implementation issue or a small epic with explicit dependencies. Before implementation, use `/spec` on the selected slice after an `/office-hours` prioritization pass. Every spec must tie the work to a customer outcome, identify current Tracify files and interfaces, and define pass/fail acceptance criteria. Completed items must be removed from active task files under the repository task-file hygiene rule in `AGENTS.md`.
+Each numbered capability becomes its own 1–3 day implementation issue or a small epic with explicit dependencies. Before implementation, use `/spec` on the selected slice after an `/office-hours` prioritization pass. Every spec must tie the work to a customer outcome, identify current Uncoil files and interfaces, and define pass/fail acceptance criteria. Completed items must be removed from active task files under the repository task-file hygiene rule in `AGENTS.md`.
 
 # First-customer execution — 2026-09-02
 
@@ -151,20 +151,20 @@ Each numbered capability becomes its own 1–3 day implementation issue or a sma
 
 3. [pending] Complete a clean production-build verification once the existing build finishes.
 
-# tracify Strategic Implementation Plan
+# uncoil Strategic Implementation Plan
 
 ## Better Auth Migration (2026-08-10)
 
 - Better Auth now owns sessions, credentials, OAuth, and organizations through a Convex component, with Next.js proxying `/api/auth/*` and hydrating authenticated Convex clients with the Better Auth JWT.
-- Clerk UI/runtime packages and middleware were removed. Custom Tracify forms now provide email/password and Google sign-in, while dashboard controls use Better Auth session and organization APIs.
+- Clerk UI/runtime packages and middleware were removed. Custom Uncoil forms now provide email/password and Google sign-in, while dashboard controls use Better Auth session and organization APIs.
 - Authorization keeps project-owner and active-organization semantics. JWT payloads include the active organization and membership role so Convex admin checks continue to distinguish owners/admins from members.
 - Security defaults include database-backed rate limiting, CSRF/origin checks, encrypted OAuth tokens, explicit trusted origins, and disabled organization deletion.
-- Better Auth Infrastructure is integrated through `dash()`; development and production Convex environments have the Infra key. The canonical production origin is `https://www.tracify.tech` because the bare domain redirects.
+- Better Auth Infrastructure is integrated through `dash()`; development and production Convex environments have the Infra key. The canonical production origin is `https://www.uncoil.dev` because the bare domain redirects.
 - Development Convex synchronization and production build pass. Production deployment remains a deliberate follow-up because unrelated local changes share the worktree.
 
 ## Homepage Reference Refinement (2026-08-07)
 - Added a compact lifecycle rail to the landing page, linking each stage to the relevant product workflow.
-- Kept the Better Auth/Langfuse editorial structure, Linear-style product evidence, and monochrome Tracify system intact.
+- Kept the Better Auth/Langfuse editorial structure, Linear-style product evidence, and monochrome Uncoil system intact.
 - Added distinct section compositions rather than repeating a two-column text/visual template: workflow canvas, centered white connection statement, integration matrix, README quickstart, and FAQ.
 - Upgraded public product feature pages with feature-specific evidence panels and action-oriented next steps.
 - Verification: focused ESLint, standalone TypeScript, `git diff --check`, and production build pass.
@@ -174,7 +174,7 @@ Each numbered capability becomes its own 1–3 day implementation issue or a sma
 - Reframed the homepage as a command-center incident journey: a production timeout, trace inspection, root-cause recommendation, evaluation, and improved release form one coherent story.
 - Replaced the broad client-page implementation with a server-rendered route and isolated interactive workflow, product-signal, code-runtime, and trace-inspector components.
 - Added product-specific Open Graph/X metadata and a generated incident-style Open Graph image route.
-- Corrected legacy final-CTA installation examples to `tracify`, linked footer status to the public status surface, and added accessible tabs, pressed states, focus rings, copy feedback, and reduced-motion-compatible interaction.
+- Corrected legacy final-CTA installation examples to `uncoil`, linked footer status to the public status surface, and added accessible tabs, pressed states, focus rings, copy feedback, and reduced-motion-compatible interaction.
 - Verification: `npx.cmd tsc --noEmit`, focused marketing ESLint, `git diff --check`, and the full production build pass; Next generates all 58 routes, including `/opengraph-image`.
 
 - Reworked the public homepage into a smaller editorial, monochrome composition inspired by Better Auth and Langfuse.
@@ -197,7 +197,7 @@ Each numbered capability becomes its own 1–3 day implementation issue or a sma
 - Added a dashboard-specific not-found boundary with a clear explanation and project-selector recovery path.
 - Added confirmation before muting an alert; resolve/reopen remain reversible through the alert center.
 - Expanded Overview health summary with sample-labeled failure rate and p95 latency metrics, each linking directly to the relevant Runs investigation view.
-- Live beta smoke now passes 5/5 available checks; 2 credential-dependent ingestion checks are skipped without smoke credentials. Also restored legacy `tracify_sk_live_` API-key prefix acceptance so malformed legacy-key payloads reach the documented 422 validation path.
+- Live beta smoke now passes 5/5 available checks; 2 credential-dependent ingestion checks are skipped without smoke credentials. Also restored legacy `uncoil_sk_live_` API-key prefix acceptance so malformed legacy-key payloads reach the documented 422 validation path.
 - Final `npm run build` passes after the latest changes and generates 58 routes. In-app browser visual inspection was attempted against the local dashboard but timed out before a reliable authenticated render; manual authenticated visual QA remains pending.
 - Fresh browser inspection now confirms the public entry page renders its trace-first hierarchy and interactive controls; `/dashboard` consistently redirects to Clerk sign-in without an authenticated session, so authenticated dashboard visual QA remains the only browser-gated check.
 - Hardened trace payload copying with failure recovery, live-region feedback, accessible labels, and visible keyboard focus on copy actions.
@@ -301,10 +301,10 @@ This plan merges the **Comprehensive Build Plan** and the **What To Do Now** str
 - Follow-up completion: Online execution, offline jobs, guardrail templates, automatic review queueing, reviewer rotation/agreement, API-key feedback/score helpers, Tinybird score aggregation, recovery alerts, release gates, prompt promotion, and quickstart/SDK documentation are wired.
 
 ## Strategic Decision: SaaS Infrastructure
-As established in the "What To Do Now" document, tracify is officially a **Developer Infrastructure SaaS**, not a web agency. All efforts are focused on agent observability.
+As established in the "What To Do Now" document, uncoil is officially a **Developer Infrastructure SaaS**, not a web agency. All efforts are focused on agent observability.
 
 ## Positioning Update
-tracify is now positioned publicly as **agent observability for builders and operators of production AI workflows**. The audience includes developers, AI startups, AI agencies, internal AI teams, and AI operations owners under one niche. Marketing and pricing must avoid claiming replay, evals, runtime orchestration, self-hosting, email alerts, or PDF export until those surfaces are implemented.
+uncoil is now positioned publicly as **agent observability for builders and operators of production AI workflows**. The audience includes developers, AI startups, AI agencies, internal AI teams, and AI operations owners under one niche. Marketing and pricing must avoid claiming replay, evals, runtime orchestration, self-hosting, email alerts, or PDF export until those surfaces are implemented.
 
 ## Phase 1: Core Trace Viewer & Infrastructure (Weeks 1-4)
 
@@ -319,7 +319,7 @@ The single most important UI in the product.
 - [ ] **Screenshots:** Replace abstract marketing visuals with real dashboard/report screenshots.
 
 ### 4d. Beta Smoke Tests [IN PROGRESS]
-- [ ] **Full Smoke Run:** Execute with `TRACIFY_SMOKE_API_KEY` and `TRACIFY_SMOKE_PROJECT_ID` against local and production-like environments.
+- [ ] **Full Smoke Run:** Execute with `UNCOIL_SMOKE_API_KEY` and `UNCOIL_SMOKE_PROJECT_ID` against local and production-like environments.
 - [ ] **Alert Smoke:** Add a deterministic threshold alert verification once test project configuration can be safely controlled by script.
 
 ### 5. Alerting & Notifications [TODO]
@@ -330,8 +330,8 @@ The single most important UI in the product.
 - [ ] **Viewer UI Guards:** Hide or disable settings/API-key/destructive controls for viewer roles once role claims are confirmed in the active JWT template.
 
 ### 6. Production SDKs [POLISHING]
-- [ ] **Python SDK:** Wrap `@trace_agent` decorator logic and publish to PyPI. Package metadata now builds as distribution `tracify`, docs use `pip install tracify-sdk`, the `tracify` import package re-exports the legacy SDK, and local import smoke test passes; upload is pending a PyPI API token.
-- [ ] **TS SDK:** Formalise `tracify` and publish to npm. Build packaging is fixed, app/docs install snippets now use `npm install tracify-sdk`, and publish is blocked only on npm 2FA/token requirements.
+- [ ] **Python SDK:** Wrap `@trace_agent` decorator logic and publish to PyPI. Package metadata now builds as distribution `uncoil`, docs use `pip install uncoil-sdk`, the `uncoil` import package re-exports the legacy SDK, and local import smoke test passes; upload is pending a PyPI API token.
+- [ ] **TS SDK:** Formalise `uncoil` and publish to npm. Build packaging is fixed, app/docs install snippets now use `npm install uncoil-sdk`, and publish is blocked only on npm 2FA/token requirements.
 
 ---
 
@@ -540,14 +540,14 @@ The single most important UI in the product.
 - Added the supplied PostHog browser project token and EU host to `.env.local` and `.env.prod`.
 ## Marketing Surface Refresh (2026-08-08)
 1. Establish page-level content architecture and conversion paths for home, blog, FAQ, docs, pricing, contact, and signup.
-2. [Complete 2026-08-09] Redesign the homepage with original Tracify product visuals, lifecycle proof, integration confidence, customer-ready trust signals, and conversion CTAs.
+2. [Complete 2026-08-09] Redesign the homepage with original Uncoil product visuals, lifecycle proof, integration confidence, customer-ready trust signals, and conversion CTAs.
    - Follow-up: compacted the desktop/tablet composition to a single viewport per primary section and top-aligned the hero health panel.
    - Added a removable three-section exploration set at the bottom for user selection: execution report, developer-first implementation brief, and platform lifecycle matrix.
-   - Follow-up round 02: appended ten more removable concepts (04–13), each with a distinct composition and original Tracify content, while leaving all earlier sections intact.
+   - Follow-up round 02: appended ten more removable concepts (04–13), each with a distinct composition and original Uncoil content, while leaving all earlier sections intact.
    - Hero gallery follow-up: appended five removable hero directions (A–E) after all existing concepts, with the production hero left untouched.
    - Definitive follow-up: appended Hero F as a single best-of gallery direction with run health, evidence, diagnosis, evaluation, and release proof visible together.
    - Footer follow-up: appended four removable footer/newsletter directions with distinct editorial, newsroom, control-room, and brand-monument layouts while preserving the production footer.
-   - Full-bleed footer follow-up: added Footer 05 with a responsive edge-to-edge `tracify` wordmark as the final visual anchor.
+   - Full-bleed footer follow-up: added Footer 05 with a responsive edge-to-edge `uncoil` wordmark as the final visual anchor.
    - Refined Footer 05 so the wordmark has no horizontal inset and deliberately spans the full viewport from left to right.
    - CTA follow-up: appended five removable conversion directions covering editorial, proof-led, developer, lifecycle, and live-signal structures while preserving existing CTAs.
    - Global polish follow-up: standardized selected text to a faint translucent yellow marker across all routes; moved the rule outside cascade layers so local selection utilities cannot win.
@@ -624,8 +624,8 @@ The single most important UI in the product.
 
 1. [pending] Revise PR #14 to expose only EU while preserving the dormant US implementation behind a disabled launch gate.
 2. [pending] Reuse and verify the existing free-plan EU service configuration; do not imply strict residency where Redis or Inngest cannot prove it.
-3. [pending] Configure only `eu.cloud.tracify.tech` DNS, TLS, authentication callbacks, EU Stripe webhook, and existing provider credentials.
-4. [pending] Merge through the pull-request workflow, deploy the exact merged `origin/main` commit to `tracify-cloud-eu`, and complete EU end-to-end verification.
+3. [pending] Configure only `eu.cloud.uncoil.dev` DNS, TLS, authentication callbacks, EU Stripe webhook, and existing provider credentials.
+4. [pending] Merge through the pull-request workflow, deploy the exact merged `origin/main` commit to `uncoil-cloud-eu`, and complete EU end-to-end verification.
 5. [deferred] Enable US only after physically US stateful infrastructure, unique credentials, operational controls, and cross-region isolation tests are available.
 
 # EU-first regional launch — SHIPPED 2026-08-19
@@ -635,12 +635,12 @@ Supersedes the 2026-08-16 revision above; items 1-4 there are now complete.
    `src/lib/regions.ts`, rejects dormant regions server-side in `/api/region/select`, and filters
    the status board. The US implementation stays defined and routable but unadvertised.
    GCP `europe-west2` is London, UK — not the EU. Tinybird workspace recreated as
-   `tracify_eu_west1` (AWS eu-west-1) with all four datafiles deployed; Redis moved to Upstash
+   `uncoil_eu_west1` (AWS eu-west-1) with all four datafiles deployed; Redis moved to Upstash
    (primary eu-west-1, TLS) because Redis Cloud's free tier gates TLS behind a paid plan.
    Every region verified by IP against the provider's published ranges.
    TLS issued, Google/GitHub callbacks registered, EU Stripe webhook
    `we_1U5YRMV05QqKbrt9FFuI0zWx` created with its signing secret set.
-   `tracify` project from a clean detached worktree. `/api/health/region` returns 200 with all
+   `uncoil` project from a clean detached worktree. `/api/health/region` returns 200 with all
    four dependencies healthy, which also proved the two write-only Vercel values
    (`TINYBIRD_TOKEN`, `REDIS_URL`) are correct.
 5. [accepted limitation] Inngest Cloud runs in AWS us-east-2 (Ohio) with no EU region, and sits
@@ -652,13 +652,13 @@ Supersedes the 2026-08-16 revision above; items 1-4 there are now complete.
 
 ## Follow-ups
 
-1. [pending] Rotate the `tracify_eu_west1` Tinybird token; this also invalidates the MCP URL,
+1. [pending] Rotate the `uncoil_eu_west1` Tinybird token; this also invalidates the MCP URL,
    which embeds the same token. Update `TINYBIRD_MCP_TOKEN` afterwards.
 2. [pending] Delete the superseded Redis Cloud databases `database-MSZ2JEQR` (London; its
-   password was exposed in a chat transcript) and `tracify-eu-west1` (Ireland).
-3. [pending] Add `STRIPE_SECRET_KEY` and the four `STRIPE_PRICE_*` values to `tracify-cloud-eu`;
+   password was exposed in a chat transcript) and `uncoil-eu-west1` (Ireland).
+3. [pending] Add `STRIPE_SECRET_KEY` and the four `STRIPE_PRICE_*` values to `uncoil-cloud-eu`;
    billing on the EU host returns 503 until they exist.
-4. [pending] Reconnect Git automation for `tracify-cloud-eu`. Now safe: the project has a real
+4. [pending] Reconnect Git automation for `uncoil-cloud-eu`. Now safe: the project has a real
    production deployment on `main`, so Vercel can no longer misclassify a first build.
 5. [optional] Replace Inngest with Upstash QStash on the EU deployment to close the residency
    gap — 2 functions, 5 `inngest.send()` sites.
@@ -731,7 +731,7 @@ Supersedes the 2026-08-16 revision above; items 1-4 there are now complete.
 
 6. [pending] Keep the pass local and uncommitted until visual approval, then force-add the ignored media assets and create the requested focused PR.
 
-# Reusable Tracify blog-quality skill — 2026-08-26
+# Reusable Uncoil blog-quality skill — 2026-08-26
 
 6. [pending] Force-add ignored `.agents` additions and media assets, then include them in the focused article/renderer/skill PR after approval.
 
@@ -766,13 +766,13 @@ The existing lead slice already covers Convex persistence, admin authorization, 
 # SEO/AEO blog ideation — 2026-09-03
 
 ## Email sender configuration
-- [ ] Owner adds the Resend API key and verifies `kb@tracify.tech`/`tracify.tech` in Vercel and Resend.
+- [ ] Owner adds the Resend API key and verifies `kb@uncoil.dev`/`uncoil.dev` in Vercel and Resend.
 # 2026-09-03 — Langfuse parity and release operating model
 
 ## Findings
 
 - The Langfuse release corpus contains 672 releases from v1.0.0 through the current v4/v3 maintenance streams.
-- Tracify already has early slices for prompts, datasets, evaluators, experiments, alerts, agent tracing, typed scores, cost ceilings, and TS/Python SDKs.
+- Uncoil already has early slices for prompts, datasets, evaluators, experiments, alerts, agent tracing, typed scores, cost ceilings, and TS/Python SDKs.
 - The largest parity gaps are production-grade evaluation execution, richer trace/observation querying, model/token/cost correctness, team governance, OpenTelemetry/MCP breadth, and a trustworthy release lifecycle.
 - Current release automation only publishes SDKs manually or on `sdk-v*` tags; there is no single application release manifest, changelog pipeline, release PR, provenance/attestation policy, or rollback runbook.
 
@@ -794,8 +794,8 @@ The first literal trace-path and pixel-`T` drafts were rejected as too busy and 
 
 # ERPNext integration — 2026-09-03
 
-- First slice: outbound Tracify alerts to ERPNext `ToDo` records through the Frappe REST API.
-- Keep trace/span evidence in Tracify; send bounded alert metadata and a trace link.
+- First slice: outbound Uncoil alerts to ERPNext `ToDo` records through the Frappe REST API.
+- Keep trace/span evidence in Uncoil; send bounded alert metadata and a trace link.
 - Implement validation, secret-safe persistence/read paths, server-only actions, idempotency, timeout/no-redirect behavior, and project/admin authorization.
 - Do not claim end-to-end completion until a customer-provided ERPNext sandbox is tested successfully.
 - Added the initial REST client boundary in `src/lib/erpnext.ts`; next code work is credential storage, project authorization, delivery wiring, and settings UI.
@@ -804,15 +804,15 @@ The first literal trace-path and pixel-`T` drafts were rejected as too busy and 
 
 # Private Plane workspace — 2026-09-03
 
-3. [pending] Provision and harden the VPS, configure a Cloudflare Tunnel for `plane.tracify.tech`, Cloudflare Access/MFA, SMTP, backups, and the private Tracify workspace.
+3. [pending] Provision and harden the VPS, configure a Cloudflare Tunnel for `plane.uncoil.dev`, Cloudflare Access/MFA, SMTP, backups, and the private Uncoil workspace.
 # Explore / Build playground and site assistant — 2026-09-04
 
 ## Completed
 
 1. Added a pre-region Explore / Build entry choice. Explore goes through the existing EU authentication boundary and enters a simulated `/playground`; Build continues to the existing region-scoped onboarding.
 2. Added a populated, interactive simulated dashboard surface with healthy, latency, and tool-failure scenarios, persisted account state, filters, alert dismissal, and a real-project CTA. Simulation data never enters the real project/ingestion path.
-3. Added a public Tracify assistant with curated product/setup context, cited internal links, deterministic no-provider fallback, bounded input/rate limiting, and server-only OpenAI usage when configured.
-4. Added optional redacted assistant traces to a dedicated internal Tracify ingestion target and made tracing non-blocking.
+3. Added a public Uncoil assistant with curated product/setup context, cited internal links, deterministic no-provider fallback, bounded input/rate limiting, and server-only OpenAI usage when configured.
+4. Added optional redacted assistant traces to a dedicated internal Uncoil ingestion target and made tracing non-blocking.
 5. Focused ESLint and TypeScript pass. Local assistant API smoke test returns a cited response. Full page smoke is limited by the existing unavailable local Convex service at `127.0.0.1:3211`.
 6. Switched the assistant to `gpt-5.6-luna` with low reasoning effort and added per-IP, daily-global, and output-token guards before enabling paid model calls.
 
@@ -820,7 +820,7 @@ The first literal trace-path and pixel-`T` drafts were rejected as too busy and 
 
 - Deploy the Convex schema/function change through the normal authenticated Convex deployment/codegen workflow.
 - Add browser E2E coverage for Explore/Build, playground persistence/isolation, and assistant citations/fallbacks.
-- Configure `TRACIFY_INTERNAL_INGEST_URL` and `TRACIFY_INTERNAL_API_KEY` only in the intended server deployment environment.
+- Configure `UNCOIL_INTERNAL_INGEST_URL` and `UNCOIL_INTERNAL_API_KEY` only in the intended server deployment environment.
 - Commit/review/merge the local implementation before treating the playground and assistant as production-live; the Vercel guardrail redeploy used `main` commit `fbd51b1`.
 - Favicon cascade-T preview is pushed as `19082d7`; production promotion remains pending merge/owner approval. Only the approved Cascade A family is stored under `public/logos/cascade-t-a/`; the Photoshop-ready transparent lockup is available as both PNG and SVG, and unselected favicon experiments are archived outside `public/`.
 - Configure the provider-side OpenAI organization/project budget after the owner signs in; application caps are already configured in Vercel Production.
@@ -831,7 +831,7 @@ The first literal trace-path and pixel-`T` drafts were rejected as too busy and 
 
 # Langfuse clone surface — 2026-09-06
 
-Latest parity pass (2026-09-08): corrected visible captured-workspace labels and scoped accent styling to match the reference product. The complete static reference is hosted separately at `https://tracify-dashboard-reference.vercel.app`, with the populated baseline at `/pages/023.html`; focused TypeScript and ESLint passed, while implementation screenshot comparison is pending local server availability.
+Latest parity pass (2026-09-08): corrected visible captured-workspace labels and scoped accent styling to match the reference product. The complete static reference is hosted separately at `https://uncoil-dashboard-reference.vercel.app`, with the populated baseline at `/pages/023.html`; focused TypeScript and ESLint passed, while implementation screenshot comparison is pending local server availability.
 
 - Implemented the first local parity slice for the requested demo and empty-project views.
 - Follow-up scope: add authenticated data wiring and expand remaining project modules only if the user wants a full product-surface parity pass.
@@ -840,7 +840,7 @@ Latest parity pass (2026-09-08): corrected visible captured-workspace labels and
 
 8. [pending] Repeat the comparison through the authenticated production route once the local browser session has a usable project identity.
 
-# Tracify dashboard feature parity — 2026-09-06
+# Uncoil dashboard feature parity — 2026-09-06
 
 5. [pending] Replace seeded preview data with authenticated Convex-backed trace/session/user data and carry the feature treatment through the remaining dashboard modules.
 6. [in progress] Finish route-by-route parity for dashboards, users, scores, evaluators, human annotation, and settings using authenticated project data; navigation, Scores, Users, and the authenticated Operations route are now exposed.
@@ -872,8 +872,8 @@ Latest parity pass (2026-09-08): corrected visible captured-workspace labels and
 54. Remove the stale dashboard sidebar memo dependency after wiring shell controls.
 55. Connect dashboard topbar Filters control to the Home filter state.
 56. Persist dashboard widget layouts independently for each named dashboard.
-57. Add rename and delete actions for custom dashboards while protecting the default Tracify Home dashboard.
-58. Make both local dashboard previews use the authenticated-style Tracify shell for visual comparison.
+57. Add rename and delete actions for custom dashboards while protecting the default Uncoil Home dashboard.
+58. Make both local dashboard previews use the authenticated-style Uncoil shell for visual comparison.
 59. Continue visual parity review of linked dashboard surfaces against their captured references.
 60. Compare linked-surface content and controls against the captured screenshots and wire the highest-value interactions.
 61. Verify the upgraded linked-surface controls through the authenticated-style preview and refine visual spacing against the capture.
@@ -882,7 +882,7 @@ Latest parity pass (2026-09-08): corrected visible captured-workspace labels and
 64. Complete the remaining capture-path and feature audit across both regional runtimes.
 65. Perform final visual comparison of the Home dashboard against the captured reference at the same viewport.
 66. Continue feature-depth parity for non-Home captured surfaces with real list/detail interactions.
-67. Extend linked forms with persistence-backed project data where the corresponding Tracify API exists.
+67. Extend linked forms with persistence-backed project data where the corresponding Uncoil API exists.
 68. Replace local draft markers with Convex mutations for surfaces that have backend schemas.
 69. Wire prompt and evaluation create forms to their existing typed Convex mutations, then design schemas for the remaining linked surfaces.
 70. Verify prompt and evaluation linked routes with authenticated project data and preserve the generic surfaces for schema-less features.
@@ -894,7 +894,7 @@ Latest parity pass (2026-09-08): corrected visible captured-workspace labels and
 76. Verify authenticated editor actions end-to-end against a real project session.
 77. Verify the production build artifact and regional runtime URLs after the final editor mutations.
 78. Preserve final handoff links and document the remaining backend expansion points.
-79. Add a reversible Tracify-branded dashboard presentation layer with legacy/v2 preview controls while preserving existing functionality.
+79. Add a reversible Uncoil-branded dashboard presentation layer with legacy/v2 preview controls while preserving existing functionality.
 80. Keep the Explore and region choices as separate steps, carry a stable simulated user ID into the playground URL, and verify the production Vercel and Convex deployments before release.
 81. Fix the Better Auth/Convex callback race, preserve the immersive playground return query through sign-in, and align regional Better Auth host resolution.
 
@@ -903,12 +903,12 @@ Latest parity pass (2026-09-08): corrected visible captured-workspace labels and
 
 ## Explore/Build parity spec — 2026-09-08
 
-Objective: give first-time visitors a reliable Tracify Explore experience that visually follows the supplied populated dashboard capture while keeping production account data, authentication, and regional telemetry out of the demo path.
+Objective: give first-time visitors a reliable Uncoil Explore experience that visually follows the supplied populated dashboard capture while keeping production account data, authentication, and regional telemetry out of the demo path.
 
 Acceptance contract:
 
 1. Explore opens `/playground?view=home&userId=usr_demo_7f3a9c21` directly; no region selection, Clerk/Convex auth gate, stale project ID, personal dashboard, or Langfuse label is involved.
-2. The Explore shell is visibly branded Tracify, uses the dark cloud dashboard treatment, and uses gray placeholders/skeletons against the dark canvas. The captured populated Home/Tracing information architecture is the visual reference, not archived JavaScript.
+2. The Explore shell is visibly branded Uncoil, uses the dark cloud dashboard treatment, and uses gray placeholders/skeletons against the dark canvas. The captured populated Home/Tracing information architecture is the visual reference, not archived JavaScript.
 3. The logo always returns to `/dashboard` project selection. The synthetic project switcher clearly says `Demo Project (view only)` and offers a Build path.
 4. Every visible Explore sidebar item remains inside the simulator and changes the `view` state; Home, Tracing, filters, scenario cards, trace detail, time range, environment, and Build actions have observable behavior.
 5. Build remains a separate path: `/cloud/region` lists available regions, and selecting one shows `/cloud/connecting` with a visible `Connecting to … cloud` status before regional API redirect.
@@ -924,7 +924,7 @@ Implementation completed:
 Production verification:
 
 - PR #99 merged as `7c3ee0f`; PR #100 merged as `312a4df`.
-- Marketing production deployment and EU production deployment for `312a4df` reached Ready. Live marketing Explore click reaches `https://eu.cloud.tracify.tech/playground?view=home&userId=usr_demo_7f3a9c21` and renders the populated synthetic Home.
+- Marketing production deployment and EU production deployment for `312a4df` reached Ready. Live marketing Explore click reaches `https://eu.cloud.uncoil.dev/playground?view=home&userId=usr_demo_7f3a9c21` and renders the populated synthetic Home.
 - Remaining deployment hygiene item: copy the existing production `CONVEX_SITE_URL` config into the EU Vercel Preview environment. The preview deployment for PR #100 fails at page-data collection with `CONVEX_SITE_URL is not set`; this does not affect the verified production deployment.
 
 ## 2026-09-08 — Exact captured dashboard parity continuation
@@ -936,7 +936,7 @@ Production verification:
 - Legacy Search, Compare, Traces, and Runs entry points now canonicalize to the captured Tracing list/detail family with query preservation.
 - Project Settings/API Keys now canonicalizes to the captured Settings surface with URL-backed tab state.
 - Remaining project settings aliases now preserve their requested destination as `settings?tab=...`, so old bookmarks enter the shared captured settings shell.
-- Sandbox metadata and project labels no longer expose Tracify branding, and the captured interaction accent is violet rather than the old yellow token.
+- Sandbox metadata and project labels no longer expose Uncoil branding, and the captured interaction accent is violet rather than the old yellow token.
 - Browser review of the managed local Sandbox confirms the captured shell is live; legacy Prompt Management, Dashboard Create, Evaluation, and Evals entry points now canonicalize into captured route families. The next parity block is implementing the captured control/detail density and six-viewport screenshot comparison.
 - Tracing range, environment, and query filters now persist in the URL and are covered by a reload contract; continue extending URL-backed state to view, columns, pagination, and detail selections.
 - Tracing view mode, preset, and column selection now persist through URL parameters and are covered by the Sandbox browser contract; pagination and detail-selection persistence remain.
@@ -946,7 +946,7 @@ Production verification:
 - Project Dashboard detail pages now render through the live captured dashboard adapter and preserve the selected dashboard ID for future detail/editor state.
 - The captured Dashboard editor now resolves the selected detail ID to its live record and initializes the displayed dashboard accordingly.
 - Dashboard selection and Grid/List layout are now URL-backed in the captured editor for reload/share parity.
-- Added the first repeatable six-viewport parity harness for all public captured Sandbox surfaces; it records full-page artifacts and asserts reference shell labels with no captured-workspace Tracify text.
+- Added the first repeatable six-viewport parity harness for all public captured Sandbox surfaces; it records full-page artifacts and asserts reference shell labels with no captured-workspace Uncoil text.
 - Playwright test discovery confirms all six viewport cases are registered; targeted ESLint passes for the changed application/test files, with captured CSS excluded by the repository ESLint configuration.
 - Expanded the paired reference screenshot harness from two representative surfaces to all 14 primary captured Sandbox surfaces. Each surface is paired with a populated 4173 archive page and exercised through the existing six viewport profiles; a clean full artifact run and pixel-diff review remain required.
 - Corrected the paired fixture mapping to use the populated 4173 captures (Home 023, Dashboards 024, Tracing 025, Sessions 026, Users 027, Alerts 028, Prompts 029, Playground 030, Scores 031, Evaluators 032, Annotation 033, Datasets 034, Experiments 035, Settings 036). The rebuilt production artifact now passes the complete desktop-wide 14-surface capture run; six-viewport diff review remains required.
@@ -958,7 +958,7 @@ Production verification:
 - Measured and corrected the next Tracing structural mismatch: the desktop/tablet filter rail now uses the reference 153px width instead of the prior 260px width, shifting the results region into the correct baseline while preserving mobile stacking.
 - Revalidated the Tracing rail against a fresh production artifact: the full desktop-wide suite passes, while Tracing mismatch remains approximately 26.44%, so the next Tracing pass must reproduce internal filter groups, chart strip, table density, and populated data layout.
 - Added the missing Tracing table-mode count strip as a captured-only visual layer with reference-style grid/event bars; table interactions remain unchanged and the next step is fresh production screenshot measurement.
-- Runtime evidence: all six viewport cases (1440x900, 1280x800, 1024x768, 768x1024, 390x844, and 375x812) passed all 14 Sandbox surfaces, including hydration, reference-shell, no-Tracify-text assertions, and screenshot capture.
+- Runtime evidence: all six viewport cases (1440x900, 1280x800, 1024x768, 768x1024, 390x844, and 375x812) passed all 14 Sandbox surfaces, including hydration, reference-shell, no-Uncoil-text assertions, and screenshot capture.
 - Latest verification: the EU-configured isolated production artifact builds all 211 routes; the account-access contract passes 10/10; the six-viewport captured matrix passes 6/6 across the 14 captured Sandbox surfaces. Sessions controls and Tracing Ask AI now have observable behavior, and captured trace names use the reference fixture values.
 - Sessions was further aligned to the supplied reference structure: its dedicated filter rail and eight-column table are now present at desktop, tablet, and mobile widths, while generic environment/create controls are omitted from that route. Paired captures pass for the updated surface; pixel-level comparison still identifies residual shell/content differences.
 - The Tracing table now includes the captured leading selection column, and Sessions desktop action spacing is closer to the reference baseline. The latest isolated EU build compiled all 211 routes and the six-viewport route matrix passed across all 14 Sandbox surfaces.
@@ -975,7 +975,7 @@ Production verification:
 - Tracing toolbar fidelity pass: desktop now keeps the URL-backed Filters action in the captured left rail and removes the extra top-row Filters control; the account contract was updated to exercise the rail control. Focused lint, the complete account-access contract (10/10), and desktop paired capture pass. Raw desktop-wide Tracing mismatch is effectively unchanged at 27.89%, so remaining differences are still table density/content and shell geometry.
 - Users tablet structure pass: applied the extracted reference user IDs, kept four visible event columns, and added the 701–800px captured control grid so search/environment share the first row and Filters occupies the second row. The EU-configured build compiles all 211 routes and the complete six-viewport route matrix passes 6/6; fresh tablet paired capture passes, with raw mismatch remaining sensitive to timestamp/content differences.
 - Sessions mobile control-row pass: retained the captured `-30px` surface offset and shifted only the search/actions row by `-22px`, matching the reference’s left alignment without moving the table/rail. Fresh paired mobile captures pass; standard mismatch improved to 26.68%, while narrow mismatch is noisier at 27.49%, so no further speculative offset was layered on.
-- Deployment verification: the branch head `b93d2165` now has Ready Vercel previews for both surfaces: marketing `https://tracify-kyi83g6vf-tracify-tech.vercel.app` and EU cloud `https://tracify-cloud-mvhgikvf1-tracify-tech.vercel.app`. GitHub reports both Vercel checks and the activation/adapter checks as passing.
+- Deployment verification: the branch head `b93d2165` now has Ready Vercel previews for both surfaces: marketing `https://uncoil-kyi83g6vf-uncoil-tech.vercel.app` and EU cloud `https://uncoil-cloud-mvhgikvf1-uncoil-tech.vercel.app`. GitHub reports both Vercel checks and the activation/adapter checks as passing.
 - Sessions mobile follow-up: corrected the independently measured toolbar and content-edge offsets after a fresh screenshot audit. The full six-viewport matrix remains green, with the current mobile Sessions artifact measuring 26.97% standard and 26.57% narrow; fine table density, shell typography, and dynamic reference data differences remain open.
 - Users tablet follow-up: removed shared Env/Filters/Create controls from the dedicated Users surface, added the reference Last Event column, and aligned the narrow-tablet toolbar 24px lower. Tablet-focused tests and the complete six-viewport matrix pass; Users mismatch is 20.89% at 1024x768 and 22.30% at 768x1024, so row data/typography still need tuning.
 - Users fixture follow-up: page 027 `u-*` identifiers are now used by Sandbox Users rows, event timestamps render in the captured localized format, and fixed widths preserve the four-column layout. The final mobile edge override is ordered after the fixed-table rules. TypeScript/build/focused tests/full six-viewport matrix pass; remaining Users mismatch is predominantly text clipping, font metrics, and exact reference row content.

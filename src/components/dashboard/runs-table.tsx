@@ -114,9 +114,9 @@ export function RunsTable({ projectId }: RunsTableProps) {
   const [savedViews, setSavedViews] = useState<SavedRunView[]>([]);
   const didMount = useRef(false);
 
-  const savedViewsKey = `tracify.saved-run-views.${projectId}`;
+  const savedViewsKey = `uncoil.saved-run-views.${projectId}`;
   const { isVisible: isColumnVisible, toggle: toggleColumn } = useColumnVisibility(
-    `tracify.runs-table.columns.${projectId}`,
+    `uncoil.runs-table.columns.${projectId}`,
     RUNS_TABLE_COLUMNS,
   );
 
@@ -363,7 +363,7 @@ export function RunsTable({ projectId }: RunsTableProps) {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `tracify-runs-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.download = `uncoil-runs-${new Date().toISOString().slice(0, 10)}.csv`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -551,7 +551,7 @@ export function RunsTable({ projectId }: RunsTableProps) {
         {visibleRuns.length === 0 ? (
           <DashboardEmptyState
             title={search || statusFilter !== "all" || modelFilter || sessionFilter || environmentFilter || releaseFilter || minCost || minSpans ? "No runs match these filters" : "No runs recorded yet"}
-            description={search || statusFilter !== "all" || modelFilter || sessionFilter || environmentFilter || releaseFilter || minCost || minSpans ? "Clear a filter or broaden the query to see more execution history." : "Instrument an agent with the Tracify SDK to make execution evidence appear here."}
+            description={search || statusFilter !== "all" || modelFilter || sessionFilter || environmentFilter || releaseFilter || minCost || minSpans ? "Clear a filter or broaden the query to see more execution history." : "Instrument an agent with the Uncoil SDK to make execution evidence appear here."}
             href={search || statusFilter !== "all" || modelFilter || sessionFilter || environmentFilter || releaseFilter || minCost || minSpans ? `/dashboard/${projectId}/runs` : `/dashboard/${projectId}/quickstart`}
             action={search || statusFilter !== "all" || modelFilter || sessionFilter || environmentFilter || releaseFilter || minCost || minSpans ? "Clear filters" : "Open quickstart"}
           />

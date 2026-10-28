@@ -13,9 +13,9 @@ import { BrandLogo } from "@/components/brand-logo";
 
 const stepPresentation = {
   project: { code: "01", label: "Name your project", note: "One project per agent or product. Every run, tool call and cost lands in it.", img: "map-flat" },
-  "api-key": { code: "02", label: "Grab your key", note: "Your agent uses this key to talk to Tracify. It is shown once, so save it now.", img: "span-anatomy" },
+  "api-key": { code: "02", label: "Grab your key", note: "Your agent uses this key to talk to Uncoil. It is shown once, so save it now.", img: "span-anatomy" },
   install: { code: "03", label: "Add the SDK", note: "A few lines of code. Pick the setup that matches how you build.", img: "logs-wall" },
-  waiting: { code: "04", label: "Send a first run", note: "Run your agent once. This page lights up the moment Tracify hears it.", img: "capture-streams" },
+  waiting: { code: "04", label: "Send a first run", note: "Run your agent once. This page lights up the moment Uncoil hears it.", img: "capture-streams" },
   success: { code: "05", label: "You're live", note: "Your first run arrived. Open it and see every step as a map.", img: "horizon-sun" },
 } satisfies Record<OnboardingStepId, { code: string; label: string; note: string; img: string }>;
 
@@ -51,7 +51,7 @@ export function OnboardingShell({
         <Image key={presentation.img} src={`/images/landing/${presentation.img}.png`} alt="" fill priority unoptimized sizes="(min-width:1024px) 45vw, 100vw" className="-z-10 object-cover opacity-30 [image-rendering:pixelated]" />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,#090909_10%,rgba(9,9,9,0.88)_55%,rgba(9,9,9,0.65)_100%)]" />
         <div className="flex items-start justify-between gap-6">
-          <Link href="/" aria-label="Tracify home"><BrandLogo className="text-[#eceae3]" /></Link>
+          <Link href="/" aria-label="Uncoil home"><BrandLogo className="text-[#eceae3]" /></Link>
           <span className="font-pixel text-5xl leading-none tracking-[-0.08em] text-[#f4d44d] lg:text-7xl">{presentation.code}</span>
         </div>
         <div className="mt-6 lg:mt-14">

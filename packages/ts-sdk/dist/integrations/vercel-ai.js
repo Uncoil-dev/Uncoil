@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tracifyMiddleware = tracifyMiddleware;
+exports.uncoilMiddleware = uncoilMiddleware;
 const observation_1 = require("./observation");
 function usageOf(usage = {}) {
     return {
@@ -18,11 +18,11 @@ function textOf(result) {
 /**
  * One-line tracing for the Vercel AI SDK. Pass it to `wrapLanguageModel`:
  *
- *   const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: tracifyMiddleware() });
+ *   const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: uncoilMiddleware() });
  *
- * Every `generateText`, `streamText` or `generateObject` call made with that model becomes a Tracify step.
+ * Every `generateText`, `streamText` or `generateObject` call made with that model becomes an Uncoil step.
  */
-function tracifyMiddleware(options = {}) {
+function uncoilMiddleware(options = {}) {
     const start = (model, params) => (0, observation_1.observation)(model?.provider?.split?.(".")[0] ?? "vercel-ai", model?.modelId ?? "unknown", params, options);
     return {
         async wrapGenerate({ doGenerate, params, model }) {

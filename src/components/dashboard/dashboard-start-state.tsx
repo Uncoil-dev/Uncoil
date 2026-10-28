@@ -12,9 +12,9 @@ import {
   subscribeToOneTimeApiKey,
 } from "@/lib/onboarding-client-state";
 
-const PROJECT_ID_STORAGE_KEY = "tracify.onboarding.projectId";
-const API_KEY_COPIED_STORAGE_KEY = "tracify.onboarding.apiKeyCopied";
-const INSTALL_READY_STORAGE_KEY = "tracify.onboarding.installReady";
+const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
+const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
+const INSTALL_READY_STORAGE_KEY = "uncoil.onboarding.installReady";
 
 function getOnboardingSessionSnapshot() {
   const projectId = window.sessionStorage.getItem(PROJECT_ID_STORAGE_KEY) ?? "";
@@ -36,7 +36,7 @@ function getServerOnboardingSessionSnapshot() {
 const quickstarts = {
   python: {
     label: "Python",
-    code: `from tracify import trace_agent
+    code: `from uncoil import trace_agent
 
 @trace_agent()
 async def research_agent(query):
@@ -44,7 +44,7 @@ async def research_agent(query):
   },
   typescript: {
     label: "TypeScript",
-    code: `import { traceAgent } from "tracify-sdk"
+    code: `import { traceAgent } from "uncoil-sdk"
 
 const researchAgent = traceAgent(async (query: string) => {
   return await run(query)

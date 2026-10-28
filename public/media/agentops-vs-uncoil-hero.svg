@@ -1,0 +1,65 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="48" font-size="28" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    AgentOps vs Uncoil — instrumentation approach
+  </text>
+  <text x="600" y="76" font-size="14" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Decorator auto-instrumentation + session replay vs. native SDK + integrated evaluation
+  </text>
+
+  <!-- AgentOps column -->
+  <rect x="70" y="110" width="480" height="500" fill="#0a0a0a" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="310" y="142" font-size="18" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">AgentOps — auto-instrumentation</text>
+  <text x="310" y="163" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Wrap a session, get a replay</text>
+
+  <rect x="100" y="185" width="420" height="118" fill="#151515" stroke="#666666" stroke-width="1"/>
+  <text x="118" y="210" font-size="12" fill="#DDDDDD" font-family="'Geist Mono', monospace">agentops.init(api_key)</text>
+  <text x="118" y="232" font-size="12" fill="#DDDDDD" font-family="'Geist Mono', monospace">agentops.start_session()</text>
+  <text x="118" y="254" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace" font-weight="bold">@agentops.record_action("tool_call")</text>
+  <text x="118" y="276" font-size="12" fill="#DDDDDD" font-family="'Geist Mono', monospace">def run_tool(...): ...</text>
+  <text x="118" y="295" font-size="11" fill="#777777" font-family="'Geist Mono', monospace"># CrewAI / AutoGen / LangChain auto-detected</text>
+
+  <line x1="310" y1="303" x2="310" y2="336" stroke="#FFFFFF" stroke-width="1.5"/>
+
+  <rect x="100" y="338" width="420" height="140" fill="#151515" stroke="#666666" stroke-width="1"/>
+  <text x="120" y="364" font-size="14" fill="#FFFFFF" font-family="'Geist Mono', monospace" font-weight="bold">Session Replay UI</text>
+  <text x="120" y="390" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Step-by-step action timeline</text>
+  <text x="120" y="412" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Tool calls, LLM calls, errors, in order</text>
+  <text x="120" y="434" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Framework-native (no manual span design)</text>
+  <text x="120" y="460" font-size="11" fill="#777777" font-family="'Geist Mono', monospace">Evaluation and cost pricing: not built-in</text>
+
+  <rect x="100" y="498" width="420" height="92" fill="#151515" stroke="#FFFF00" stroke-width="1"/>
+  <text x="120" y="524" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Time to first replayable session</text>
+  <text x="120" y="562" font-size="28" fill="#FFFF00" font-family="'Geist Mono', monospace" font-weight="bold">~10 minutes</text>
+
+  <!-- Uncoil column -->
+  <rect x="650" y="110" width="480" height="500" fill="#0a0a0a" stroke="#FFFF00" stroke-width="2"/>
+  <text x="890" y="142" font-size="18" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil — native SDK + evaluation</text>
+  <text x="890" y="163" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Wrap a session, get a verdict and a price</text>
+
+  <rect x="680" y="185" width="420" height="118" fill="#151515" stroke="#666666" stroke-width="1"/>
+  <text x="698" y="210" font-size="12" fill="#DDDDDD" font-family="'Geist Mono', monospace">uncoil.init({ apiKey })</text>
+  <text x="698" y="232" font-size="12" fill="#DDDDDD" font-family="'Geist Mono', monospace">const session = uncoil.session({ ... })</text>
+  <text x="698" y="254" font-size="12" fill="#FFFF00" font-family="'Geist Mono', monospace" font-weight="bold">const span = session.span({ name })</text>
+  <text x="698" y="276" font-size="12" fill="#DDDDDD" font-family="'Geist Mono', monospace">span.end({ output })</text>
+  <text x="698" y="295" font-size="11" fill="#777777" font-family="'Geist Mono', monospace"># Token counts + pricing attached automatically</text>
+
+  <line x1="890" y1="303" x2="890" y2="336" stroke="#FFFF00" stroke-width="1.5"/>
+
+  <rect x="680" y="338" width="420" height="160" fill="#1a1a08" stroke="#FFFF00" stroke-width="1"/>
+  <text x="700" y="364" font-size="14" fill="#FFFF00" font-family="'Geist Mono', monospace" font-weight="bold">Integrated evaluation + cost</text>
+  <text x="700" y="390" font-size="12" fill="#EEEE99" font-family="'Geist Mono', monospace">✓ Test cases + LLM-as-judge, native</text>
+  <text x="700" y="412" font-size="12" fill="#EEEE99" font-family="'Geist Mono', monospace">✓ Batch evaluation + regression alerts</text>
+  <text x="700" y="434" font-size="12" fill="#EEEE99" font-family="'Geist Mono', monospace">✓ Automatic per-call cost breakdown</text>
+  <text x="700" y="456" font-size="12" fill="#EEEE99" font-family="'Geist Mono', monospace">✓ Multi-turn session cost/quality rollup</text>
+  <text x="700" y="480" font-size="11" fill="#AAAA66" font-family="'Geist Mono', monospace">Attached to the same span data — no export step</text>
+
+  <rect x="680" y="498" width="420" height="92" fill="#1a1a08" stroke="#FFFF00" stroke-width="1"/>
+  <text x="700" y="524" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Time to first evaluated, costed trace</text>
+  <text x="700" y="562" font-size="28" fill="#FFFF00" font-family="'Geist Mono', monospace" font-weight="bold">~20-30 minutes</text>
+
+  <text x="600" y="675" font-size="13" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    AgentOps gets you a replayable session faster. Uncoil gets you a session with a verdict and a price attached to it.
+  </text>
+</svg>

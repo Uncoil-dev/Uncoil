@@ -74,7 +74,7 @@ export function SectionLibrary() {
           <div className="grid gap-10 pt-12 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <h1 className="max-w-[980px] font-pixel text-7xl leading-[0.79] tracking-[-0.08em] md:text-9xl">
-                The Tracify section library.
+                The Uncoil section library.
               </h1>
               <p className="mt-7 max-w-[700px] text-lg leading-8 text-zinc-400">
                 Browse every exploration by purpose, jump directly to the live

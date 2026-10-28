@@ -13,10 +13,10 @@ import { useMutation } from "convex/react";
 
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { clearOneTimeApiKey, getOneTimeApiKey } from "@/lib/onboarding-client-state";
-import { getDeploymentRegion, getTracifyRegion, getWrongRegion } from "@/lib/regions";
+import { getDeploymentRegion, getUncoilRegion, getWrongRegion } from "@/lib/regions";
 
-const PROJECT_ID_STORAGE_KEY = "tracify.onboarding.projectId";
-const PROJECT_NAME_STORAGE_KEY = "tracify.onboarding.projectName";
+const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
+const PROJECT_NAME_STORAGE_KEY = "uncoil.onboarding.projectName";
 const FALLBACK_PROJECT_NAME = "research-agent-prod";
 
 export function WaitingStep() {
@@ -28,10 +28,10 @@ export function WaitingStep() {
   const capturedFirstTrace = useRef(false);
   const [projectId, setProjectId] = useState("");
   const [fallbackProjectName, setFallbackProjectName] = useState(FALLBACK_PROJECT_NAME);
-  const [apiKeyDisplay, setApiKeyDisplay] = useState("tracify_sk_live_...");
+  const [apiKeyDisplay, setApiKeyDisplay] = useState("uncoil_sk_live_...");
   const [apiKey, setApiKey] = useState("");
   const { data: session } = authClient.useSession();
-  const region = getTracifyRegion(getDeploymentRegion());
+  const region = getUncoilRegion(getDeploymentRegion());
   const wrongRegion = useMemo(() => getWrongRegion(apiKey, region.id), [apiKey, region.id]);
   const onboardingState = useQuery(
     api.agentRuns.getProjectOnboardingState,
@@ -56,7 +56,7 @@ export function WaitingStep() {
       setProjectId(storedProjectId);
       setFallbackProjectName(storedProjectName);
       setApiKey(storedApiKey);
-      if (storedApiKey) setApiKeyDisplay(`tracify_sk_live_...${storedApiKey.slice(-4)}`);
+      if (storedApiKey) setApiKeyDisplay(`uncoil_sk_live_...${storedApiKey.slice(-4)}`);
     }, 0);
     return () => window.clearTimeout(id);
   }, []);
@@ -121,9 +121,9 @@ export function WaitingStep() {
           spanType: "run_end",
           createdAt: new Date().toISOString(),
           latencyMs: 1,
-          input: "Tracify onboarding connection check",
+          input: "Uncoil onboarding connection check",
           output: "Connection accepted",
-          traceName: "tracify-onboarding-check",
+          traceName: "uncoil-onboarding-check",
           environment: "onboarding",
         }),
       });
@@ -210,13 +210,13 @@ export function WaitingStep() {
       ) : null}
       {elapsed >= 30 && probeState === "idle" ? (
         <div className="mt-5 border border-black/15 bg-[#f3f2ed] p-4 font-sans text-sm leading-6 text-black/60">
-          Use the test span above to separate a Tracify connection problem from an agent setup problem. If it is accepted, your SDK or agent is the next place to inspect.
+          Use the test span above to separate an Uncoil connection problem from an agent setup problem. If it is accepted, your SDK or agent is the next place to inspect.
         </div>
       ) : null}
       <button type="button" onClick={() => router.push(projectId ? `/dashboard/${projectId}/tracing` : "/dashboard")} className="mt-6 block font-mono text-[11px] uppercase tracking-[0.12em] text-black/55 underline underline-offset-4 hover:text-black">Skip for now, I&apos;ll connect later</button>
       {elapsed >= 120 ? (
         <a
-          href="mailto:support@tracify.tech"
+          href="mailto:support@uncoil.dev"
           className="mt-5 inline-block text-sm text-black/60 underline underline-offset-4 transition-colors hover:text-black"
         >
           Still stuck? Email support

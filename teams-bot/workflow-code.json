@@ -93,7 +93,7 @@
             "value": {
                 "teams": {
                     "id": "/subscriptions/3bc90fdf-a7b9-4a0e-9eb7-3f5434b5fd43/providers/Microsoft.Web/locations/northcentralus/managedApis/teams",
-                    "connectionId": "/subscriptions/3bc90fdf-a7b9-4a0e-9eb7-3f5434b5fd43/resourceGroups/tracify-rg/providers/Microsoft.Web/connections/teams-1",
+                    "connectionId": "/subscriptions/3bc90fdf-a7b9-4a0e-9eb7-3f5434b5fd43/resourceGroups/uncoil-rg/providers/Microsoft.Web/connections/teams-1",
                     "connectionName": "teams-1",
                     "connectionProperties": {}
                 }

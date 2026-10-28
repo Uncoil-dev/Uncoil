@@ -2,16 +2,16 @@ import { query, type QueryCtx } from "./_generated/server";
 import { components } from "./_generated/api";
 
 // Built-in owner account. More admins come from the same environment variables
-// the lead inbox already uses (TRACIFY_LIBRARY_ADMIN_EMAILS, TRACIFY_ADMIN_USER_IDS).
+// the lead inbox already uses (UNCOIL_LIBRARY_ADMIN_EMAILS, UNCOIL_ADMIN_USER_IDS).
 const BUILT_IN_ADMIN_EMAILS = ["kristofferbon@gmail.com"];
 // Every verified address on these domains is an admin.
-const ADMIN_DOMAINS = ["tracify.tech"];
+const ADMIN_DOMAINS = ["uncoil.dev"];
 const CAP = 500;
 
 type AuthUser = { id?: string; _id?: string; name: string; email: string; emailVerified: boolean; createdAt: number };
 
 function list(name: string) {
-  return (process.env[name] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  return ((process.env[name] ?? process.env[name.replace("UNCOIL_", "TRACIFY_")]) ?? "").split(",").map((x) => x.trim()).filter(Boolean);
 }
 
 /**
@@ -22,8 +22,8 @@ async function adminEmail(ctx: QueryCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
   const email = identity.email?.toLowerCase();
-  const emails = [...BUILT_IN_ADMIN_EMAILS, ...list("TRACIFY_LIBRARY_ADMIN_EMAILS").map((x) => x.toLowerCase())];
-  const allowed = list("TRACIFY_ADMIN_USER_IDS").includes(identity.subject) || (!!email && (emails.includes(email) || ADMIN_DOMAINS.some((d) => email.endsWith("@" + d))));
+  const emails = [...BUILT_IN_ADMIN_EMAILS, ...list("UNCOIL_LIBRARY_ADMIN_EMAILS").map((x) => x.toLowerCase())];
+  const allowed = list("UNCOIL_ADMIN_USER_IDS").includes(identity.subject) || (!!email && (emails.includes(email) || ADMIN_DOMAINS.some((d) => email.endsWith("@" + d))));
   if (!allowed || !email) return null;
   const account = (await ctx.runQuery(components.betterAuth.adapter.findOne, {
     model: "user",

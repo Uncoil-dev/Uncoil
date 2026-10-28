@@ -33,7 +33,7 @@ const menus = {
       ["Research", "Verify multi-step investigations", "/use-cases/research"],
       ["Automation", "Debug workflows and retry chains", "/use-cases/automation"],
       ["Tool calling", "Catch failed APIs and loops", "/use-cases/tool-calling"],
-      ["Compare", "Tracify next to other tools", "/compare"],
+      ["Compare", "Uncoil next to other tools", "/compare"],
       ["Alternatives", "The best LLM observability tools", "/best-llm-observability-tools"],
     ],
   },
@@ -56,7 +56,7 @@ const menus = {
       ["Blog", "Agent engineering notes", "/blog"],
       ["Changelog", "What shipped lately", "/changelog"],
       ["Roadmap", "What is shipping next", "/roadmap"],
-      ["Security", "How Tracify handles data", "/security"],
+      ["Security", "How Uncoil handles data", "/security"],
       ["Status", "Is everything running?", "/status"],
       ["Contact", "Talk through your stack", "/contact"],
     ],
@@ -68,9 +68,9 @@ const names = Object.keys(menus) as MenuName[];
 
 function Logo() {
   return (
-    <Link href="/" aria-label="Tracify home" className="flex items-baseline gap-[0.12em] font-pixel text-2xl">
+    <Link href="/" aria-label="Uncoil home" className="flex items-baseline gap-[0.12em] font-pixel text-2xl">
       <TracifyMark className="block translate-y-[0.03em]" />
-      <span className="tracking-[-0.06em] text-[#eceae3]">tracify</span>
+      <span className="tracking-[-0.06em] text-[#eceae3]">uncoil</span>
     </Link>
   );
 }

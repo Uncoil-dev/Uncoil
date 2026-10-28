@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// Tells IndexNow search engines (Bing and partners) which Tracify URLs changed.
+// Tells IndexNow search engines (Bing and partners) which Uncoil URLs changed.
 //   npm run seo:indexnow                     dry run: lists the URLs it would send
 //   npm run seo:indexnow -- --submit         sends every URL in the live sitemap
 //   npm run seo:indexnow -- --submit --since 2026-10-24T00:00:00Z   only URLs modified since then
 // The key is public by design: it is served at /<key>.txt so engines can prove we own the host.
 import { readdirSync, readFileSync } from "node:fs";
 
-export const HOST = "www.tracify.tech";
+export const HOST = "www.uncoil.dev";
 // The key is the name of the one `public/<32 hex>.txt` file, so there is a single source of truth.
 const KEY_FILE = /^[a-f0-9]{32}\.txt$/;
 export const KEY = readdirSync(new URL("../public/", import.meta.url)).find((name) => KEY_FILE.test(name))?.replace(".txt", "") ?? "";

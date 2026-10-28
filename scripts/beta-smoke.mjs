@@ -6,9 +6,9 @@ const execFileAsync = promisify(execFile);
 
 loadEnvFile(".env.local");
 
-const baseUrl = normalizeBaseUrl(process.env.TRACIFY_SMOKE_BASE_URL || "http://127.0.0.1:3000");
-const apiKey = process.env.TRACIFY_SMOKE_API_KEY || "";
-const projectId = process.env.TRACIFY_SMOKE_PROJECT_ID || "";
+const baseUrl = normalizeBaseUrl(process.env.UNCOIL_SMOKE_BASE_URL || "http://127.0.0.1:3000");
+const apiKey = process.env.UNCOIL_SMOKE_API_KEY || "";
+const projectId = process.env.UNCOIL_SMOKE_PROJECT_ID || "";
 const runId = `smoke_${Date.now().toString(36)}`;
 
 const results = [];
@@ -19,12 +19,12 @@ await check("missing API key is rejected", async () => {
 });
 
 await check("invalid API key is rejected", async () => {
-  const response = await postIngest("tracify_sk_live_invalid_smoke_key", sampleSpan(runId, "invalid-key"));
+  const response = await postIngest("uncoil_sk_live_invalid_smoke_key", sampleSpan(runId, "invalid-key"));
   assertStatus(response, 401);
 });
 
 await check("invalid span payload is rejected", async () => {
-  const response = await postIngest(apiKey || "tracify_sk_live_invalid_smoke_key", {
+  const response = await postIngest(apiKey || "uncoil_sk_live_invalid_smoke_key", {
     spanId: "bad_payload",
   });
   assertStatus(response, 422);
@@ -40,7 +40,7 @@ if (apiKey) {
     }
   });
 } else {
-  skip("valid span is accepted", "set TRACIFY_SMOKE_API_KEY");
+  skip("valid span is accepted", "set UNCOIL_SMOKE_API_KEY");
 }
 
 if (apiKey && projectId) {
@@ -48,7 +48,7 @@ if (apiKey && projectId) {
     await waitForConvexRun({ projectId, runId });
   });
 } else {
-  skip("accepted run appears in Convex", "set TRACIFY_SMOKE_API_KEY and TRACIFY_SMOKE_PROJECT_ID");
+  skip("accepted run appears in Convex", "set UNCOIL_SMOKE_API_KEY and UNCOIL_SMOKE_PROJECT_ID");
 }
 
 await check("report route is reachable or protected", async () => {

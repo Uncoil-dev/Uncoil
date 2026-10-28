@@ -7,7 +7,7 @@ export function buildPlan(env) {
   const isolated =
     env.VERCEL_ENV === "preview" &&
     env.VERCEL_GIT_COMMIT_REF === PREVIEW_BRANCH &&
-    env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND === "cloud";
+    env.NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND === "cloud";
   if (!isolated || !env.CONVEX_DEPLOY_KEY) return "frontend";
   if (!env.CONVEX_DEPLOY_KEY.startsWith("preview:"))
     throw Error(
@@ -69,15 +69,15 @@ export function main(
       NEXT_PUBLIC_CONVEX_URL: urls.cloud,
       NEXT_PUBLIC_CONVEX_SITE_URL: urls.site,
       CONVEX_SITE_URL: urls.site,
-      TRACIFY_REGION: "eu",
-      NEXT_PUBLIC_TRACIFY_REGION: "eu",
+      UNCOIL_REGION: "eu",
+      NEXT_PUBLIC_UNCOIL_REGION: "eu",
     };
     const origin = `https://${env.VERCEL_BRANCH_URL ?? env.VERCEL_URL}`;
     if (!env.VERCEL_BRANCH_URL && !env.VERCEL_URL)
       throw Error("Preview hostname is missing.");
-    if (!env.TRACIFY_API_KEY_HASH_SECRET)
+    if (!env.UNCOIL_API_KEY_HASH_SECRET)
       throw Error(
-        "Preview frontend needs its existing TRACIFY_API_KEY_HASH_SECRET.",
+        "Preview frontend needs its existing UNCOIL_API_KEY_HASH_SECRET.",
       );
     const get = (name) =>
       run(
@@ -89,8 +89,8 @@ export function main(
     const existing = get("BETTER_AUTH_SECRET");
     const settings = {
       SITE_URL: origin,
-      TRACIFY_REGION: "eu",
-      TRACIFY_API_KEY_HASH_SECRET: env.TRACIFY_API_KEY_HASH_SECRET,
+      UNCOIL_REGION: "eu",
+      UNCOIL_API_KEY_HASH_SECRET: env.UNCOIL_API_KEY_HASH_SECRET,
     };
     if (existing.status !== 0 || !existing.stdout.trim())
       settings.BETTER_AUTH_SECRET = randomBytes(32).toString("hex");

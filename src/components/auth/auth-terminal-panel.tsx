@@ -17,7 +17,7 @@ const LOGS: LogEntry[] = [
   { text: "fallback        gpt-4o", type: "system" },
   { text: "error           timeout", type: "error" },
   { text: "", type: "spacer" },
-  { text: "[tracify] trace captured", type: "success" },
+  { text: "[uncoil] trace captured", type: "success" },
   { text: "run_id          run_8f21a9", type: "system" },
   { text: "spans           18", type: "system" },
   { text: "wasted cost     $18.42", type: "error" },

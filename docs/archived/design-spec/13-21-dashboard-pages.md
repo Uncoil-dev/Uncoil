@@ -150,7 +150,7 @@ Table collapses to card-list. Each card shows: Run ID, Agent, Status badge, Cost
 # 15 RUN DETAIL / TRACE VIEWER
 
 **Route:** `/dashboard/[projectId]/runs/[runId]`
-**Purpose:** The hero page of tracify. Full visibility into a single agent run.
+**Purpose:** The hero page of uncoil. Full visibility into a single agent run.
 
 > **This is the product.** Every design decision should prioritize comprehension and debuggability over aesthetics.
 

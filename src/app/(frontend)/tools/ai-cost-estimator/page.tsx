@@ -24,7 +24,7 @@ const faqs = [
 
 export default function CostEstimatorPage() {
   const schema = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Tools", path }, { name: "AI cost estimator", path }]),
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Tools", path }, { name: "AI cost estimator", path }]),
     { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
   ];
   return (

@@ -22,7 +22,7 @@ export function slackPayload(info: Info) {
     text: `${heading}. ${info.message}`,
     blocks: [
       { type: "section", text: { type: "mrkdwn", text: `*${heading}*\n${slackEscape(info.message)}` } },
-      { type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: "Open in Tracify" }, url: info.dashboardUrl }] },
+      { type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: "Open in Uncoil" }, url: info.dashboardUrl }] },
     ],
   };
 }

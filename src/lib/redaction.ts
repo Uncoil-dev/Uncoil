@@ -7,7 +7,7 @@ const PATTERNS: Record<RedactionRule, { pattern: RegExp; replacement: string }> 
   phone: { pattern: /(?:\+?\d[\d .()\-]{7,}\d)/g, replacement: "[REDACTED_PHONE]" },
   credit_card: { pattern: /(?:\d[ -]?){13,19}/g, replacement: "[REDACTED_CARD]" },
   api_key: {
-    pattern: /(?:sk|pk|tracify_sk_live|api[_-]?key)[A-Za-z0-9_\-.]{8,}/gi,
+    pattern: /(?:sk|pk|uncoil_sk_live|api[_-]?key)[A-Za-z0-9_\-.]{8,}/gi,
     replacement: "[REDACTED_API_KEY]",
   },
   ssn: { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, replacement: "[REDACTED_SSN]" },

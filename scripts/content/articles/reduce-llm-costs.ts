@@ -7,7 +7,7 @@ export const buildArticle = (mediaIdBySlug: Record<string, number>) => buildLong
   audience: "engineering teams and leaders responsible for language-model spend and service quality",
   framework: "Attribute, Prioritize, Experiment, Safeguard, Standardize",
   outcome: "lower cost per successful task without a hidden quality or reliability regression",
-  tracifyLink: "/product/cost-dashboard",
+  uncoilLink: "/product/cost-dashboard",
   related: ["llm-observability-metrics-that-matter", "prompt-versioning-and-prompt-management"],
   topics: ["Attribute spend to a task", "Find cost concentration", "Test routing and context changes", "Protect quality with evaluation", "Make savings observable"],
   signals: ["cost per completed task", "model, tool, and input-class contribution", "experiment cohort comparison", "quality, correction, and escalation rates", "sustained spend after rollout"],

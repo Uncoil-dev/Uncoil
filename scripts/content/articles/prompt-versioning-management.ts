@@ -7,7 +7,7 @@ export const buildArticle = (mediaIdBySlug: Record<string, number>) => buildLong
   audience: "teams maintaining prompts and policies that influence production LLM behavior",
   framework: "Name, Review, Compare, Release, Revert",
   outcome: "a prompt change that can be explained, measured, and safely reversed",
-  tracifyLink: "/product/llm-calls",
+  uncoilLink: "/product/llm-calls",
   related: ["ai-agent-testing-unit-tests-production-evals", "reduce-llm-costs-without-hurting-quality"],
   topics: ["Give prompts stable identities", "Review intent and scope", "Compare versions with representative tasks", "Release with attribution", "Make rollback routine"],
   signals: ["prompt and policy revision identifiers", "review intent and approval record", "scenario-level comparison", "release cohort and outcome changes", "rollback trigger and restoration time"],

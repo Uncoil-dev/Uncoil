@@ -9,20 +9,20 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 type DeploymentRegion = "eu" | "us";
 
 function deploymentRegion(): DeploymentRegion {
-  const value = process.env.TRACIFY_REGION?.trim().toLowerCase();
+  const value = (process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)?.trim().toLowerCase();
   if (value === "us") return "us";
   return "eu";
 }
 
 function apiKeyPrefix() {
-  return `tracify_sk_live_${deploymentRegion()}_`;
+  return `uncoil_sk_live_${deploymentRegion()}_`;
 }
 
 function getHmacSecret() {
-  const secret = process.env.TRACIFY_API_KEY_HASH_SECRET;
+  const secret = (process.env.UNCOIL_API_KEY_HASH_SECRET ?? process.env.TRACIFY_API_KEY_HASH_SECRET);
   if (!secret) {
     throw new Error(
-      "TRACIFY_API_KEY_HASH_SECRET is not set. Set it in Convex before creating API keys.",
+      "UNCOIL_API_KEY_HASH_SECRET is not set. Set it in Convex before creating API keys.",
     );
   }
   return secret;
@@ -79,7 +79,7 @@ function getOrgRole(identity: unknown) {
 }
 
 function isAdmin(identity: { subject: string; tokenIdentifier: string }) {
-  const adminIds = (process.env.TRACIFY_ADMIN_USER_IDS ?? "")
+  const adminIds = ((process.env.UNCOIL_ADMIN_USER_IDS ?? process.env.TRACIFY_ADMIN_USER_IDS) ?? "")
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean);
@@ -1013,9 +1013,9 @@ export const sendTestAlert = action({
         body: JSON.stringify({
           "@type": "MessageCard",
           "@context": "http://schema.org/extensions",
-          summary: "tracify test alert",
+          summary: "uncoil test alert",
           themeColor: "000000",
-          title: "tracify test alert",
+          title: "uncoil test alert",
           text: `Project ${project.name} is connected to this Teams channel.`,
         }),
       });
@@ -1039,13 +1039,13 @@ export const sendTestAlert = action({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: "tracify test alert",
+        text: "uncoil test alert",
         blocks: [
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: "*tracify test alert*",
+              text: "*uncoil test alert*",
             },
           },
           {

@@ -1,12 +1,12 @@
 from openai import OpenAI
-import tracify
+import uncoil
 
-# TRACIFY_API_KEY is read from the environment.
-client = tracify.wrap_openai(OpenAI())
-tools = tracify.trace_tools({"get_weather": lambda city: f"Sunny in {city}"})
+# UNCOIL_API_KEY is read from the environment.
+client = uncoil.wrap_openai(OpenAI())
+tools = uncoil.trace_tools({"get_weather": lambda city: f"Sunny in {city}"})
 
 
-@tracify.trace_agent(name="weather-agent")
+@uncoil.trace_agent(name="weather-agent")
 def main():
     weather = tools["get_weather"]("Oslo")
     reply = client.chat.completions.create(

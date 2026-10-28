@@ -29,7 +29,7 @@ export function ConsentBanner() {
     setConsent(readConsent());
     setVisible(!hasCurrentConsent());
   }, []);
-  useEffect(() => { const reopen = () => { setConsent(readConsent()); setOpen(true); setVisible(true); }; window.addEventListener("tracify:open-consent", reopen); return () => window.removeEventListener("tracify:open-consent", reopen); }, []);
+  useEffect(() => { const reopen = () => { setConsent(readConsent()); setOpen(true); setVisible(true); }; window.addEventListener("uncoil:open-consent", reopen); return () => window.removeEventListener("uncoil:open-consent", reopen); }, []);
   // The authenticated dashboard and public Sandbox are reference-captured
   // surfaces; the marketing consent chrome is intentionally outside them.
   if (pathname === "/playground" || pathname.startsWith("/playground/") || pathname === "/dashboard" || pathname.startsWith("/dashboard/")) return null;

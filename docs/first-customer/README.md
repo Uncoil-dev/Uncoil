@@ -24,7 +24,7 @@ Payment received is the sales milestone. A signup, positive reply, demo, verbal 
 - [Pilot data checklist and retention log](./pilot-data-sanitization-checklist.md)
 - [Sales and demo playbook](./sales-playbook.md)
 - [Stripe Payment Link setup](./stripe-payment-link-setup.md)
-- Prospect and activity tracker: `outputs/first-customer-execution/tracify-first-customer-crm.xlsx`
+- Prospect and activity tracker: `outputs/first-customer-execution/uncoil-first-customer-crm.xlsx`
 
 ## Ownership
 

@@ -3,7 +3,7 @@ title: "AI Agent Trace Schema: What to Capture for Debugging, Evaluation, and Co
 slug: ai-agent-trace-schema
 excerpt: A practical run/trace/span/event data model for AI agents, with the required and optional fields that make one schema support debugging, evaluation, and cost analysis at once.
 publishedAt: 2026-09-03T09:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories:
   - engineering
@@ -171,7 +171,7 @@ Retention is a related but distinct decision, and there's no universal answer to
 
 ## An illustrative trace schema (JSON)
 
-The document below is one illustrative trace: a run with a single trace containing a model-call span and the tool-call span it triggered. It is not a real Tracify internal schema and it has not been validated against any specific tracing library's wire format — it exists to make every field discussed above concrete in one place.
+The document below is one illustrative trace: a run with a single trace containing a model-call span and the tool-call span it triggered. It is not a real Uncoil internal schema and it has not been validated against any specific tracing library's wire format — it exists to make every field discussed above concrete in one place.
 
 ```json
 {

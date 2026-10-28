@@ -34,7 +34,7 @@ await span(
 ```
 
 ```python
-with tracify.span("chat", type="llm", input=question) as step:
+with uncoil.span("chat", type="llm", input=question) as step:
     reply = call_model(question)
     step.set(
         model="your-model-id",
@@ -44,4 +44,4 @@ with tracify.span("chat", type="llm", input=question) as step:
     )
 ```
 
-`priceFor` and `price_for` are your own functions using your current provider rates. Tracify never guesses a price: if you do not pass cost, it stays zero. With wrapped provider clients, supply `calculateCost` once instead. See [OpenAI, Anthropic and LangGraph](/docs/provider-integrations).
+`priceFor` and `price_for` are your own functions using your current provider rates. Uncoil never guesses a price: if you do not pass cost, it stays zero. With wrapped provider clients, supply `calculateCost` once instead. See [OpenAI, Anthropic and LangGraph](/docs/provider-integrations).

@@ -32,8 +32,8 @@ type ListResponse = {
 
 export type TraceQuery = Record<string, string>;
 
-const COLUMN_STORAGE = "tracify.tracing.columns";
-const ERRORS_STORAGE = "tracify.tracing.errorGroups";
+const COLUMN_STORAGE = "uncoil.tracing.columns";
+const ERRORS_STORAGE = "uncoil.tracing.errorGroups";
 /** URL keys that change the view, not the data, so they are not sent to the API. */
 const VIEW_KEYS = ["range", "from", "to", "trace", "mode", "view", "columns", "savedView"];
 const EDGE_SEPARATOR = "\u2192";
@@ -418,7 +418,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
             ) : !loading && rows.length === 0 ? (
               <div className="my-10 rounded-lg border border-dashed border-[#262C35] p-8 text-center">
                 <p className="font-medium">No traces in this range</p>
-                <p className="mt-2 text-sm text-[#8B93A1]">{activeFilters.length || query.q ? "Try removing a filter or widening the time range." : "Send traces with the Tracify SDK and they appear here within seconds."}</p>
+                <p className="mt-2 text-sm text-[#8B93A1]">{activeFilters.length || query.q ? "Try removing a filter or widening the time range." : "Send traces with the Uncoil SDK and they appear here within seconds."}</p>
                 {activeFilters.length || query.q ? <button type="button" className="mt-4 rounded-md bg-[#F4D44D] px-4 py-2 text-sm font-medium text-[#0B0D10]" onClick={() => { setSearchDraft(""); update({ ...Object.fromEntries(activeFilters.map((f) => [f.key, ""])), q: "", range: "30d" }); }}>Clear filters and show 30 days</button> : <a className="mt-4 inline-block rounded-md bg-[#F4D44D] px-4 py-2 text-sm font-medium text-[#0B0D10]" href={projectId === DEMO_PROJECT_ID ? `${DEMO_BASE_PATH}` : `/dashboard/${projectId}/quickstart`}>{projectId === DEMO_PROJECT_ID ? "Back to the overview" : "Open quickstart"}</a>}
               </div>
             ) : (

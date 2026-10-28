@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
   let customer = project.stripeCustomerId ?? undefined;
   if (!customer) {
-    const created = await stripe.customers.create({ name: project.name, metadata: { projectId, tracifyRegion: region } });
+    const created = await stripe.customers.create({ name: project.name, metadata: { projectId, uncoilRegion: region } });
     customer = created.id;
     await client.mutation(api.billing.attachCustomer, { projectId, stripeCustomerId: customer });
   }
@@ -39,11 +39,11 @@ export async function POST(request: Request) {
         line_items: [{ price, quantity: 1 }],
         ...(discounts ? { discounts } : {}),
         client_reference_id: projectId,
-        metadata: { projectId, plan, tracifyRegion: region },
-        subscription_data: { metadata: { projectId, plan, tracifyRegion: region }, billing_mode: { type: "flexible" } },
+        metadata: { projectId, plan, uncoilRegion: region },
+        subscription_data: { metadata: { projectId, plan, uncoilRegion: region }, billing_mode: { type: "flexible" } },
         success_url: `${origin}/dashboard/${projectId}/billing?checkout=success`,
         cancel_url: `${origin}/dashboard/${projectId}/billing?checkout=cancelled`,
-        integration_identifier: "tracify_checkout_qplmzvka",
+        integration_identifier: "uncoil_checkout_qplmzvka",
       },
       { apiVersion: "2026-02-25.preview" },
     );

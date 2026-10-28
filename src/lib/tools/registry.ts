@@ -11,7 +11,7 @@ export type ToolEntry = {
   blurb: string;
   /** Tag shown on cards. */
   group: "Debug" | "Cost" | "Build" | "Live";
-  /** What the "track it with Tracify" prompt says on this page. */
+  /** What the "track it with Uncoil" prompt says on this page. */
   trackLine: string;
 };
 
@@ -23,7 +23,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Paste an AI agent log or trace and see where it failed, which steps were slow and where tokens were wasted. Free, runs in your browser, nothing is uploaded.",
     blurb: "Paste a log or trace. See where it failed, what was slow and what wasted tokens.",
     group: "Debug",
-    trackLine: "Pasting logs by hand works once. Tracify finds failures, loops and wasted tokens on every run, as they happen.",
+    trackLine: "Pasting logs by hand works once. Uncoil finds failures, loops and wasted tokens on every run, as they happen.",
   },
   {
     slug: "token-counter",
@@ -32,7 +32,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Count tokens and see the price on every major model at once: GPT, Claude, Gemini, Llama, Mistral, DeepSeek and Grok. Real tokenizer for OpenAI, clearly labelled estimates for the rest.",
     blurb: "Paste text. See the token count and price on GPT, Claude, Gemini and Llama.",
     group: "Cost",
-    trackLine: "This counts one prompt. Tracify counts every call your agent makes and shows the real cost per run.",
+    trackLine: "This counts one prompt. Uncoil counts every call your agent makes and shows the real cost per run.",
   },
   {
     slug: "llm-price-comparison",
@@ -41,7 +41,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Compare the price of every major LLM API in one table, then work out what your app would cost per month on each model. Prices checked 17 October 2026.",
     blurb: "Every model's price in one table, plus what your app costs per month on each.",
     group: "Cost",
-    trackLine: "Prices tell you what a model costs on paper. Tracify shows what your agent actually spends on each one.",
+    trackLine: "Prices tell you what a model costs on paper. Uncoil shows what your agent actually spends on each one.",
   },
   {
     slug: "prompt-cost-checker",
@@ -50,7 +50,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Paste a prompt and get a shorter version, the tokens you save and what each call costs on every model. Safe fixes only. Runs in your browser.",
     blurb: "Paste a prompt. Get a shorter, cheaper version and what it costs on each model.",
     group: "Cost",
-    trackLine: "Shorter prompts only matter if you can see them add up. Tracify shows cost per prompt, per step and per run.",
+    trackLine: "Shorter prompts only matter if you can see them add up. Uncoil shows cost per prompt, per step and per run.",
   },
   {
     slug: "context-window-checker",
@@ -59,7 +59,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Paste a document and see whether it fits the context window of GPT, Claude, Gemini, Llama and more, how much room is left and how many pieces you would need.",
     blurb: "Does my document fit in each model's memory?",
     group: "Build",
-    trackLine: "Prompts grow quietly as agents run. Tracify shows the size of every call so you see the overflow before users do.",
+    trackLine: "Prompts grow quietly as agents run. Uncoil shows the size of every call so you see the overflow before users do.",
   },
   {
     slug: "tool-definition-checker",
@@ -68,7 +68,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Paste your agent's tool or function definitions (OpenAI, Anthropic, MCP, Gemini) and find the mistakes that make agents call tools wrongly. Free, in your browser.",
     blurb: "Paste your tool setup. Find the mistakes that make agents fail.",
     group: "Build",
-    trackLine: "A clean definition is half the job. Tracify shows which tool calls actually fail in production, and why.",
+    trackLine: "A clean definition is half the job. Uncoil shows which tool calls actually fail in production, and why.",
   },
   {
     slug: "ai-api-status",
@@ -77,7 +77,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Live status of the OpenAI API, Anthropic Claude API, Google Gemini, Mistral, Groq, DeepSeek and more, read straight from each provider's own status page. Updated every minute.",
     blurb: "Is OpenAI or Anthropic down right now? One page for every AI provider.",
     group: "Live",
-    trackLine: "Status pages are often late. Tracify shows errors and slowdowns in your own agent traffic the moment they start.",
+    trackLine: "Status pages are often late. Uncoil shows errors and slowdowns in your own agent traffic the moment they start.",
   },
   {
     slug: "json-fixer",
@@ -86,7 +86,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Paste broken JSON from ChatGPT, Claude or any model and get valid JSON back. Fixes code fences, trailing commas, single quotes, cut-off output and more. Runs in your browser.",
     blurb: "Paste broken AI output. Get valid JSON back.",
     group: "Build",
-    trackLine: "Fixing output by hand is a patch. Tracify shows how often your agent returns broken JSON, and on which prompts.",
+    trackLine: "Fixing output by hand is a patch. Uncoil shows how often your agent returns broken JSON, and on which prompts.",
   },
   {
     slug: "rate-limit-calculator",
@@ -95,7 +95,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Enter your provider's request and token limits and see how many users your AI app can handle before you hit 429 errors. Includes retries and peak traffic. Free.",
     blurb: "How many users can my app handle before I hit my limits?",
     group: "Build",
-    trackLine: "Limits are easy to calculate and easy to forget. Tracify shows every 429 and retry in your real traffic.",
+    trackLine: "Limits are easy to calculate and easy to forget. Uncoil shows every 429 and retry in your real traffic.",
   },
   {
     slug: "ai-cost-estimator",
@@ -104,7 +104,7 @@ export const tools: readonly ToolEntry[] = [
     description: "Estimate what an AI agent will cost per run, per finished task and per month. Free, no sign-up, nothing leaves your browser.",
     blurb: "What will my agent cost per run, per task and per month?",
     group: "Cost",
-    trackLine: "This is a plan. Tracify shows the real number, run by run.",
+    trackLine: "This is a plan. Uncoil shows the real number, run by run.",
   },
 ];
 

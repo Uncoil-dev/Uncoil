@@ -199,7 +199,7 @@ function MigrationSection() {
               Keep the logs. Add the run.
             </h2>
             <p className="mt-7 max-w-xl text-lg leading-8 text-zinc-600">
-              Start with one production workflow. Tracify connects the
+              Start with one production workflow. Uncoil connects the
               agent-level context while your existing logs and APM remain
               exactly where they are.
             </p>
@@ -483,7 +483,7 @@ function ReleaseGateSection() {
             </h2>
             <p className="mt-7 text-lg leading-8 text-zinc-400">
               Let visitors assemble a release policy and immediately understand
-              how Tracify turns evidence into a promotion decision.
+              how Uncoil turns evidence into a promotion decision.
             </p>
           </div>
           <ReleaseGateBuilder />
@@ -567,7 +567,7 @@ function ManifestoSection() {
               Agent engineering begins inside the run.
             </p>
             <p className="text-lg leading-8">
-              Tracify makes that run explainable, measurable, and releasable.
+              Uncoil makes that run explainable, measurable, and releasable.
             </p>
           </div>
         </div>
@@ -593,7 +593,7 @@ function FounderSection() {
               The hardest bug was always between the calls.
             </h2>
             <p className="mt-8 max-w-xl text-lg leading-8 text-zinc-400">
-              Tracify began with a simple frustration: production logs showed
+              Uncoil began with a simple frustration: production logs showed
               that something failed, but not which agent decision made failure
               inevitable.
             </p>
@@ -820,7 +820,7 @@ function NavigationSection() {
         <div className="py-12">
           <div className="border border-black/20 bg-white shadow-[18px_18px_0_#111]">
             <div className="flex items-center justify-between border-b border-black/15 px-6 py-4">
-              <span className="font-pixel text-2xl">tracify</span>
+              <span className="font-pixel text-2xl">uncoil</span>
               <div className="hidden gap-7 font-mono text-[9px] uppercase tracking-[0.12em] md:flex">
                 <span>Product</span>
                 <span>Solutions</span>
@@ -1135,7 +1135,7 @@ function FooterFinaleSection() {
       </div>
       <div className="overflow-hidden border-t border-white/15">
         <p className="w-full whitespace-nowrap text-center font-pixel text-[clamp(8rem,24vw,24rem)] leading-[0.72] tracking-[-0.1em]">
-          tracify
+          uncoil
         </p>
       </div>
     </section>

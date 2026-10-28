@@ -163,16 +163,16 @@ export function CapturedWorkspace({
             type="button"
             className="captured-icon-button"
             aria-label="Toggle sidebar"
-            onClick={() => window.dispatchEvent(new Event("tracify:toggle-sidebar"))}
+            onClick={() => window.dispatchEvent(new Event("uncoil:toggle-sidebar"))}
           >
             <PanelLeft />
           </button>
           <span className="captured-mobile-logo" aria-hidden="true"><i /></span>
-          <button type="button" className="captured-crumb" onClick={() => window.dispatchEvent(new Event("tracify:open-project-switcher"))}>
+          <button type="button" className="captured-crumb" onClick={() => window.dispatchEvent(new Event("uncoil:open-project-switcher"))}>
             {workspace.project.organizationName}<ChevronDown />
           </button>
           <span>/</span>
-          <button type="button" className="captured-crumb" onClick={() => window.dispatchEvent(new Event("tracify:open-project-switcher"))}>
+          <button type="button" className="captured-crumb" onClick={() => window.dispatchEvent(new Event("uncoil:open-project-switcher"))}>
             {workspace.project.name}<ChevronDown />
           </button>
         </div>
@@ -186,7 +186,7 @@ export function CapturedWorkspace({
             </select>
             <span>{range === "1d" ? "Past 1 day" : `Past ${range.slice(0, -1)} days`}</span><ChevronDown />
           </label>
-          <button type="button" className="captured-assistant" onClick={() => window.dispatchEvent(new Event("tracify:open-command"))}>
+          <button type="button" className="captured-assistant" onClick={() => window.dispatchEvent(new Event("uncoil:open-command"))}>
             <Bot /> Assistant <kbd>Ctrl I</kbd>
           </button>
         </div>
@@ -284,7 +284,7 @@ export function CapturedWorkspace({
             <h2 id="captured-modal-title">{workspace.readOnly ? "This workspace is view only." : `${readOnlyAction} is ready in your live project.`}</h2>
             <p>{workspace.readOnly ? "Explore filters, records, dashboards, and prompt inputs safely. Build a real project to save changes, credentials, alerts, or evaluations." : "Use the corresponding live project workflow to save this change."}</p>
             <div>
-              {workspace.readOnly ? <a href="https://www.tracify.tech/cloud">Build a real project</a> : null}
+              {workspace.readOnly ? <a href="https://www.uncoil.dev/cloud">Build a real project</a> : null}
               <button type="button" onClick={() => setReadOnlyAction(null)}>Close</button>
             </div>
           </section>
@@ -609,7 +609,7 @@ function CollectionSurface({ workspace, surface, basePath, query, environment, r
 }
 
 function RecordDetail({ record, surface, basePath }: { record: WorkspaceRecord; surface: WorkspaceSurface; basePath: string }) {
-  return <main className="captured-detail"><Link href={surfacePath(basePath, surface)}>← Back to {SURFACE_LABELS[surface]}</Link><section><span>{surface} / {record.id}</span><h2>{record.name}</h2><div className="captured-detail-grid"><Detail label="Status" value={record.status} /><Detail label="Environment" value={record.environment} /><Detail label="Model" value={record.model ?? "Not applicable"} /><Detail label="Latency" value={record.latency ?? "—"} /><Detail label="Cost" value={record.cost ?? "—"} /><Detail label="Score" value={record.score ?? "—"} /></div><div className="captured-io"><article><span>Input</span><pre>{record.input ?? `Open ${record.name}`}</pre></article><article><span>Output</span><pre>{record.output ?? "This deterministic Sandbox record is connected to the selected Tracify surface."}</pre></article></div></section></main>;
+  return <main className="captured-detail"><Link href={surfacePath(basePath, surface)}>← Back to {SURFACE_LABELS[surface]}</Link><section><span>{surface} / {record.id}</span><h2>{record.name}</h2><div className="captured-detail-grid"><Detail label="Status" value={record.status} /><Detail label="Environment" value={record.environment} /><Detail label="Model" value={record.model ?? "Not applicable"} /><Detail label="Latency" value={record.latency ?? "—"} /><Detail label="Cost" value={record.cost ?? "—"} /><Detail label="Score" value={record.score ?? "—"} /></div><div className="captured-io"><article><span>Input</span><pre>{record.input ?? `Open ${record.name}`}</pre></article><article><span>Output</span><pre>{record.output ?? "This deterministic Sandbox record is connected to the selected Uncoil surface."}</pre></article></div></section></main>;
 }
 
 function Detail({ label, value }: { label: string; value: string }) { return <div><span>{label}</span><strong>{value}</strong></div>; }
@@ -666,7 +666,7 @@ function SessionsSurface({ workspace, basePath, recordId, onReadOnly }: { worksp
     <div className="captured-sessions-actions"><button type="button" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((open) => !open)}><Filter /> Filters <span>1</span></button><button type="button" onClick={() => onReadOnly?.("Open session views")}>My Views <span>0</span></button><button type="button" aria-expanded={columnsOpen} onClick={() => setColumnsOpen((open) => !open)}>Columns <span>9/15</span></button><button type="button" aria-label="Table view" onClick={() => onReadOnly?.("Change session view")}>▤</button></div>
     {filtersOpen ? <div className="captured-filter-panel" role="dialog" aria-label="Session filters"><label><Search /> Search<input aria-label="Filter sessions" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="userIds:alice, tags:(billing AND urgent)" /></label><button type="button" onClick={() => { setSearch(""); setFiltersOpen(false); }}>Clear all</button></div> : null}
     {columnsOpen ? <div className="captured-column-menu" role="menu"><label><input type="checkbox" defaultChecked /> ID</label><label><input type="checkbox" defaultChecked /> Created At</label><label><input type="checkbox" defaultChecked /> Environment</label><label><input type="checkbox" defaultChecked /> User ID</label><label><input type="checkbox" defaultChecked /> Trace Count</label></div> : null}
-    <div className="captured-sessions-layout"><aside className="captured-sessions-filter-rail" aria-label="Session filters"><div className="captured-sessions-filter-heading"><strong>Filters</strong><button type="button" onClick={() => setSearch("")}>×</button></div><label className="captured-sessions-filter-search"><Search /><input aria-label="Search session filters" placeholder="Search filters" /></label><button type="button" className="captured-sessions-filter-section">⌄ Environment</button><div className="captured-sessions-filter-tabs"><button type="button" className="is-active">Select</button><button type="button">Text</button></div><label className="captured-filter-value"><input type="checkbox" /><span>tracify-llm-judge-...</span></label><label className="captured-filter-value"><input type="checkbox" defaultChecked /><span>default</span></label><label className="captured-filter-value"><input type="checkbox" /><span>tracify-code-evaluator-...</span></label>{["Session ID", "User IDs", "Trace Tags", "Metadata", "Session Duration", "Traces Count", "Input Tokens", "Output Tokens", "Total Tokens", "Input Cost", "Output Cost", "Total Cost", "Categorical Scores", "Numeric Scores", "Boolean Scores"].map((name) => <button type="button" className="captured-sessions-filter-row" key={name} onClick={() => onReadOnly?.(`Open ${name} filter`)}>› <span>{name}</span><small>{name === "User IDs" || name === "Trace Tags" ? "All" : ""}</small></button>)}</aside><div className="captured-sessions-table-wrap"><table><thead><tr><th> </th><th>ID</th><th>Created At ▼</th><th>Duration</th><th>Environment</th><th>Scores</th><th>User IDs</th><th>Traces ⓘ</th></tr></thead><tbody>{records.map((record) => <tr key={record.id}><td><Link href={`${basePath}/sessions/${encodeURIComponent(record.id)}`} aria-label={`Open ${record.id}`}>›</Link></td><td><Link href={`${basePath}/sessions/${encodeURIComponent(record.id)}`}>{record.id}</Link></td><td>{record.timestamp}</td><td>{record.latency ?? "—"}</td><td><span className="captured-session-environment">{record.environment}</span></td><td>{record.score ?? "—"}</td><td>{record.userId ?? "—"}</td><td>{record.score ? Math.max(1, Number.parseInt(record.score, 10) || 1) : 1}</td></tr>)}</tbody></table></div></div><footer className="captured-table-footer"><span>Rows per page <strong>50</strong>⌄</span><span>Page <strong>1</strong> of 1</span><button type="button" disabled>‹</button><button type="button" disabled>›</button></footer>
+    <div className="captured-sessions-layout"><aside className="captured-sessions-filter-rail" aria-label="Session filters"><div className="captured-sessions-filter-heading"><strong>Filters</strong><button type="button" onClick={() => setSearch("")}>×</button></div><label className="captured-sessions-filter-search"><Search /><input aria-label="Search session filters" placeholder="Search filters" /></label><button type="button" className="captured-sessions-filter-section">⌄ Environment</button><div className="captured-sessions-filter-tabs"><button type="button" className="is-active">Select</button><button type="button">Text</button></div><label className="captured-filter-value"><input type="checkbox" /><span>uncoil-llm-judge-...</span></label><label className="captured-filter-value"><input type="checkbox" defaultChecked /><span>default</span></label><label className="captured-filter-value"><input type="checkbox" /><span>uncoil-code-evaluator-...</span></label>{["Session ID", "User IDs", "Trace Tags", "Metadata", "Session Duration", "Traces Count", "Input Tokens", "Output Tokens", "Total Tokens", "Input Cost", "Output Cost", "Total Cost", "Categorical Scores", "Numeric Scores", "Boolean Scores"].map((name) => <button type="button" className="captured-sessions-filter-row" key={name} onClick={() => onReadOnly?.(`Open ${name} filter`)}>› <span>{name}</span><small>{name === "User IDs" || name === "Trace Tags" ? "All" : ""}</small></button>)}</aside><div className="captured-sessions-table-wrap"><table><thead><tr><th> </th><th>ID</th><th>Created At ▼</th><th>Duration</th><th>Environment</th><th>Scores</th><th>User IDs</th><th>Traces ⓘ</th></tr></thead><tbody>{records.map((record) => <tr key={record.id}><td><Link href={`${basePath}/sessions/${encodeURIComponent(record.id)}`} aria-label={`Open ${record.id}`}>›</Link></td><td><Link href={`${basePath}/sessions/${encodeURIComponent(record.id)}`}>{record.id}</Link></td><td>{record.timestamp}</td><td>{record.latency ?? "—"}</td><td><span className="captured-session-environment">{record.environment}</span></td><td>{record.score ?? "—"}</td><td>{record.userId ?? "—"}</td><td>{record.score ? Math.max(1, Number.parseInt(record.score, 10) || 1) : 1}</td></tr>)}</tbody></table></div></div><footer className="captured-table-footer"><span>Rows per page <strong>50</strong>⌄</span><span>Page <strong>1</strong> of 1</span><button type="button" disabled>‹</button><button type="button" disabled>›</button></footer>
   </main>;
 }
 

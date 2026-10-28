@@ -1,4 +1,4 @@
-import { TRACIFY_REGION_HOSTS, type TracifyRegion } from "./index";
+import { UNCOIL_REGION_HOSTS, type UncoilRegion } from "./index";
 
 export type DoctorStatus = "ok" | "warn" | "fail" | "skip";
 
@@ -13,11 +13,11 @@ export interface DoctorCheck {
 
 export interface DoctorOptions {
   apiKey?: string;
-  region?: TracifyRegion;
+  region?: UncoilRegion;
   host?: string;
   /** Skip the test trace; only check the key shape, region and network. */
   send?: boolean;
-  /** Project the key is expected to belong to. Defaults to TRACIFY_PROJECT_ID. */
+  /** Project the key is expected to belong to. Defaults to UNCOIL_PROJECT_ID. */
   projectId?: string;
   /** Seconds before a request is given up on. Defaults to 10. */
   timeoutMs?: number;
@@ -31,10 +31,10 @@ export interface DoctorReport {
   runId?: string;
 }
 
-function keyRegion(apiKey: string): TracifyRegion | undefined {
-  if (apiKey.startsWith("tracify_sk_live_eu_")) return "eu";
-  if (apiKey.startsWith("tracify_sk_live_us_")) return "us";
-  if (apiKey.startsWith("tracify_sk_live_")) return "eu";
+function keyRegion(apiKey: string): UncoilRegion | undefined {
+  if (/^(uncoil|tracify)_sk_live_eu_/.test(apiKey)) return "eu";
+  if (/^(uncoil|tracify)_sk_live_us_/.test(apiKey)) return "us";
+  if (/^(uncoil|tracify)_sk_live_/.test(apiKey)) return "eu";
   return undefined;
 }
 
@@ -59,11 +59,11 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
   const checks: DoctorCheck[] = [];
   const add = (check: DoctorCheck) => { checks.push(check); return check; };
   const timeoutMs = options.timeoutMs ?? 10_000;
-  const apiKey = (options.apiKey || process.env.TRACIFY_API_KEY || "").trim();
-  const envRegion = process.env.TRACIFY_REGION?.trim().toLowerCase();
-  const wanted = (options.region || (envRegion === "eu" || envRegion === "us" ? envRegion : undefined)) as TracifyRegion | undefined;
+  const apiKey = (options.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || "").trim();
+  const envRegion = (process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)?.trim().toLowerCase();
+  const wanted = (options.region || (envRegion === "eu" || envRegion === "us" ? envRegion : undefined)) as UncoilRegion | undefined;
   const found = keyRegion(apiKey);
-  const host = (options.host || process.env.TRACIFY_HOST || TRACIFY_REGION_HOSTS[wanted ?? found ?? "eu"]).replace(/\/$/, "");
+  const host = (options.host || (process.env.UNCOIL_HOST ?? process.env.TRACIFY_HOST) || UNCOIL_REGION_HOSTS[wanted ?? found ?? "eu"]).replace(/\/$/, "");
   const report = (): DoctorReport => ({ ok: !checks.some((c) => c.status === "fail"), host, checks, runId });
   let runId: string | undefined;
 
@@ -75,22 +75,22 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
   add({ id: "runtime", title: "Runtime", status: "ok", message: `Node ${process.versions.node}` });
 
   if (!apiKey) {
-    add({ id: "key", title: "API key", status: "fail", message: "No API key was found.", hint: "Set the TRACIFY_API_KEY environment variable, or run with --key. Create a key on the API keys page of your dashboard." });
+    add({ id: "key", title: "API key", status: "fail", message: "No API key was found.", hint: "Set the UNCOIL_API_KEY environment variable, or run with --key. Create a key on the API keys page of your dashboard." });
     return report();
   }
-  if (!apiKey.startsWith("tracify_sk_")) {
-    add({ id: "key", title: "API key", status: "fail", message: `${maskKey(apiKey)} does not look like a Tracify key (they start with tracify_sk_).`, hint: "Copy the key again from the API keys page; make sure no other service's key was pasted by mistake." });
+  if (!/^(uncoil|tracify)_sk_/.test(apiKey)) {
+    add({ id: "key", title: "API key", status: "fail", message: `${maskKey(apiKey)} does not look like an Uncoil key (they start with uncoil_sk_).`, hint: "Copy the key again from the API keys page; make sure no other service's key was pasted by mistake." });
     return report();
   }
   add({ id: "key", title: "API key", status: "ok", message: `Found ${maskKey(apiKey)}` });
 
   try { new URL(host); } catch {
-    add({ id: "region", title: "Region and host", status: "fail", message: `The host "${host}" is not a valid web address.`, hint: 'Use a full address such as "https://eu.cloud.tracify.tech", or drop the host option and use --region eu or us.' });
+    add({ id: "region", title: "Region and host", status: "fail", message: `The host "${host}" is not a valid web address.`, hint: 'Use a full address such as "https://eu.cloud.uncoil.dev", or drop the host option and use --region eu or us.' });
     return report();
   }
-  const hostRegion = (Object.entries(TRACIFY_REGION_HOSTS).find(([, value]) => value === host)?.[0]) as TracifyRegion | undefined;
+  const hostRegion = (Object.entries(UNCOIL_REGION_HOSTS).find(([, value]) => value === host)?.[0]) as UncoilRegion | undefined;
   if (found && hostRegion && found !== hostRegion) {
-    add({ id: "region", title: "Region and host", status: "fail", message: `This key belongs to ${found.toUpperCase()}, but you are pointing at ${hostRegion.toUpperCase()}.`, hint: `Set TRACIFY_REGION=${found} (or run with --region ${found}), or create a key in the ${hostRegion.toUpperCase()} region.` });
+    add({ id: "region", title: "Region and host", status: "fail", message: `This key belongs to ${found.toUpperCase()}, but you are pointing at ${hostRegion.toUpperCase()}.`, hint: `Set UNCOIL_REGION=${found} (or run with --region ${found}), or create a key in the ${hostRegion.toUpperCase()} region.` });
     return report();
   }
   add({ id: "region", title: "Region and host", status: "ok", message: hostRegion ? `${hostRegion.toUpperCase()} · ${host}` : `Custom host · ${host}` });
@@ -105,13 +105,13 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
   }
 
   // Which project does this key send to? Older servers have no such route, so anything unexpected is skipped quietly.
-  const expectedProject = (options.projectId || process.env.TRACIFY_PROJECT_ID || "").trim();
+  const expectedProject = (options.projectId || (process.env.UNCOIL_PROJECT_ID ?? process.env.TRACIFY_PROJECT_ID) || "").trim();
   try {
     const response = await fetch(`${host}/api/sdk/whoami`, { headers: { Authorization: `Bearer ${apiKey}` }, signal: AbortSignal.timeout(timeoutMs) });
     const data = response.ok ? await response.json() as { projectId?: string; projectName?: string } : null;
     if (data?.projectId) {
       if (expectedProject && expectedProject !== data.projectId) {
-        add({ id: "project", title: "Project", status: "fail", message: `TRACIFY_PROJECT_ID points at a different project than this key ("${data.projectName ?? data.projectId}").`, hint: "Run `npx tracify-sdk login` in this folder again so the key and project are saved together." });
+        add({ id: "project", title: "Project", status: "fail", message: `UNCOIL_PROJECT_ID points at a different project than this key ("${data.projectName ?? data.projectId}").`, hint: "Run `npx uncoil-sdk login` in this folder again so the key and project are saved together." });
         return report();
       }
       add({ id: "project", title: "Project", status: "ok", message: `Traces will land in: ${data.projectName ?? data.projectId}` });
@@ -128,15 +128,15 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
   const span = {
     spanId: `doctor_span_${id()}`,
     runId: spanRunId,
-    traceName: "Tracify setup check",
+    traceName: "Uncoil setup check",
     spanType: "llm_call",
-    modelId: "tracify-doctor",
+    modelId: "uncoil-doctor",
     createdAt: new Date(started).toISOString(),
     latencyMs: 1,
-    input: "Setup check from tracify-sdk doctor",
+    input: "Setup check from uncoil-sdk doctor",
     output: "If you can see this trace in your dashboard, the SDK is set up correctly.",
-    tags: ["tracify-doctor"],
-    metadata: { source: "tracify-sdk doctor", sdk: "ts" },
+    tags: ["uncoil-doctor"],
+    metadata: { source: "uncoil-sdk doctor", sdk: "ts" },
   };
   try {
     const response = await fetch(`${host}/api/ingest`, {
@@ -148,17 +148,17 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
     const status = response.status;
     if (response.ok) {
       runId = spanRunId;
-      add({ id: "trace", title: "Test trace", status: "ok", message: `Accepted. Look for "Tracify setup check" (run ${spanRunId}) in your dashboard.` });
+      add({ id: "trace", title: "Test trace", status: "ok", message: `Accepted. Look for "Uncoil setup check" (run ${spanRunId}) in your dashboard.` });
     } else if (status === 401) {
-      add({ id: "trace", title: "Test trace", status: "fail", message: "Tracify rejected the API key (401).", hint: "The key is wrong, was revoked, or belongs to another region. Create a fresh one on the API keys page." });
+      add({ id: "trace", title: "Test trace", status: "fail", message: "Uncoil rejected the API key (401).", hint: "The key is wrong, was revoked, or belongs to another region. Create a fresh one on the API keys page." });
     } else if (status === 403) {
       add({ id: "trace", title: "Test trace", status: "fail", message: "This key is not allowed to send data (403).", hint: "Check that the key belongs to the project you expect and has not been disabled." });
     } else if (status === 402 || status === 429) {
-      add({ id: "trace", title: "Test trace", status: "fail", message: `Tracify is not taking data right now (${status}).`, hint: "You may be over your plan's limit or sending too fast. Check usage on the billing page, then try again." });
+      add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil is not taking data right now (${status}).`, hint: "You may be over your plan's limit or sending too fast. Check usage on the billing page, then try again." });
     } else if (status >= 500) {
-      add({ id: "trace", title: "Test trace", status: "fail", message: `Tracify had a problem on its side (${status}).`, hint: "Your app is not affected. Check the status page and try again in a minute." });
+      add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil had a problem on its side (${status}).`, hint: "Your app is not affected. Check the status page and try again in a minute." });
     } else {
-      add({ id: "trace", title: "Test trace", status: "fail", message: `Tracify did not accept the test trace (${status}).`, hint: "Update tracify-sdk to the latest version; if it still happens, contact support." });
+      add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil did not accept the test trace (${status}).`, hint: "Update uncoil-sdk to the latest version; if it still happens, contact support." });
     }
   } catch (error) {
     add({ id: "trace", title: "Test trace", status: "fail", message: `The test trace could not be sent (${errorText(error)}).`, hint: `Check your connection and try again.${proxyNote}` });
@@ -169,7 +169,7 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
 const MARKS: Record<DoctorStatus, string> = { ok: "✓", warn: "!", fail: "✗", skip: "-" };
 
 export function formatReport(report: DoctorReport) {
-  const lines = ["Tracify setup check", ""];
+  const lines = ["Uncoil setup check", ""];
   for (const check of report.checks) {
     lines.push(`${MARKS[check.status]} ${check.title}: ${check.message}`);
     if (check.hint && check.status !== "ok") lines.push(`    Fix: ${check.hint}`);

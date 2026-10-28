@@ -1,4 +1,4 @@
-# Tracify release log
+# Uncoil release log
 
 This is the canonical release record. The public `/changelog` page and GitHub Releases use it as their source.
 

@@ -10,7 +10,7 @@ export function CapturedSurface({ title, description, projectId }: { title: stri
   const [filter, setFilter] = useState("All environments");
   const [created, setCreated] = useState(false);
   const isCreateSurface = /^(Create|Configure)/.test(title);
-  const draftKey = `tracify.surface-draft.${projectId}.${title.toLowerCase().replace(/\s+/g, "-")}`;
+  const draftKey = `uncoil.surface-draft.${projectId}.${title.toLowerCase().replace(/\s+/g, "-")}`;
   // Restore the lightweight project-scoped draft marker after a reload.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (isCreateSurface && window.localStorage.getItem(draftKey)) setCreated(true); }, [draftKey, isCreateSurface]);
@@ -45,7 +45,7 @@ export function CapturedSurface({ title, description, projectId }: { title: stri
         </form> : null}
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {[
-          ["Ready to configure", "Connect this Tracify surface to your project data and workflows."],
+          ["Ready to configure", "Connect this Uncoil surface to your project data and workflows."],
           ["Project scope", projectId],
           ["Activity", "No recent activity in this preview project."],
         ].map(([label, value]) => (

@@ -23,7 +23,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   const p = integrationPages.find((item) => item.slug === slug);
   if (!p) notFound();
   const schema = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Integrations", path: "/integrations" }, { name: p.name, path: `/integrations/${p.slug}` }]),
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Integrations", path: "/integrations" }, { name: p.name, path: `/integrations/${p.slug}` }]),
     faqJsonLd(p.faq),
   ];
   return (

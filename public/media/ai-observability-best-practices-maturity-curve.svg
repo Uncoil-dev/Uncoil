@@ -14,5 +14,5 @@
   <path d="M 180 690 C 420 500, 620 300, 800 320 S 1100 550, 1440 650" fill="none" stroke="#f4d44d" stroke-width="4"/>
   <text x="620" y="280" fill="#f4d44d" font-family="monospace" font-size="13">alert noise (spikes, then tuned down)</text>
 
-  <text x="800" y="850" text-anchor="middle" fill="#f6f1e6" font-family="monospace" font-size="14">tracify.tech · rising noise mid-rollout is a tuning signal, not proof the rollout failed</text>
+  <text x="800" y="850" text-anchor="middle" fill="#f6f1e6" font-family="monospace" font-size="14">uncoil.dev · rising noise mid-rollout is a tuning signal, not proof the rollout failed</text>
 </svg>

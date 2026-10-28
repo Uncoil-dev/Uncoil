@@ -11,7 +11,7 @@ import { buildWeeklySummary, periodBounds, renderSummaryEmail, spendBetween, sum
 import type { BudgetLine } from "./spendMetrics";
 
 const DAY = 24 * 60 * 60_000;
-const SITE = process.env.SITE_URL || "https://www.tracify.tech";
+const SITE = process.env.SITE_URL || "https://www.uncoil.dev";
 
 async function requireProject(ctx: QueryCtx, projectId: Id<"projects">) {
   const identity = await ctx.auth.getUserIdentity();
@@ -124,7 +124,7 @@ export const deliver = internalAction({
     }
     if (data.settings.slackUrl) {
       const { title, lines } = summaryLines(data.projectName, data.summary, data.budgets);
-      sends.push(postJson("slack", data.settings.slackUrl, { text: `*Your Tracify week: ${title}*\n${lines.map((line) => `• ${line}`).join("\n")}\n<${data.dashboardUrl}|See the details>` }));
+      sends.push(postJson("slack", data.settings.slackUrl, { text: `*Your Uncoil week: ${title}*\n${lines.map((line) => `• ${line}`).join("\n")}\n<${data.dashboardUrl}|See the details>` }));
     }
     await Promise.all(sends);
   },

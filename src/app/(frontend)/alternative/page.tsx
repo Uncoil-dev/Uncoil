@@ -1,9 +1,9 @@
 import { NavigationSystemExplorations } from "@/components/marketing/navigation-system-explorations";
 
 export const metadata = {
-  title: "Tracify — Future 19 homepage preview",
+  title: "Uncoil — Future 19 homepage preview",
   description:
-    "A complete Tracify homepage composed from the Future 19 visual system.",
+    "A complete Uncoil homepage composed from the Future 19 visual system.",
   alternates: { canonical: "/" },
   robots: { index: false, follow: false },
 };

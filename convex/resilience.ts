@@ -93,7 +93,7 @@ function simulatedLatency(mode: FailureMode, latencyBudgetMs: number) {
 
 /**
  * Replays the fallback-chain/retry/cost-ceiling semantics of
- * TracifyClient.orchestrate() (packages/ts-sdk/src/index.ts) against a
+ * UncoilClient.orchestrate() (packages/ts-sdk/src/index.ts) against a
  * synthetic failure mode, with no real network calls or provider cost.
  */
 function simulateOrchestration(mode: FailureMode, policy: PolicySnapshot, iteration: number): IterationRecord {

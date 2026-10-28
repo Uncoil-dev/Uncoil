@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TracifyLangGraphHandler = void 0;
+exports.UncoilLangGraphHandler = void 0;
 const index_1 = require("../index");
 const observation_1 = require("./observation");
 /** Structural LangChain/LangGraph callback handler; no mandatory framework dependency for SDK users. */
-class TracifyLangGraphHandler {
+class UncoilLangGraphHandler {
     constructor(options = {}) {
         this.options = options;
-        this.name = "tracify";
+        this.name = "uncoil";
         this.lc_serializable = false;
         this.raiseError = false;
         this.awaitHandlers = true;
@@ -77,4 +77,4 @@ class TracifyLangGraphHandler {
         this.end(id, undefined, error);
     }
 }
-exports.TracifyLangGraphHandler = TracifyLangGraphHandler;
+exports.UncoilLangGraphHandler = UncoilLangGraphHandler;

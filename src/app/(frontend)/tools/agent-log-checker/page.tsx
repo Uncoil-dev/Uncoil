@@ -18,7 +18,7 @@ const faqs: Faq[] = [
   { q: "Is my log uploaded anywhere?", a: "No. The log is read by code running in your browser and is gone when you close the tab. Still remove API keys and personal data before pasting into any tool." },
   { q: "How does it decide a step was slow?", a: "A step is flagged when it takes at least twice the typical step and at least 15% of all timed work. That avoids flagging every step in a run where everything is slow." },
   { q: "How are wasted tokens counted?", a: "Tokens in repeated identical calls (after the first) and tokens spent on steps that failed. If your log has no token counts, it cannot measure them and says so, rather than guessing." },
-  { q: "Can it find why an agent loops?", a: "It spots the loop and shows which steps repeat and how many times. The cause is usually a tool that returns the same result, or an agent with no rule for when to stop. Tracify shows loops across every run automatically." },
+  { q: "Can it find why an agent loops?", a: "It spots the loop and shows which steps repeat and how many times. The cause is usually a tool that returns the same result, or an agent with no rule for when to stop. Uncoil shows loops across every run automatically." },
 ];
 
 export default function Page() {

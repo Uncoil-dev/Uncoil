@@ -36,7 +36,7 @@ export function BeforeAfter() {
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Before / after</p>
             <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Same run. Two ways to read it.</h2>
           </div>
-          <p className="max-w-sm text-base leading-7 text-white/65">Scroll, or drag the handle. On the left, the run as a wall of logs. On the right, the same run as Tracify draws it, with the failing step lit up.</p>
+          <p className="max-w-sm text-base leading-7 text-white/65">Scroll, or drag the handle. On the left, the run as a wall of logs. On the right, the same run as Uncoil draws it, with the failing step lit up.</p>
         </div>
 
         <div
@@ -55,7 +55,7 @@ export function BeforeAfter() {
             <Image src="/images/landing/logs-wall.png" alt="The same run as a dense wall of log lines" fill unoptimized sizes="100vw" className={`object-cover ${art}`} />
           </div>
           <span className="absolute left-4 top-4 bg-[#eceae3] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-black">Plain logs</span>
-          <span className="absolute right-4 top-4 bg-[#f4d44d] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-black">Tracify</span>
+          <span className="absolute right-4 top-4 bg-[#f4d44d] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-black">Uncoil</span>
           <div className="absolute inset-y-0 w-0.5 bg-[#f4d44d]" style={{ left: `${pos}%` }}>
             <span className="absolute left-1/2 top-1/2 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-[#f4d44d] text-black shadow-[4px_4px_0_#000]">
               <MoveHorizontal className="size-5" aria-hidden="true" />
@@ -67,7 +67,7 @@ export function BeforeAfter() {
             max={100}
             value={Math.round(pos)}
             onChange={(e) => setUserPos(Number(e.target.value))}
-            aria-label="Compare plain logs with the Tracify map"
+            aria-label="Compare plain logs with the Uncoil map"
             className="absolute inset-x-0 bottom-0 h-8 w-full cursor-ew-resize opacity-0"
           />
         </div>

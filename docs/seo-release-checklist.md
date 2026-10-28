@@ -7,7 +7,7 @@ Use this checklist for public-route, metadata, sitemap, redirect, and SEO releas
 Every indexable public page must:
 
 - return HTTP 200 at its final canonical URL;
-- use the canonical `https://www.tracify.tech` host without an internal redirect;
+- use the canonical `https://www.uncoil.dev` host without an internal redirect;
 - have one non-empty H1 and one unique canonical URL;
 - have a useful title and a natural meta description, normally 70–160 characters;
 - provide Open Graph title, description, URL, and image values;
@@ -48,12 +48,12 @@ git merge --ff-only origin/main
 git diff --quiet HEAD origin/main
 ```
 
-Confirm `.vercel/project.json` points to project `tracify` in team `tracify-tech`. For manual CLI deployments, use a clean checkout or clean Git worktree. Do not deploy the shared working directory when it contains untracked scratch material, even if those files are ignored by Git.
+Confirm `.vercel/project.json` points to project `uncoil` in team `uncoil-tech`. For manual CLI deployments, use a clean checkout or clean Git worktree. Do not deploy the shared working directory when it contains untracked scratch material, even if those files are ignored by Git.
 
 ## After deployment
 
 1. Wait for Vercel to report `Ready`; do not rely on an initial deployment URL alone.
-2. Inspect `https://www.tracify.tech` and confirm it resolves to the new deployment ID.
+2. Inspect `https://www.uncoil.dev` and confirm it resolves to the new deployment ID.
 3. Verify `/`, `/robots.txt`, `/sitemap.xml`, one representative public article, and every changed route.
 4. Recheck final canonicals, H1, descriptions, social tags, internal links, and utility-route `noindex` behavior.
 5. If IndexNow is part of the release, verify the key file before running `npm run seo:indexnow -- --submit`. Never submit while the key returns 404 or before the expected key contents are live. The key file is `public/<key>.txt`; the `IndexNow` GitHub workflow submits URLs modified in the last two days after each push to `main` (waits up to 15 minutes for the key to be live), and can be run by hand with an empty `since` to resubmit every sitemap URL.

@@ -2,7 +2,7 @@
 
 ## One failure. Five business days. An evidence-backed decision.
 
-Tracify will investigate one consequential failure in one customer-facing AI agent workflow using sanitized staging evidence.
+Uncoil will investigate one consequential failure in one customer-facing AI agent workflow using sanitized staging evidence.
 
 | Term | Scope |
 | --- | --- |
@@ -16,7 +16,7 @@ Tracify will investigate one consequential failure in one customer-facing AI age
 
 ## Deliverables
 
-Tracify will provide:
+Uncoil will provide:
 
 1. One annotated representative trace.
 2. One evidence-backed failure mechanism.
@@ -46,9 +46,9 @@ This founding review accepts sanitized staging evidence only. Do not provide:
 - Model-provider API keys.
 - Arbitrary repositories or executable customer code.
 
-Tracify records the files received, agreed retention period, and deletion date. Supplied evidence is deleted after the report and agreed review window.
+Uncoil records the files received, agreed retention period, and deletion date. Supplied evidence is deleted after the report and agreed review window.
 
-If prohibited data is discovered, Tracify will stop handling it, request a sanitized replacement, and adjust the delivery date if needed.
+If prohibited data is discovered, Uncoil will stop handling it, request a sanitized replacement, and adjust the delivery date if needed.
 
 ## Out of scope
 
@@ -65,7 +65,7 @@ Additional needs can be scoped separately only after this review is complete.
 
 ## Refund condition
 
-If Tracify cannot produce at least one evidence-backed finding from the evidence agreed before payment, Tracify will refund the $1,000 fee. The refund condition does not guarantee that Tracify can implement a fix, recover missing evidence, or reproduce behavior outside the agreed staging boundary.
+If Uncoil cannot produce at least one evidence-backed finding from the evidence agreed before payment, Uncoil will refund the $1,000 fee. The refund condition does not guarantee that Uncoil can implement a fix, recover missing evidence, or reproduce behavior outside the agreed staging boundary.
 
 ## Acceptance
 

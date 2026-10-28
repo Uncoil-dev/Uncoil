@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { api } from "convex/_generated/api";
 
-import { getWrongRegionApiKeyResponse, hashApiKey, isTracifyApiKey } from "@/lib/api-keys";
+import { getWrongRegionApiKeyResponse, hashApiKey, isUncoilApiKey } from "@/lib/api-keys";
 import { getConvexClient } from "@/lib/convex";
 import { overLimit, requestIp } from "@/lib/cli-login";
 
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const header = request.headers.get("authorization");
   const apiKey = header?.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  if (!isTracifyApiKey(apiKey)) return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
+  if (!isUncoilApiKey(apiKey)) return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
   const wrongRegion = getWrongRegionApiKeyResponse(apiKey);
   if (wrongRegion) return wrongRegion;
   if (await overLimit(`sdk-whoami:${requestIp(request)}`, 30, 60)) {

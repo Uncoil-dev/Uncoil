@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 // The Dissolve mark: three right-aligned bars on a 50x38 pixel grid. Each bar
 // fades in from dithered pixels on the left, like a step streaming into a trace.
-// Source files and the generator live in public/logos/dissolve/.
+// Source files and the generator live in public/logos/uncoil/.
 const BAYER = [
   [0, 8, 2, 10],
   [12, 4, 14, 6],

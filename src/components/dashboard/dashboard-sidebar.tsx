@@ -365,11 +365,11 @@ export function DashboardSidebar({
       <DashboardCommandMenu projectId={projectId} showTrigger={false} basePath={demo ? DEMO_BASE_PATH : isSynthetic ? "/playground" : undefined} />
 
       <div className="flex h-14 shrink-0 items-center px-3">
-        <Link href={projectDashboardHref} aria-label="Tracify dashboard" onClick={close} className="block">
-          {/* One logo for both states: the icon never moves, collapsing just clips the name away. Smooth-scaling copy of the official lockup (public/logos/sidebar); the original uses crisp edges, which breaks the dither when small. */}
+        <Link href={projectDashboardHref} aria-label="Uncoil dashboard" onClick={close} className="block">
+          {/* One logo for both states: the icon never moves, collapsing just clips the name away. Smooth-scaling copy of the official lockup (public/logos/uncoil); the original uses crisp edges, which breaks the dither when small. */}
           <span className={cn("block overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none", showPanel ? "w-[128px]" : "w-[34px]")}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logos/sidebar/tracify-logo-on-dark.svg" alt="Tracify" width={128} height={36} className="block h-[36px] w-[128px] max-w-none" />
+            <img src="/logos/uncoil/uncoil-sidebar-on-dark.svg" alt="Uncoil" width={128} height={33} className="block h-[33px] w-[128px] max-w-none" />
           </span>
         </Link>
       </div>

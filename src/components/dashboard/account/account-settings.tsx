@@ -344,7 +344,7 @@ export function AccountSettings() {
             <ArrowLeft className="size-4" /> Back to dashboard
           </Link>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logos/dissolve/tracify-name-on-dark.svg" alt="tracify" height={20} className="block h-5 w-auto md:mt-6" />
+          <img src="/logos/uncoil/uncoil-name-on-dark.svg" alt="uncoil" height={20} className="block h-5 w-auto md:mt-6" />
         </div>
         <div className="hidden items-center gap-3 border-y border-[#1F242C] px-5 py-4 md:flex">
           <span className="flex size-10 shrink-0 items-center justify-center bg-[#F4D44D] text-base font-semibold text-[#090909]">

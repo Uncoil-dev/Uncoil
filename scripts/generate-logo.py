@@ -37,8 +37,8 @@ def wsvg(vb,body,w=None,h=None):
     sz=f' width="{w}" height="{h}"' if w else ''
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vb}"{sz} shape-rendering="crispEdges">{body}</svg>'
 pad=40
-def lockup(text):
-    gap=3*U; ix=TX0-gap-25*U
+ix=TX0-3*U-25*U
+def lockup(text,pad=pad):
     body=rects(icon_cells(),ix,TOP,U/2,Y)+f'<path fill="{text}" d="{WORD}"/>'
     x0=ix-pad; y0=TOP-pad; return wsvg(f'{x0:.1f} {y0} {TX1+pad-x0:.1f} {DESC+pad-y0}',body)
 def wordmark(text):
@@ -54,6 +54,8 @@ files={
  f'{NAME}-app-icon.svg':icon(K),f'{NAME}-app-icon-yellow.svg':icon(Y,col=K),
  f'{NAME}-icon-small.svg':icon(K,dither=False),
 }
+# Sidebar copy: smooth scaling, because crisp edges break the dither at small sizes.
+files[f'{NAME}-sidebar-on-dark.svg']=files[f'{NAME}-logo-on-dark.svg'].replace('crispEdges','geometricPrecision')
 os.makedirs(OUT,exist_ok=True)
 for n,s in files.items(): open(OUT+'/'+n,'w').write(s)
 
@@ -83,3 +85,11 @@ ico=[tab_icon(n) for n in (16,32,48)]
 for p in (('src/app/favicon.ico','src/app/(frontend)/favicon.ico') if '--site' in sys.argv else ()):
     ico[2].save(p,sizes=[(16,16),(32,32),(48,48)],append_images=ico[:2])
 for n,im in zip((16,32,48),ico): im.save(f'{OUT}/{NAME}-tab-icon-{n}.png')
+
+if '--site' in sys.argv:
+    import io, cairosvg
+    def svg_png(svg,w,bg):
+        return Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg.encode(),output_width=w,background_color=bg)))
+    # SEO / schema.org logo (square) and the email header lockup (tight crop, dark).
+    svg_png(files[f'{NAME}-app-icon.svg'],1024,'#090909').convert('RGB').save('public/logo.png')
+    svg_png(lockup(C,4),808,'#090909').convert('RGB').save('public/images/email/logo.png')

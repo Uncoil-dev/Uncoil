@@ -75,7 +75,7 @@ export function StatusScene({
   return (
     <section className={cn("w-full max-w-5xl border border-black bg-[#090909] text-[#eceae3]", compact ? "" : "shadow-[10px_10px_0_#f4d44d]")}>
       <div className="flex items-center justify-between border-b border-white/15 px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-[#eceae3]/60">
-        <span>tracify / {label}</span>
+        <span>uncoil / {label}</span>
         <span className="text-[#f4d44d]">{code}</span>
       </div>
       <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1.1fr_1fr] lg:items-center">

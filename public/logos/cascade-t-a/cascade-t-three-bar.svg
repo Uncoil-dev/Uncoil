@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
-  <title>Tracify cascade T — three bars</title>
-  <g fill="#f4d44d">
-    <rect x="4" y="4" width="24" height="6"/>
-    <rect x="18" y="13" width="10" height="6"/>
-    <rect x="20" y="22" width="8" height="6"/>
-  </g>
-</svg>

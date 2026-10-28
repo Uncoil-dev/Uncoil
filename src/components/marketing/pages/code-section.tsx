@@ -248,7 +248,7 @@ def run_order(order):
     lede: "Attach a typed score or end-user feedback to any run. The same score shows up in suites, monitors and the review queue.",
     ts: `import { UncoilClient } from "uncoil-sdk";
 
-const client = new UncoilClient({ apiKey: (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY), projectId: "your-project-id" });
+const client = new UncoilClient({ apiKey: process.env.UNCOIL_API_KEY, projectId: "your-project-id" });
 
 client.score(runId, "answer_quality", 0.92, { dataType: "numeric" });
 client.feedback(runId, true, { kind: "thumb", comment: "Helpful answer" });`,

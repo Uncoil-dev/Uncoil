@@ -90,7 +90,7 @@ import { traceAgent } from "uncoil-sdk";
 
 const runAgent = traceAgent(
   async (task: string) => runTask(task),
-  { apiKey: (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) },
+  { apiKey: process.env.UNCOIL_API_KEY },
 );
 
 async function main() {

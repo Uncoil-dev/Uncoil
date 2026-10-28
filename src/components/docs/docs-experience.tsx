@@ -56,7 +56,7 @@ const wrap = `import { traceAgent } from "uncoil-sdk";
 
 const runAgent = traceAgent(
   async (question: string) => callModel(question),
-  { apiKey: (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) },
+  { apiKey: process.env.UNCOIL_API_KEY },
 );
 
 await runAgent("Where is my order?");`;

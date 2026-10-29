@@ -9,7 +9,7 @@ const hash = "a".repeat(64);
 const pair = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const publicKey = pair.publicKey.export({ type: "spki", format: "der" }).toString("base64");
 
-beforeEach(() => { process.env.TRACIFY_API_KEY_HASH_SECRET = "test-secret"; });
+beforeEach(() => { process.env.UNCOIL_API_KEY_HASH_SECRET = "test-secret"; });
 
 async function begin(t: ReturnType<typeof convexTest>, newProjectName?: string, deviceCodeHash = hash) {
   return t.mutation(api.deviceLogins.start, { deviceCodeHash, publicKey, newProjectName });
@@ -30,7 +30,7 @@ test("a new project is created on approval and the key is readable only by the t
   const polled = await t.mutation(api.deviceLogins.poll, { deviceCodeHash: hash });
   if (polled.status !== "approved") throw new Error("expected approved");
   const apiKey = open(polled.encryptedKey);
-  expect(apiKey).toMatch(/^tracify_sk_live_eu_[0-9a-f]{32}$/);
+  expect(apiKey).toMatch(/^uncoil_sk_live_eu_[0-9a-f]{32}$/);
   expect(polled.projectId).toBe(approved.projectId);
   // Stored hash matches the key, and no plaintext or ciphertext remains.
   const project = await user.query(api.projects.getProjectById, { projectId: polled.projectId as never });

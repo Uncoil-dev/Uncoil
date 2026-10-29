@@ -19,11 +19,11 @@ function textOf(result: Value): string {
 /**
  * One-line tracing for the Vercel AI SDK. Pass it to `wrapLanguageModel`:
  *
- *   const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: tracifyMiddleware() });
+ *   const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: uncoilMiddleware() });
  *
- * Every `generateText`, `streamText` or `generateObject` call made with that model becomes a Tracify step.
+ * Every `generateText`, `streamText` or `generateObject` call made with that model becomes an Uncoil step.
  */
-export function tracifyMiddleware(options: IntegrationOptions = {}) {
+export function uncoilMiddleware(options: IntegrationOptions = {}) {
   const start = (model: Value | undefined, params: unknown) =>
     observation(model?.provider?.split?.(".")[0] ?? "vercel-ai", model?.modelId ?? "unknown", params, options);
   return {

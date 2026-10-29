@@ -3,7 +3,7 @@ title: "AI Agent Drift Detection: How to Detect Behavioral Changes Before Users 
 slug: ai-agent-drift-detection
 excerpt: A five-source drift model and baseline/comparison-window method for catching silent AI agent behavior changes that aggregate dashboards miss.
 publishedAt: 2026-09-03T12:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories:
   - observability
@@ -142,7 +142,7 @@ None of these alone proves drift. Together, a coordinated shift across two or mo
 
 ## Healthy vs. degraded trace comparison
 
-The clearest way to see a drift fingerprint is side by side, at the level of one representative trace from each window. The illustrative pair below shows the same support workflow, three weeks apart, using the same schema Tracify traces already record: retrieved sources, tool calls, and the final answer.
+The clearest way to see a drift fingerprint is side by side, at the level of one representative trace from each window. The illustrative pair below shows the same support workflow, three weeks apart, using the same schema Uncoil traces already record: retrieved sources, tool calls, and the final answer.
 
 **Illustrative trace, baseline window (three weeks ago):**
 
@@ -279,7 +279,7 @@ Distribution-based drift detection has real limits. Proxy signals (length, tool 
 - [ ] Flagged segments are investigated against the Five-Source Drift Model's fingerprints before being dismissed as noise.
 - [ ] Deploys, prompt versions, and known incidents are checked before calling an unexplained shift "drift."
 
-Comparing two time windows of your own trace data — at the segment level, against a real baseline — is the fastest way to find out whether a "green dashboard" is actually stable or just averaging over a problem. If you want to see this comparison against real trace data rather than illustrative examples, Tracify's Trace Viewer lets you compare two time windows of the same segment side by side.
+Comparing two time windows of your own trace data — at the segment level, against a real baseline — is the fastest way to find out whether a "green dashboard" is actually stable or just averaging over a problem. If you want to see this comparison against real trace data rather than illustrative examples, Uncoil's Trace Viewer lets you compare two time windows of the same segment side by side.
 
 ## Frequently asked questions
 

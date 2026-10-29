@@ -1,10 +1,10 @@
-# Tracify blog publishing
+# Uncoil blog publishing
 
 Blog posts are Markdoc files (`.mdoc`) in this directory. The filename is for authors; the public URL comes from the `slug` frontmatter field.
 
 To publish a post:
 
-1. Copy `.agents/skills/tracify-blog-tool/assets/blog-post.mdoc`, replace every placeholder, and keep the post a draft until publication is explicitly requested.
+1. Copy `.agents/skills/uncoil-blog-tool/assets/blog-post.mdoc`, replace every placeholder, and keep the post a draft until publication is explicitly requested.
 2. Put referenced images in `public/media` and use paths such as `/media/example.jpg`. Use a unique, article-specific hero and article-specific teaching visuals; never reuse another post's image as a shortcut.
 3. Set `draft: false` and provide an ISO `publishedAt` timestamp.
 4. Run `npm run validate:blog -- <slug>`, `npm run test:content`, `npm run lint`, and `npm run build` before merging.
@@ -17,7 +17,7 @@ Markdoc supports CommonMark plus Markdoc tags and annotations. The application v
 
 Every new or materially rewritten published post must be **3,000–10,000 body words**, excluding frontmatter. This is a hard content-contract gate. Posts around 300 or 1,000 words are incomplete and must not be published. Reach the minimum with original, topic-specific teaching: a clear operating model, evidence, worked examples, failure modes, trade-offs, security boundaries, rollout guidance, FAQs, and a practical next action. Never reach the count through repeated paragraphs, keyword stuffing, or generic filler. Run `npm run validate:blog -- <slug>` and confirm the exact count before opening a PR.
 
-## Mandatory Tracify editorial framework
+## Mandatory Uncoil editorial framework
 
 Every published post follows the same editorial shape. This is a product requirement for the blog, not an optional style preference:
 
@@ -29,7 +29,7 @@ Every published post follows the same editorial shape. This is a product require
 6. **Composition:** use natural two-part title structures for the shared slash treatment and reserve the centralized `highlight` tag for important decisions, risks, and outcomes. Keep highlights sparse and readable.
 7. **Interaction:** include one deterministic, accessible Markdoc interaction—normally a trace scenario, evaluation explorer, calculator, checklist, or focused decision widget.
 8. **Trade-offs:** state limitations, failure modes, security boundaries, and what the recommendation does not solve.
-9. **Action:** close with a practical checklist, next step, or release decision and contextual links to the next Tracify guides.
+9. **Action:** close with a practical checklist, next step, or release decision and contextual links to the next Uncoil guides.
 10. **FAQ and recommendations:** finish with exactly one late FAQ containing exactly five article-specific questions. Never add an in-body “Recommended next reads” block; the shared related-post component resolves curated, category, and recency fallbacks dynamically.
 
 Use this article rhythm for each major section:

@@ -25,7 +25,7 @@ const PAYLOAD_LIMIT = 500;
 
 export function redactSecrets(value: string) {
   return value
-    .replace(/tracify_sk_[a-z0-9_]+/gi, "[redacted-key]")
+    .replace(/uncoil_sk_[a-z0-9_]+/gi, "[redacted-key]")
     .replace(/\bsk-[A-Za-z0-9_-]{16,}/g, "[redacted-key]")
     .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, "Bearer [redacted]")
     .replace(/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*/g, "[redacted-token]")
@@ -107,7 +107,7 @@ export function buildDigest(spans: AskSpan[]) {
 }
 
 export const SYSTEM_PROMPT = [
-  "You are Tracify's trace assistant. A developer is looking at one run of their AI agent and asks you about it.",
+  "You are Uncoil's trace assistant. A developer is looking at one run of their AI agent and asks you about it.",
   "Answer only from the trace data you are given. If the data does not say, say you cannot tell from this trace.",
   "Be plain, short and practical: lead with the answer, then the reason. Suggest a concrete next thing to check or fix when it helps.",
   "Cite steps by their label in square brackets, like [s3], right after the claim they support. Never invent labels.",

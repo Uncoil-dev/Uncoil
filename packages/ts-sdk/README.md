@@ -1,30 +1,30 @@
-# Tracify TypeScript SDK
+# Uncoil TypeScript SDK
 
 Observability and tracing for AI agents. Gain full visibility into your agent's decision-making process, tool usage, and LLM costs.
 
-Tracify records each agent run as one trace: every model call, tool call, retry, failure and cost. It also ingests OpenTelemetry. Free plan available. Docs: [tracify.tech/docs](https://www.tracify.tech/docs). New to agent observability? Read the [complete guide](https://www.tracify.tech/blog/ai-agent-observability-complete-guide).
+Uncoil records each agent run as one trace: every model call, tool call, retry, failure and cost. It also ingests OpenTelemetry. Free plan available. Docs: [uncoil.dev/docs](https://www.uncoil.dev/docs). New to agent observability? Read the [complete guide](https://www.uncoil.dev/blog/ai-agent-observability-complete-guide).
 
 ## Installation
 
 ```bash
-npm install tracify-sdk
+npm install uncoil-sdk
 # or
-yarn add tracify-sdk
+yarn add uncoil-sdk
 ```
 
 ## Quickstart
 
-1. Get your API Key from the [Tracify Dashboard](https://www.tracify.tech).
+1. Get your API Key from the [Uncoil Dashboard](https://www.uncoil.dev).
 2. Set it as an environment variable:
 
 ```bash
-export TRACIFY_API_KEY=your_sk_live_...
+export UNCOIL_API_KEY=your_sk_live_...
 ```
 
 3. Instrument your agent:
 
 ```typescript
-import { traceAgent, llmCall, toolCall } from 'tracify-sdk';
+import { traceAgent, llmCall, toolCall } from 'uncoil-sdk';
 
 const agent = traceAgent(async (query: string) => {
   // LLM Call
@@ -54,7 +54,7 @@ Inside a `traceAgent` function, every step you record is linked to the step it r
 shows which step called which and how loops repeat. Use `span` for a block and `observe` for a function:
 
 ```ts
-import { observe, span, traceAgent } from "tracify-sdk";
+import { observe, span, traceAgent } from "uncoil-sdk";
 
 const searchDocs = observe(async function searchDocs(query: string) {
   return search(query);
@@ -93,7 +93,7 @@ avoid sending anything else you would not want stored.
 Pass `projectId` when constructing the client to attach end-user feedback and typed scores to traces:
 
 ```typescript
-const client = new TracifyClient({ apiKey: process.env.TRACIFY_API_KEY, projectId: "your-project-id" });
+const client = new UncoilClient({ apiKey: process.env.UNCOIL_API_KEY, projectId: "your-project-id" });
 client.feedback(runId, true, { kind: "thumb", comment: "Helpful answer" });
 client.score(runId, "answer_quality", 0.92, { dataType: "numeric" });
 ```
@@ -123,7 +123,7 @@ Provider packages are optional; install the providers you use. Node.js is requir
 ```ts
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import { wrapOpenAI, wrapAnthropic, TracifyLangGraphHandler, traceAgent } from "tracify-sdk";
+import { wrapOpenAI, wrapAnthropic, UncoilLangGraphHandler, traceAgent } from "uncoil-sdk";
 
 const openai = wrapOpenAI(new OpenAI());
 const anthropic = wrapAnthropic(new Anthropic());
@@ -136,11 +136,11 @@ const stream = await anthropic.messages.create({
 for await (const event of stream) { /* existing handling */ }
 
 // For LangGraph, pass one reusable handler in the graph invocation config.
-await graph.invoke(input, { callbacks: [new TracifyLangGraphHandler()] });
+await graph.invoke(input, { callbacks: [new UncoilLangGraphHandler()] });
 ```
 
-Use `TRACIFY_API_KEY` and the existing region/host configuration. Pass `{ client }` for a custom
-`TracifyClient`. Calls inside `traceAgent`/`span` inherit the current run and parent; standalone provider
+Use `UNCOIL_API_KEY` and the existing region/host configuration. Pass `{ client }` for a custom
+`UncoilClient`. Calls inside `traceAgent`/`span` inherit the current run and parent; standalone provider
 calls get a completed root, so unrelated requests never share an `unknown` run. LangGraph callbacks
 record graph/node/tool/model parent relationships. Use either framework model callbacks or a wrapped
 provider for each model call to avoid recording that call twice.
@@ -165,29 +165,29 @@ usage breakdown remains in metadata for rate-card calculations. See the [provide
 
 ## Framework one-liners
 
-Quickest start: call `init()` once at startup and every OpenAI and Anthropic call is traced, with no client wrapping (`TRACIFY_API_KEY` is read from the environment).
+Quickest start: call `init()` once at startup and every OpenAI and Anthropic call is traced, with no client wrapping (`UNCOIL_API_KEY` is read from the environment).
 
 ```ts
-import { init } from "tracify-sdk";
+import { init } from "uncoil-sdk";
 init();
 ```
 
-`init()` patches the installed `openai` and `@anthropic-ai/sdk` (both the CommonJS and ES-module builds; `await init().ready` if your first call happens instantly). Call the function it returns to switch it off. Use it or the per-framework options below for the same calls, not both. LangChain / LangGraph need `callbacks: [new TracifyLangGraphHandler()]`, and the Vercel AI SDK needs the middleware shown here.
+`init()` patches the installed `openai` and `@anthropic-ai/sdk` (both the CommonJS and ES-module builds; `await init().ready` if your first call happens instantly). Call the function it returns to switch it off. Use it or the per-framework options below for the same calls, not both. LangChain / LangGraph need `callbacks: [new UncoilLangGraphHandler()]`, and the Vercel AI SDK needs the middleware shown here.
 
 ```ts
 import { wrapLanguageModel } from "ai";
-import { tracifyMiddleware, traceTools } from "tracify-sdk";
+import { uncoilMiddleware, traceTools } from "uncoil-sdk";
 
-const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: tracifyMiddleware() }); // Vercel AI SDK
+const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: uncoilMiddleware() }); // Vercel AI SDK
 const tools = traceTools({ searchDocs, sendEmail });   // any functions or { execute } tool objects
 ```
 
-OpenAI (`wrapOpenAI`), Anthropic (`wrapAnthropic`) and LangGraph (`TracifyLangGraphHandler`) work as before. Copy-paste starters live in [`templates/`](./templates).
+OpenAI (`wrapOpenAI`), Anthropic (`wrapAnthropic`) and LangGraph (`UncoilLangGraphHandler`) work as before. Copy-paste starters live in [`templates/`](./templates).
 
 ## Sampling, redaction and clearer errors
 
 ```ts
-const tracify = new TracifyClient({
+const uncoil = new UncoilClient({
   sampleRate: 0.1,                 // record about 1 in 10 runs; each run is kept or dropped whole
   redact: { patterns: [/ACME-\d{6}/] },   // emails, phones and card numbers are masked by default; add your own patterns
   onError: (error) => log(error.message),            // problems come with a plain-language fix (error.hint)
@@ -199,19 +199,19 @@ Spans that report an error are kept even when their run was not sampled (`keepEr
 ### Sign in from the terminal
 
 ```bash
-npx tracify-sdk login
+npx uncoil-sdk login
 ```
 
-Opens your browser so you can sign in (or create a free account), pick or create a project, and confirm the code shown in your terminal. The key is then saved to `.env.local` as `TRACIFY_API_KEY`, with `TRACIFY_PROJECT_ID` next to it (and `TRACIFY_REGION` for the US region). In a git repo the file is added to `.gitignore` if it is not already ignored. The key travels encrypted to your machine and is never printed. Options: `--region eu|us`, `--new <name>` (create a project with this name), `--no-browser` (only print the address and code), `--env-file <path>` and `--json`. Picking a project that already sends data replaces its key, and the browser asks you to confirm that first. Plain Node does not read `.env.local` by itself; run `node --env-file=.env.local app.js` or load it with dotenv.
+Opens your browser so you can sign in (or create a free account), pick or create a project, and confirm the code shown in your terminal. The key is then saved to `.env.local` as `UNCOIL_API_KEY`, with `UNCOIL_PROJECT_ID` next to it (and `UNCOIL_REGION` for the US region). In a git repo the file is added to `.gitignore` if it is not already ignored. The key travels encrypted to your machine and is never printed. Options: `--region eu|us`, `--new <name>` (create a project with this name), `--no-browser` (only print the address and code), `--env-file <path>` and `--json`. Picking a project that already sends data replaces its key, and the browser asks you to confirm that first. Plain Node does not read `.env.local` by itself; run `node --env-file=.env.local app.js` or load it with dotenv.
 
-`npx tracify-sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `TRACIFY_PROJECT_ID` points at a different project than the key.
+`npx uncoil-sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
 
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:
 
 ```bash
-npx tracify-sdk doctor
+npx uncoil-sdk doctor
 ```
 
-It reads `TRACIFY_API_KEY` (and `TRACIFY_REGION` / `TRACIFY_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Tracify setup check" and tagged `tracify-doctor`; it counts as one trace on your plan.
+It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.

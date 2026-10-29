@@ -9,7 +9,7 @@ const USE_CASES = [
     headline: "Debug multi-step agents without reading raw logs",
     problem: "Install the SDK, send spans, inspect the trace, copy payloads, and see exactly which model or tool call failed.",
     logs: [
-      "> pip install tracify-sdk",
+      "> pip install uncoil-sdk",
       "> span accepted",
       "> trace ready",
       "> copy_payload input"
@@ -173,7 +173,7 @@ export function UseCases() {
             className="font-mono text-[12px] uppercase tracking-[0.3em] mb-6"
             style={{ color: "#666666" }}
           >
-            WHO USES TRACIFY?
+            WHO USES UNCOIL?
           </motion.div>
           <motion.h2
             initial={{ y: 12 }}

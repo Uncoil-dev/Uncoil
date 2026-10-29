@@ -21,7 +21,7 @@ export default async function AnswerPage({ params }: { params: Promise<{ slug: s
   const a = answers.find((item) => item.slug === slug);
   if (!a) notFound();
   const schema = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Answers", path: "/answers" }, { name: a.title, path: `/answers/${a.slug}` }]),
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Answers", path: "/answers" }, { name: a.title, path: `/answers/${a.slug}` }]),
     faqJsonLd([{ q: a.question, a: a.answer }]),
   ];
   return (

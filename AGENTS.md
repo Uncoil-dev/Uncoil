@@ -1,4 +1,4 @@
-# tracify — Agent Observability Platform
+# uncoil — Agent Observability Platform
 
 <!-- BEGIN:nextjs-agent-rules -->
 This is NOT the Next.js you know. This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read `node_modules/next/dist/docs/` before writing any Next.js code.
@@ -26,14 +26,14 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 - **Path aliases:** `@/*` → `./src/*`, `convex/*` → `./convex/*`
 - **Ingestion:** SDK → `POST /api/ingest` → Inngest → Tinybird (raw spans) + Convex (run summaries). Tinybird = time-series telemetry. Convex = app metadata (projects, agentRuns, alerts, comments). Redis = API cache between Tinybird and dashboard.
 - **Auth:** Clerk Keyless mode for local dev. Convex authenticates via Clerk JWT template named `convex` with `aud: "convex"`. Clerk v7 uses `<Show>`, not deprecated `<SignedIn>`/`<SignedOut>`.
-- **API keys:** HMAC-SHA256 with `TRACIFY_API_KEY_HASH_SECRET`. Prefix: `tracify_sk_live_` (legacy `tracify_sk_live_` accepted). Plaintext never stored server-side — shown once during onboarding.
+- **API keys:** HMAC-SHA256 with `UNCOIL_API_KEY_HASH_SECRET`. Prefix: `uncoil_sk_live_` (legacy `uncoil_sk_live_` accepted). Plaintext never stored server-side — shown once during onboarding.
 
 ## Conventions
 - **Design:** Marketing pages (`/`, `/pricing`, `/product/[feature]`, shared navbar/footer) use exactly three colors — cream/off-white (`#eceae3`) backgrounds, near-black (`#090909`) text/panels, and yellow (`#f4d44d`/`#fff4b5`) as the only accent. No navy, no rainbow accent system, no blue. 0px border-radius everywhere. Geist Pixel Square for logos/H1s, Geist Mono for UI/data, Geist Sans for prose. Tailwind v4 + shadcn/ui (`base-nova`). This is the current, intentional design — do not reintroduce a multi-color/navy "rebrand" system without the user explicitly asking for it (one was tried and reverted; see git history around commit 334ad09 for the exact revert point if this needs restoring again).
 - **Design quality bar (owner rule):** The landing page and Dissolve logo from PR #171 are the minimum standard for all visual work. Read `docs/design-quality-bar.md` before any design task; only work that matches or beats that benchmark may be proposed or merged.
 - **Design exploration workflow:** Never redesign or restyle marketing pages directly on `main`. Any new visual direction — palette change, new homepage layout, new component treatment — goes on its own branch with its own draft PR and Vercel preview link, so it can be reviewed live before anything touches production. Only merge a design PR when the user explicitly approves what they see in the preview. Multiple competing ideas can exist as separate open draft PRs at once; don't feel pressure to pick one before the user has seen previews of each.
 - **Dashboard pages:** Every live dashboard page follows `docs/dashboard-page-standard.md`; the Tracing page (`src/components/dashboard/tracing/`) is the reference implementation.
-- **Dashboard localStorage keys:** `tracify.sidebar.collapsed`, `tracify.lastProjectId`, `tracify:dashboard-sidebar-groups`, `tracify.onboarding.*`, `tracify.tracing.columns`, `tracify.tracing.live`
+- **Dashboard localStorage keys:** `uncoil.sidebar.collapsed`, `uncoil.lastProjectId`, `uncoil:dashboard-sidebar-groups`, `uncoil.onboarding.*`, `uncoil.tracing.columns`, `uncoil.tracing.live`
 - **`legacy-peer-deps=true`** in `.npmrc`. Use `npx.cmd` on Windows for shadcn additions.
 - **React:** Server Components by default, Client Components at leaf nodes.
 
@@ -95,19 +95,19 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 - Read `docs/seo-release-checklist.md` before changing public routes, metadata, sitemap entries, robots rules, canonical URLs, social cards, redirects, or production deployment configuration.
 - Before merging, record the intended release commit and confirm every required commit is in the pull request head. A commit pushed after a pull request is merged is not part of `main`; open a follow-up pull request instead of assuming it shipped.
 - Before deploying, fetch `origin`, verify the intended commit is an ancestor of `origin/main`, and verify the deployment tree exactly matches `origin/main`. Never deploy a feature branch while describing it as the latest main release.
-- The production Vercel project is `tracify-tech/tracify`. Confirm `.vercel/project.json` names `tracify` before a CLI deployment. Deploy from a clean tracked tree or clean worktree so `scratch/`, logs, downloaded references, and unrelated user files are never uploaded.
-- A deployment is complete only after Vercel reports `Ready`, `https://www.tracify.tech` resolves to that deployment, and critical live routes return their expected status and metadata.
+- The production Vercel project is `uncoil-tech/uncoil`. Confirm `.vercel/project.json` names `uncoil` before a CLI deployment. Deploy from a clean tracked tree or clean worktree so `scratch/`, logs, downloaded references, and unrelated user files are never uploaded.
+- A deployment is complete only after Vercel reports `Ready`, `https://www.uncoil.dev` resolves to that deployment, and critical live routes return their expected status and metadata.
 - Submit IndexNow only after its verification key returns HTTP 200 from the canonical production host with the exact expected key. Then request a fresh Ahrefs crawl; never treat an older crawl as evidence for the new release.
 
 ## Markdoc Blog Rules
-- **Required skill:** Read `.agents/skills/tracify-blog-tool/SKILL.md` before writing, editing, reviewing, storing, or publishing any blog post or documentation.
+- **Required skill:** Read `.agents/skills/uncoil-blog-tool/SKILL.md` before writing, editing, reviewing, storing, or publishing any blog post or documentation.
 - **Per-post quality gate:** Every new or materially rewritten blog post must pass `npm run validate:blog -- <slug>`. This targeted gate enforces the approved editorial composition, unique images, lower-half visual pacing, five-item late FAQ, and practical ending; a generic repository test is not a substitute.
 - **Hard length gate:** Every new or materially rewritten published post must contain 3,000–10,000 body words, excluding frontmatter. A post below 3,000 words is unfinished; do not publish or merge it. Use `npm run test:content` to verify the count.
 - **Canonical presentation gate:** Word count alone is never completion. Every published post also needs a unique article-specific hero, at least two unique teaching visuals distributed through the body, practical or clearly labeled illustrative code, semantic tables, mid-article decision notes, multiple instructional editorial panels, restrained highlights throughout both halves, exactly one late FAQ with five questions, and one purposeful deterministic interaction.
 - **Editorial composition:** Rendered blog titles may use decorative slash separators between natural title segments without changing source titles, slugs, metadata, or heading anchors. Use the centralized `highlight` Markdoc tag only for a small number of high-impact concepts; never add raw HTML or one-off styling to `.mdoc` files.
 - **Canonical agent instructions:** Follow `docs/blog-canonical-format-playbook.md` as the authoritative content-manager and agent workflow. It overrides informal shortcuts and requires evidence-led expansion rather than keyword stuffing or repeated filler.
 - Blog content lives exclusively in `content/blog/*.mdoc`; do not add a database or CMS fallback.
-- Start new articles from `.agents/skills/tracify-blog-tool/assets/blog-post.mdoc`; do not copy a published post’s structure or media. Required frontmatter: `title`, `slug`, `excerpt`, `publishedAt` (ISO timestamp), and `author`. Keep `categories`, `tags`, and `relatedPosts` as string arrays; related posts reference slugs.
+- Start new articles from `.agents/skills/uncoil-blog-tool/assets/blog-post.mdoc`; do not copy a published post’s structure or media. Required frontmatter: `title`, `slug`, `excerpt`, `publishedAt` (ISO timestamp), and `author`. Keep `categories`, `tags`, and `relatedPosts` as string arrays; related posts reference slugs.
 - Preserve publication state. `draft: true` must remain private and return 404. Publish only when explicitly requested by changing it to `draft: false`; never publish migrated or unfinished content implicitly.
 - Store blog images in `public/media` and reference them with `/media/<filename>`. Every image requires meaningful `alt` text. `heroImage` may also define `card`, `hero`, `og`, and `caption` fields.
 - Write article bodies in CommonMark/Markdoc. Do not introduce raw JSX or MDX into `.mdoc` files. Add custom Markdoc tags through the centralized Markdoc configuration and React component map rather than one-off parsing in routes.

@@ -23,7 +23,7 @@ const traces = [
 ] as const;
 
 const referenceTraceInputs = [
-  "abc", "I mean integration", "how we can setup OpenAPI along with Tracify", "My backend logic is C#, can I use all the features of Tracify?", "What can I use Tracify for?", "What can I use Tracify for?", "show me the trace", "py", "adk2", "show me", "yes", "What is 1 + 1?", "What can I use Tracify for?", "What can I use Tracify for?", "A sunset over mountains in watercolor style", "[{},{}]", "where is the answer to my question?", "Explain how I can utilize Tracify as an SRE", "What can I use Tracify for?", "How do I get started with tracing?",
+  "abc", "I mean integration", "how we can setup OpenAPI along with Uncoil", "My backend logic is C#, can I use all the features of Uncoil?", "What can I use Uncoil for?", "What can I use Uncoil for?", "show me the trace", "py", "adk2", "show me", "yes", "What is 1 + 1?", "What can I use Uncoil for?", "What can I use Uncoil for?", "A sunset over mountains in watercolor style", "[{},{}]", "where is the answer to my question?", "Explain how I can utilize Uncoil as an SRE", "What can I use Uncoil for?", "How do I get started with tracing?",
 ] as const;
 
 const referenceTraceNames = [
@@ -31,19 +31,19 @@ const referenceTraceNames = [
   "livekit-voice-agent", "QA-Chatbot", "livekit-voice-agent", "QA-Chatbot", "Image-Generator", "QA-Chatbot", "Sentiment-Classifier", "QA-Chatbot", "QA-Chatbot",
 ] as const;
 const referenceTraceOutputs = [
-  "Could you share what you need help with in Tracify—for example SDK setup (which language), adding traces/spans/generations, evaluations, self-hosting, or API usage?",
+  "Could you share what you need help with in Uncoil—for example SDK setup (which language), adding traces/spans/generations, evaluations, self-hosting, or API usage?",
   "Got it — \"integration\" could mean either OpenAI (the LLM API) or OpenAPI (the Swagger/REST API spec). Which one do you mean?",
-  "Do you mean integrating Tracify with OpenAI (the LLM API) or with OpenAPI (the Swagger/REST API spec)?",
-  "Short answer: Yes. While there’s no native C# SDK, you can use the Tracify HTTP API or OpenTelemetry to send traces.",
-  "Tracify is an AI agent observability platform for tracing, evaluating, and improving LLM applications.",
-  "Tracify is an AI agent observability platform for tracing, evaluating, and improving LLM applications.",
-  "Here’s how to get and view the current trace URL in Tracify.",
-  "Here’s a minimal, runnable example for the Tracify SDK.",
-  "Do you mean the Tracify SDK v2? If so, which language are you using?",
-  "What would you like me to show you in Tracify?",
+  "Do you mean integrating Uncoil with OpenAI (the LLM API) or with OpenAPI (the Swagger/REST API spec)?",
+  "Short answer: Yes. While there’s no native C# SDK, you can use the Uncoil HTTP API or OpenTelemetry to send traces.",
+  "Uncoil is an AI agent observability platform for tracing, evaluating, and improving LLM applications.",
+  "Uncoil is an AI agent observability platform for tracing, evaluating, and improving LLM applications.",
+  "Here’s how to get and view the current trace URL in Uncoil.",
+  "Here’s a minimal, runnable example for the Uncoil SDK.",
+  "Do you mean the Uncoil SDK v2? If so, which language are you using?",
+  "What would you like me to show you in Uncoil?",
   "Great! Here are minimal, runnable examples to get started.",
   "Would you like a quick example of setting up a simple calculation trace?",
-  "Tracify helps you build, debug, and improve LLM applications with tracing and evaluation.",
+  "Uncoil helps you build, debug, and improve LLM applications with tracing and evaluation.",
   "Here are the steps to inspect a trace and its observations.",
   "A sunset over mountains in watercolor style.",
 ] as const;
@@ -67,27 +67,27 @@ const traceRecords = traces.map(([id, name, status, environment, timestamp, late
 
 const referenceAdditionalTraces = [
   ["2026-09-06 10:44:33", "handle-chatbot-message", "QA-Chatbot", "where is the answer to my question?"],
-  ["2026-09-06 10:41:08", "handle-chatbot-message", "QA-Chatbot", "Explain how I can utilize Tracify as an SRE and how to integrate it with my AI team's workflow to achieve the best results"],
-  ["2026-09-06 10:15:12", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
+  ["2026-09-06 10:41:08", "handle-chatbot-message", "QA-Chatbot", "Explain how I can utilize Uncoil as an SRE and how to integrate it with my AI team's workflow to achieve the best results"],
+  ["2026-09-06 10:15:12", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
   ["2026-09-06 09:54:01", "handle-chatbot-message", "QA-Chatbot", "How do I get started with tracing?"],
-  ["2026-09-06 08:30:40", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
+  ["2026-09-06 08:30:40", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
   ["2026-09-06 07:43:28", "sentiment-classifier", "Sentiment-Classifier", "[{},{}]"],
-  ["2026-09-06 07:08:15", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
-  ["2026-09-06 05:15:46", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
-  ["2026-09-06 03:29:39", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
-  ["2026-09-06 03:19:38", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
-  ["2026-09-06 01:42:29", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
-  ["2026-09-06 01:35:19", "handle-chatbot-message", "QA-Chatbot", "give me a brief overview of tracify."],
+  ["2026-09-06 07:08:15", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
+  ["2026-09-06 05:15:46", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
+  ["2026-09-06 03:29:39", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
+  ["2026-09-06 03:19:38", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
+  ["2026-09-06 01:42:29", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
+  ["2026-09-06 01:35:19", "handle-chatbot-message", "QA-Chatbot", "give me a brief overview of uncoil."],
   ["2026-09-06 01:35:01", "handle-chatbot-message", "QA-Chatbot", "what tools do you have?"],
   ["2026-09-06 01:34:51", "handle-chatbot-message", "QA-Chatbot", "Hi, I need some help adding some numbers, can you assist?"],
-  ["2026-09-06 00:32:21", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
-  ["2026-09-06 00:28:54", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
+  ["2026-09-06 00:32:21", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
+  ["2026-09-06 00:28:54", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
   ["2026-09-05 22:03:00", "handle-chatbot-message", "QA-Chatbot", ""],
   ["2026-09-05 21:21:05", "handle-chatbot-message", "QA-Chatbot", "what all purpose this can solve"],
   ["2026-09-05 21:16:41", "handle-chatbot-message", "QA-Chatbot", "hello"],
-  ["2026-09-05 21:11:44", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
+  ["2026-09-05 21:11:44", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
   ["2026-09-05 20:02:35", "voice-conversation", "livekit-voice-agent", "[]"],
-  ["2026-09-05 17:06:15", "handle-chatbot-message", "QA-Chatbot", "What can I use Tracify for?"],
+  ["2026-09-05 17:06:15", "handle-chatbot-message", "QA-Chatbot", "What can I use Uncoil for?"],
 ] as const;
 const tracingRecords = [...traceRecords, ...referenceAdditionalTraces.map(([timestamp, name, traceName, input], index) => ({
   id: `trace_reference_${index + traceRecords.length}`,
@@ -134,18 +134,18 @@ const referenceScoreNames = [
 const referenceScoreTimestamps = [
   "2026-09-06 15:07:07", "2026-09-06 15:07:07", "2026-09-06 15:07:06", "2026-09-06 15:07:06", "2026-09-06 15:07:06", "2026-09-06 15:07:04", "2026-09-06 14:55:18", "2026-09-06 14:55:17", "2026-09-06 14:55:16", "2026-09-06 14:55:16", "2026-09-06 14:55:16", "2026-09-06 14:55:14", "2026-09-06 14:54:49", "2026-09-06 14:54:48", "2026-09-06 14:54:48", "2026-09-06 14:54:47", "2026-09-06 14:53:25", "2026-09-06 14:53:23", "2026-09-06 14:53:23", "2026-09-06 14:53:22",
 ] as const;
-const referenceScoreValues = ["False", "False", "irrelevant-to-tracify", "0", "False", "False", "False", "False", "0.9500", "implementation-question", "False", "False", "False", "False", "0.3000", "implementation-question", "False", "False", "False", "False"] as const;
+const referenceScoreValues = ["False", "False", "irrelevant-to-uncoil", "0", "False", "False", "False", "False", "0.9500", "implementation-question", "False", "False", "False", "False", "0.3000", "implementation-question", "False", "False", "False", "False"] as const;
 
 
 export const sandboxWorkspace: DashboardWorkspace = {
   mode: "sandbox",
   readOnly: true,
   region: "eu",
-  dataSource: "tracify-sandbox",
+  dataSource: "uncoil-sandbox",
   project: {
-    id: "tracify-sandbox",
-    name: "tracify-docs",
-    organizationName: "Tracify Demo",
+    id: "uncoil-sandbox",
+    name: "uncoil-docs",
+    organizationName: "Uncoil Demo",
   },
   metrics: {
     traces: 41,
@@ -159,7 +159,7 @@ export const sandboxWorkspace: DashboardWorkspace = {
     dashboards: {
       description: "Reusable views for cost, quality, latency, and trace volume.",
       records: [
-        { id: "tracify-home", name: "Home", status: "Default", environment: "all", timestamp: "Updated today" },
+        { id: "uncoil-home", name: "Home", status: "Default", environment: "all", timestamp: "Updated today" },
         { id: "cost-overview", name: "Cost Overview", status: "Published", environment: "production", timestamp: "Updated 12 min ago" },
         { id: "release-quality", name: "Release Quality", status: "Published", environment: "production", timestamp: "Updated 34 min ago" },
         { id: "latency-watch", name: "Latency Watch", status: "Draft", environment: "staging", timestamp: "Updated yesterday" },
@@ -187,7 +187,7 @@ export const sandboxWorkspace: DashboardWorkspace = {
       ],
     },
     prompts: {
-      description: "Version, label, test, and deploy prompts used by Tracify agents.",
+      description: "Version, label, test, and deploy prompts used by Uncoil agents.",
       records: [
         { id: "prompt_support", name: "support-agent-system", status: "Production", environment: "production", timestamp: "Version 18", model: "gpt-5.6-luna" },
         { id: "prompt_triage", name: "incident-triage", status: "Staging", environment: "staging", timestamp: "Version 7", model: "gpt-5.4-mini" },

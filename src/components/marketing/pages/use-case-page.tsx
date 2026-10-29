@@ -515,7 +515,7 @@ export function UseCasePage({ slug, page }: { slug: string; page: UseCaseData })
     story: <StickyStory key="story" kicker={c.kicker} heading={c.story} steps={steps} look={look.story} stage={(s) => <ChainStage {...s} rows={c.rows} title={page.title} flagTag={c.flagTag} meter={c.meter} />} />,
     code: <CodeSection key="code" snippet={snippets[slug]} />,
     band: <ArtBand key="band" img={c.band} label="The failure to catch" statement={page.failure} aside={page.description} {...look.band} />,
-    caps: <CapabilityGrid key="caps" heading="What Tracify watches." items={signals} variant={look.caps} />,
+    caps: <CapabilityGrid key="caps" heading="What Uncoil watches." items={signals} variant={look.caps} />,
   };
   return (
     <>

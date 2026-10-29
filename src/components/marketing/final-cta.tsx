@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 /**
  * FinalCTA Component
  * 
- * A compact, terminal-styled conversion section for the tracify landing page.
+ * A compact, terminal-styled conversion section for the uncoil landing page.
  * Follows a strict monochrome, 0px radius, and developer-grade aesthetic.
  */
 export function FinalCTA() {
@@ -41,11 +41,11 @@ export function FinalCTA() {
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
                 <span className="text-[#666666] shrink-0">$</span>
-                <span className="text-[#999999]">pip install tracify-sdk</span>
+                <span className="text-[#999999]">pip install uncoil-sdk</span>
               </div>
               <div className="flex gap-2">
                 <span className="text-[#666666] shrink-0">$</span>
-                <span className="text-[#999999]">npm install tracify-sdk</span>
+                <span className="text-[#999999]">npm install uncoil-sdk</span>
               </div>
               <div className="flex gap-2">
                 <span className="text-[#666666] shrink-0">$</span>

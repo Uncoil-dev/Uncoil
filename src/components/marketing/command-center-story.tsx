@@ -11,9 +11,9 @@ const products = [
 ] as const;
 
 const runtimes = {
-  TypeScript: ["npm install tracify-sdk", "import { traceAgent } from 'tracify-sdk'", "", "const tracedRun = traceAgent(", "  () => agent.run(input)", ")"],
-  Python: ["pip install tracify-sdk", "from tracify import trace_agent", "", "@trace_agent()", "def run_agent(input):", "    return agent.run(input)"],
-  OTLP: ["POST /v1/traces", "x-tracify-key: $TRACIFY_API_KEY", "", "service.name=research-agent", "span.type=tool_call"],
+  TypeScript: ["npm install uncoil-sdk", "import { traceAgent } from 'uncoil-sdk'", "", "const tracedRun = traceAgent(", "  () => agent.run(input)", ")"],
+  Python: ["pip install uncoil-sdk", "from uncoil import trace_agent", "", "@trace_agent()", "def run_agent(input):", "    return agent.run(input)"],
+  OTLP: ["POST /v1/traces", "x-uncoil-key: $UNCOIL_API_KEY", "", "service.name=research-agent", "span.type=tool_call"],
 } as const;
 type Runtime = keyof typeof runtimes;
 
@@ -26,7 +26,7 @@ export function CommandCenterStory() {
   async function copyCode() { try { await navigator.clipboard.writeText(runtimes[runtime].join("\n")); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { setCopied(false); } }
 
   return <>
-    <section className="px-6 py-24 md:px-10 md:py-36"><div className="mx-auto max-w-[1240px]"><div className="grid gap-8 border-b border-white/15 pb-12 md:grid-cols-[0.95fr_1.05fr] md:items-end"><div><p className="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-500">One platform, useful evidence</p><h2 className="mt-5 max-w-[570px] font-sans text-5xl font-medium leading-[0.95] tracking-[-0.06em] md:text-7xl">Less guesswork. Better agents.</h2></div><p className="max-w-[460px] text-[17px] leading-8 text-zinc-400">Tracify makes the right engineering signals available at the moment you need to make a decision.</p></div>
+    <section className="px-6 py-24 md:px-10 md:py-36"><div className="mx-auto max-w-[1240px]"><div className="grid gap-8 border-b border-white/15 pb-12 md:grid-cols-[0.95fr_1.05fr] md:items-end"><div><p className="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-500">One platform, useful evidence</p><h2 className="mt-5 max-w-[570px] font-sans text-5xl font-medium leading-[0.95] tracking-[-0.06em] md:text-7xl">Less guesswork. Better agents.</h2></div><p className="max-w-[460px] text-[17px] leading-8 text-zinc-400">Uncoil makes the right engineering signals available at the moment you need to make a decision.</p></div>
       <div className="grid border-b border-white/15 md:grid-cols-[0.78fr_1.22fr]"> <div className="border-b border-white/15 py-4 md:border-b-0 md:border-r md:py-8">{products.map((item, index) => <button key={item.id} type="button" onClick={() => setSelectedProduct(index)} aria-pressed={selectedProduct === index} className={`w-full border-l-2 px-0 py-5 pr-6 text-left transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-white ${selectedProduct === index ? "border-white" : "border-transparent"}`}><span className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-500">0{index + 1}</span><span className="mt-2 block font-sans text-2xl text-white">{item.eyebrow}</span></button>)}</div>
         <div className="py-10 md:px-12 md:py-16"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-500">{product.metric}</p><h3 className="mt-5 max-w-[570px] font-sans text-4xl font-medium leading-[1] tracking-[-0.05em] md:text-5xl">{product.title}</h3><p className="mt-6 max-w-[550px] text-[16px] leading-7 text-zinc-400">{product.body}</p><ul className="mt-9 grid gap-3 sm:grid-cols-3">{product.items.map((item) => <li key={item} className="border-t border-white/15 pt-3 font-mono text-[10px] uppercase leading-5 tracking-[0.12em] text-zinc-300"><Check className="mb-2 size-3 text-white" />{item}</li>)}</ul><Link href={product.href} className="mt-10 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-white underline underline-offset-8 decoration-zinc-600 hover:decoration-white">Explore this workflow <ArrowUpRight size={14} /></Link></div></div>
     </div></section>

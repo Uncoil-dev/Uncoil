@@ -133,7 +133,7 @@ export function StepsExplorer({
   useEffect(() => {
     // Browser preference hydration is intentionally deferred until mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLive(localStorage.getItem("tracify.tracing.live") !== "paused");
+    setLive(localStorage.getItem("uncoil.tracing.live") !== "paused");
     setFiltersOpen(window.innerWidth >= 768);
     const timer = setInterval(() => setClock(Date.now()), 10000);
     return () => clearInterval(timer);

@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import dynamic from "next/dynamic";
-import type { SpanTreeNode } from "@/lib/tracify-ports/treeBuilding";
+import type { SpanTreeNode } from "@/lib/uncoil-ports/treeBuilding";
 import { compactNumber, formatCost, formatDuration, stepKind } from "./format";
 
 export { stepKind };

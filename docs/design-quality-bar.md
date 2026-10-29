@@ -1,10 +1,10 @@
 # Design quality bar
 
-The owner set this rule on 2026-10-15: the landing page rebuilt in PR #171 is the **minimum standard** for every future visual change to Tracify. New design work must match it or beat it. Anything that looks plainer, flatter, more generic or less polished than that page is not acceptable and must not be proposed or merged.
+The owner set this rule on 2026-10-15: the landing page rebuilt in PR #171 is the **minimum standard** for every future visual change to Uncoil. New design work must match it or beat it. Anything that looks plainer, flatter, more generic or less polished than that page is not acceptable and must not be proposed or merged.
 
 ## The benchmark
 
-The reference implementation is the landing page in `src/components/marketing/landing/`, plus the Dissolve logo (`src/components/brand/tracify-mark.tsx`, `scripts/generate-logo.py`, `public/logos/dissolve/`). Before starting any design work, open that page locally, scroll the whole thing on desktop and phone, and compare your work against it side by side.
+The reference implementation is the landing page in `src/components/marketing/landing/`, plus the Dissolve logo (`src/components/brand/uncoil-mark.tsx`, `scripts/generate-logo.py`, `public/logos/dissolve/`). Before starting any design work, open that page locally, scroll the whole thing on desktop and phone, and compare your work against it side by side.
 
 What makes it the bar:
 

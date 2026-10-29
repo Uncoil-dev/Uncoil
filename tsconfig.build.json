@@ -11,7 +11,7 @@
     "node_modules",
     "scratch",
     "sanity",
-    "studio-tracify",
+    "studio-uncoil",
     "scripts",
     "packages/playwright",
     "packages/*/templates",

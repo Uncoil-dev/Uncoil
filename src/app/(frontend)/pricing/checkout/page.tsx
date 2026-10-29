@@ -74,7 +74,7 @@ export default function PricingCheckoutPage() {
     setError("");
     try {
       const result = await createProject({ name });
-      window.localStorage.setItem("tracify.lastProjectId", result.projectId);
+      window.localStorage.setItem("uncoil.lastProjectId", result.projectId);
       await openCheckout(result.projectId);
     } catch (checkoutError) {
       setError(projectCreateError(checkoutError, "Checkout is unavailable right now.").message);
@@ -171,7 +171,7 @@ export default function PricingCheckoutPage() {
             <li>2. You land on your project&apos;s billing page.</li>
             <li>3. Send your first trace. The docs are one click away.</li>
           </ol>
-          <p className="mt-8 text-xs leading-5 text-black/55">{signedIn ? "You will pay on Stripe. Card details never touch Tracify." : "Payments are handled by Stripe."}</p>
+          <p className="mt-8 text-xs leading-5 text-black/55">{signedIn ? "You will pay on Stripe. Card details never touch Uncoil." : "Payments are handled by Stripe."}</p>
           <Link href="/pricing" className="mt-6 inline-block font-mono text-[10px] uppercase tracking-[0.12em] text-black/60 underline underline-offset-4 hover:text-black">← Back to pricing</Link>
         </div>
       </section>

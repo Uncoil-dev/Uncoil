@@ -5,7 +5,7 @@ import { getConvexClient } from "@/lib/convex";
 import { inngest } from "@/lib/inngest";
 import { noEvaluatorsCache } from "@/lib/ingest-cache";
 import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
-import { getTracifyRegion } from "@/lib/regions";
+import { getUncoilRegion } from "@/lib/regions";
 import { runRetention } from "@/lib/retention-job";
 import { sendTransactionalEmail } from "@/lib/transactional-email";
 import { renderNoTraceEmail } from "@/lib/email-templates";
@@ -19,7 +19,7 @@ export const processSpan = inngest.createFunction(
     id: "process-span",
     name: "Process ingested span",
     retries: 3,
-    triggers: [{ event: "tracify/span.received" }],
+    triggers: [{ event: "uncoil/span.received" }],
   },
   async ({ event, step }) => {
     const span = event.data;
@@ -40,7 +40,7 @@ export const processSpan = inngest.createFunction(
       try {
         const response = await fetch(`${convexUrl.replace(/\/$/, "")}/evaluation/online`, {
           method: "POST",
-          headers: { "content-type": "application/json", "x-tracify-evaluation-secret": evaluationSecret },
+          headers: { "content-type": "application/json", "x-uncoil-evaluation-secret": evaluationSecret },
           body: JSON.stringify({
             projectId: span.projectDocId,
             traceId: span.runId,
@@ -56,7 +56,7 @@ export const processSpan = inngest.createFunction(
         if (response.ok) {
           const body = await response.json().catch(() => null) as { noEvaluators?: boolean; results?: Array<{ resultId?: string; evaluatorId?: string; scoreName?: string; value?: number | boolean | string; status?: string }>; alerts?: Array<{ projectId: string; runId: string; type: string; message: string; triggeredAt: string }> } | null;
           if (body?.noEvaluators) noEvaluatorsCache.set(span.projectDocId, true);
-          for (const alert of body?.alerts ?? []) await inngest.send({ name: "tracify/alert.triggered", data: alert });
+          for (const alert of body?.alerts ?? []) await inngest.send({ name: "uncoil/alert.triggered", data: alert });
           const tinybird = await import("@/lib/tinybird");
           for (const result of body?.results ?? []) {
             if (!result.resultId || !result.evaluatorId || !result.scoreName || result.value === undefined) continue;
@@ -77,7 +77,7 @@ export const processSpan = inngest.createFunction(
       // are checked by the budgets schedule instead.
       if (span.spanType === "error") {
         await inngest.send({
-          name: "tracify/alert.triggered",
+          name: "uncoil/alert.triggered",
           data: {
             projectId: span.projectDocId,
             runId: span.runId,
@@ -94,12 +94,12 @@ export const processSpan = inngest.createFunction(
 );
 
 export const onboardingReminder = inngest.createFunction(
-  { id: "onboarding-reminder", name: "Send onboarding reminder", retries: 3, triggers: [{ event: "tracify/onboarding.reminder" }] },
+  { id: "onboarding-reminder", name: "Send onboarding reminder", retries: 3, triggers: [{ event: "uncoil/onboarding.reminder" }] },
   async ({ event, step }) => {
     await step.sleep("wait-one-day", "1d");
     const state = await step.run("check-activation", async () => getConvexClient().query(api.agentRuns.getProjectOnboardingState, { projectId: event.data.projectId as Id<"projects"> }));
     if (state?.hasReceivedFirstSpan) return { skipped: true, reason: "activated" };
-    const origin = getTracifyRegion().origin;
+    const origin = getUncoilRegion().origin;
     const email = renderNoTraceEmail({ name: event.data.name, projectName: event.data.projectName, projectId: event.data.projectId, origin });
     await step.run("send-reminder", async () => sendTransactionalEmail({ to: event.data.email, ...email, idempotencyKey: `onboarding-reminder-${event.data.projectId}` }));
     return { skipped: false };
@@ -110,7 +110,7 @@ export const processAlert = inngest.createFunction(
   {
     id: "process-alert",
     name: "Process alert",
-    triggers: [{ event: "tracify/alert.triggered" }],
+    triggers: [{ event: "uncoil/alert.triggered" }],
   },
   async ({ event, step }) => {
     const alert = event.data;
@@ -142,7 +142,7 @@ export const processAlert = inngest.createFunction(
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `🚨 *Tracify Alert: ${alert.type.replace('_', ' ').toUpperCase()}*`
+                  text: `🚨 *Uncoil Alert: ${alert.type.replace('_', ' ').toUpperCase()}*`
                 }
               },
               {
@@ -162,7 +162,7 @@ export const processAlert = inngest.createFunction(
                       text: "View Trace",
                       emoji: true
                     },
-                    url: `${getTracifyRegion().origin}/dashboard/${alert.projectId}/runs/${alert.runId}`,
+                    url: `${getUncoilRegion().origin}/dashboard/${alert.projectId}/runs/${alert.runId}`,
                     style: "primary"
                   }
                 ]
@@ -186,9 +186,9 @@ export const processAlert = inngest.createFunction(
           body: JSON.stringify({
             "@type": "MessageCard",
             "@context": "http://schema.org/extensions",
-            summary: `Tracify Alert: ${alert.type}`,
+            summary: `Uncoil Alert: ${alert.type}`,
             themeColor: "000000",
-            title: `🚨 Tracify Alert: ${alert.type.replace('_', ' ').toUpperCase()}`,
+            title: `🚨 Uncoil Alert: ${alert.type.replace('_', ' ').toUpperCase()}`,
             text: alert.message,
             potentialAction: [
               {
@@ -197,7 +197,7 @@ export const processAlert = inngest.createFunction(
                 targets: [
                   {
                     os: "default",
-                    uri: `${getTracifyRegion().origin}/dashboard/${alert.projectId}/runs/${alert.runId}`,
+                    uri: `${getUncoilRegion().origin}/dashboard/${alert.projectId}/runs/${alert.runId}`,
                   },
                 ],
               },
@@ -211,12 +211,12 @@ export const processAlert = inngest.createFunction(
   },
 );
 
-/** Every day at 03:17 UTC: delete data older than each plan keeps (7 / 30 / 90 days). Needs TRACIFY_RETENTION_SECRET. */
+/** Every day at 03:17 UTC: delete data older than each plan keeps (7 / 30 / 90 days). Needs UNCOIL_RETENTION_SECRET. */
 export const dailyRetention = inngest.createFunction(
   { id: "daily-retention", name: "Remove data past plan retention", retries: 2, triggers: [{ cron: "17 3 * * *" }] },
   async ({ step }) => {
-    const secret = process.env.TRACIFY_RETENTION_SECRET;
-    if (!secret) return { skipped: true, reason: "TRACIFY_RETENTION_SECRET is not set" };
+    const secret = (process.env.UNCOIL_RETENTION_SECRET ?? process.env.TRACIFY_RETENTION_SECRET);
+    if (!secret) return { skipped: true, reason: "UNCOIL_RETENTION_SECRET is not set" };
     return step.run("purge", () => runRetention(secret));
   },
 );

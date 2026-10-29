@@ -151,7 +151,7 @@ export const updateLabels = mutation({
     const requested = cleanLabels(args.labels);
     // A version that already holds production may keep it (or give it up to roll back); nobody can hand it out here.
     if (requested.includes("production") && !version.labels.includes("production")) throw new Error("Production promotion requires a passed evaluation release gate");
-    // "latest" is managed by Tracify: it stays exactly where it is.
+    // "latest" is managed by Uncoil: it stays exactly where it is.
     const labels = [...requested.filter((label) => label !== "latest"), ...(version.labels.includes("latest") ? ["latest"] : [])];
     await moveLabels(ctx, version.promptId, version._id, labels.filter((label) => label !== "latest"));
     await ctx.db.patch(args.versionId, { labels });

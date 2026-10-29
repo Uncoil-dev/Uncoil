@@ -10,7 +10,7 @@ export const maxDuration = 30;
 const recent = new Map<string, number[]>();
 
 function limit(name: string, fallback: number) {
-  const value = Number(process.env[name] ?? fallback);
+  const value = Number((process.env[name] ?? process.env[name.replace("UNCOIL_", "TRACIFY_")]) ?? fallback);
   return Number.isFinite(value) ? Math.min(1000, Math.max(1, Math.floor(value))) : fallback;
 }
 
@@ -24,22 +24,22 @@ export async function POST(req: NextRequest) {
 
   const context = sanitizeContext(body?.context);
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
-  const perMinute = limit("TRACIFY_ASSISTANT_ACTIONS_PER_MINUTE", 15);
-  const perDay = limit("TRACIFY_ASSISTANT_ACTIONS_PER_DAY", 300);
+  const perMinute = limit("UNCOIL_ASSISTANT_ACTIONS_PER_MINUTE", 15);
+  const perDay = limit("UNCOIL_ASSISTANT_ACTIONS_PER_DAY", 300);
   const now = Date.now();
   const hits = (recent.get(ip) ?? []).filter((time) => now - time < 60_000);
   if (hits.length >= perMinute) return NextResponse.json({ error: "Too many messages. Wait a moment." }, { status: 429 });
   recent.set(ip, [...hits, now]);
   try {
-    const minute = await consumeRateLimit(`tracify:dashassist:min:${ip}`, 1, perMinute, 60);
-    const day = await consumeRateLimit(`tracify:dashassist:day:${ip}:${new Date(now).toISOString().slice(0, 10)}`, 1, perDay, 86_400);
+    const minute = await consumeRateLimit(`uncoil:dashassist:min:${ip}`, 1, perMinute, 60);
+    const day = await consumeRateLimit(`uncoil:dashassist:day:${ip}:${new Date(now).toISOString().slice(0, 10)}`, 1, perDay, 86_400);
     if (!minute.allowed || !day.allowed) return NextResponse.json({ error: !day.allowed ? "You've reached today's assistant limit." : "Too many messages. Wait a moment." }, { status: 429 });
   } catch {
     // Redis is optional; the in-memory guard stays active.
   }
 
   const alt = process.env.ASK_AI_ALT_API_KEY || "";
-  const openai = alt ? undefined : process.env.TRACIFY_ASK_AI_API_KEY || process.env.OPENAI_API_KEY || undefined;
+  const openai = alt ? undefined : (process.env.UNCOIL_ASK_AI_API_KEY ?? process.env.TRACIFY_ASK_AI_API_KEY) || process.env.OPENAI_API_KEY || undefined;
   const prompt = {
     system: ASSISTANT_SYSTEM_PROMPT,
     user: buildAssistantPrompt(context, turns),
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     timeoutMs: 25_000,
   };
   const keys = { alt: alt || undefined, openai };
-  const models = { alt: process.env.ASK_AI_ALT_MODEL, openai: process.env.TRACIFY_ASK_AI_MODEL };
+  const models = { alt: process.env.ASK_AI_ALT_MODEL, openai: (process.env.UNCOIL_ASK_AI_MODEL ?? process.env.TRACIFY_ASK_AI_MODEL) };
   const configured = Boolean(alt || openai);
   const busyFrom = (failures: string[]) => failures.some((failure) => failure === "rate" || failure === "quota");
 

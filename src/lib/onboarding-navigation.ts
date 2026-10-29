@@ -1,8 +1,8 @@
 import { hasOneTimeApiKey } from "@/lib/onboarding-client-state";
 
-const PROJECT_ID_STORAGE_KEY = "tracify.onboarding.projectId";
-const LAST_PROJECT_STORAGE_KEY = "tracify.lastProjectId";
-const API_KEY_COPIED_STORAGE_KEY = "tracify.onboarding.apiKeyCopied";
+const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
+const LAST_PROJECT_STORAGE_KEY = "uncoil.lastProjectId";
+const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
 
 export function getOnboardingHref(projectId?: string) {
   if (typeof window === "undefined") {

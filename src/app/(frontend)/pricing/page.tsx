@@ -4,7 +4,7 @@ import { PricingPage } from "@/components/marketing/pricing/pricing-page";
 
 export const metadata: Metadata = {
   title: "Pricing: 25,000 free spans a month",
-  description: "Start free, then pay by spans per month. Tracify pricing for AI agent tracing, cost tracking and evaluation: Free, Pro, Team and Enterprise plans.",
+  description: "Start free, then pay by spans per month. Uncoil pricing for AI agent tracing, cost tracking and evaluation: Free, Pro, Team and Enterprise plans.",
   alternates: { canonical: "/pricing", languages: languageAlternates("/pricing") },
 };
 

@@ -1,0 +1,294 @@
+---
+title: "WhyLabs vs Uncoil: Drift Detection vs Integrated Agent Observability"
+slug: whylabs-vs-uncoil
+excerpt: "WhyLabs is a statistical drift and model-quality monitoring specialist built on whylogs profiling. Uncoil is an integrated agent observability platform with traces, cost, evaluation, and experiments. Compare the two honestly, with worked costs and a decision framework."
+publishedAt: 2026-08-29T12:00:00.000Z
+author: Uncoil Team
+draft: false
+categories:
+  - engineering
+  - platform-comparison
+tags:
+  - whylabs
+  - drift detection
+  - platform comparison
+  - agent observability
+relatedPosts:
+  - ai-agent-observability-complete-guide
+  - llm-observability-metrics-that-matter
+  - ai-agent-evaluation-practical-guide
+heroImage:
+  src: /media/whylabs-vs-uncoil-scope.svg
+  alt: "Scope comparison showing WhyLabs as a narrow drift-detection specialist next to Uncoil's integrated traces, cost, evaluation, and experiments coverage"
+  card: /media/whylabs-vs-uncoil-scope.svg
+  hero: /media/whylabs-vs-uncoil-scope.svg
+  og: /media/whylabs-vs-uncoil-scope.svg
+  caption: "WhyLabs goes deep on statistical drift; Uncoil goes wide across the agent execution lifecycle."
+seo:
+  metaTitle: "WhyLabs vs Uncoil: Drift Detection vs Agent Observability"
+  metaDescription: "Compare WhyLabs' statistical drift monitoring with Uncoil's integrated agent observability. Worked 12-month TCO, feature-by-feature comparison, and a decision framework."
+---
+
+{% trace-scenario title="Drift alarm or missing trace — which one do you need first?" prompt="Your fraud-scoring model's prediction distribution just shifted 12% week over week, and separately, your new support agent silently looped on a tool call for six turns before a customer noticed. One team wants a statistical early-warning system for the model. The other wants to see exactly what the agent did and what it cost. Do you need one platform, or two?" outcome="The two failures are not the same problem. Drift is a property of a model's output distribution over time; a silent agent loop is a property of an execution graph. WhyLabs is built for the first. Uncoil is built for the second. Most teams running agents need both signals eventually — the question this article answers is which one you need now, and what it actually costs to get there." /%}
+
+## At a glance
+
+| Dimension | WhyLabs | Uncoil |
+| --- | --- | --- |
+| **Primary focus** | Statistical drift and model-quality monitoring | Integrated agent observability (traces, cost, eval, experiments) |
+| **Core mechanism** | Profile-based statistics via whylogs, compared over time | Full execution traces with spans, sessions, and outcomes |
+| **LLM text signals** | LangKit: toxicity, sentiment, PII, readability, hallucination heuristics | Evaluation test cases: LLM-as-judge, exact match, custom validators |
+| **Distributed tracing** | Not native | Native, first-class |
+| **Cost tracking** | Not native | Automatic, per-call and per-route |
+| **Evaluation / test cases** | External integration required | Native test-case library and batch runner |
+| **Experimentation** | Not native | Native experiment framework |
+| **Data handling** | Statistical profiles, not raw payloads (privacy-preserving) | Full trace payloads with configurable redaction |
+| **Best fit** | Teams whose primary risk is silent model or data drift | Teams whose primary risk is agent orchestration failure and cost |
+
+WhyLabs answers "has this model's behavior quietly changed?" Uncoil answers "why did this agent do what it did, and what did it cost?" Both questions matter in production; this article is about which one is your actual bottleneck right now, and what each path costs over a year.
+
+## Core difference: what each platform actually watches
+
+**WhyLabs** grew out of {% highlight %}whylogs, an open-source statistical profiling library{% /highlight %} for machine learning data. Instead of storing raw requests, responses, or feature vectors, whylogs computes lightweight statistical profiles — distributions, cardinalities, null rates, quantiles — and WhyLabs compares those profiles over time to detect drift: has the input data shifted, has the prediction distribution moved, has model performance degraded against a labeled baseline. For LLM applications specifically, WhyLabs extends this with LangKit, a library that extracts text-based signals from prompts and completions (toxicity, sentiment, readability, PII presence, and similarity-based hallucination heuristics) and feeds those into the same profiling and drift-detection pipeline. The result is a platform whose entire design center is: **watch statistical properties of model inputs and outputs, and alert when they move**.
+
+**Uncoil** grew out of a different problem: understanding why an agent — not just a model — succeeded or failed on a specific request. Where WhyLabs profiles aggregate statistics, Uncoil preserves the full execution graph for each run: which LLM was called, with what prompt, which tools were invoked, what they returned, whether the agent retried, and what the entire multi-turn session cost. Evaluation in Uncoil runs against traces, not statistical baselines — you write a test case like "the agent's final answer should match the user's stated intent," and Uncoil runs it against real production traces or a curated experiment set, correlating any failure back to the exact call that caused it.
+
+{% editorial-panel eyebrow="Operating principle" title="Drift detection and trace debugging answer different questions." body="Drift detection tells you a model's statistical behavior has moved from its baseline. Trace debugging tells you why a specific run failed and what it cost. A team that only has drift detection cannot answer 'why did this one agent get stuck.' A team that only has trace debugging cannot answer 'has this classifier quietly degraded across 50,000 predictions this month.' Most production agent systems eventually need both signals; few need them from day one." tone="yellow" /%}
+
+This distinction matters because the two platforms were not built to compete on the same axis. WhyLabs is closer to a statistical monitoring layer that sits beside your model-serving infrastructure; you feed it profiles and, ideally, ground truth labels, and it tells you when something has moved. Uncoil is closer to an application observability layer that sits inside your agent's execution path; you instrument spans, and it reconstructs what happened, what it cost, and whether it met your bar for quality. Before working through the two platforms in detail, it helps to see where your own team sits on the two axes that actually decide this: how much you need statistical drift detection, and how much you need integrated tracing, cost, and evaluation in one place.
+
+![Quadrant diagram mapping drift-detection need against integrated observability need to recommend WhyLabs, Uncoil, or a hybrid approach](/media/whylabs-vs-uncoil-decision-quadrant.svg)
+
+Most teams shipping multi-step agents land in the lower-right quadrant of that framework: their risk is orchestration and cost, not statistical drift in a single model's output distribution. Teams running a single, high-volume, well-labeled classifier — fraud scoring, content moderation, churn prediction — tend to land in the upper-left. The decision framework section later in this article works through both axes and the hybrid case in full detail.
+
+## Scenario 1: a single production model that needs drift detection
+
+Your team operates a fraud-scoring model that classifies transactions in real time. It is not an agent — there is no tool calling, no multi-step reasoning, no orchestration. Your risk is narrow and specific: has the model's prediction distribution shifted because the underlying transaction population changed, or because an upstream feature pipeline silently broke? You have a mature labeling process (chargebacks arrive weeks later and provide ground truth) and a data science team that already thinks in terms of distributions, confidence intervals, and cohort analysis.
+
+**With WhyLabs:**
+- Instrument the scoring service to emit whylogs profiles for inputs, predictions, and (once available) ground-truth labels. This is a well-trodden integration path for structured ML models — typically 3 to 5 days including validation.
+- WhyLabs computes drift metrics automatically: population stability index on features, prediction distribution shift, and performance metrics once labels land.
+- Set threshold-based alerts: "page on-call if the false-positive rate on high-value transactions rises more than 15% week over week."
+- Use cohort analysis to isolate which transaction segment is driving the shift, without writing custom SQL against a data warehouse.
+- Result: production-grade drift detection live within a week, with alerting tuned to your actual risk tolerance and minimal engineering investment beyond the initial integration.
+
+**With Uncoil:**
+- You could instrument the scoring calls as spans and see individual request/response pairs, but Uncoil has no native statistical drift detector — no population stability index, no automatic baseline comparison, no cohort-level distribution analysis.
+- You would need to write custom evaluation test cases that approximate drift detection (for example, sampling recent predictions and comparing summary statistics by hand), which is a weak substitute for a purpose-built statistical engine.
+- Session tracking and cost breakdown, Uncoil's core strengths, add little value here: there are no multi-turn sessions and the cost per prediction is likely trivial and stable.
+- Result: technically possible, but you are reimplementing a statistical monitoring tool that already exists elsewhere, and doing it worse.
+
+**Verdict:** WhyLabs wins decisively. This is exactly the problem it was built to solve, and Uncoil's strengths (tracing, sessions, evaluation-against-traces) are close to irrelevant for a single stateless classifier with a mature labeling pipeline.
+
+## Scenario 2: a multi-stage agent pipeline that needs integrated observability
+
+Your team ships a research assistant that plans a multi-step task, calls a search tool, retrieves documents, calls an LLM to synthesize an answer, and — if the synthesis fails a quality check — retries with a different prompt or escalates to a larger model. Each user request can touch three to six model calls and two or three tool invocations across a single session. Your risks are different in kind from Scenario 1: Did the agent choose the right tool? Why did a request take 11 seconds when the SLO is 4? Which step is driving 80% of the per-request cost? Did last week's prompt change actually improve answer quality, or just get more expensive?
+
+**With WhyLabs:**
+- You can wrap each LLM call with LangKit to extract text-quality signals (toxicity, sentiment, PII, readability) per call, and WhyLabs will profile and alert on those signals drifting over time.
+- WhyLabs has no concept of a multi-step trace: it sees each LLM call as an independent event, not a node in a larger execution graph. You cannot ask "show me the full sequence of calls for this failed session" inside WhyLabs.
+- There is no native cost tracking. You would build a separate pipeline to join model usage logs with provider pricing to get per-request cost.
+- There is no native evaluation test-case runner for "did the final synthesized answer address the user's actual question" — that requires either human review or a separate LLM-as-judge system you build and maintain.
+- Result: you get useful text-quality drift signals per call, but you are blind to the orchestration layer entirely, and you have three more systems to build (tracing, cost, evaluation) before you have production confidence.
+
+**With Uncoil:**
+- Instrument the agent once; Uncoil reconstructs the full trace automatically — plan step, search call, retrieval, synthesis call, retry, escalation — as a single connected graph per session.
+- Cost is calculated automatically per call and rolled up per session, so "this failed session cost $0.31 across two synthesis attempts" is visible without extra tooling.
+- Write evaluation test cases directly against traces: "the final answer must cite at least one retrieved document" or "the agent must not call the search tool more than twice." Run these against production traces or a curated experiment set.
+- Use the experiment framework to compare the retry-and-escalate prompt against a simpler single-pass prompt across the same evaluation suite, with cost and latency reported side by side.
+- Result: full orchestration visibility, cost transparency, and evaluation within days, because tracing, cost, and evaluation are one integrated data model rather than three separate systems you have to reconcile.
+
+{% editorial-panel eyebrow="Where the gap actually shows up" title="WhyLabs sees the call; Uncoil sees the session." body="LangKit can tell you a specific LLM response scored high on toxicity. It cannot tell you that response came from the third retry of a synthesis step inside a session that ultimately cost $0.31 and still failed the user's request. That connective layer — call to step to session to outcome to cost — is what an agent team spends most of its debugging time inside, and it is exactly what WhyLabs does not model." tone="dark" /%}
+
+**Verdict:** Uncoil wins clearly for multi-step agent pipelines. The orchestration, cost, and evaluation gaps in a drift-monitoring platform are not edge cases here — they are the primary risk surface for this kind of system.
+
+## Deep feature comparison
+
+The two scenarios above are the extremes. Most real teams sit somewhere in between, so it helps to compare the platforms feature by feature rather than only by scenario.
+
+### Drift detection
+
+WhyLabs' drift detection is purpose-built and statistically rigorous: population stability index, Kolmogorov-Smirnov and Hellinger distance metrics, cardinality tracking, and configurable thresholds per feature or per cohort. It supports both structured ML features and LLM text-derived metrics from LangKit, and it is designed to run continuously against high-volume production traffic without storing raw payloads. Uncoil has no equivalent. Its evaluation system can flag that a specific trace failed a quality check, but it has no mechanism for detecting that a distribution has gradually shifted across thousands of predictions when no single prediction looks obviously wrong. If statistical drift detection is a requirement, WhyLabs is not optional — nothing in Uncoil substitutes for it.
+
+### Distributed tracing
+
+Uncoil's trace model treats every agent run as a connected graph: LLM calls, tool invocations, retries, and the decisions between them, all attached to a session. You can open a single failed request and see the entire causal chain that produced it. WhyLabs has no concept of a trace graph; each instrumented event is evaluated independently against its statistical baseline. For a single-call system this difference barely matters. For a multi-step agent, it is close to the entire debugging experience.
+
+### Cost tracking
+
+Uncoil calculates cost automatically per call, using current provider pricing, and rolls it up per route, per session, and per experiment. This is a first-class, zero-configuration feature. WhyLabs has no built-in cost model; teams that need cost visibility alongside WhyLabs' drift signals build and maintain a separate pipeline joining usage logs to provider rate cards, which is straightforward engineering but is a second system to own and keep current as pricing changes.
+
+### Evaluation
+
+Uncoil's evaluation runs directly against traces: define a test case once (LLM-as-judge, exact match, or a custom validator), then run it against production traffic or a held-out set, with failures linked back to the exact call and prompt version that produced them. WhyLabs' evaluation story is different in kind: it depends on you supplying ground truth (from human review, downstream task outcomes, or another labeling source) and then compares recent predictions to that baseline statistically. That approach is well-suited to models where ground truth arrives naturally — chargebacks, click-through, churn — and much harder to apply to open-ended agent outputs where "correct" is not a single label.
+
+### Experimentation speed
+
+Uncoil's experiment framework lets you compare prompt or model versions against the same evaluation suite, with cost and latency reported alongside pass rate, so a prompt change that improves quality by 4% but doubles cost is visible in one view. WhyLabs is not built for this workflow; comparing two model versions statistically is possible (it is, after all, a monitoring platform for exactly that kind of comparison at the data layer) but it is not oriented around rapid, day-to-day prompt iteration the way Uncoil's experiment runner is.
+
+## Integration effort: the hidden cost
+
+Both platforms require real integration work, but the shape of that work differs, and it is easy to underestimate the harder of the two.
+
+**WhyLabs integration work:**
+- Instrument model calls to emit whylogs profiles (straightforward with the SDK for structured features; LangKit adds a similar step for LLM text metrics).
+- Establish a ground-truth pipeline. This is the part teams consistently underestimate. Without a reliable way to say "this prediction was actually right or wrong," WhyLabs' performance-drift detection has nothing to compare against, and you are left with data drift alone, which is a weaker signal.
+- Tune alert thresholds per feature or cohort, which takes iteration to avoid alert fatigue.
+- If you also need agent-level tracing, cost, or evaluation, add a second platform and build the glue between the two — WhyLabs will not export data in a shape a tracing tool expects.
+
+**Uncoil integration work:**
+- Add the SDK and instrument spans for LLM calls and tool invocations — typically the same afternoon you make the decision.
+- Write evaluation test cases as you go; they do not require ground-truth labeling, only a clear statement of expected behavior.
+- If you also need statistical drift detection on top of agent tracing, that remains a real gap — Uncoil does not replace a dedicated drift engine for a high-volume, ground-truth-backed model.
+
+```ts
+// Illustrative: a release gate combining a drift signal from a
+// statistical monitor with a trace-level evaluation pass rate.
+// Neither platform alone produces both inputs; a hybrid setup does.
+type ReleaseDecision = "ship" | "hold" | "escalate";
+
+interface QualitySignals {
+  driftScore: number; // 0 = no drift, 1 = severe drift (e.g. from WhyLabs)
+  evalPassRate: number; // 0 to 1 (e.g. from Uncoil's evaluation runner)
+}
+
+export function decideRelease(signals: QualitySignals): ReleaseDecision {
+  if (signals.driftScore > 0.6) return "escalate";
+  if (signals.evalPassRate < 0.9) return "hold";
+  return "ship";
+}
+```
+
+This is not a hypothetical: teams running both platforms in a hybrid setup commonly wire exactly this kind of gate into CI, using WhyLabs for the statistical input and Uncoil for the trace-level evaluation input. The gate is only a few lines of code once both signals exist; the real cost is standing up and maintaining both pipelines.
+
+## 12-month TCO analysis
+
+Assume a team running 400,000 LLM calls per month with 10 engineers, needing drift-adjacent quality signals, agent tracing, cost visibility, and evaluation over the course of a year. The figures below are a planning estimate built from typical usage-based ML monitoring and agent-observability pricing patterns, not official vendor quotes — use them to reason about the shape of the cost, not as a substitute for a vendor conversation.
+
+![Bar chart comparing 12-month TCO for a WhyLabs specialist stack, an integrated Uncoil platform, and a fragmented four-tool setup](/media/whylabs-vs-uncoil-tco-chart.svg)
+
+### Scenario A: WhyLabs specialist stack (drift covered, rest hand-built)
+
+| Item | Annual cost |
+| --- | --- |
+| WhyLabs platform (profiling at this volume) | $26,400 |
+| LangKit + profiling setup (1 week, one-time) | $2,000 |
+| DIY lightweight tracing/logging (0.15 FTE ongoing) | $18,000 |
+| Manual cost-tracking scripts (0.05 FTE ongoing) | $6,000 |
+| **Total** | **$52,400** |
+
+Drift detection is production-grade from day one. Tracing and cost visibility exist but are hand-built, brittle, and owned by whichever engineer wrote them last.
+
+### Scenario B: Uncoil integrated platform
+
+| Item | Annual cost |
+| --- | --- |
+| Uncoil platform (tracing + cost + evaluation + experiments) | $28,800 |
+| Setup (2 to 3 days, one-time) | $600 |
+| Evaluation and experiment maintenance (0.1 FTE ongoing) | $9,600 |
+| Optional lightweight external drift check | $4,800 |
+| **Total** | **$43,800** |
+
+Tracing, cost, and evaluation are native and require almost no ongoing engineering. Statistical drift detection, if genuinely needed, is a light add-on rather than the core product.
+
+### Scenario C: fragmented four-tool stack (WhyLabs + separate tracing + separate cost dashboard + separate evaluation platform)
+
+| Item | Annual cost |
+| --- | --- |
+| WhyLabs (drift) | $26,400 |
+| Separate tracing platform | $21,600 |
+| Separate cost-tracking tool | $7,200 |
+| Separate evaluation/experimentation platform | $18,000 |
+| Integration and reconciliation engineering (0.3 FTE) | $57,600 |
+| **Total** | **$130,800** |
+
+{% highlight %}The fragmented stack costs roughly three times the integrated Uncoil platform, and the gap is not licensing — it is the engineering time spent reconciling four data models, four dashboards, and four alerting systems that were never designed to talk to each other.{% /highlight %}
+
+> **Decision rule:** If your team would need three or more separate tools to cover drift, tracing, cost, and evaluation, the integration and reconciliation overhead usually costs more than any single platform's license. Price the fragmented scenario honestly before assuming a best-of-breed stack is cheaper.
+
+The hidden cost in Scenario A is that hand-built tracing and cost tooling tends to degrade as the agent's logic evolves — nobody owns keeping it current, and it quietly stops covering new code paths. The hidden cost in Scenario B is the reverse: if a genuine statistical drift requirement shows up later (a regulator asks for it, or a model quietly degrades in a way evaluation test cases did not catch), Uncoil alone will not answer that question, and the "optional lightweight external drift check" line item becomes a real integration project.
+
+## Trade-offs and honest boundaries
+
+Neither platform is a superset of the other, and pretending otherwise leads to a bad purchase decision.
+
+**WhyLabs' real limitations:**
+- No native concept of a multi-step trace or session; every event is judged independently against its statistical baseline.
+- No cost tracking, and no evaluation test-case runner for open-ended agent behavior.
+- Performance-drift detection is only as good as your ground-truth pipeline; without labels, you are limited to data drift, which is a weaker and noisier signal.
+- Not built around rapid, day-to-day prompt or model-version experimentation.
+
+**Uncoil's real limitations:**
+- No statistical drift engine: no population stability index, no automatic baseline comparison across thousands of predictions, no cohort-level distribution analysis.
+- Evaluation is trace-based ("did this specific behavior meet the bar"), not statistical ("has the distribution of outputs shifted"). These are complementary, not interchangeable, signals.
+- For a single, stateless, high-volume classifier with mature ground truth, Uncoil's session and tracing strengths add limited value.
+
+> **Field note:** Teams that adopt Uncoil expecting it to replace a drift-detection tool are usually disappointed within a quarter — the first time a model quietly degrades in a way no evaluation test case anticipated, they discover the gap. The fix is not to abandon Uncoil; it is to add a lightweight statistical check for the specific model where that risk is real, rather than trying to force trace-based evaluation to do a statistical job.
+
+### Security and data-handling boundary
+
+WhyLabs' profiling approach is deliberately privacy-preserving: it computes statistics over data rather than storing raw payloads, which matters for teams with strict data-residency or PII constraints on the underlying model inputs. Uncoil's trace model stores fuller request and response payloads by default (with configurable redaction) because full context is what makes a trace useful for debugging. If your compliance posture requires that raw prompts and completions never leave your control in identifiable form, treat that as a real constraint on both platforms' default configurations, not an assumption to skip past during procurement.
+
+## Making the migration
+
+### Adding WhyLabs alongside Uncoil
+
+If you already run Uncoil for agent tracing and discover you need statistical drift detection on a specific model inside your pipeline:
+
+1. Keep Uncoil running for tracing, cost, and evaluation — nothing about adding drift detection requires touching that instrumentation.
+2. Instrument the specific model's inputs, predictions, and (once available) ground truth with whylogs and WhyLabs.
+3. Set conservative alert thresholds initially and tune them over 2 to 4 weeks against real traffic to avoid alert fatigue.
+4. Wire drift alerts into the same release-gate logic that already consumes Uncoil evaluation results, as shown in the code example above.
+
+### Adding Uncoil alongside WhyLabs
+
+If you already run WhyLabs for drift monitoring and your system has grown from a single model into a multi-step agent:
+
+1. Keep WhyLabs running for the model(s) where statistical drift is a genuine, ground-truth-backed risk.
+2. Add Uncoil instrumentation to the agent's orchestration layer — this is additive, not a replacement, and typically takes a day or two.
+3. Run both for 2 to 4 weeks and confirm Uncoil's traces capture the full execution path, including tool calls WhyLabs never saw.
+4. Move cost and evaluation questions to Uncoil; leave statistical drift questions with WhyLabs. Resist the urge to force one platform to answer the other's question.
+
+For more on how end-to-end tracing fits into a broader observability practice, see [the complete agent observability guide](/blog/ai-agent-observability-complete-guide), and for a deeper look at which LLM-level metrics are worth tracking regardless of platform, [LLM observability: metrics that matter](/blog/llm-observability-metrics-that-matter) is a useful companion. Teams building out their evaluation practice specifically should also read the [practical guide to agent evaluation](/blog/ai-agent-evaluation-practical-guide), which covers how to design test cases that catch the failures drift detection alone would miss.
+
+## Decision framework
+
+Use the table below to locate your team's actual constraint before committing budget.
+
+| Your situation | Primary risk | Recommendation |
+| --- | --- | --- |
+| Single production model, mature ground truth, high volume | Statistical drift or performance degradation | **WhyLabs** |
+| Multi-step agent with tool calls and retries | Orchestration failure, cost, evaluation | **Uncoil** |
+| LLM text quality (toxicity, PII, readability) on isolated calls | Content-safety drift | **WhyLabs** (LangKit) |
+| Multi-turn conversational agent | Session-level cost and quality | **Uncoil** |
+| Regulated environment, statistical audit trail required | Compliance-grade drift evidence | **WhyLabs**, possibly hybrid |
+| Small team, need production confidence in days | Time-to-signal | **Uncoil** |
+| Mature data org, agent system, both risks are real | Both drift and orchestration | **Hybrid: WhyLabs + Uncoil** |
+
+{% editorial-panel eyebrow="Decision room" title="Pick the platform that matches your actual failure mode, not the one with the longer feature list." body="A team whose real risk is a silently degrading fraud model does not need session tracking or an experiment framework — it needs WhyLabs' statistical rigor. A team whose real risk is an agent looping on a tool call does not need population stability index — it needs Uncoil's trace graph. The wrong choice does not fail loudly; it just leaves the actual risk unmonitored while a dashboard for the wrong risk looks reassuring." tone="paper" /%}
+
+> **Security note:** Whichever platform you choose, confirm what happens to raw prompts, completions, and any PII they contain before sending production traffic. WhyLabs' profiling model reduces raw-data exposure by design; Uncoil's trace model requires you to configure redaction deliberately if your prompts or completions carry sensitive fields.
+
+## Action checklist
+
+Work through this before signing a contract or scheduling a migration:
+
+- [ ] Write down your team's actual last three production incidents. Were they statistical (a model quietly got worse) or orchestrational (an agent did the wrong thing or cost too much)?
+- [ ] Check whether you have a reliable ground-truth pipeline. If not, WhyLabs' performance-drift detection has little to compare against; you would be limited to data drift alone.
+- [ ] Estimate your monthly call volume and map it against the three TCO scenarios above.
+- [ ] Prototype instrumentation with your top candidate for half a day before committing.
+- [ ] If both drift and orchestration risk are real, price the hybrid setup honestly rather than defaulting to the platform you already have a relationship with.
+- [ ] Decide who owns alert tuning and evaluation test-case maintenance going forward — both platforms degrade in usefulness without an owner.
+- [ ] Re-run this checklist in two quarters; a system that starts as a single model can become a multi-step agent quickly, and the right platform can change with it.
+
+## Frequently asked questions
+
+{% faq-item question="Can I run WhyLabs and Uncoil together?" answer="Yes, and many teams with mature agent systems and mature ML models do. WhyLabs monitors statistical drift on models with reliable ground truth; Uncoil traces the agent's orchestration, cost, and evaluation. The two data models do not overlap, so running both is additive rather than redundant. The main cost is the engineering time to instrument both and to wire alerts from each into a shared release process." /%}
+
+{% faq-item question="Does Uncoil detect statistical drift the way WhyLabs does?" answer="No. Uncoil has no population stability index, no automatic baseline comparison across thousands of predictions, and no cohort-level distribution analysis. Its evaluation system can flag that an individual trace failed a defined check, which is a useful but different signal from statistical drift detection. If drift detection is a hard requirement, WhyLabs or an equivalent statistical monitoring tool is not optional." /%}
+
+{% faq-item question="Does WhyLabs trace multi-step agent execution?" answer="No. WhyLabs evaluates each instrumented event against its statistical baseline independently; it has no concept of a connected trace graph spanning tool calls, retries, and multi-turn sessions. For a single stateless model this rarely matters. For a multi-step agent, it means WhyLabs alone cannot show you the causal chain behind a specific failed request." /%}
+
+{% faq-item question="Which platform is cheaper for a small team?" answer="It depends on what the team actually needs. If the only requirement is drift detection on one well-labeled model, WhyLabs alone can be the cheaper and faster path. If the team needs tracing, cost visibility, and evaluation for an agent, Uncoil's integrated platform is typically cheaper than assembling the equivalent from WhyLabs plus separate tracing, cost, and evaluation tools, because the fragmented approach adds significant integration and reconciliation engineering time." /%}
+
+{% faq-item question="What happens if I only have data drift signals, not performance labels?" answer="WhyLabs can still detect data drift (a shift in input feature or prompt distributions) without ground truth, but performance drift (has accuracy actually dropped) requires labels. Without labels, treat WhyLabs' alerts as an early warning to investigate, not confirmation that quality has degraded. Building or buying a ground-truth pipeline is usually the higher-leverage investment before adding more drift tooling." /%}

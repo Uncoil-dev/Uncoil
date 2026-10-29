@@ -8,7 +8,7 @@
 
 ## Exact extracted word counts
 
-| Slug | Words | Headings | Blog links | Tracify links |
+| Slug | Words | Headings | Blog links | Uncoil links |
 | --- | ---: | ---: | ---: | ---: |
 | ai-agent-observability-complete-guide | 5,072 | 31 | 2 | 1 |
 | llm-observability-metrics-that-matter | 5,104 | 31 | 2 | 1 |
@@ -35,7 +35,7 @@
 ## Self-review
 
 - All documents are generated exclusively from the enabled Payload Lexical node types.
-- Every document has an introduction, Contents list, framework, grounded example, Visual guide, operational checklist, FAQ, hero-media node, two `/blog/` links, a Tracify `/docs/` or `/product/` link, and final CTA.
+- Every document has an introduction, Contents list, framework, grounded example, Visual guide, operational checklist, FAQ, hero-media node, two `/blog/` links, an Uncoil `/docs/` or `/product/` link, and final CTA.
 - No CMS import or publishing operation was performed.
 
 ## Concerns

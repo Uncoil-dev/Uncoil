@@ -6,12 +6,12 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 
 import { DashboardSidebar } from "./dashboard-sidebar";
 
-const COLLAPSED_STORAGE_KEY = "tracify.sidebar.collapsed";
-const LEGACY_COLLAPSED_STORAGE_KEY = "tracify:dashboard-sidebar";
+const COLLAPSED_STORAGE_KEY = "uncoil.sidebar.collapsed";
+const LEGACY_COLLAPSED_STORAGE_KEY = "uncoil:dashboard-sidebar";
 
 const COLLAPSED_WIDTH = 64;
 const EXPANDED_WIDTH = 232;
-type DashboardTheme = "legacy" | "tracify-v2";
+type DashboardTheme = "legacy" | "uncoil-v2";
 
 export function DashboardShell({
   children,
@@ -39,9 +39,9 @@ export function DashboardShell({
 
   const isDashboardRoute =
     synthetic || preview || pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  const isTracifyOverview = synthetic || preview || Boolean(projectId);
+  const isUncoilOverview = synthetic || preview || Boolean(projectId);
 
-  const defaultTheme = dashboardTheme ?? (process.env.NEXT_PUBLIC_TRACIFY_DASHBOARD_V2 === "false" ? "legacy" : "tracify-v2");
+  const defaultTheme = dashboardTheme ?? ((process.env.NEXT_PUBLIC_UNCOIL_DASHBOARD_V2 ?? process.env.NEXT_PUBLIC_TRACIFY_DASHBOARD_V2) === "false" ? "legacy" : "uncoil-v2");
 
   const requestedTheme = useSyncExternalStore(
     () => () => undefined,
@@ -51,7 +51,7 @@ export function DashboardShell({
 
   const activeTheme: DashboardTheme =
     dashboardTheme ??
-    (requestedTheme === "legacy" || requestedTheme === "tracify-v2" ? requestedTheme : defaultTheme);
+    (requestedTheme === "legacy" || requestedTheme === "uncoil-v2" ? requestedTheme : defaultTheme);
 
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -104,7 +104,7 @@ export function DashboardShell({
   return (
     <div
       data-dashboard-theme={activeTheme}
-      className={`flex min-h-svh w-full font-mono ${isDashboardRoute ? "tracify-cloud-shell text-white/70" : "text-black/70 bg-[#eceae3]"} ${isTracifyOverview ? "tracify-shell" : ""}`}
+      className={`flex min-h-svh w-full font-mono ${isDashboardRoute ? "uncoil-cloud-shell text-white/70" : "text-black/70 bg-[#eceae3]"} ${isUncoilOverview ? "uncoil-shell" : ""}`}
     >
       <DashboardSidebar
         canAccessContent={canAccessContent}
@@ -122,7 +122,7 @@ export function DashboardShell({
         <button
           type="button"
           aria-label="Close sidebar"
-          className="tracify-shell-sidebar-backdrop"
+          className="uncoil-shell-sidebar-backdrop"
           onClick={() => setIsMobileOpen(false)}
         />
       ) : null}
@@ -134,12 +134,12 @@ export function DashboardShell({
           className={`h-svh pb-0 overflow-y-auto scrollbar-hide ${isDashboardRoute ? "bg-[#101010] p-0" : "bg-[#eceae3] p-4 lg:p-6"}`}
         >
           {isDashboardRoute && !synthetic && isMobileViewport ? (
-            <div className="tracify-collapse-anchor relative h-11">
+            <div className="uncoil-collapse-anchor relative h-11">
               <button
                 type="button"
                 aria-label="Open menu"
                 title="Open menu"
-                onClick={() => window.dispatchEvent(new Event("tracify:toggle-sidebar"))}
+                onClick={() => window.dispatchEvent(new Event("uncoil:toggle-sidebar"))}
                 className="absolute left-1 top-0.5 z-10 flex size-10 items-center justify-center !text-[#8d8d8d] outline-none hover:!bg-[#181818] hover:!text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/55"
               >
                 <PanelLeftOpen className="size-4" />

@@ -1,0 +1,47 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="42" font-size="26" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Choosing by depth vs. governance
+  </text>
+  <text x="600" y="66" font-size="13" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Framework-level debugging depth (x) against production quality gates and cost governance (y)
+  </text>
+
+  <!-- Plot area -->
+  <line x1="150" y1="600" x2="1050" y2="600" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="150" y1="100" x2="150" y2="600" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="600" y1="100" x2="600" y2="600" stroke="#333333" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="150" y1="350" x2="1050" y2="350" stroke="#333333" stroke-width="1" stroke-dasharray="5,5"/>
+
+  <text x="600" y="640" font-size="14" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Framework-level debugging depth →</text>
+  <text x="70" y="350" font-size="14" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace" transform="rotate(-90 70 350)">Production quality gates &amp; cost governance →</text>
+
+  <!-- Quadrant labels -->
+  <text x="375" y="130" font-size="12" fill="#555555" text-anchor="middle" font-family="'Geist Mono', monospace">high governance, low framework depth</text>
+  <text x="825" y="130" font-size="12" fill="#555555" text-anchor="middle" font-family="'Geist Mono', monospace">high governance + high framework depth (hybrid)</text>
+  <text x="375" y="585" font-size="12" fill="#555555" text-anchor="middle" font-family="'Geist Mono', monospace">low both (ad hoc / early prototype)</text>
+  <text x="825" y="585" font-size="12" fill="#555555" text-anchor="middle" font-family="'Geist Mono', monospace">deep dev tracing, no production gate</text>
+
+  <!-- DIY / manual point (2,2) -->
+  <circle cx="330" cy="500" r="11" fill="#444444" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="330" y="530" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">Manual / DIY tooling</text>
+
+  <!-- Latitude point (8,4) -->
+  <circle cx="870" cy="400" r="13" fill="#FFFF00" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="870" y="435" font-size="14" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Latitude</text>
+  <text x="870" y="452" font-size="11" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">deep decision-path visibility</text>
+
+  <!-- Uncoil point (5,9) -->
+  <circle cx="600" cy="150" r="13" fill="#FFFFFF" stroke="#FFFF00" stroke-width="2"/>
+  <text x="600" y="185" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil</text>
+  <text x="600" y="202" font-size="11" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">integrated quality + cost gates</text>
+
+  <!-- Hybrid point (8,8) -->
+  <circle cx="870" cy="200" r="13" fill="none" stroke="#FFFF00" stroke-width="3" stroke-dasharray="4,3"/>
+  <text x="870" y="180" font-size="13" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">Hybrid: both, wired together</text>
+
+  <text x="600" y="672" font-size="12" fill="#666666" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Full trade-off discussion and the practitioner scoring table are in the article below.
+  </text>
+</svg>

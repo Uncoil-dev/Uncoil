@@ -8,7 +8,7 @@ const envExample = fs.readFileSync(".env.local.example", "utf8");
 
 assert.deepEqual(Object.keys(contract.regions), ["eu", "us"]);
 for (const [id, region] of Object.entries(contract.regions)) {
-  assert.match(region.origin, new RegExp(`^https://${id}\\.cloud\\.tracify\\.tech$`));
+  assert.match(region.origin, new RegExp(`^https://${id}\\.cloud\\.uncoil\\.tech$`));
   assert.ok(regionSource.includes(region.origin), `${region.origin} is missing from the application region registry`);
   assert.ok(sdkSource.includes(region.origin), `${region.origin} is missing from the TypeScript SDK`);
   assert.match(region.infrastructure.vercelProject, new RegExp(`${id}$`));

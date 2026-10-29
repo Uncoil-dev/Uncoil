@@ -2,7 +2,7 @@
  * Fills the PREVIEW analytics database with sample traces for the staging test account,
  * so local previews look full without touching live customer data.
  *
- * It writes straight into ClickHouse database `tracify_preview` (created on first run as a
+ * It writes straight into ClickHouse database `uncoil_preview` (created on first run as a
  * copy of the live table layout) and never goes through /api/ingest, so it costs zero
  * Convex calls. It refuses to run against any database whose name does not end in "_preview".
  *
@@ -24,8 +24,8 @@ if (existsSync(".env.local")) {
 const URL_ = process.env.CLICKHOUSE_URL?.replace(/\/$/, "");
 const USER = process.env.CLICKHOUSE_USER;
 const PASS = process.env.CLICKHOUSE_PASSWORD;
-const DB = process.env.CLICKHOUSE_DATABASE ?? "tracify_preview";
-const LIVE_DB = "tracify";
+const DB = process.env.CLICKHOUSE_DATABASE ?? "uncoil_preview";
+const LIVE_DB = "uncoil";
 const PROJECT = process.env.PREVIEW_PROJECT_ID;
 const RUNS = Number(process.env.SEED_RUNS ?? 120);
 const DAYS = Number(process.env.SEED_DAYS ?? 14);

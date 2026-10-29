@@ -26,7 +26,7 @@ function CommandTrigger() {
   return (
     <button
       type="button"
-      onClick={() => window.dispatchEvent(new Event("tracify:open-command"))}
+      onClick={() => window.dispatchEvent(new Event("uncoil:open-command"))}
       aria-label="Open command menu"
       className="hidden h-8 items-center gap-2 border border-black/15 bg-white px-3 font-mono text-[10px] uppercase tracking-widest text-black/55 transition-colors hover:border-black hover:text-black md:flex"
     >
@@ -50,8 +50,8 @@ function CommandDialog({ projectId, basePath }: { projectId?: string; basePath?:
     }
     function onAssistantOpen() { setOpen(true); }
     window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("tracify:open-command", onAssistantOpen);
-    return () => { window.removeEventListener("keydown", onKeyDown); window.removeEventListener("tracify:open-command", onAssistantOpen); };
+    window.addEventListener("uncoil:open-command", onAssistantOpen);
+    return () => { window.removeEventListener("keydown", onKeyDown); window.removeEventListener("uncoil:open-command", onAssistantOpen); };
   }, []);
 
   const items = useMemo(() => {

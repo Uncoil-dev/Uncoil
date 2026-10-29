@@ -1,0 +1,91 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="48" font-size="28" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Where each platform draws its boundary
+  </text>
+  <text x="600" y="74" font-size="14" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">
+    OpenObserve: unified, self-hostable telemetry platform  —  Uncoil: managed, LLM/agent-specific observability
+  </text>
+
+  <!-- Left stack: OpenObserve -->
+  <text x="285" y="120" font-size="20" font-weight="bold" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">OpenObserve</text>
+  <text x="285" y="140" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">open source · self-hosted or cloud</text>
+
+  <g font-family="'Geist Mono', monospace">
+    <rect x="90" y="160" width="390" height="52" fill="#111111" stroke="#FFD400" stroke-width="1.5"/>
+    <text x="110" y="182" font-size="14" fill="#FFFFFF" font-weight="bold">Logs</text>
+    <text x="110" y="200" font-size="11" fill="#AAAAAA">full-text + SQL search across raw log lines</text>
+
+    <rect x="90" y="220" width="390" height="52" fill="#111111" stroke="#FFD400" stroke-width="1.5"/>
+    <text x="110" y="242" font-size="14" fill="#FFFFFF" font-weight="bold">Metrics</text>
+    <text x="110" y="260" font-size="11" fill="#AAAAAA">PromQL-compatible time series, infra + app</text>
+
+    <rect x="90" y="280" width="390" height="52" fill="#111111" stroke="#FFD400" stroke-width="1.5"/>
+    <text x="110" y="302" font-size="14" fill="#FFFFFF" font-weight="bold">Traces</text>
+    <text x="110" y="320" font-size="11" fill="#AAAAAA">generic OpenTelemetry spans, any service</text>
+
+    <rect x="90" y="340" width="390" height="52" fill="#111111" stroke="#FFD400" stroke-width="1.5"/>
+    <text x="110" y="362" font-size="14" fill="#FFFFFF" font-weight="bold">RUM + alerts</text>
+    <text x="110" y="380" font-size="11" fill="#AAAAAA">real user monitoring, threshold alerting</text>
+
+    <rect x="90" y="400" width="390" height="52" fill="#1a1a1a" stroke="#555555" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="110" y="422" font-size="14" fill="#777777" font-weight="bold">LLM evaluation</text>
+    <text x="110" y="440" font-size="11" fill="#666666">not built in — bring your own tooling</text>
+
+    <rect x="90" y="460" width="390" height="52" fill="#1a1a1a" stroke="#555555" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="110" y="482" font-size="14" fill="#777777" font-weight="bold">LLM cost tracking</text>
+    <text x="110" y="500" font-size="11" fill="#666666">not built in — build custom dashboards</text>
+  </g>
+
+  <rect x="90" y="160" width="390" height="352" fill="none" stroke="#FFD400" stroke-width="2"/>
+
+  <!-- Storage base -->
+  <rect x="90" y="530" width="390" height="40" fill="#0a0a0a" stroke="#666666" stroke-width="1"/>
+  <text x="285" y="555" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">object storage (S3 / disk) + columnar engine</text>
+
+  <!-- Divider -->
+  <line x1="600" y1="100" x2="600" y2="570" stroke="#333333" stroke-width="1" stroke-dasharray="6 6"/>
+
+  <!-- Right stack: Uncoil -->
+  <text x="915" y="120" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">Uncoil</text>
+  <text x="915" y="140" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">managed SaaS · LLM/agent-specialized</text>
+
+  <g font-family="'Geist Mono', monospace">
+    <rect x="720" y="160" width="390" height="52" fill="#161600" stroke="#FFD400" stroke-width="1.5"/>
+    <text x="740" y="182" font-size="14" fill="#FFFFFF" font-weight="bold">LLM &amp; tool traces</text>
+    <text x="740" y="200" font-size="11" fill="#AAAAAA">prompts, completions, tool calls, retries</text>
+
+    <rect x="720" y="220" width="390" height="52" fill="#161600" stroke="#FFD400" stroke-width="1.5"/>
+    <text x="740" y="242" font-size="14" fill="#FFFFFF" font-weight="bold">Cost tracking</text>
+    <text x="740" y="260" font-size="11" fill="#AAAAAA">per call, per model, per provider — native</text>
+
+    <rect x="720" y="280" width="390" height="52" fill="#161600" stroke="#FFD400" stroke-width="1.5"/>
+    <text x="740" y="302" font-size="14" fill="#FFFFFF" font-weight="bold">Evaluation &amp; experiments</text>
+    <text x="740" y="320" font-size="11" fill="#AAAAAA">test cases, regression detection, scoring</text>
+
+    <rect x="720" y="340" width="390" height="52" fill="#161600" stroke="#FFD400" stroke-width="1.5"/>
+    <text x="740" y="362" font-size="14" fill="#FFFFFF" font-weight="bold">Sessions</text>
+    <text x="740" y="380" font-size="11" fill="#AAAAAA">multi-turn context stitched across a run</text>
+
+    <rect x="720" y="400" width="390" height="52" fill="#1a1a1a" stroke="#555555" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="740" y="422" font-size="14" fill="#777777" font-weight="bold">Infra logs / metrics</text>
+    <text x="740" y="440" font-size="11" fill="#666666">not the focus — pair with an infra tool</text>
+
+    <rect x="720" y="460" width="390" height="52" fill="#1a1a1a" stroke="#555555" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="740" y="482" font-size="14" fill="#777777" font-weight="bold">Self-hosting</text>
+    <text x="740" y="500" font-size="11" fill="#666666">not offered — managed SaaS only</text>
+  </g>
+
+  <rect x="720" y="160" width="390" height="352" fill="none" stroke="#FFD400" stroke-width="2"/>
+
+  <rect x="720" y="530" width="390" height="40" fill="#0a0a0a" stroke="#666666" stroke-width="1"/>
+  <text x="915" y="555" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">managed ingestion + agent-aware indexing</text>
+
+  <text x="600" y="620" font-size="13" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Solid boxes = native strength. Dashed boxes = the gap you fill yourself or with a second tool.
+  </text>
+  <text x="600" y="660" font-size="12" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Both platforms can ingest OpenTelemetry spans — the difference is what happens after ingestion.
+  </text>
+</svg>

@@ -8,10 +8,10 @@ import type { MetadataRoute } from "next";
 
 // Real "last reviewed" date for pages that are not blog posts. Bump it when those pages change in a meaningful way.
 const SITE_REVIEWED = new Date("2026-10-25T00:00:00.000Z");
-const INTERNAL_POSTS = new Set(["how-to-write-tracify-blog-posts"]);
+const INTERNAL_POSTS = new Set(["how-to-write-uncoil-blog-posts"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://www.tracify.tech";
+  const baseUrl = "https://www.uncoil.dev";
 
   const posts = await getPublishedPosts();
   const comparedPosts = new Set(comparisons.map((c) => c.post).filter(Boolean));

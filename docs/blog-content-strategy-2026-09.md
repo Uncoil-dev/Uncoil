@@ -1,6 +1,6 @@
 # Blog Content Strategy — AI Agent Operations Cluster (Q4 2026)
 
-Prepared for: Tracify content team
+Prepared for: Uncoil content team
 Scope: 10 long-form article briefs, keyword-cluster map, topical-authority map, pillar/cluster plan, 90-day calendar, production checklist.
 Status: strategy and briefs only. No articles have been drafted. All keyword-priority calls are labeled as strategic hypotheses, not measured search data — no keyword-volume or ranking-difficulty tool was queried to produce this document.
 
@@ -8,7 +8,7 @@ Status: strategy and briefs only. No articles have been drafted. All keyword-pri
 
 ## 1. Executive summary
 
-Tracify's blog already has strong coverage of observability fundamentals (what is AI observability, AI agent monitoring, AI agent architecture), evaluation basics (AI evaluation metrics, RAG evaluation), reliability basics (retries/guardrails, regression testing, incident response), and platform comparisons (15 `*-vs-tracify` posts). What is missing is a layer of **operational depth**: the frameworks a team reaches for once they already have an agent in production and are now responsible for classifying its failures, pricing its runs, releasing changes to it safely, and proving it is behaving the way it did last week.
+Uncoil's blog already has strong coverage of observability fundamentals (what is AI observability, AI agent monitoring, AI agent architecture), evaluation basics (AI evaluation metrics, RAG evaluation), reliability basics (retries/guardrails, regression testing, incident response), and platform comparisons (15 `*-vs-uncoil` posts). What is missing is a layer of **operational depth**: the frameworks a team reaches for once they already have an agent in production and are now responsible for classifying its failures, pricing its runs, releasing changes to it safely, and proving it is behaving the way it did last week.
 
 The 10 topics below fill that layer. Each one gives a production-facing reader (on-call engineer, AI platform lead, eng manager approving a release) a named framework they can apply immediately, not a restatement of "why observability matters."
 
@@ -42,10 +42,10 @@ The 10 topics below fill that layer. Each one gives a production-facing reader (
 
 ## 2. Research assumptions and limitations
 
-- No third-party keyword-volume, ranking-difficulty, or SERP-scraping tool was available when producing this document. Every "primary keyword" and "supporting keyword" below is a **strategic hypothesis** based on how engineers phrase these problems in documentation, GitHub issues, and forum threads — not a measured search-volume figure. Before drafting, run each primary keyword through whatever keyword tool Tracify has access to and adjust priority if the data disagrees.
+- No third-party keyword-volume, ranking-difficulty, or SERP-scraping tool was available when producing this document. Every "primary keyword" and "supporting keyword" below is a **strategic hypothesis** based on how engineers phrase these problems in documentation, GitHub issues, and forum threads — not a measured search-volume figure. Before drafting, run each primary keyword through whatever keyword tool Uncoil has access to and adjust priority if the data disagrees.
 - "Competing pages fail to explain X" observations are based on the general state of the AI-observability content space (most existing public content on these 10 topics is either vendor-agnostic and shallow, or vendor blog content that stops at "use our product"), not a citation-by-citation SERP audit.
 - All internal links recommended below point only to **slugs confirmed to exist** in `content/blog/*.mdoc` at the time this document was written. Re-verify with `ls content/blog/` before publishing, since slugs may change.
-- No customer names, benchmark numbers, integration claims, or compliance claims are used anywhere in this document. Any such claim in a drafted article must trace to a real, citable Tracify source at draft time.
+- No customer names, benchmark numbers, integration claims, or compliance claims are used anywhere in this document. Any such claim in a drafted article must trace to a real, citable Uncoil source at draft time.
 
 ---
 
@@ -120,7 +120,7 @@ Unchanged from the brief's requested order. Justification:
 17. **Unique framework:** The 12-Type Agent Failure Taxonomy, a single reference table with columns: Failure type, one-line definition, primary trace evidence, typical owning team, suggested regression-test type.
 18. **Opening angle:** An on-call engineer is paged because a support agent gave a customer an outdated refund policy. The trace shows the model call succeeded, tokens and latency were normal — standard APM sees nothing wrong. The failure is stale retrieval, invisible to infrastructure monitoring.
 19. **Evidence plan:** The 12-type reference table; a symptom-to-root-cause-to-evidence-to-owner table; a decision-tree diagram; one fully worked incident with an illustrative trace excerpt; a checklist for converting an incident into a regression test.
-20. **Code guidance:** One illustrative JSON trace excerpt contrasting a tool-selection failure with a tool-execution failure. Label explicitly as illustrative, not sampled from a live Tracify trace.
+20. **Code guidance:** One illustrative JSON trace excerpt contrasting a tool-selection failure with a tool-execution failure. Label explicitly as illustrative, not sampled from a live Uncoil trace.
 21. **Purposeful interaction — Failure Classifier:** Reader picks one of 5-6 short symptom descriptions from a dropdown. It teaches the same diagnostic questions the article's decision tree uses and lands on one of the 12 failure types with a one-line justification. Default state: no symptom selected. Deterministic fixed lookup table, entirely client-side, no secrets or network calls. Static fallback: the same mapping shown as a table if scripting is unavailable.
 22. **Hero image concept:** A stylized trace waterfall where exactly one span among eight or nine is highlighted in the failure color, with an annotation callout — "one failure, buried in a normal-looking run."
 23. **In-article visuals:** (1) The 12-type taxonomy as a designed reference table near the top. (2) Past the midpoint: a before/after trace comparison for the worked incident, healthy vs. stale-retrieval trace side by side.
@@ -245,7 +245,7 @@ Unchanged from the brief's requested order. Justification:
 29. **Schema:** Article + FAQPage. No HowTo (reference, not a procedure) and no SoftwareApplication claim.
 30. **Risks:** Must not imply the schema is an official or industry-standard spec — always frame as "a practical minimum," not "the standard." Overlaps conceptually with `llm-tracing-explained` and `opentelemetry-llm-tracing` — mitigate by making this the field-level reference those articles can cite rather than repeating their conceptual explanations.
 31. **Editorial differentiation:** Most tracing content explains *why* tracing matters; almost none gives a concrete, opinionated field list. This article's differentiation is being copy-pasteable as a starting schema.
-32. **Writer handoff:** Keep the JSON illustrative and clearly labeled; do not claim it matches any specific Tracify internal format unless verified with engineering at draft time.
+32. **Writer handoff:** Keep the JSON illustrative and clearly labeled; do not claim it matches any specific Uncoil internal format unless verified with engineering at draft time.
 
 ---
 
@@ -677,10 +677,10 @@ Assumes one article every 8–9 days (10 articles across ~90 days), with researc
 
 **Research**
 - [ ] Primary and secondary keywords checked against a real keyword tool if available; priority downgraded to "hypothesis" in the brief if not
-- [ ] Existing Tracify content re-scanned (`content/blog/*.mdoc`) immediately before drafting to confirm no new overlapping article has shipped since this strategy was written
+- [ ] Existing Uncoil content re-scanned (`content/blog/*.mdoc`) immediately before drafting to confirm no new overlapping article has shipped since this strategy was written
 
 **Source verification**
-- [ ] Every factual claim about AI systems traces to public documentation, the Tracify repo/docs, or is explicitly labeled as general industry guidance or a worked hypothetical
+- [ ] Every factual claim about AI systems traces to public documentation, the Uncoil repo/docs, or is explicitly labeled as general industry guidance or a worked hypothetical
 - [ ] No invented customers, benchmarks, integrations, compliance claims, or performance statistics anywhere in the draft
 
 **Brief approval**
@@ -700,7 +700,7 @@ Assumes one article every 8–9 days (10 articles across ~90 days), with researc
 - [ ] FAQ section present, exactly 5 questions, placed after the main teaching content, no separate "related articles" link-dump section
 
 **Technical review**
-- [ ] A second engineer confirms every trace-field, schema, or code example is either accurate to Tracify's real implementation or clearly labeled illustrative
+- [ ] A second engineer confirms every trace-field, schema, or code example is either accurate to Uncoil's real implementation or clearly labeled illustrative
 - [ ] No claim implies a specific product capability that hasn't been verified
 
 **SEO review**
@@ -719,7 +719,7 @@ Assumes one article every 8–9 days (10 articles across ~90 days), with researc
 - [ ] All images have meaningful, specific alt text (not generic)
 
 **Internal-link review**
-- [ ] Every internal link points to a real, published, non-draft Tracify URL, verified live before publishing
+- [ ] Every internal link points to a real, published, non-draft Uncoil URL, verified live before publishing
 - [ ] Anchor text is descriptive, never "click here" / "read more"
 - [ ] Links appear inside explanatory sentences, not as a link-dump list
 

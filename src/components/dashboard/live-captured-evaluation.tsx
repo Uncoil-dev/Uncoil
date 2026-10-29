@@ -22,7 +22,7 @@ export function LiveCapturedEvaluation({ projectId, section }: { projectId: stri
     datasets: datasets.map((item) => ({ id: item._id, name: item.name, status: "Available", environment: item.access, timestamp: new Date(item.updatedAt).toLocaleDateString(), model: `${item.items.length} items` })),
     scores: scores.map((item) => ({ id: item._id, name: item.name, status: "Recorded", environment: "all", timestamp: new Date(item.createdAt).toLocaleDateString(), score: String(item.value), model: item.source })),
   };
-  const workspace = { ...sandboxWorkspace, mode: "live" as const, readOnly: false, dataSource: "tracify-live" as const, project: { id: projectId, name: project.name, organizationName: "Workspace" }, collections: { ...sandboxWorkspace.collections, [section]: { description: `Live ${section} records.`, records: records[section] } } };
+  const workspace = { ...sandboxWorkspace, mode: "live" as const, readOnly: false, dataSource: "uncoil-live" as const, project: { id: projectId, name: project.name, organizationName: "Workspace" }, collections: { ...sandboxWorkspace.collections, [section]: { description: `Live ${section} records.`, records: records[section] } } };
   async function saveEvaluator(input: { name: string; type: "code" | "llm_judge"; criteria: string }) {
     await createEvaluator({ projectId: projectId as Id<"projects">, ...input });
   }

@@ -1,4 +1,4 @@
-/** Connection diagram for an integration page: your code on the left, Tracify on the right, captured fields on the wire. */
+/** Connection diagram for an integration page: your code on the left, Uncoil on the right, captured fields on the wire. */
 export function IntegrationWire({ name, captures }: { name: string; captures: readonly string[] }) {
   return (
     <div className="border-2 border-black bg-[#eceae3] p-5 text-black md:p-10">
@@ -14,7 +14,7 @@ export function IntegrationWire({ name, captures }: { name: string; captures: re
           ))}
         </div>
         <div className="border-2 border-black bg-[#090909] p-5 text-[#eceae3]">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">Tracify</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">Uncoil</p>
           <p className="mt-3 font-pixel text-4xl leading-[0.9] tracking-[-0.06em]">One run.</p>
         </div>
       </div>

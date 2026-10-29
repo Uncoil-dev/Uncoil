@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TracifyClient, TracifyError, buildRedactor, sampleBucket, tracifyMiddleware, traceTools } from "../src/index";
+import { UncoilClient, UncoilError, buildRedactor, sampleBucket, uncoilMiddleware, traceTools } from "../src/index";
 
-const KEY = "tracify_sk_live_eu_abcdefghijklmnop";
+const KEY = "uncoil_sk_live_eu_abcdefghijklmnop";
 let sent: any[] = [];
 function mockFetch(status = 200) {
   sent = [];
@@ -15,25 +15,25 @@ afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("clear errors", () => {
   it("explains a missing key and how to fix it", () => {
-    const seen: TracifyError[] = [];
-    delete process.env.TRACIFY_API_KEY;
-    new TracifyClient({ onError: (e) => seen.push(e) });
+    const seen: UncoilError[] = [];
+    delete process.env.UNCOIL_API_KEY;
+    new UncoilClient({ onError: (e) => seen.push(e) });
     expect(seen[0].code).toBe("missing_key");
-    expect(seen[0].message).toContain("TRACIFY_API_KEY");
+    expect(seen[0].message).toContain("UNCOIL_API_KEY");
   });
-  it("flags a key that is not a Tracify key", () => {
-    const seen: TracifyError[] = [];
-    new TracifyClient({ apiKey: "sk-openai-123", onError: (e) => seen.push(e) });
+  it("flags a key that is not an Uncoil key", () => {
+    const seen: UncoilError[] = [];
+    new UncoilClient({ apiKey: "sk-openai-123", onError: (e) => seen.push(e) });
     expect(seen[0].code).toBe("odd_key");
   });
   it("rejects a bad sample rate and bad host", () => {
-    expect(() => new TracifyClient({ apiKey: KEY, sampleRate: 2 })).toThrow(/0 to 1/);
-    expect(() => new TracifyClient({ apiKey: KEY, host: "not a url" })).toThrow(/valid web address/);
+    expect(() => new UncoilClient({ apiKey: KEY, sampleRate: 2 })).toThrow(/0 to 1/);
+    expect(() => new UncoilClient({ apiKey: KEY, host: "not a url" })).toThrow(/valid web address/);
   });
   it("tells the app once when the key is rejected", async () => {
     mockFetch(401);
-    const seen: TracifyError[] = [];
-    const client = new TracifyClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
     await client.ingest({ spanType: "llm_call", runId: "r1" });
     await client.ingest({ spanType: "llm_call", runId: "r1" });
     await flush();
@@ -43,8 +43,8 @@ describe("clear errors", () => {
   });
   it("reports an unreachable network without throwing", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
-    const seen: TracifyError[] = [];
-    const client = new TracifyClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
     await client.ingest({ spanType: "llm_call", runId: "r1" });
     await flush();
     expect(seen[0].code).toBe("network");
@@ -62,7 +62,7 @@ describe("sampling", () => {
   it("drops whole runs but keeps errors", async () => {
     mockFetch();
     const dropped = Array.from({ length: 50 }, (_, i) => `run-${i}`).find((r) => sampleBucket(r) >= 0.5)!;
-    const client = new TracifyClient({ apiKey: KEY, sampleRate: 0.5 });
+    const client = new UncoilClient({ apiKey: KEY, sampleRate: 0.5 });
     await client.ingest({ spanType: "llm_call", runId: dropped });
     await client.ingest({ spanType: "llm_call", runId: dropped });
     await client.ingest({ spanType: "error", runId: dropped, errorType: "Boom" });
@@ -70,9 +70,9 @@ describe("sampling", () => {
   });
   it("sampleRate 0 sends nothing and 1 sends everything", async () => {
     mockFetch();
-    await new TracifyClient({ apiKey: KEY, sampleRate: 0 }).ingest({ spanType: "llm_call", runId: "x" });
+    await new UncoilClient({ apiKey: KEY, sampleRate: 0 }).ingest({ spanType: "llm_call", runId: "x" });
     expect(sent).toHaveLength(0);
-    await new TracifyClient({ apiKey: KEY }).ingest({ spanType: "llm_call", runId: "x" });
+    await new UncoilClient({ apiKey: KEY }).ingest({ spanType: "llm_call", runId: "x" });
     expect(sent).toHaveLength(1);
   });
 });
@@ -91,14 +91,14 @@ describe("redaction", () => {
   });
   it("is applied to what is actually sent", async () => {
     mockFetch();
-    const client = new TracifyClient({ apiKey: KEY, redact: { pii: true } });
+    const client = new UncoilClient({ apiKey: KEY, redact: { pii: true } });
     await client.ingest({ spanType: "llm_call", runId: "r", input: "hi from bob@example.com", output: { to: "bob@example.com" } });
     expect(sent[0].input).toBe("hi from [redacted]");
     expect(sent[0].output).not.toContain("bob@");
   });
   it("masks emails, phones and cards by default", async () => {
     mockFetch();
-    await new TracifyClient({ apiKey: KEY }).ingest({ spanType: "llm_call", runId: "r", input: "bob@example.com paid with 4242 4242 4242 4242" });
+    await new UncoilClient({ apiKey: KEY }).ingest({ spanType: "llm_call", runId: "r", input: "bob@example.com paid with 4242 4242 4242 4242" });
     expect(sent[0].input).toBe("[redacted] paid with [redacted]");
   });
   it("leaves long numbers that are not cards alone", () => {
@@ -107,7 +107,7 @@ describe("redaction", () => {
   it("can be turned off with pii: false", async () => {
     expect(buildRedactor({ pii: false })).toBeUndefined();
     mockFetch();
-    await new TracifyClient({ apiKey: KEY, redact: { pii: false } }).ingest({ spanType: "llm_call", runId: "r", input: "bob@example.com" });
+    await new UncoilClient({ apiKey: KEY, redact: { pii: false } }).ingest({ spanType: "llm_call", runId: "r", input: "bob@example.com" });
     expect(sent[0].input).toBe("bob@example.com");
   });
   it("keeps masking when only custom patterns are given", () => {
@@ -118,7 +118,7 @@ describe("redaction", () => {
 describe("framework helpers", () => {
   it("traces plain and object tools, including failures", async () => {
     mockFetch();
-    const client = new TracifyClient({ apiKey: KEY });
+    const client = new UncoilClient({ apiKey: KEY });
     const tools = traceTools({
       add: (a: number, b: number) => a + b,
       lookup: { description: "d", execute: async (q: string) => `found ${q}` },
@@ -135,8 +135,8 @@ describe("framework helpers", () => {
   });
   it("traces Vercel AI SDK generate and stream calls", async () => {
     mockFetch();
-    const client = new TracifyClient({ apiKey: KEY });
-    const mw = tracifyMiddleware({ client });
+    const client = new UncoilClient({ apiKey: KEY });
+    const mw = uncoilMiddleware({ client });
     const model = { provider: "openai.chat", modelId: "gpt-test" };
     await mw.wrapGenerate({ model, params: { prompt: "hi" }, doGenerate: async () => ({ content: [{ type: "text", text: "hello" }], usage: { inputTokens: 5, outputTokens: 2 }, finishReason: "stop" }) });
     const parts = [{ type: "text-delta", delta: "a" }, { type: "text-delta", delta: "b" }, { type: "finish", usage: { inputTokens: 3, outputTokens: 4 } }];

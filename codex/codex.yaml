@@ -1,5 +1,5 @@
-title: Remake the Tracify dashboard
-summary: Redesign and rebuild the Tracify dashboard with a cleaner layout, improved overview, and working charts — all verified end-to-end.
+title: Remake the Uncoil dashboard
+summary: Redesign and rebuild the Uncoil dashboard with a cleaner layout, improved overview, and working charts — all verified end-to-end.
 tools:
   builtin:
     - grep

@@ -286,7 +286,7 @@ function EmailPrefs() {
     { key: "product" as const, title: "Product updates", text: "Occasional feature and release notes." },
   ];
   return (
-    <Panel title="Email" text="Choose which emails you get from Tracify.">
+    <Panel title="Email" text="Choose which emails you get from Uncoil.">
       <ul className="divide-y divide-[#1F242C] border border-[#1F242C]">
         {rows.map((row) => (
           <li key={row.key}>
@@ -305,7 +305,7 @@ function EmailPrefs() {
           </li>
         ))}
       </ul>
-      <button type="button" className={cn(ghost, "mt-4")} onClick={() => window.dispatchEvent(new Event("tracify:open-consent"))}>
+      <button type="button" className={cn(ghost, "mt-4")} onClick={() => window.dispatchEvent(new Event("uncoil:open-consent"))}>
         <ShieldCheck className="size-3.5" /> Cookie and privacy choices
       </button>
     </Panel>
@@ -317,7 +317,7 @@ function useBackHref() {
     () => () => undefined,
     () => {
       try {
-        return window.localStorage.getItem("tracify.lastProjectId");
+        return window.localStorage.getItem("uncoil.lastProjectId");
       } catch {
         return null;
       }

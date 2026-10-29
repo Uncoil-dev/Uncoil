@@ -2,7 +2,7 @@
 
 let apiKey = "";
 const listeners = new Set<() => void>();
-const ONE_TIME_API_KEY_STORAGE_KEY = "tracify.onboarding.apiKey";
+const ONE_TIME_API_KEY_STORAGE_KEY = "uncoil.onboarding.apiKey";
 
 function emit() {
   for (const listener of listeners) {
@@ -38,8 +38,8 @@ export function clearOneTimeApiKey() {
   emit();
 }
 
-const RETURN_PATH_STORAGE_KEY = "tracify.onboarding.returnPath";
-const ONBOARDING_DISMISSED_STORAGE_KEY = "tracify.onboarding.dismissed";
+const RETURN_PATH_STORAGE_KEY = "uncoil.onboarding.returnPath";
+const ONBOARDING_DISMISSED_STORAGE_KEY = "uncoil.onboarding.dismissed";
 
 export function setReturnPath(value: string) {
   if (typeof window !== "undefined") {

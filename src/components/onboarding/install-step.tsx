@@ -10,19 +10,19 @@ import type { Id } from "convex/_generated/dataModel";
 import { CodeCopyBlock } from "@/components/onboarding/code-copy-block";
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
-import { getDeploymentRegion, getTracifyRegion } from "@/lib/regions";
+import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
 const isPostHogConfigured = Boolean(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
     process.env.NEXT_PUBLIC_POSTHOG_HOST,
 );
-const INSTALL_READY_STORAGE_KEY = "tracify.onboarding.installReady";
+const INSTALL_READY_STORAGE_KEY = "uncoil.onboarding.installReady";
 
 const snippets = {
   python: {
     label: "Python",
-    install: "pip install tracify-sdk",
-    code: `from tracify import trace_agent
+    install: "pip install uncoil-sdk",
+    code: `from uncoil import trace_agent
 
 @trace_agent()
 async def research_agent(query):
@@ -30,8 +30,8 @@ async def research_agent(query):
   },
   typescript: {
     label: "TypeScript",
-    install: "npm install tracify-sdk",
-    code: `import { traceAgent } from "tracify-sdk"
+    install: "npm install uncoil-sdk",
+    code: `import { traceAgent } from "uncoil-sdk"
 
 const researchAgent = traceAgent(async (query: string) => {
   return await run(query)
@@ -40,32 +40,32 @@ const researchAgent = traceAgent(async (query: string) => {
   prompt: {
     label: "AI setup prompt",
     install: "",
-    code: `You are integrating Tracify into this agent project.
+    code: `You are integrating Uncoil into this agent project.
 
 Goal:
-Instrument the main agent run function so every run sends spans to Tracify.
+Instrument the main agent run function so every run sends spans to Uncoil.
 
 Rules:
 - Do not rewrite the agent.
 - Preserve existing behavior.
 - Add the smallest possible instrumentation change.
-- Use environment variable TRACIFY_API_KEY.
+- Use environment variable UNCOIL_API_KEY.
 - Do not hardcode secrets.
 
 Steps:
 1. Detect whether this project is Python or TypeScript.
-2. Install the Tracify SDK with the correct command:
-   - Python: pip install tracify-sdk
-   - TypeScript / Node.js: npm install tracify-sdk
-3. Add TRACIFY_API_KEY to .env.example.
+2. Install the Uncoil SDK with the correct command:
+   - Python: pip install uncoil-sdk
+   - TypeScript / Node.js: npm install uncoil-sdk
+3. Add UNCOIL_API_KEY to .env.example.
 4. Find the main agent function.
-5. If Python, import trace_agent from tracify and add @trace_agent().
-6. If TypeScript, import traceAgent from tracify-sdk and wrap the async agent function.
+5. If Python, import trace_agent from uncoil and add @trace_agent().
+6. If TypeScript, import traceAgent from uncoil-sdk and wrap the async agent function.
 7. Run the agent once.
-8. Confirm that a span was sent to Tracify.
+8. Confirm that a span was sent to Uncoil.
 
 Use this environment variable locally:
-TRACIFY_API_KEY=your_key_here`,
+UNCOIL_API_KEY=your_key_here`,
   },
 };
 
@@ -74,15 +74,15 @@ export function InstallStep() {
   const updateProgress = useMutation(api.projects.updateOnboardingProgress);
   const [tab, setTab] = useState<keyof typeof snippets>("python");
   const active = snippets[tab];
-  const region = getTracifyRegion(getDeploymentRegion());
+  const region = getUncoilRegion(getDeploymentRegion());
 
   return (
     <div>
       <OnboardingHeader
         title="Paste, run, done."
-        description={`Pick how you build, copy the lines below into your agent, then run it once. It sends to Tracify ${region.shortName}.`}
+        description={`Pick how you build, copy the lines below into your agent, then run it once. It sends to Uncoil ${region.shortName}.`}
       />
-      <CodeCopyBlock label="0 · Point at your region" value={`TRACIFY_REGION=${region.id}`} />
+      <CodeCopyBlock label="0 · Point at your region" value={`UNCOIL_REGION=${region.id}`} />
       <div className="mb-4 mt-4 border border-black/15 bg-white p-3 font-mono text-[10px] uppercase tracking-[0.1em] text-black/60">Ingest endpoint · {region.origin}/api/ingest</div>
       <div className="mb-4 grid border border-black/15 sm:grid-cols-3">
         {Object.entries(snippets).map(([key, snippet]) => (
@@ -128,7 +128,7 @@ export function InstallStep() {
             captureAnalytics("onboarding_install_ready", { runtime: tab });
           }
           window.sessionStorage.setItem(INSTALL_READY_STORAGE_KEY, "true");
-          const projectId = window.sessionStorage.getItem("tracify.onboarding.projectId");
+          const projectId = window.sessionStorage.getItem("uncoil.onboarding.projectId");
           if (projectId) void updateProgress({ projectId: projectId as Id<"projects">, step: "waiting", sdk: tab === "python" ? "python" : "typescript" });
           router.push("/onboarding/waiting");
         }}

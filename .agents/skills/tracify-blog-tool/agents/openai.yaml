@@ -1,4 +1,0 @@
-interface:
-  display_name: "Tracify Blog Tool"
-  short_description: "Build and validate production Tracify blogs"
-  default_prompt: "Use $tracify-blog-tool to create a visually composed, source-grounded Tracify blog post from the canonical scaffold and pass its targeted quality gate."

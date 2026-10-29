@@ -4,11 +4,11 @@ import { fitDescription, fitTitle, fitTitleText } from "./seo.ts";
 
 test("short titles keep the brand suffix", () => {
   assert.equal(fitTitle("Pricing"), "Pricing");
-  assert.equal(fitTitleText("Pricing"), "Pricing | Tracify");
+  assert.equal(fitTitleText("Pricing"), "Pricing | Uncoil");
 });
 
 test("titles that only fit without the suffix drop it", () => {
-  assert.deepEqual(fitTitle("Laminar vs Tracify: Trace Compression vs Full Observability"), { absolute: "Laminar vs Tracify: Trace Compression vs Full Observability" });
+  assert.deepEqual(fitTitle("Laminar vs Uncoil: Trace Compression vs Full Observability"), { absolute: "Laminar vs Uncoil: Trace Compression vs Full Observability" });
 });
 
 test("long titles are cut at a natural break and never pass 60 characters", () => {

@@ -7,7 +7,7 @@ export const buildArticle = (mediaIdBySlug: Record<string, number>) => buildLong
   audience: "AI engineers, product owners, and engineering leaders designing quality evidence for agent releases",
   framework: "Represent, Specify, Score, Review, Gate",
   outcome: "a release decision supported by representative quality evidence and known limitations",
-  tracifyLink: "/product/failures",
+  uncoilLink: "/product/failures",
   related: ["ai-agent-testing-unit-tests-production-evals", "llm-observability-metrics-that-matter"],
   topics: ["Define the decision before the score", "Build a representative evaluation set", "Write observable quality criteria", "Combine automated and human review", "Use results as a release gate"],
   signals: ["decision confidence and coverage", "input-class distribution and edge cases", "criterion-level pass and failure reasons", "reviewer agreement and disagreement", "regression rate across releases"],

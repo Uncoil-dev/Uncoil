@@ -14,7 +14,7 @@ export function DocsActions({ markdown, installUrl }: DocsActionsProps) {
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   };
-  const prompt = `Use this Tracify documentation page as context:\n\n${markdown}`;
+  const prompt = `Use this Uncoil documentation page as context:\n\n${markdown}`;
   const send = (destination: "chatgpt" | "claude") => {
     const url = destination === "chatgpt"
       ? `https://chatgpt.com/?q=${encodeURIComponent(prompt)}`

@@ -3,7 +3,7 @@ title: "Prompt Versioning in Production: Connect Changes to Outcomes"
 slug: prompt-versioning-production
 excerpt: Version prompts like code, carry the revision into traces and evaluations, and make rollback decisions from comparable evidence.
 publishedAt: 2026-08-20T10:10:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories: [engineering]
 tags: [prompt versioning, prompt management, AI releases]
@@ -53,7 +53,7 @@ The [prompt management guide](/blog/prompt-versioning-and-prompt-management) cov
 
 ```ts
 const prompt = prompts.resolve("support-agent", { environment: "production" });
-trace.setAttribute("tracify.prompt_revision", prompt.revision);
+trace.setAttribute("uncoil.prompt_revision", prompt.revision);
 const decision = await model.generate({ messages: prompt.messages, tools });
 ```
 
@@ -78,9 +78,9 @@ const contract = await promptRegistry.resolve("support-agent", {
 });
 
 trace.setAttributes({
-  "tracify.prompt_name": contract.name,
-  "tracify.prompt_revision": contract.revision,
-  "tracify.schema_revision": contract.schemaRevision,
+  "uncoil.prompt_name": contract.name,
+  "uncoil.prompt_revision": contract.revision,
+  "uncoil.schema_revision": contract.schemaRevision,
 });
 ```
 

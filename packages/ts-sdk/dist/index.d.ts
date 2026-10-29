@@ -1,8 +1,8 @@
-export interface TracifyConfig {
+export interface UncoilConfig {
     apiKey?: string;
     host?: string;
-    /** Tracify Cloud data region. Ignored when `host` is provided. Defaults to TRACIFY_REGION or EU. */
-    region?: TracifyRegion;
+    /** Uncoil Cloud data region. Ignored when `host` is provided. Defaults to UNCOIL_REGION or EU. */
+    region?: UncoilRegion;
     projectId?: string;
     /** Release and environment are copied onto observations created by this client. */
     release?: string;
@@ -19,13 +19,13 @@ export interface TracifyConfig {
     sampleRate?: number;
     /** Keep spans that report an error even when their run was not sampled. Defaults to true. */
     keepErrors?: boolean;
-    /** Extra clean-up of prompts and answers before they leave your app. Built-in secret removal always runs. */
+    /** Extra clean-up of prompts and answers before they leave your app. Secret removal always runs, and emails, phone numbers and card numbers are masked unless you set `pii: false`. */
     redact?: RedactionOptions;
     /** Called instead of printing a warning when the SDK has a problem sending data. */
-    onError?: (error: TracifyError) => void;
+    onError?: (error: UncoilError) => void;
 }
 export interface RedactionOptions {
-    /** Mask emails, phone numbers and card numbers. */
+    /** Mask emails, phone numbers and card numbers. On by default; set to false to send them as they are. */
     pii?: boolean;
     /** Extra patterns to mask. Strings are matched as plain text. */
     patterns?: Array<RegExp | string>;
@@ -35,14 +35,14 @@ export interface RedactionOptions {
     replacement?: string;
 }
 /** A problem the SDK ran into, with a plain-language fix in `hint`. */
-export declare class TracifyError extends Error {
+export declare class UncoilError extends Error {
     readonly code: string;
     readonly hint: string;
     readonly status?: number;
     constructor(code: string, message: string, hint: string, status?: number);
 }
-export type TracifyRegion = "eu" | "us";
-export declare const TRACIFY_REGION_HOSTS: Record<TracifyRegion, string>;
+export type UncoilRegion = "eu" | "us";
+export declare const UNCOIL_REGION_HOSTS: Record<UncoilRegion, string>;
 export interface SpanData {
     spanId?: string;
     runId?: string;
@@ -122,16 +122,16 @@ export declare function currentTraceContext(): {
     runId: string;
     spanId?: string;
     traceName?: string;
-    client?: TracifyClient;
+    client?: UncoilClient;
 } | undefined;
 export declare function integrationPayload(value: unknown): string;
 export declare function currentSpanId(): string | undefined;
 export declare const MAX_PAYLOAD_CHARS = 10000;
-/** Build a function that applies the extra clean-up asked for in `redact`. Returns undefined when nothing is asked. */
+/** Build the clean-up for `redact`. Emails, phone numbers and card numbers are masked unless `pii: false`. */
 export declare function buildRedactor(options?: RedactionOptions): ((text: string) => string) | undefined;
 /** Stable number in [0, 1) for a run id, so every span of a run gets the same sampling decision. */
 export declare function sampleBucket(runId: string): number;
-export declare class TracifyClient {
+export declare class UncoilClient {
     protected apiKey: string;
     protected host: string;
     protected ingestUrl: string;
@@ -150,7 +150,7 @@ export declare class TracifyClient {
     private redactor?;
     private onError?;
     private warned;
-    constructor(config?: TracifyConfig);
+    constructor(config?: UncoilConfig);
     private clean;
     /** Tell the app about a problem once per kind: through `onError` if given, otherwise as a console warning. */
     private report;
@@ -209,7 +209,7 @@ export interface StepOptions {
     type?: StepType;
     input?: unknown;
     metadata?: Record<string, any>;
-    client?: TracifyClient;
+    client?: UncoilClient;
     /** Start a new run with this id (used by traceAgent). */
     runId?: string;
     /** Send this step as the run's end (run_end or error), which marks the run completed or failed. */
@@ -231,7 +231,7 @@ export declare function observe<A extends any[], R>(fn: (...args: A) => R | Prom
  * Wrap an agent's entry point. Each call is one trace: a new run id, and a root step that every step recorded
  * inside it hangs from. The root is sent as run_end (or error) when the call settles.
  */
-export declare function traceAgent<T extends (...args: any[]) => Promise<any>>(func: T, config?: TracifyConfig & {
+export declare function traceAgent<T extends (...args: any[]) => Promise<any>>(func: T, config?: UncoilConfig & {
     name?: string;
 }): T;
 /** Record a finished model call. It is attached to the step it was made in. */
@@ -240,7 +240,8 @@ export declare const llmCall: (data: Omit<SpanData, "spanType">) => Promise<void
 export declare const toolCall: (data: Omit<SpanData, "spanType">) => Promise<void>;
 export declare const decision: (data: Omit<SpanData, "spanType">) => Promise<void>;
 export { wrapOpenAI, wrapAnthropic, type IntegrationOptions } from "./integrations/providers";
-export { TracifyLangGraphHandler } from "./integrations/langgraph";
-export { tracifyMiddleware } from "./integrations/vercel-ai";
+export { UncoilLangGraphHandler } from "./integrations/langgraph";
+export { uncoilMiddleware } from "./integrations/vercel-ai";
 export { traceTools } from "./integrations/tools";
+export { init, uninit } from "./integrations/auto";
 export { runDoctor, formatReport, maskKey, type DoctorReport, type DoctorCheck, type DoctorOptions } from "./doctor";

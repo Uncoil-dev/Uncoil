@@ -1,6 +1,6 @@
-# Tracify blog and documentation canonical format playbook
+# Uncoil blog and documentation canonical format playbook
 
-This playbook is mandatory whenever an agent creates, edits, reviews, stores, or publishes a Tracify blog post or public documentation. It applies to every change, including a new article, rewrite, migration, typo-plus edit, metadata update, image change, internal-link change, or documentation update.
+This playbook is mandatory whenever an agent creates, edits, reviews, stores, or publishes an Uncoil blog post or public documentation. It applies to every change, including a new article, rewrite, migration, typo-plus edit, metadata update, image change, internal-link change, or documentation update.
 
 ## Hard length gate
 
@@ -14,11 +14,11 @@ The canonical visual and editorial reference is the AI Agent Monitoring article:
 
 Use this prompt when refining any of the other 26 published posts:
 
-> Refine this Tracify blog post to the quality and usefulness of `/blog/ai-agent-monitoring` without changing its slug, publication state, author, published date, or making unsupported product claims.
+> Refine this Uncoil blog post to the quality and usefulness of `/blog/ai-agent-monitoring` without changing its slug, publication state, author, published date, or making unsupported product claims.
 >
 > Hard length requirement: the final body must be 3,000–10,000 words, excluding frontmatter. Do not submit a shorter draft or call a partial expansion complete. Verify the count with the repository content test.
 >
-> Before editing, read `AGENTS.md`, `.agents/skills/tracify-blog-tool/SKILL.md`, its required references, `docs/blog-canonical-format-playbook.md`, the complete target article, the complete AI Agent Monitoring reference article, the shared Markdoc renderer and blog styles, the published-slug list, and the relevant Tracify product source. State the reader, job, promised outcome, article boundary, archetype, evidence, and one interaction before you write.
+> Before editing, read `AGENTS.md`, `.agents/skills/uncoil-blog-tool/SKILL.md`, its required references, `docs/blog-canonical-format-playbook.md`, the complete target article, the complete AI Agent Monitoring reference article, the shared Markdoc renderer and blog styles, the published-slug list, and the relevant Uncoil product source. State the reader, job, promised outcome, article boundary, archetype, evidence, and one interaction before you write.
 >
 > Preserve the target article’s frontmatter and draft/publication state. Keep the article in CommonMark/Markdoc. Do not add raw JSX, MDX, invented benchmarks, invented integrations, speculative roadmap claims, or unverified runnable code.
 >
@@ -71,7 +71,7 @@ The manager should apply this prompt to the remaining posts in small batches, st
 
 ## Mandatory workflow for every blog or documentation change
 
-1. Read `AGENTS.md`, `.agents/skills/tracify-blog-tool/SKILL.md`, this playbook, and all required references before touching content or documentation.
+1. Read `AGENTS.md`, `.agents/skills/uncoil-blog-tool/SKILL.md`, this playbook, and all required references before touching content or documentation.
 2. Inspect the canonical monitoring article, shared blog renderer/CSS, current media inventory, published slugs, and the target article.
 3. Write down the reader, job, outcome, boundary, article archetype, evidence, and interaction before editing.
 4. Work from a clean `codex/...` branch based on `origin/main`.

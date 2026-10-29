@@ -19,12 +19,12 @@ const source = files
   .map((file) => fs.readFileSync(path.join(root, file), "utf8"))
   .join("\n");
 
-assert.doesNotMatch(source, /npm install tracify(?:\s|["'`]|$)/, "legacy npm install command remains");
-assert.doesNotMatch(source, /pip install tracify(?:\s|\n|$)/, "legacy pip install command remains");
-assert.doesNotMatch(source, /import\s*\{\s*Tracify\s*\}/, "removed Tracify class remains in public examples");
-assert.doesNotMatch(source, /from\s+tracify\s+import\s+Tracify/, "removed Python Tracify class remains in public examples");
-assert.match(source, /npm install tracify-sdk/, "canonical npm package is missing");
-assert.match(source, /pip install tracify-sdk/, "canonical Python package is missing");
+assert.doesNotMatch(source, /npm install uncoil(?:\s|["'`]|$)/, "legacy npm install command remains");
+assert.doesNotMatch(source, /pip install uncoil(?:\s|\n|$)/, "legacy pip install command remains");
+assert.doesNotMatch(source, /import\s*\{\s*Uncoil\s*\}/, "removed Uncoil class remains in public examples");
+assert.doesNotMatch(source, /from\s+uncoil\s+import\s+Uncoil/, "removed Python Uncoil class remains in public examples");
+assert.match(source, /npm install uncoil-sdk/, "canonical npm package is missing");
+assert.match(source, /pip install uncoil-sdk/, "canonical Python package is missing");
 assert.match(source, /traceAgent/, "canonical TypeScript wrapper is missing");
 assert.match(source, /trace_agent/, "canonical Python wrapper is missing");
 assert.match(source, /href=\{hasFirstTrace \? `\/dashboard\/\$\{effectiveProjectId\}\/runs` : "\/demo"\}/, "authenticated first-trace handoff is missing");

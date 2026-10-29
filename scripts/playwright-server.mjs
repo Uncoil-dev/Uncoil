@@ -7,7 +7,7 @@ const child = spawn(process.execPath, [nextBin, "start", "-p", port], {
   env: {
     ...process.env,
     PLAYWRIGHT_LOCAL_SERVER: "1",
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "https://eu.cloud.tracify.tech",
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "https://eu.cloud.uncoil.dev",
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL ?? "https://jovial-owl-711.eu-west-1.convex.cloud",
     NEXT_PUBLIC_CONVEX_SITE_URL: process.env.NEXT_PUBLIC_CONVEX_SITE_URL ?? "https://jovial-owl-711.eu-west-1.convex.site",
   },

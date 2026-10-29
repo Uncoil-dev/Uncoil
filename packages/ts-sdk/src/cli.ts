@@ -1,26 +1,26 @@
 #!/usr/bin/env node
 import { formatReport, runDoctor, type DoctorOptions } from "./doctor";
-import { loadTracifyEnv, runLogin, type LoginOptions } from "./login";
+import { loadUncoilEnv, runLogin, type LoginOptions } from "./login";
 
-const HELP = `Usage: tracify-sdk login [options]
-       tracify-sdk doctor [options]
+const HELP = `Usage: uncoil-sdk login [options]
+       uncoil-sdk doctor [options]
 
 login   Sign in through your browser and save the API key for this folder.
 doctor  Check your API key, region and network, then send one test trace.
 
 login options:
-  --region <eu|us>    Data region (default: TRACIFY_REGION, else eu)
+  --region <eu|us>    Data region (default: UNCOIL_REGION, else eu)
   --new <name>        Create a new project with this name
   --no-browser        Only print the address and code; do not open a browser
   --env-file <path>   Where to save the key (default: .env.local)
-  --host <url>        Custom host (default: TRACIFY_HOST)
+  --host <url>        Custom host (default: UNCOIL_HOST)
   --json              Print machine-readable lines
 
 doctor options:
 
-  --key <key>       API key (default: TRACIFY_API_KEY)
-  --region <eu|us>  Data region (default: TRACIFY_REGION, else from the key)
-  --host <url>      Custom host (default: TRACIFY_HOST)
+  --key <key>       API key (default: UNCOIL_API_KEY)
+  --region <eu|us>  Data region (default: UNCOIL_REGION, else from the key)
+  --host <url>      Custom host (default: UNCOIL_HOST)
   --no-send         Skip the test trace
   --json            Print the result as JSON
   -h, --help        Show this help
@@ -60,7 +60,7 @@ async function main(argv: string[]) {
     if (!result.ok) console.error(json ? JSON.stringify({ event: "error", message: result.message }) : result.message);
     return result.ok ? 0 : 1;
   }
-  loadTracifyEnv(process.cwd());
+  loadUncoilEnv(process.cwd());
   const report = await runDoctor(options);
   console.log(json ? JSON.stringify(report, null, 2) : formatReport(report));
   return report.ok ? 0 : 1;

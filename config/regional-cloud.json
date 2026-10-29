@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "marketingOrigin": "https://www.tracify.tech",
+  "marketingOrigin": "https://www.uncoil.dev",
   "regions": {
     "eu": {
-      "origin": "https://eu.cloud.tracify.tech",
+      "origin": "https://eu.cloud.uncoil.dev",
       "location": "Ireland",
       "convexRegion": "aws-eu-west-1",
       "legacyApiKeys": true,
       "infrastructure": {
-        "vercelProject": "tracify-cloud-eu",
+        "vercelProject": "uncoil-cloud-eu",
         "convexDeployment": "jovial-owl-711",
         "convexUrl": "https://jovial-owl-711.eu-west-1.convex.cloud",
         "convexSiteUrl": "https://jovial-owl-711.eu-west-1.convex.site"
@@ -17,19 +17,19 @@
       "dataResidency": {
         "storage": "eu-west-1 (Ireland)",
         "convex": "jovial-owl-711, aws eu-west-1 (Ireland)",
-        "tinybird": "workspace tracify_eu_west1, https://api.eu-west-1.aws.tinybird.co (AWS Ireland)",
+        "tinybird": "workspace uncoil_eu_west1, https://api.eu-west-1.aws.tinybird.co (AWS Ireland)",
         "redis": "Upstash concrete-buffalo-140061, Global-type database with primary eu-west-1 (Ireland). Read regions MUST stay empty or EU-only; adding a non-EU read region silently breaks residency with no code change.",
         "eventProcessing": "Inngest Cloud, AWS us-east-2 (Ohio, UNITED STATES). Inngest Cloud has no EU region. inngest.send() carries span input/output, so every trace transits the US. PII redaction (email, phone, card, SSN, api_key) is applied before send and is on by default. Disclosed publicly on /security.",
         "note": "Do not describe the EU region as end-to-end EU-resident while event processing runs in the US. GCP europe-west2 and europe-west6 are London and Zurich respectively and are NOT in the EU; verify any new provider region by IP against the provider's published ranges."
       }
     },
     "us": {
-      "origin": "https://us.cloud.tracify.tech",
+      "origin": "https://us.cloud.uncoil.dev",
       "location": "Virginia",
       "convexRegion": "aws-us-east-1",
       "legacyApiKeys": false,
       "infrastructure": {
-        "vercelProject": "tracify-cloud-us",
+        "vercelProject": "uncoil-cloud-us",
         "convexDeployment": "flexible-anaconda-752",
         "convexUrl": "https://flexible-anaconda-752.convex.cloud",
         "convexSiteUrl": "https://flexible-anaconda-752.convex.site"
@@ -47,13 +47,13 @@
     "better-auth"
   ],
   "requiredCloudEnvironment": [
-    "NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND",
-    "NEXT_PUBLIC_TRACIFY_REGION",
-    "TRACIFY_REGION",
+    "NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND",
+    "NEXT_PUBLIC_UNCOIL_REGION",
+    "UNCOIL_REGION",
     "NEXT_PUBLIC_SITE_URL",
     "NEXT_PUBLIC_CONVEX_URL",
     "NEXT_PUBLIC_CONVEX_SITE_URL",
-    "TRACIFY_API_KEY_HASH_SECRET",
+    "UNCOIL_API_KEY_HASH_SECRET",
     "TINYBIRD_HOST",
     "TINYBIRD_TOKEN",
     "REDIS_URL",
@@ -63,22 +63,22 @@
     {
       "service": "vercel-release",
       "status": "ready",
-      "action": "EU live 2026-08-19: merged commit 091d9da deployed to tracify-cloud-eu and tracify (marketing) from a clean worktree. Git automation is still disconnected on tracify-cloud-eu; reconnecting it is optional cleanup now that a production deployment exists on main."
+      "action": "EU live 2026-08-19: merged commit 091d9da deployed to uncoil-cloud-eu and uncoil (marketing) from a clean worktree. Git automation is still disconnected on uncoil-cloud-eu; reconnecting it is optional cleanup now that a production deployment exists on main."
     },
     {
       "service": "dns",
       "status": "ready",
-      "action": "eu.cloud.tracify.tech is a CNAME to 5ee7be47305fd6c5.vercel-dns-017.com (migrated from the legacy A record to 76.76.21.21 on 2026-08-19). TLS issued; /api/health/region returns 200. The US record is intentionally not created."
+      "action": "eu.cloud.uncoil.dev is a CNAME to 5ee7be47305fd6c5.vercel-dns-017.com (migrated from the legacy A record to 76.76.21.21 on 2026-08-19). TLS issued; /api/health/region returns 200. The US record is intentionally not created."
     },
     {
       "service": "tinybird",
       "status": "ready",
-      "action": "EU workspace tracify_eu_west1 in AWS eu-west-1 holds datasources spans + evaluation_scores and pipes recent_runs_summary + spans_by_run (deployment #1). Host/token set on tracify-cloud-eu and confirmed authenticating via the health endpoint. US workspace not created."
+      "action": "EU workspace uncoil_eu_west1 in AWS eu-west-1 holds datasources spans + evaluation_scores and pipes recent_runs_summary + spans_by_run (deployment #1). Host/token set on uncoil-cloud-eu and confirmed authenticating via the health endpoint. US workspace not created."
     },
     {
       "service": "redis",
       "status": "ready",
-      "action": "EU uses Upstash concrete-buffalo-140061 over rediss:// (TLS), primary eu-west-1. REDIS_URL set and confirmed connecting. Two superseded Redis Cloud databases (database-MSZ2JEQR in London, tracify-eu-west1 in Ireland) should be deleted. US database not created."
+      "action": "EU uses Upstash concrete-buffalo-140061 over rediss:// (TLS), primary eu-west-1. REDIS_URL set and confirmed connecting. Two superseded Redis Cloud databases (database-MSZ2JEQR in London, uncoil-eu-west1 in Ireland) should be deleted. US database not created."
     },
     {
       "service": "inngest",
@@ -88,12 +88,12 @@
     {
       "service": "oauth",
       "status": "ready",
-      "action": "EU Google and GitHub callback URLs registered for https://eu.cloud.tracify.tech/api/auth/callback/{google,github}. US callbacks not registered."
+      "action": "EU Google and GitHub callback URLs registered for https://eu.cloud.uncoil.dev/api/auth/callback/{google,github}. US callbacks not registered."
     },
     {
       "service": "stripe",
       "status": "ready",
-      "action": "EU webhook endpoint we_1U5YRMV05QqKbrt9FFuI0zWx created on the shared live account, pointing at https://eu.cloud.tracify.tech/api/stripe/webhook with the same event set as production. Signing secret set on tracify-cloud-eu. Note STRIPE_SECRET_KEY and the STRIPE_PRICE_* values are NOT yet on the EU project, so billing there will 503 until added."
+      "action": "EU webhook endpoint we_1U5YRMV05QqKbrt9FFuI0zWx created on the shared live account, pointing at https://eu.cloud.uncoil.dev/api/stripe/webhook with the same event set as production. Signing secret set on uncoil-cloud-eu. Note STRIPE_SECRET_KEY and the STRIPE_PRICE_* values are NOT yet on the EU project, so billing there will 503 until added."
     },
     {
       "service": "us-region",

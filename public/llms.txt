@@ -1,68 +1,68 @@
-# Tracify
+# Uncoil
 
-> Tracify is an observability and evaluation platform for AI agents. It helps engineering teams trace agent runs, inspect tool and model calls, monitor cost and quality, evaluate changes, and investigate production failures.
+> Uncoil is an observability and evaluation platform for AI agents. It helps engineering teams trace agent runs, inspect tool and model calls, monitor cost and quality, evaluate changes, and investigate production failures.
 
-Use the documentation for implementation details and the blog for explanatory guides. Public pages use the canonical origin https://www.tracify.tech. Do not infer that roadmap items or third-party integrations are generally available unless the linked page says so.
+Use the documentation for implementation details and the blog for explanatory guides. Public pages use the canonical origin https://www.uncoil.dev. Do not infer that roadmap items or third-party integrations are generally available unless the linked page says so.
 
 ## Documentation
 
-- [Documentation overview](https://www.tracify.tech/docs): Start here to install Tracify and send an agent trace.
-- [TypeScript SDK](https://www.tracify.tech/docs/typescript): TypeScript installation and instrumentation guidance.
-- [Python SDK](https://www.tracify.tech/docs/python): Python installation and instrumentation guidance.
-- [OpenAI, Anthropic and LangGraph](https://www.tracify.tech/docs/provider-integrations): Wrap provider clients to record model calls, tokens, latency and errors.
-- [What is in a trace](https://www.tracify.tech/docs/trace-anatomy): The fields on every run and span.
-- [Feedback and scores](https://www.tracify.tech/docs/feedback-and-scores): Attach end-user feedback and typed scores to traces.
-- [Troubleshoot your first trace](https://www.tracify.tech/docs/troubleshooting): Fix missing runs, zero cost and duplicate calls.
-- [Set up Tracify with your coding agent](https://www.tracify.tech/docs/agent-setup): One copyable prompt for Claude Code, Cursor and Codex.
-- [API reference](https://www.tracify.tech/docs/api): Tracify API concepts and endpoints.
-- [Evaluation](https://www.tracify.tech/docs/evaluation): Guidance for evaluating agent behavior and quality.
-- [Integrations](https://www.tracify.tech/docs/integrations): Implementation guidance for supported integrations.
-- [Self-hosting](https://www.tracify.tech/docs/self-hosting): Self-hosting guidance and constraints.
-- [Docs MCP server](https://www.tracify.tech/api/docs/mcp): Read-only Model Context Protocol server exposing Tracify's documentation as structured resources for MCP-compatible agent clients.
+- [Documentation overview](https://www.uncoil.dev/docs): Start here to install Uncoil and send an agent trace.
+- [TypeScript SDK](https://www.uncoil.dev/docs/typescript): TypeScript installation and instrumentation guidance.
+- [Python SDK](https://www.uncoil.dev/docs/python): Python installation and instrumentation guidance.
+- [OpenAI, Anthropic and LangGraph](https://www.uncoil.dev/docs/provider-integrations): Wrap provider clients to record model calls, tokens, latency and errors.
+- [What is in a trace](https://www.uncoil.dev/docs/trace-anatomy): The fields on every run and span.
+- [Feedback and scores](https://www.uncoil.dev/docs/feedback-and-scores): Attach end-user feedback and typed scores to traces.
+- [Troubleshoot your first trace](https://www.uncoil.dev/docs/troubleshooting): Fix missing runs, zero cost and duplicate calls.
+- [Set up Uncoil with your coding agent](https://www.uncoil.dev/docs/agent-setup): One copyable prompt for Claude Code, Cursor and Codex.
+- [API reference](https://www.uncoil.dev/docs/api): Uncoil API concepts and endpoints.
+- [Evaluation](https://www.uncoil.dev/docs/evaluation): Guidance for evaluating agent behavior and quality.
+- [Integrations](https://www.uncoil.dev/docs/integrations): Implementation guidance for supported integrations.
+- [Self-hosting](https://www.uncoil.dev/docs/self-hosting): Self-hosting guidance and constraints.
+- [Docs MCP server](https://www.uncoil.dev/api/docs/mcp): Read-only Model Context Protocol server exposing Uncoil's documentation as structured resources for MCP-compatible agent clients.
 
 ## Compare and learn
 
-- [Compare Tracify with other tools](https://www.tracify.tech/compare): Tracify vs Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust and Datadog.
-- [Free tools for AI agent builders](https://www.tracify.tech/tools): Nine browser-based tools, no sign-up, nothing uploaded.
-- [Agent log checker](https://www.tracify.tech/tools/agent-log-checker): Paste an agent log or trace to find the first failure, slow steps and wasted tokens.
-- [Token counter](https://www.tracify.tech/tools/token-counter): Token counts and prices for GPT, Claude, Gemini, Llama and more (exact for OpenAI, labelled estimates for others).
-- [Model price comparison](https://www.tracify.tech/tools/llm-price-comparison): List prices for every major LLM API and a monthly cost calculator.
-- [Prompt cost checker](https://www.tracify.tech/tools/prompt-cost-checker): Shorten a prompt safely and see the cost per call.
-- [Context window checker](https://www.tracify.tech/tools/context-window-checker): See which models can fit a document in their context window.
-- [Tool definition checker](https://www.tracify.tech/tools/tool-definition-checker): Find mistakes in OpenAI, Anthropic, MCP and Gemini tool definitions.
-- [AI API status](https://www.tracify.tech/tools/ai-api-status): Live status of OpenAI, Anthropic, Gemini and other AI providers.
-- [JSON fixer](https://www.tracify.tech/tools/json-fixer): Repair broken JSON from language models.
-- [Rate limit calculator](https://www.tracify.tech/tools/rate-limit-calculator): How many users an app can serve within its provider's rate limits.
-- [Free AI agent cost estimator](https://www.tracify.tech/tools/ai-cost-estimator): Estimate cost per run, per finished task and per month from traffic and token counts.
-- [Best LLM observability tools](https://www.tracify.tech/best-llm-observability-tools): How to choose a tool, and who each option fits.
-- [Use cases](https://www.tracify.tech/use-cases/coding): Coding, RAG, voice, browser, multi-agent, MCP, chatbot, sales, SQL, document, cost control, release testing and internal copilot use cases, plus support, research, automation and tool-calling agents.
-- [Questions answered](https://www.tracify.tech/answers): Short answers on prompt tracing, request-lifecycle tracing, catching agent failures, OpenTelemetry ingestion and best practices.
-- [About Tracify](https://www.tracify.tech/about): What Tracify is, and where to find its code and SDKs.
-- [Glossary](https://www.tracify.tech/glossary): Short definitions of agent observability terms, one page per term.
-- [Trace OpenAI calls](https://www.tracify.tech/integrations/openai), [Anthropic](https://www.tracify.tech/integrations/anthropic), [LangGraph](https://www.tracify.tech/integrations/langgraph), [OpenTelemetry](https://www.tracify.tech/integrations/opentelemetry): Setup pages per integration. More: [LangChain](https://www.tracify.tech/integrations/langchain), [Google Gemini](https://www.tracify.tech/integrations/google-gemini), [Azure OpenAI](https://www.tracify.tech/integrations/azure-openai), [AWS Bedrock](https://www.tracify.tech/integrations/aws-bedrock), [Groq](https://www.tracify.tech/integrations/groq), [Ollama](https://www.tracify.tech/integrations/ollama), [LiteLLM](https://www.tracify.tech/integrations/litellm), [OpenRouter](https://www.tracify.tech/integrations/openrouter), [Mistral](https://www.tracify.tech/integrations/mistral), [DSPy](https://www.tracify.tech/integrations/dspy), [Haystack](https://www.tracify.tech/integrations/haystack), [Semantic Kernel](https://www.tracify.tech/integrations/semantic-kernel), [smolagents](https://www.tracify.tech/integrations/smolagents), [Next.js](https://www.tracify.tech/integrations/nextjs).
-- [Full text for AI](https://www.tracify.tech/llms-full.txt): Docs, glossary, comparisons and integrations as one plain-text file.
+- [Compare Uncoil with other tools](https://www.uncoil.dev/compare): Uncoil vs Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust and Datadog.
+- [Free tools for AI agent builders](https://www.uncoil.dev/tools): Nine browser-based tools, no sign-up, nothing uploaded.
+- [Agent log checker](https://www.uncoil.dev/tools/agent-log-checker): Paste an agent log or trace to find the first failure, slow steps and wasted tokens.
+- [Token counter](https://www.uncoil.dev/tools/token-counter): Token counts and prices for GPT, Claude, Gemini, Llama and more (exact for OpenAI, labelled estimates for others).
+- [Model price comparison](https://www.uncoil.dev/tools/llm-price-comparison): List prices for every major LLM API and a monthly cost calculator.
+- [Prompt cost checker](https://www.uncoil.dev/tools/prompt-cost-checker): Shorten a prompt safely and see the cost per call.
+- [Context window checker](https://www.uncoil.dev/tools/context-window-checker): See which models can fit a document in their context window.
+- [Tool definition checker](https://www.uncoil.dev/tools/tool-definition-checker): Find mistakes in OpenAI, Anthropic, MCP and Gemini tool definitions.
+- [AI API status](https://www.uncoil.dev/tools/ai-api-status): Live status of OpenAI, Anthropic, Gemini and other AI providers.
+- [JSON fixer](https://www.uncoil.dev/tools/json-fixer): Repair broken JSON from language models.
+- [Rate limit calculator](https://www.uncoil.dev/tools/rate-limit-calculator): How many users an app can serve within its provider's rate limits.
+- [Free AI agent cost estimator](https://www.uncoil.dev/tools/ai-cost-estimator): Estimate cost per run, per finished task and per month from traffic and token counts.
+- [Best LLM observability tools](https://www.uncoil.dev/best-llm-observability-tools): How to choose a tool, and who each option fits.
+- [Use cases](https://www.uncoil.dev/use-cases/coding): Coding, RAG, voice, browser, multi-agent, MCP, chatbot, sales, SQL, document, cost control, release testing and internal copilot use cases, plus support, research, automation and tool-calling agents.
+- [Questions answered](https://www.uncoil.dev/answers): Short answers on prompt tracing, request-lifecycle tracing, catching agent failures, OpenTelemetry ingestion and best practices.
+- [About Uncoil](https://www.uncoil.dev/about): What Uncoil is, and where to find its code and SDKs.
+- [Glossary](https://www.uncoil.dev/glossary): Short definitions of agent observability terms, one page per term.
+- [Trace OpenAI calls](https://www.uncoil.dev/integrations/openai), [Anthropic](https://www.uncoil.dev/integrations/anthropic), [LangGraph](https://www.uncoil.dev/integrations/langgraph), [OpenTelemetry](https://www.uncoil.dev/integrations/opentelemetry): Setup pages per integration. More: [LangChain](https://www.uncoil.dev/integrations/langchain), [Google Gemini](https://www.uncoil.dev/integrations/google-gemini), [Azure OpenAI](https://www.uncoil.dev/integrations/azure-openai), [AWS Bedrock](https://www.uncoil.dev/integrations/aws-bedrock), [Groq](https://www.uncoil.dev/integrations/groq), [Ollama](https://www.uncoil.dev/integrations/ollama), [LiteLLM](https://www.uncoil.dev/integrations/litellm), [OpenRouter](https://www.uncoil.dev/integrations/openrouter), [Mistral](https://www.uncoil.dev/integrations/mistral), [DSPy](https://www.uncoil.dev/integrations/dspy), [Haystack](https://www.uncoil.dev/integrations/haystack), [Semantic Kernel](https://www.uncoil.dev/integrations/semantic-kernel), [smolagents](https://www.uncoil.dev/integrations/smolagents), [Next.js](https://www.uncoil.dev/integrations/nextjs).
+- [Full text for AI](https://www.uncoil.dev/llms-full.txt): Docs, glossary, comparisons and integrations as one plain-text file.
 
 ## Product
 
-- [Product overview](https://www.tracify.tech/): Tracify's core agent observability and evaluation capabilities.
-- [Pricing](https://www.tracify.tech/pricing): Current plans and billing options.
-- [Integrations directory](https://www.tracify.tech/integrations): Available and planned integrations, with status shown on the page.
-- [Security](https://www.tracify.tech/security): Data handling, security controls, and compliance posture.
-- [Status](https://www.tracify.tech/status): Current service status.
-- [Roadmap](https://www.tracify.tech/roadmap): Public product direction; roadmap entries are not availability commitments.
+- [Product overview](https://www.uncoil.dev/): Uncoil's core agent observability and evaluation capabilities.
+- [Pricing](https://www.uncoil.dev/pricing): Current plans and billing options.
+- [Integrations directory](https://www.uncoil.dev/integrations): Available and planned integrations, with status shown on the page.
+- [Security](https://www.uncoil.dev/security): Data handling, security controls, and compliance posture.
+- [Status](https://www.uncoil.dev/status): Current service status.
+- [Roadmap](https://www.uncoil.dev/roadmap): Public product direction; roadmap entries are not availability commitments.
 
 ## Guides
 
-- [Blog](https://www.tracify.tech/blog): All published Tracify articles.
-- [AI agent observability guide](https://www.tracify.tech/blog/ai-agent-observability-complete-guide): Concepts, signals, and implementation considerations for agent observability.
-- [AI agent evaluation guide](https://www.tracify.tech/blog/ai-agent-evaluation-practical-guide): A practical approach to agent evaluation.
-- [Debugging AI agents in production](https://www.tracify.tech/blog/debug-ai-agents-in-production): A production debugging workflow for agent failures.
-- [LLM tracing explained](https://www.tracify.tech/blog/llm-tracing-explained): How tracing exposes model, tool, and workflow behavior.
-- [RSS feed](https://www.tracify.tech/blog/rss.xml): Machine-readable feed of published articles.
+- [Blog](https://www.uncoil.dev/blog): All published Uncoil articles.
+- [AI agent observability guide](https://www.uncoil.dev/blog/ai-agent-observability-complete-guide): Concepts, signals, and implementation considerations for agent observability.
+- [AI agent evaluation guide](https://www.uncoil.dev/blog/ai-agent-evaluation-practical-guide): A practical approach to agent evaluation.
+- [Debugging AI agents in production](https://www.uncoil.dev/blog/debug-ai-agents-in-production): A production debugging workflow for agent failures.
+- [LLM tracing explained](https://www.uncoil.dev/blog/llm-tracing-explained): How tracing exposes model, tool, and workflow behavior.
+- [RSS feed](https://www.uncoil.dev/blog/rss.xml): Machine-readable feed of published articles.
 
 ## Optional
 
-- [Changelog](https://www.tracify.tech/changelog): Product updates and release notes.
-- [Contact](https://www.tracify.tech/contact): Sales and general contact options.
-- [Privacy](https://www.tracify.tech/privacy): Privacy policy.
-- [Terms](https://www.tracify.tech/terms): Terms of service.
+- [Changelog](https://www.uncoil.dev/changelog): Product updates and release notes.
+- [Contact](https://www.uncoil.dev/contact): Sales and general contact options.
+- [Privacy](https://www.uncoil.dev/privacy): Privacy policy.
+- [Terms](https://www.uncoil.dev/terms): Terms of service.

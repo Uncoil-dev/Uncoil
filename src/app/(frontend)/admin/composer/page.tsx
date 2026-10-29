@@ -3,7 +3,7 @@ import { HomepageComposer } from "@/components/marketing/homepage-composer";
 import { requireLibraryAccess } from "@/lib/library-access";
 
 export const metadata: Metadata = {
-  title: "Homepage composer — Tracify",
+  title: "Homepage composer — Uncoil",
   robots: { index: false, follow: false, nocache: true },
 };
 

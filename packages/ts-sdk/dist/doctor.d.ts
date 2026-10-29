@@ -1,7 +1,7 @@
-import { type TracifyRegion } from "./index";
+import { type UncoilRegion } from "./index";
 export type DoctorStatus = "ok" | "warn" | "fail" | "skip";
 export interface DoctorCheck {
-    id: "runtime" | "key" | "region" | "network" | "trace";
+    id: "runtime" | "key" | "region" | "network" | "project" | "trace";
     title: string;
     status: DoctorStatus;
     message: string;
@@ -10,10 +10,12 @@ export interface DoctorCheck {
 }
 export interface DoctorOptions {
     apiKey?: string;
-    region?: TracifyRegion;
+    region?: UncoilRegion;
     host?: string;
     /** Skip the test trace; only check the key shape, region and network. */
     send?: boolean;
+    /** Project the key is expected to belong to. Defaults to UNCOIL_PROJECT_ID. */
+    projectId?: string;
     /** Seconds before a request is given up on. Defaults to 10. */
     timeoutMs?: number;
 }

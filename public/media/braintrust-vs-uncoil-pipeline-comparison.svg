@@ -1,0 +1,137 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <defs>
+    <marker id="arrowWhite" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#FFFFFF"/>
+    </marker>
+    <marker id="arrowYellow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#FFFF00"/>
+    </marker>
+    <marker id="arrowGray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#777777"/>
+    </marker>
+  </defs>
+
+  <text x="600" y="38" font-size="26" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Evaluation Pipeline: Braintrust vs Uncoil
+  </text>
+  <text x="600" y="62" font-size="13" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Same goal — a reliable quality gate. Different shape.
+  </text>
+
+  <!-- ===================== BRAINTRUST LANE ===================== -->
+  <text x="40" y="105" font-size="15" font-weight="bold" fill="#FF8844" font-family="'Geist Mono', monospace">
+    BRAINTRUST — EVALUATION-FIRST, MODULAR
+  </text>
+
+  <!-- boxes: x, label lines -->
+  <g font-family="'Geist Mono', monospace">
+    <rect x="30" y="120" width="165" height="70" fill="none" stroke="#FF8844" stroke-width="2"/>
+    <text x="112" y="148" font-size="11.5" fill="#FFFFFF" text-anchor="middle">Production</text>
+    <text x="112" y="164" font-size="11.5" fill="#FFFFFF" text-anchor="middle">logs / API</text>
+
+    <rect x="225" y="120" width="165" height="70" fill="none" stroke="#FF8844" stroke-width="2"/>
+    <text x="307" y="148" font-size="11.5" fill="#FFFFFF" text-anchor="middle">Build + version</text>
+    <text x="307" y="164" font-size="11.5" fill="#FFFFFF" text-anchor="middle">dataset</text>
+
+    <rect x="420" y="120" width="175" height="70" fill="none" stroke="#FF8844" stroke-width="2"/>
+    <text x="507" y="142" font-size="11" fill="#FFFFFF" text-anchor="middle">Custom evaluator</text>
+    <text x="507" y="158" font-size="11" fill="#FFFFFF" text-anchor="middle">(LLM-judge / Python /</text>
+    <text x="507" y="174" font-size="11" fill="#FFFFFF" text-anchor="middle">heuristic)</text>
+
+    <rect x="625" y="120" width="160" height="70" fill="none" stroke="#FF8844" stroke-width="2"/>
+    <text x="705" y="148" font-size="11.5" fill="#FFFFFF" text-anchor="middle">Batch score</text>
+    <text x="705" y="164" font-size="11.5" fill="#FFFFFF" text-anchor="middle">run</text>
+
+    <rect x="815" y="120" width="175" height="70" fill="none" stroke="#FF8844" stroke-width="2"/>
+    <text x="902" y="148" font-size="11.5" fill="#FFFFFF" text-anchor="middle">Export results</text>
+    <text x="902" y="164" font-size="11.5" fill="#FFFFFF" text-anchor="middle">(CSV / API)</text>
+  </g>
+
+  <line x1="195" y1="155" x2="222" y2="155" stroke="#FF8844" stroke-width="2" marker-end="url(#arrowWhite)"/>
+  <line x1="390" y1="155" x2="417" y2="155" stroke="#FF8844" stroke-width="2" marker-end="url(#arrowWhite)"/>
+  <line x1="595" y1="155" x2="622" y2="155" stroke="#FF8844" stroke-width="2" marker-end="url(#arrowWhite)"/>
+  <line x1="785" y1="155" x2="812" y2="155" stroke="#FF8844" stroke-width="2" marker-end="url(#arrowWhite)"/>
+
+  <!-- disconnected downstream systems, dashed = manual bridge -->
+  <line x1="902" y1="190" x2="902" y2="225" stroke="#777777" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowGray)"/>
+
+  <g font-family="'Geist Mono', monospace">
+    <rect x="790" y="230" width="130" height="46" fill="none" stroke="#777777" stroke-width="1.5" stroke-dasharray="4,4"/>
+    <text x="855" y="248" font-size="9.5" fill="#AAAAAA" text-anchor="middle">Cost data</text>
+    <text x="855" y="262" font-size="9.5" fill="#AAAAAA" text-anchor="middle">(manual pull)</text>
+
+    <rect x="930" y="230" width="130" height="46" fill="none" stroke="#777777" stroke-width="1.5" stroke-dasharray="4,4"/>
+    <text x="995" y="248" font-size="9.5" fill="#AAAAAA" text-anchor="middle">Tracing</text>
+    <text x="995" y="262" font-size="9.5" fill="#AAAAAA" text-anchor="middle">(separate tool)</text>
+
+    <rect x="1070" y="230" width="120" height="46" fill="none" stroke="#777777" stroke-width="1.5" stroke-dasharray="4,4"/>
+    <text x="1130" y="248" font-size="9.5" fill="#AAAAAA" text-anchor="middle">Experiments</text>
+    <text x="1130" y="262" font-size="9.5" fill="#AAAAAA" text-anchor="middle">(external infra)</text>
+  </g>
+  <line x1="920" y1="253" x2="927" y2="253" stroke="#777777" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="1060" y1="253" x2="1067" y2="253" stroke="#777777" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+  <text x="1130" y="298" font-size="10" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace" font-style="italic">
+    three systems, hand-joined
+  </text>
+
+  <!-- divider -->
+  <line x1="30" y1="330" x2="1170" y2="330" stroke="#333333" stroke-width="1"/>
+
+  <!-- ===================== UNCOIL LANE ===================== -->
+  <text x="40" y="368" font-size="15" font-weight="bold" fill="#FFFF00" font-family="'Geist Mono', monospace">
+    UNCOIL — INTEGRATED, ONE CLOSED LOOP
+  </text>
+
+  <g font-family="'Geist Mono', monospace">
+    <rect x="30" y="385" width="150" height="70" fill="none" stroke="#FFFF00" stroke-width="2"/>
+    <text x="105" y="413" font-size="11" fill="#FFFFFF" text-anchor="middle">SDK</text>
+    <text x="105" y="429" font-size="11" fill="#FFFFFF" text-anchor="middle">instrumentation</text>
+
+    <rect x="205" y="385" width="150" height="70" fill="none" stroke="#FFFF00" stroke-width="2"/>
+    <text x="280" y="413" font-size="11" fill="#FFFFFF" text-anchor="middle">Trace +</text>
+    <text x="280" y="429" font-size="11" fill="#FFFFFF" text-anchor="middle">session</text>
+
+    <rect x="380" y="385" width="160" height="70" fill="none" stroke="#FFFF00" stroke-width="2"/>
+    <text x="460" y="408" font-size="10.5" fill="#FFFFFF" text-anchor="middle">Native evaluator</text>
+    <text x="460" y="424" font-size="10.5" fill="#FFFFFF" text-anchor="middle">attached to span</text>
+
+    <rect x="565" y="385" width="160" height="70" fill="none" stroke="#FFFF00" stroke-width="2"/>
+    <text x="645" y="408" font-size="10.5" fill="#FFFFFF" text-anchor="middle">Cost calculated</text>
+    <text x="645" y="424" font-size="10.5" fill="#FFFFFF" text-anchor="middle">per call</text>
+
+    <rect x="750" y="385" width="150" height="70" fill="none" stroke="#FFFF00" stroke-width="2"/>
+    <text x="825" y="413" font-size="11" fill="#FFFFFF" text-anchor="middle">Experiment</text>
+    <text x="825" y="429" font-size="11" fill="#FFFFFF" text-anchor="middle">(A/B, one click)</text>
+
+    <rect x="925" y="385" width="155" height="70" fill="none" stroke="#FFFF00" stroke-width="2"/>
+    <text x="1002" y="413" font-size="11" fill="#FFFFFF" text-anchor="middle">Deployment</text>
+    <text x="1002" y="429" font-size="11" fill="#FFFFFF" text-anchor="middle">gate</text>
+  </g>
+
+  <line x1="180" y1="420" x2="202" y2="420" stroke="#FFFF00" stroke-width="2" marker-end="url(#arrowYellow)"/>
+  <line x1="355" y1="420" x2="377" y2="420" stroke="#FFFF00" stroke-width="2" marker-end="url(#arrowYellow)"/>
+  <line x1="540" y1="420" x2="562" y2="420" stroke="#FFFF00" stroke-width="2" marker-end="url(#arrowYellow)"/>
+  <line x1="725" y1="420" x2="747" y2="420" stroke="#FFFF00" stroke-width="2" marker-end="url(#arrowYellow)"/>
+  <line x1="900" y1="420" x2="922" y2="420" stroke="#FFFF00" stroke-width="2" marker-end="url(#arrowYellow)"/>
+
+  <!-- feedback loop back to instrumentation -->
+  <path d="M 1002 455 L 1002 500 L 105 500 L 105 458" fill="none" stroke="#FFFF00" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrowYellow)"/>
+  <text x="555" y="518" font-size="10.5" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-style="italic">
+    quality + cost feed the next routing decision automatically
+  </text>
+
+  <!-- summary callout -->
+  <rect x="30" y="555" width="1140" height="110" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <text x="600" y="585" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Braintrust: evaluation depth, then you build the bridge to cost, tracing, and experiments.
+  </text>
+  <text x="600" y="612" font-size="14" font-weight="bold" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Uncoil: evaluation is one stop on a trace that already carries cost, session, and experiment data.
+  </text>
+  <text x="600" y="642" font-size="11.5" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Neither pipeline is wrong — they optimize for different constraints. The rest of this article shows where each one pays off.
+  </text>
+</svg>

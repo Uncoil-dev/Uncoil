@@ -1,18 +1,18 @@
 {
-  "name": "tracify-sdk",
+  "name": "uncoil-sdk",
   "version": "0.6.0",
   "description": "Observability, runtime enforcement, and tracing for AI agents.",
-  "homepage": "https://www.tracify.tech",
+  "homepage": "https://www.uncoil.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onTracify/Tracify.git",
+    "url": "git+https://github.com/Uncoil-dev/Uncoil.git",
     "directory": "packages/ts-sdk"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "tracify-sdk": "dist/cli.js",
-    "tracify-doctor": "dist/cli.js"
+    "uncoil-sdk": "dist/cli.js",
+    "uncoil-doctor": "dist/cli.js"
   },
   "files": [
     "dist"
@@ -23,7 +23,7 @@
     "prepublishOnly": "npm run build"
   },
   "bugs": {
-    "url": "https://github.com/onTracify/Tracify/issues"
+    "url": "https://github.com/Uncoil-dev/Uncoil/issues"
   },
   "keywords": [
     "ai",
@@ -39,7 +39,7 @@
     "openai",
     "anthropic"
   ],
-  "author": "Tracify Team",
+  "author": "Uncoil Team",
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {

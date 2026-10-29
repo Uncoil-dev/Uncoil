@@ -4,7 +4,7 @@ The repository uses `main` for production and `staging` for a persistent Vercel 
 
 ## One-time Vercel setup
 
-In the Vercel project **tracify**:
+In the Vercel project **uncoil**:
 
 1. Set **Production Branch** to `main`.
 2. Add a Preview environment for the `staging` branch (or assign a staging domain to that branch).
@@ -15,7 +15,7 @@ In the Vercel project **tracify**:
    - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
    - `CLERK_SECRET_KEY`
    - `CLERK_JWT_ISSUER_DOMAIN`
-   - `TRACIFY_API_KEY_HASH_SECRET`
+   - `UNCOIL_API_KEY_HASH_SECRET`
    - `TINYBIRD_HOST`
    - `TINYBIRD_TOKEN`
    - `INNGEST_EVENT_KEY`
@@ -36,11 +36,11 @@ Both public Convex endpoints are required during the Next.js build. A missing `N
 
 ## Production deploys are manual
 
-`vercel.json` sets `git.deploymentEnabled.main` to `false`, so merging to `main` no longer triggers a production deployment on either Vercel project (`tracify`, `tracify-cloud-eu`). Preview deployments for other branches are unchanged. To update production, open the project in Vercel and redeploy the latest `main` commit (or create a production deployment from `main`).
+`vercel.json` sets `git.deploymentEnabled.main` to `false`, so merging to `main` no longer triggers a production deployment on either Vercel project (`uncoil`, `uncoil-cloud-eu`). Preview deployments for other branches are unchanged. To update production, open the project in Vercel and redeploy the latest `main` commit (or create a production deployment from `main`).
 
 ## Preview sample traces
 
-Local previews (`preview <PR>`) read a separate ClickHouse database, `tracify_preview`, never the live `tracify` one. Fill it for the staging test account once:
+Local previews (`preview <PR>`) read a separate ClickHouse database, `uncoil_preview`, never the live `uncoil` one. Fill it for the staging test account once:
 
 ```powershell
 $env:PREVIEW_PROJECT_ID="<id from the dashboard URL /dashboard/<id>>"; node scripts/seed-preview-db.mjs

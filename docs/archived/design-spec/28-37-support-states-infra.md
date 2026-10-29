@@ -7,7 +7,7 @@
 ```
 SUPPORT
 ────────────────────────────────────────────────
-Get help with tracify.
+Get help with uncoil.
 
 [Docs →]  [Status ↗]  [GitHub Issues ↗]  [Discord ↗]
 
@@ -63,7 +63,7 @@ Use case:    [________________________]
 
 ## Status
 
-`/status` redirects to `status.tracify.tech` (external Statuspage or Betterstack).
+`/status` redirects to `status.uncoil.dev` (external Statuspage or Betterstack).
 
 ---
 
@@ -402,24 +402,24 @@ Payment failed:        Payment failed. Update your billing method.
 
 | Page | Title | Meta description |
 |------|-------|-----------------|
-| `/` | tracify — Agent Observability Infrastructure | See every tool call, LLM decision, and cost your AI agents make — in real time. Free up to 50,000 spans/month. |
-| `/product` | Product — tracify | Trace viewer, cost dashboard, real-time span streaming. Everything you need to debug AI agents in production. |
-| `/pricing` | Pricing — tracify | Free, Pro, Team, and Enterprise plans. Start free with 50,000 spans/month. No credit card required. |
-| `/docs` | Docs — tracify | Get started with tracify in under 5 minutes. Python and TypeScript SDKs, API reference, and guides. |
-| `/blog` | Blog — tracify | Engineering insights, agent patterns, and production AI from the tracify team. |
-| `/changelog` | Changelog — tracify | Every tracify product update, release note, and improvement — in chronological order. |
-| `/sign-in` | Sign in — tracify | Sign in to your tracify dashboard. |
-| `/sign-up` | Start free — tracify | Create your free tracify account. No credit card required. |
-| `/support` | Support — tracify | Get help with tracify. Docs, community, and direct support. |
-| `/privacy` | Privacy Policy — tracify | How tracify collects, uses, and protects your data. |
-| `/terms` | Terms of Service — tracify | tracify terms of service. |
+| `/` | uncoil — Agent Observability Infrastructure | See every tool call, LLM decision, and cost your AI agents make — in real time. Free up to 50,000 spans/month. |
+| `/product` | Product — uncoil | Trace viewer, cost dashboard, real-time span streaming. Everything you need to debug AI agents in production. |
+| `/pricing` | Pricing — uncoil | Free, Pro, Team, and Enterprise plans. Start free with 50,000 spans/month. No credit card required. |
+| `/docs` | Docs — uncoil | Get started with uncoil in under 5 minutes. Python and TypeScript SDKs, API reference, and guides. |
+| `/blog` | Blog — uncoil | Engineering insights, agent patterns, and production AI from the uncoil team. |
+| `/changelog` | Changelog — uncoil | Every uncoil product update, release note, and improvement — in chronological order. |
+| `/sign-in` | Sign in — uncoil | Sign in to your uncoil dashboard. |
+| `/sign-up` | Start free — uncoil | Create your free uncoil account. No credit card required. |
+| `/support` | Support — uncoil | Get help with uncoil. Docs, community, and direct support. |
+| `/privacy` | Privacy Policy — uncoil | How uncoil collects, uses, and protects your data. |
+| `/terms` | Terms of Service — uncoil | uncoil terms of service. |
 
 ---
 
 # 37 FRONTEND FILE STRUCTURE
 
 ```
-c:\tracify\src\
+c:\uncoil\src\
 │
 ├── app\
 │   ├── (marketing)\

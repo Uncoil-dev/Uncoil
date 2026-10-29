@@ -47,7 +47,7 @@ export function ContextChecker() {
               <button type="button" className={ghostClass} onClick={() => setText("")} disabled={!text}>Clear</button>
             </div>
           ) : (
-            <NumberField label="Prompt size in tokens" value={known} onChange={setKnown} step={1000} hint="For example from your provider's usage numbers, or from the Tracify trace of a real call." />
+            <NumberField label="Prompt size in tokens" value={known} onChange={setKnown} step={1000} hint="For example from your provider's usage numbers, or from the Uncoil trace of a real call." />
           )}
           <NumberField label="Room to leave for the reply (tokens)" value={reply} onChange={(v) => setReply(Math.max(0, v))} step={500} hint="The window covers your prompt and the answer together. Some models cap the reply lower than this." />
         </div>

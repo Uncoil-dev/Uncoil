@@ -18,7 +18,7 @@ const faqs: Faq[] = [
   { q: "Why do models give different counts for the same text?", a: "Each model family splits text into pieces with its own vocabulary. Code, numbers and non-English text can differ by 20% or more between families, which changes both cost and how much fits in the context window." },
   { q: "Does it include the reply in the price?", a: "Only if you add a reply length. Output tokens cost several times more than input tokens, so a long answer can cost more than the prompt." },
   { q: "Is my text sent to a server?", a: "No. Counting happens in your browser. The only thing downloaded is the tokenizer code." },
-  { q: "How do I get exact counts for Claude or Gemini?", a: "Use the provider's own token counting endpoint, or read the usage numbers in each API response. Tracify records those real numbers for every call." },
+  { q: "How do I get exact counts for Claude or Gemini?", a: "Use the provider's own token counting endpoint, or read the usage numbers in each API response. Uncoil records those real numbers for every call." },
 ];
 
 export default function Page() {

@@ -458,7 +458,7 @@ Sections: Recent Runs / Navigate / Actions / Docs
 Routes: /, /product, /pricing, /blog, /changelog, /support, /contact, /docs (if separate domain)
 
 Nav (fixed, top):
-  Left: ■ tracify (logo wordmark, Geist Pixel)
+  Left: ■ uncoil (logo wordmark, Geist Pixel)
   Center: Product · Pricing · Docs · Blog · Changelog
   Right: Sign in (ghost) · Start free (primary)
   
@@ -487,11 +487,11 @@ Layout: two-column (50/50) on desktop, single column on mobile
 
 Left panel (dark brand):
   Background: --surface-1
-  Content: ■ tracify wordmark, tagline, ambient glow, terminal demo snippet
+  Content: ■ uncoil wordmark, tagline, ambient glow, terminal demo snippet
   
 Right panel (form):
   Background: --bg
-  Content: Clerk-wrapped form, tracify styling overrides
+  Content: Clerk-wrapped form, uncoil styling overrides
   Max-width of form: 400px, centered
 
 Mobile:
@@ -521,7 +521,7 @@ Sidebar:
   Width: 240px (desktop), 0 (mobile, drawer)
 
   Items:
-    [■ tracify] [project name dropdown]
+    [■ uncoil] [project name dropdown]
     ─────────────────
     Overview
     Runs
@@ -550,7 +550,7 @@ Mobile:
 ## D. Docs Layout
 
 ```
-Routes: /docs/* or docs.tracify.tech/*
+Routes: /docs/* or docs.uncoil.dev/*
 
 Left sidebar: 240px, nav tree
 Main: 720px prose, centered

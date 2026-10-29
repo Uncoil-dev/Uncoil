@@ -111,7 +111,7 @@ export function renderSummaryEmail(projectName: string, summary: WeeklySummary, 
   const { title, lines } = summaryLines(projectName, summary, budgets);
   const quiet = summary.current.runs === 0 ? "\nNo runs came in this week. If that's unexpected, check that your app is still sending traces." : "";
   return {
-    subject: `Your Tracify week: ${title}`,
+    subject: `Your Uncoil week: ${title}`,
     text: `${title}\n\n${lines.join("\n")}${quiet}\n\nSee the details: ${dashboardUrl}\n\nYou get this every Monday. Turn it off any time from Alerts in your dashboard.`,
     html: `<div style="font-family:Arial,sans-serif;max-width:520px"><h2 style="margin:0 0 12px">${escapeHtml(title)}</h2><ul style="padding-left:18px;line-height:1.7">${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>${quiet ? `<p>${escapeHtml(quiet.trim())}</p>` : ""}<p><a href="${escapeHtml(dashboardUrl)}">See the details</a></p><p style="color:#666;font-size:12px">You get this every Monday. Turn it off any time from Alerts in your dashboard.</p></div>`,
   };

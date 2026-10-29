@@ -18,7 +18,7 @@ const faqs: Faq[] = [
   { q: "Which limit matters, requests or tokens?", a: "Whichever is hit first. Agents with long prompts usually hit the token limit; apps with many tiny calls hit the request limit. The calculator tells you which." },
   { q: "Why include retries?", a: "A call that fails with a 429 still counts against your limit when you try again. A 5% retry rate means 5% more traffic than users alone create." },
   { q: "What is the busiest-minute factor?", a: "Real traffic is bursty. If your busiest minute is twice the average, you need limits for twice the average load." },
-  { q: "How do I see my real usage against limits?", a: "Tracify records every call and every 429, so you see how close you run to your limits and when you were throttled." },
+  { q: "How do I see my real usage against limits?", a: "Uncoil records every call and every 429, so you see how close you run to your limits and when you were throttled." },
 ];
 
 export default function Page() {

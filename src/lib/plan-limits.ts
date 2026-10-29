@@ -59,7 +59,7 @@ export const MAX_SPANS_PER_REQUEST = 1_000;
 /** Free spans bigger than this are trimmed (not refused), so a long prompt still shows up, just shortened. Paid plans keep the full 1 MB request. */
 export const FREE_MAX_SPAN_BYTES = 256 * 1024;
 
-const TRIM_NOTE = "\n…[trimmed by Tracify: Free plan keeps up to 64 KB of text per field]";
+const TRIM_NOTE = "\n…[trimmed by Uncoil: Free plan keeps up to 64 KB of text per field]";
 const FIELD_LIMITS = { input: 64_000, output: 64_000, errorMessage: 16_000, stackTrace: 16_000 } as const;
 const METADATA_LIMIT = 32_000;
 const ATTACHMENTS_LIMIT = 32_000;
@@ -86,11 +86,11 @@ export function trimOversizedSpan<T extends Record<string, unknown>>(span: T): {
   }
   const metadata = next.metadata as Record<string, unknown> | undefined;
   if (metadata && asText(metadata).length > METADATA_LIMIT) {
-    next.metadata = { tracifyTrimmed: "metadata over 32 KB was dropped on the Free plan" };
+    next.metadata = { uncoilTrimmed: "metadata over 32 KB was dropped on the Free plan" };
     trimmed = true;
   }
   if (!trimmed) return { span, trimmed };
-  next.metadata = { ...(next.metadata as Record<string, unknown> | undefined), tracifyTrimmed: true };
+  next.metadata = { ...(next.metadata as Record<string, unknown> | undefined), uncoilTrimmed: true };
   return { span: next as T, trimmed };
 }
 

@@ -3,7 +3,7 @@ title: "AI Agent Evaluation Datasets: How to Build Test Cases From Real User Int
 slug: ai-agent-evaluation-datasets
 excerpt: A five-signal method for sourcing AI agent evaluation datasets from production traces, plus a test-case schema, a sanitization checklist, and a worked before/after example.
 publishedAt: 2026-09-03T12:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories:
   - evaluation
@@ -222,7 +222,7 @@ A minimal version of that job has four stages, run on a fixed cadence (weekly is
 3. **Route new candidates to sanitization review.** Nothing produced by step one goes directly into the dataset; it lands in a `pending-review` queue first, as described in the checklist above.
 4. **Tag category and source signal, then version.** Once a reviewer clears a case, it gets its `category`, keeps its `source_signal`, and the dataset version is bumped to reflect the addition.
 
-The following illustrative pseudocode shows the shape of the query stage for one signal — tool-call errors — against a trace store. It is not a runnable snippet against any specific Tracify API; it's meant to show the filtering logic a real query would need, which is the part that transfers across trace stores.
+The following illustrative pseudocode shows the shape of the query stage for one signal — tool-call errors — against a trace store. It is not a runnable snippet against any specific Uncoil API; it's meant to show the filtering logic a real query would need, which is the part that transfers across trace stores.
 
 ```text
 # Illustrative — shape of a tool-call-error sourcing query, not a runnable API call.

@@ -1,4 +1,4 @@
-# Tracify repository map
+# Uncoil repository map
 
 | Area | Responsibility | Source of truth |
 | --- | --- | --- |

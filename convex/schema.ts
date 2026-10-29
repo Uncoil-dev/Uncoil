@@ -66,7 +66,7 @@ export default defineSchema({
     .index("by_stripeSubscriptionId", ["stripeSubscriptionId"])
     .index("by_apiKeyHash", ["apiKeyHash"]),
 
-  // Terminal sign-in (`tracify-sdk login`). The key is encrypted to the CLI's own public key, so the server never keeps a usable key.
+  // Terminal sign-in (`uncoil-sdk login`). The key is encrypted to the CLI's own public key, so the server never keeps a usable key.
   deviceLogins: defineTable({
     deviceCodeHash: v.string(),
     userCode: v.string(),
@@ -159,7 +159,7 @@ export default defineSchema({
     .index("by_runId", ["runId"])
     .index("by_ruleId", ["ruleId"]),
 
-  // Rules that Tracify checks on a schedule (convex/crons.ts). A breach opens an alert and emails `emailTo`.
+  // Rules that Uncoil checks on a schedule (convex/crons.ts). A breach opens an alert and emails `emailTo`.
   alertRules: defineTable({
     projectId: v.id("projects"),
     name: v.string(),

@@ -15,10 +15,10 @@ import { setOneTimeApiKey } from "@/lib/onboarding-client-state";
 import { ConvexAuthState } from "@/components/auth/convex-auth-state";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 
-const API_KEY_COPIED_STORAGE_KEY = "tracify.onboarding.apiKeyCopied";
-const PROJECT_ID_STORAGE_KEY = "tracify.onboarding.projectId";
-const PROJECT_NAME_STORAGE_KEY = "tracify.onboarding.projectName";
-const LAST_PROJECT_STORAGE_KEY = "tracify.lastProjectId";
+const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
+const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
+const PROJECT_NAME_STORAGE_KEY = "uncoil.onboarding.projectName";
+const LAST_PROJECT_STORAGE_KEY = "uncoil.lastProjectId";
 const isPostHogConfigured = Boolean(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
     process.env.NEXT_PUBLIC_POSTHOG_HOST,

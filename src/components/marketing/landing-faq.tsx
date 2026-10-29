@@ -5,10 +5,10 @@ import Link from "next/link";
 import { ArrowUpRight, Minus, Plus } from "lucide-react";
 
 const questions = [
-  ["What does Tracify capture?", "Tracify records runs, nested spans, model calls, tool calls, retries, cost, quality scores, sessions, and release context in one operational record."],
+  ["What does Uncoil capture?", "Uncoil records runs, nested spans, model calls, tool calls, retries, cost, quality scores, sessions, and release context in one operational record."],
   ["Can I use my existing AI stack?", "Yes. Instrument with the TypeScript or Python SDK, or send OpenTelemetry traces directly. The same workspace connects the resulting evidence."],
   ["How does evaluation connect to a trace?", "A production run can become a review item or a dataset example. Compare prompts, models, and evaluator results against the behavior that prompted the change."],
-  ["Will this work for more than debugging?", "Yes. Tracify is built for the wider improvement loop: investigation, quality review, experiment comparison, promotion, and monitoring after release."],
+  ["Will this work for more than debugging?", "Yes. Uncoil is built for the wider improvement loop: investigation, quality review, experiment comparison, promotion, and monitoring after release."],
 ] as const;
 
 export function LandingFaq() {
@@ -17,7 +17,7 @@ export function LandingFaq() {
   return (
     <section className="flex min-h-[calc(100svh-60px)] items-center border-y border-white/10 bg-[#0b0b0b] px-6 py-16 md:px-10 md:py-16">
       <div className="mx-auto grid w-full max-w-[1240px] gap-10 md:grid-cols-[0.72fr_1.28fr] md:gap-16">
-        <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">Questions, answered</p><h2 className="mt-5 max-w-[390px] font-pixel text-5xl font-normal leading-[0.91] tracking-[-0.065em] md:text-6xl">Built for the whole AI team.</h2><p className="mt-6 max-w-[360px] text-sm leading-7 text-zinc-500">From the first instrumented run to the next release, Tracify keeps product, engineering, and operations in the same evidence loop.</p><Link href="/contact" className="mt-8 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-300 hover:text-white">Talk to us <ArrowUpRight className="size-3" /></Link></div>
+        <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">Questions, answered</p><h2 className="mt-5 max-w-[390px] font-pixel text-5xl font-normal leading-[0.91] tracking-[-0.065em] md:text-6xl">Built for the whole AI team.</h2><p className="mt-6 max-w-[360px] text-sm leading-7 text-zinc-500">From the first instrumented run to the next release, Uncoil keeps product, engineering, and operations in the same evidence loop.</p><Link href="/contact" className="mt-8 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-300 hover:text-white">Talk to us <ArrowUpRight className="size-3" /></Link></div>
         <div className="border-y border-white/15">
           {questions.map(([question, answer], index) => {
             const isOpen = openIndex === index;

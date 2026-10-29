@@ -108,7 +108,7 @@ If no fix can be tested inside the agreed boundary, replace this section with an
 - [ ] Finding is new and credible to the customer.
 - [ ] Finding changed an engineering or release decision.
 - [ ] Customer identified the next owner and due date.
-- [ ] Customer would send future traces to Tracify.
+- [ ] Customer would send future traces to Uncoil.
 - [ ] Permission to publish an anonymized case study was requested.
 - [ ] Continued paid use was discussed only after value was confirmed.
 
@@ -117,5 +117,5 @@ If no fix can be tested inside the agreed boundary, replace this section with an
 | Action | Owner | Due date | Status |
 | --- | --- | --- | --- |
 | [action] | [owner] | [date] | [open/done] |
-| Delete supplied pilot evidence | Tracify | [date] | [open/done] |
-| Send deletion confirmation | Tracify | [date] | [open/done] |
+| Delete supplied pilot evidence | Uncoil | [date] | [open/done] |
+| Send deletion confirmation | Uncoil | [date] | [open/done] |

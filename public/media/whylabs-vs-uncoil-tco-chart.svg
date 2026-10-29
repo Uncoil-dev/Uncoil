@@ -1,0 +1,47 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="600" fill="#000000"/>
+
+  <text x="600" y="44" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    12-month TCO — 400k LLM calls/month, 10-engineer team
+  </text>
+  <text x="600" y="68" font-size="13" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Platform cost + setup + ongoing engineering time to cover drift, tracing, cost, and evaluation
+  </text>
+
+  <!-- axis -->
+  <line x1="140" y1="500" x2="1100" y2="500" stroke="#444444" stroke-width="1"/>
+  <text x="120" y="505" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$0</text>
+  <line x1="140" y1="410" x2="1100" y2="410" stroke="#222222" stroke-width="1"/>
+  <text x="120" y="415" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$50k</text>
+  <line x1="140" y1="320" x2="1100" y2="320" stroke="#222222" stroke-width="1"/>
+  <text x="120" y="325" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$100k</text>
+  <line x1="140" y1="230" x2="1100" y2="230" stroke="#222222" stroke-width="1"/>
+  <text x="120" y="235" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$150k</text>
+  <line x1="140" y1="140" x2="1100" y2="140" stroke="#222222" stroke-width="1"/>
+  <text x="120" y="145" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$200k</text>
+
+  <!-- Bar 1: Uncoil integrated $43,800 -->
+  <rect x="200" y="421" width="200" height="79" fill="#FFFF00"/>
+  <text x="300" y="405" font-size="20" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$43,800</text>
+  <text x="300" y="530" font-size="14" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">Uncoil</text>
+  <text x="300" y="548" font-size="14" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">integrated</text>
+  <text x="300" y="568" font-size="11" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">One platform, one bill</text>
+
+  <!-- Bar 2: WhyLabs specialist stack $52,400 -->
+  <rect x="500" y="405" width="200" height="95" fill="#FFFFFF"/>
+  <text x="600" y="389" font-size="20" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$52,400</text>
+  <text x="600" y="530" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">WhyLabs</text>
+  <text x="600" y="548" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">+ DIY tracing/cost</text>
+  <text x="600" y="568" font-size="11" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">Drift covered; rest hand-built</text>
+
+  <!-- Bar 3: Fragmented four-tool stack $130,800 -->
+  <rect x="800" y="240" width="200" height="260" fill="#AAAAAA"/>
+  <text x="900" y="224" font-size="20" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$130,800</text>
+  <text x="900" y="530" font-size="14" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Fragmented</text>
+  <text x="900" y="548" font-size="14" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">4-tool stack</text>
+  <text x="900" y="568" font-size="11" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">WhyLabs + tracing + cost + eval tools</text>
+
+  <text x="600" y="590" font-size="12" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Stitching WhyLabs together with three separate point tools costs ~3x Uncoil alone; full breakdown is below
+  </text>
+</svg>

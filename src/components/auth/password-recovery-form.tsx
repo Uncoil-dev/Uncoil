@@ -60,7 +60,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "reset" }) {
   return (
     <div>
       <h2 className="font-pixel text-4xl leading-none tracking-[-0.06em]">{mode === "request" ? "Forgot password" : "Set new password"}</h2>
-      <p className="mt-3 text-sm leading-6 text-black/55">{mode === "request" ? "Enter your account email and we will send the next step." : "Choose a new password for your tracify account."}</p>
+      <p className="mt-3 text-sm leading-6 text-black/55">{mode === "request" ? "Enter your account email and we will send the next step." : "Choose a new password for your uncoil account."}</p>
       <form onSubmit={submit} className="mt-7 space-y-4">
         {mode === "request" ? <AuthInput label="Email address" type="email" value={email} onChange={setEmail} autoComplete="email" /> : <><AuthInput label="New password" type="password" value={password} onChange={setPassword} autoComplete="new-password" minLength={8} /><AuthInput label="Confirm password" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" minLength={8} /></>}
         {(error || invalidToken) ? <p role="alert" className="border border-black bg-[#f4d44d] p-3 text-xs leading-5">{error || "This reset link is invalid or has expired."}</p> : null}

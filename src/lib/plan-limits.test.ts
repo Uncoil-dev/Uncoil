@@ -53,8 +53,8 @@ test("oversized Free spans are trimmed, not refused", () => {
   const { span, trimmed } = trimOversizedSpan<Record<string, unknown>>({ spanId: "s1", input: big, output: { text: big }, metadata: { a: 1 } });
   assert.equal(trimmed, true);
   assert.ok((span.input as string).length < 70_000);
-  assert.match(span.output as string, /trimmed by Tracify/);
-  assert.equal((span.metadata as Record<string, unknown>).tracifyTrimmed, true);
+  assert.match(span.output as string, /trimmed by Uncoil/);
+  assert.equal((span.metadata as Record<string, unknown>).uncoilTrimmed, true);
   assert.equal((span.metadata as Record<string, unknown>).a, 1);
   const small = { spanId: "s2", input: "hi" };
   assert.equal(trimOversizedSpan(small).span, small);

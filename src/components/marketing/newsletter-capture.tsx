@@ -42,7 +42,7 @@ export function NewsletterCapture({ inverse = false, source = "footer" }: Newsle
   if (state === "sent") return <p role="status" className="font-mono text-[10px] uppercase">You’re on the list.</p>;
   return (
     <form onSubmit={submit} className={`flex max-w-md border ${inverse ? "border-black/25 bg-white" : "border-white/25"}`}>
-      <label htmlFor={id} className="sr-only">Work email for the Tracify newsletter</label>
+      <label htmlFor={id} className="sr-only">Work email for the Uncoil newsletter</label>
       <input
         id={id}
         required

@@ -10,7 +10,7 @@ import { api } from "convex/_generated/api";
 import { ConvexAuthState } from "@/components/auth/convex-auth-state";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 
-const LAST_PROJECT_STORAGE_KEY = "tracify.lastProjectId";
+const LAST_PROJECT_STORAGE_KEY = "uncoil.lastProjectId";
 
 export function DashboardHomeRouter() {
   const router = useRouter();

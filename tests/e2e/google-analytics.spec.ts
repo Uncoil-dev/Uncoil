@@ -11,7 +11,7 @@ test("loads the configured GA4 tag when analytics is enabled", async ({ page }) 
   await page.goto("/");
   await tagRequest;
 
-  await expect(page.locator("#tracify-google-analytics")).toHaveCount(1);
+  await expect(page.locator("#uncoil-google-analytics")).toHaveCount(1);
 });
 
 test("does not load Google Analytics after analytics is rejected", async ({ page }) => {
@@ -20,12 +20,12 @@ test("does not load Google Analytics after analytics is rejected", async ({ page
     if (request.url().includes("googletagmanager.com/gtag/js")) tagRequests.push(request.url());
   });
   await page.addInitScript((storedConsent) => {
-    window.localStorage.setItem("tracify.consent", storedConsent);
+    window.localStorage.setItem("uncoil.consent", storedConsent);
   }, consent);
 
   await page.goto("/");
   await page.waitForTimeout(500);
 
   expect(tagRequests).toEqual([]);
-  await expect(page.locator("#tracify-google-analytics")).toHaveCount(0);
+  await expect(page.locator("#uncoil-google-analytics")).toHaveCount(0);
 });

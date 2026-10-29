@@ -18,7 +18,7 @@ const faqs: Faq[] = [
   { q: "Why leave room for the reply?", a: "The window is shared. If your prompt fills it, the model has no space left to answer, and the request fails or the answer is cut off." },
   { q: "Is a bigger window always better?", a: "Larger windows cost more to fill and models can miss details buried in the middle of very long inputs. Often it is better to retrieve only the relevant parts." },
   { q: "What should I do if my document does not fit?", a: "Split it into pieces, summarise older parts, or retrieve only the relevant sections. The table shows how many pieces each model would need." },
-  { q: "How do I know when my agent's prompt is growing?", a: "Tracify records the size of every call, so you see a prompt creeping toward the limit before it fails." },
+  { q: "How do I know when my agent's prompt is growing?", a: "Uncoil records the size of every call, so you see a prompt creeping toward the limit before it fails." },
 ];
 
 export default function Page() {

@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { TRACIFY_REGIONS } from "@/lib/regions";
+import { UNCOIL_REGIONS } from "@/lib/regions";
 
 const DEMO_PREFIX = "/demo";
 
-const MARKETING_HOSTS = new Set(["www.tracify.tech", "tracify.tech"]);
+const MARKETING_HOSTS = new Set(["www.tracify.tech", "tracify.tech", "www.uncoil.dev", "uncoil.dev"]);
 
 function isDemoPath(pathname: string) {
   return pathname === DEMO_PREFIX || pathname.startsWith(`${DEMO_PREFIX}/`);
@@ -37,7 +37,7 @@ function isCloudAppPath(pathname: string) {
 /**
  * A cloud deployment sends non-app paths to the marketing host. That is correct in
  * production, but on a developer machine it bounces you straight out of localhost and
- * onto www.tracify.tech, so the site root can never be opened locally and the
+ * onto www.uncoil.dev, so the site root can never be opened locally and the
  * marketing/cloud boundary cannot be exercised. Keep local requests local.
  */
 function isLocalHost(hostname: string) {
@@ -61,7 +61,7 @@ function publicHostname(host: string) {
 }
 
 export function proxy(request: NextRequest) {
-  const deploymentKind = process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND ?? "marketing";
+  const deploymentKind = (process.env.NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND ?? process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND) ?? "marketing";
   const { pathname, search } = request.nextUrl;
   const publicHost = publicRequestHost(request);
   const hostname = publicHostname(publicHost);
@@ -74,11 +74,11 @@ export function proxy(request: NextRequest) {
 
   // The sample project is a sandbox that lives on the cloud site; "/demo" is just its front door.
   if (pathname === DEMO_PREFIX || pathname === `${DEMO_PREFIX}/`) {
-    const target = local || deploymentKind === "cloud" ? publicOrigin : TRACIFY_REGIONS.eu.origin;
+    const target = local || deploymentKind === "cloud" ? publicOrigin : UNCOIL_REGIONS.eu.origin;
     return NextResponse.redirect(new URL(`${DEMO_PREFIX}/project${search}`, target));
   }
   if (deploymentKind === "marketing" && isDemoPath(pathname) && !local) {
-    return NextResponse.redirect(new URL(`${pathname}${search}`, TRACIFY_REGIONS.eu.origin));
+    return NextResponse.redirect(new URL(`${pathname}${search}`, UNCOIL_REGIONS.eu.origin));
   }
 
   // Someone opening the cloud site cold lands on sign-in, not sign-up.
@@ -92,7 +92,7 @@ export function proxy(request: NextRequest) {
     !pathname.startsWith("/api/") &&
     !local
   ) {
-    return NextResponse.redirect(new URL(`${pathname}${search}`, process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech"));
+    return NextResponse.redirect(new URL(`${pathname}${search}`, process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.uncoil.dev"));
   }
 
   if (deploymentKind === "marketing" && isCloudAppPath(pathname) && !local) {

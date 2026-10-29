@@ -17,8 +17,8 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 
-const LAST_PROJECT_STORAGE_KEY = "tracify.lastProjectId";
-const RECENT_PROJECTS_STORAGE_KEY = "tracify.recentProjects";
+const LAST_PROJECT_STORAGE_KEY = "uncoil.lastProjectId";
+const RECENT_PROJECTS_STORAGE_KEY = "uncoil.recentProjects";
 const MAX_RECENT = 5;
 
 function readRecent(): string[] {
@@ -96,8 +96,8 @@ export function ProjectSwitcher({
 
   useEffect(() => {
     function openProjectSwitcher() { setRecent(readRecent()); setOpen(true); }
-    window.addEventListener("tracify:open-project-switcher", openProjectSwitcher);
-    return () => window.removeEventListener("tracify:open-project-switcher", openProjectSwitcher);
+    window.addEventListener("uncoil:open-project-switcher", openProjectSwitcher);
+    return () => window.removeEventListener("uncoil:open-project-switcher", openProjectSwitcher);
   }, []);
 
   function renderRow(project: (typeof projects)[number]) {
@@ -156,8 +156,8 @@ export function ProjectSwitcher({
         {synthetic ? (
           <>
             <DropdownMenuLabel>Projects</DropdownMenuLabel>
-            <DropdownMenuItem disabled>Tracify Demo · view only</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => window.location.assign("https://www.tracify.tech/cloud")}>Build a real project</DropdownMenuItem>
+            <DropdownMenuItem disabled>Uncoil Demo · view only</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => window.location.assign("https://www.uncoil.dev/cloud")}>Build a real project</DropdownMenuItem>
           </>
         ) : projects.length ? (
           <>

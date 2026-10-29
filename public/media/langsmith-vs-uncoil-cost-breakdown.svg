@@ -1,0 +1,43 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="45" font-size="30" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Monthly Spend Breakdown at 200M Traces
+  </text>
+
+  <!-- LangSmith stacked bar -->
+  <text x="300" y="100" font-size="18" fill="#FF4444" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">LangSmith</text>
+  <rect x="200" y="120" width="200" height="60" fill="#552222" stroke="#FF4444" stroke-width="1"/>
+  <text x="300" y="155" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">Base plan + seats: $1,500</text>
+
+  <rect x="200" y="182" width="200" height="380" fill="#FF4444" opacity="0.85" stroke="#FF4444" stroke-width="1"/>
+  <text x="300" y="370" font-size="16" fill="#000000" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Overage fees</text>
+  <text x="300" y="392" font-size="16" fill="#000000" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$28,000–34,000</text>
+  <text x="300" y="414" font-size="12" fill="#220000" text-anchor="middle" font-family="'Geist Mono', monospace">190M traces over quota</text>
+  <text x="300" y="434" font-size="12" fill="#220000" text-anchor="middle" font-family="'Geist Mono', monospace">at $2.50/1K (negotiated)</text>
+
+  <text x="300" y="590" font-size="18" fill="#FF4444" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">≈ $30,000–35,500/mo</text>
+
+  <!-- Uncoil stacked bar -->
+  <text x="900" y="100" font-size="18" fill="#44FF44" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil</text>
+
+  <rect x="800" y="120" width="200" height="90" fill="#224422" stroke="#44FF44" stroke-width="1"/>
+  <text x="900" y="150" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">Enterprise tier: $1,500</text>
+  <text x="900" y="170" font-size="11" fill="#AAFFAA" text-anchor="middle" font-family="'Geist Mono', monospace">flat, all-in</text>
+  <text x="900" y="195" font-size="11" fill="#AAFFAA" text-anchor="middle" font-family="'Geist Mono', monospace">unlimited seats</text>
+
+  <rect x="800" y="212" width="200" height="40" fill="#336633" stroke="#44FF44" stroke-width="1"/>
+  <text x="900" y="237" font-size="12" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">Evaluations: included</text>
+
+  <rect x="800" y="254" width="200" height="308" fill="#001a00" stroke="#44FF44" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="900" y="410" font-size="14" fill="#66FF66" text-anchor="middle" font-family="'Geist Mono', monospace">No usage-based</text>
+  <text x="900" y="432" font-size="14" fill="#66FF66" text-anchor="middle" font-family="'Geist Mono', monospace">overage tier</text>
+
+  <text x="900" y="590" font-size="18" fill="#44FF44" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">≈ $1,500/mo</text>
+
+  <!-- callout -->
+  <rect x="150" y="630" width="900" height="45" fill="none" stroke="#FFFF00" stroke-width="2" rx="4"/>
+  <text x="600" y="658" font-size="14" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">
+    LangSmith's bill is 95%+ overage fees at this volume. Uncoil's bill is 100% predictable.
+  </text>
+</svg>

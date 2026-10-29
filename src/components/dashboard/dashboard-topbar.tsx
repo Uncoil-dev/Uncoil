@@ -22,7 +22,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 
 import { buttonVariants } from "@/components/ui/button";
 import { getOnboardingHref } from "@/lib/onboarding-navigation";
-import { getTracifyRegion } from "@/lib/regions";
+import { getUncoilRegion } from "@/lib/regions";
 
 import { authClient } from "@/lib/auth-client";
 import { OrganizationSwitcher } from "@/components/auth/organization-switcher";
@@ -67,7 +67,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
   const rangeValue = rangeContext.replace("d", "");
   const environmentValue = environmentContext === "all environments" ? "all" : environmentContext;
 
-  const region = getTracifyRegion();
+  const region = getUncoilRegion();
   const { data: session } = authClient.useSession();
   const { data: organization } = authClient.useActiveOrganization();
   const user = session?.user;
@@ -118,7 +118,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
       : dashboardHref;
 
   return (
-    <header className="tracify-dashboard-topbar flex h-14 shrink-0 items-center justify-between border-b border-black/15 bg-[#f3f2ed] px-4 font-mono lg:px-6">
+    <header className="uncoil-dashboard-topbar flex h-14 shrink-0 items-center justify-between border-b border-black/15 bg-[#f3f2ed] px-4 font-mono lg:px-6">
       <span className="sr-only">
         {title || "Dashboard"}{description ? `: ${description}` : ""}
       </span>
@@ -158,16 +158,16 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2 text-[12px] text-black/60">
-        <div className="tracify-topbar-controls hidden items-center gap-1 lg:flex">
+        <div className="uncoil-topbar-controls hidden items-center gap-1 lg:flex">
           <Link
             href={`/cloud/region?next=${encodeURIComponent(pathname)}`}
-            className="tracify-topbar-region inline-flex h-8 items-center gap-1.5 border border-black/15 bg-white px-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-black/70 transition-colors hover:border-black hover:text-black"
+            className="uncoil-topbar-region inline-flex h-8 items-center gap-1.5 border border-black/15 bg-white px-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-black/70 transition-colors hover:border-black hover:text-black"
             title="Switch regional cloud"
           >
             <span aria-hidden="true">{region.flag}</span>
             <span>{region.shortName} cloud</span>
           </Link>
-          <label className="tracify-topbar-select">
+          <label className="uncoil-topbar-select">
             <span className="sr-only">Dashboard time range</span>
             <select
               aria-label="Dashboard time range"
@@ -180,7 +180,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
               <option value="90">90d</option>
             </select>
           </label>
-          <label className="tracify-topbar-select">
+          <label className="uncoil-topbar-select">
             <span className="sr-only">Environment</span>
             <select
               aria-label="Environment"
@@ -194,8 +194,8 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
           </label>
           <button
             type="button"
-            className="tracify-topbar-filter"
-            onClick={() => window.dispatchEvent(new Event("tracify:toggle-dashboard-filters"))}
+            className="uncoil-topbar-filter"
+            onClick={() => window.dispatchEvent(new Event("uncoil:toggle-dashboard-filters"))}
           >
             Filters
           </button>
@@ -300,7 +300,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <a href="https://www.tracify.tech/contact">
+                <a href="https://www.uncoil.dev/contact">
                   <MessageSquare size={14} className="opacity-60" />
                   <span>Send Feedback</span>
                 </a>
@@ -424,7 +424,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
         )}
 
         <a
-          href="https://www.tracify.tech/docs"
+          href="https://www.uncoil.dev/docs"
           className="flex h-8 items-center gap-2 border border-black/15 bg-white px-2 text-black/60 transition-colors hover:bg-[#f3f2ed] hover:text-black"
         >
           <BookOpen className="size-4" />

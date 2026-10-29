@@ -12,7 +12,7 @@ export function LiveCapturedDashboards({ projectId, dashboardId }: { projectId: 
   const dashboards = useQuery(api.dashboards.list, projectId ? { projectId: projectId as Id<"projects"> } : "skip");
   if (project === undefined || project === null || dashboards === undefined) return <div className="captured-build-loading">Loading dashboards…</div>;
   const records = dashboards.map((dashboard) => ({ id: dashboard._id, name: dashboard.name, status: dashboard.isDefault ? "Default" : "Saved", environment: "all", timestamp: new Date(dashboard.updatedAt).toLocaleDateString(), model: `${dashboard.widgets.length} widgets` }));
-  const workspace = { ...sandboxWorkspace, mode: "live" as const, readOnly: false, dataSource: "tracify-live" as const, project: { id: projectId, name: project.name, organizationName: "Workspace" }, collections: { ...sandboxWorkspace.collections, dashboards: { description: "Saved views for cost, quality, latency, and trace volume.", records } } };
+  const workspace = { ...sandboxWorkspace, mode: "live" as const, readOnly: false, dataSource: "uncoil-live" as const, project: { id: projectId, name: project.name, organizationName: "Workspace" }, collections: { ...sandboxWorkspace.collections, dashboards: { description: "Saved views for cost, quality, latency, and trace volume.", records } } };
   async function saveDashboard(input: { name: string }) {
     await createDashboard({ projectId: projectId as Id<"projects">, name: input.name });
   }

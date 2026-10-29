@@ -19,11 +19,11 @@ export async function planLimitResponse(project: { _id: unknown; planTier?: stri
     if (dayLimit !== null) {
       const daily = await consumeRateLimit(`ingest-day:${String(project._id)}:${month.toISOString().slice(0, 10)}`, spans, dayLimit, 2 * 24 * 3600);
       if (!daily.allowed) {
-        void alertTracifyOnce(project, `daily-cap:${month.toISOString().slice(0, 10)}`, `Free project hit its daily cap of ${dayLimit.toLocaleString("en-US")} spans`);
+        void alertUncoilOnce(project, `daily-cap:${month.toISOString().slice(0, 10)}`, `Free project hit its daily cap of ${dayLimit.toLocaleString("en-US")} spans`);
         const retryAfterSeconds = secondsUntilNextDay(month);
         return Response.json(
           { error: `This Free project reached its daily limit of ${dayLimit.toLocaleString("en-US")} spans. New data is saved again after midnight UTC.`, code: "daily_limit_reached", limit: dayLimit, retryAfterSeconds },
-          { status: 429, headers: { "Retry-After": String(retryAfterSeconds), "X-Tracify-Daily-Limit": String(dayLimit) } },
+          { status: 429, headers: { "Retry-After": String(retryAfterSeconds), "X-Uncoil-Daily-Limit": String(dayLimit) } },
         );
       }
     }
@@ -32,7 +32,7 @@ export async function planLimitResponse(project: { _id: unknown; planTier?: stri
     const retryAfterSeconds = secondsUntilNextMonth(month);
     return Response.json(
       { error: planLimitMessage(spanLimit, project.planTier), code: "plan_limit_reached", limit: spanLimit, retryAfterSeconds },
-      { status: 429, headers: { "Retry-After": String(retryAfterSeconds), "X-Tracify-Plan-Limit": String(spanLimit) } },
+      { status: 429, headers: { "Retry-After": String(retryAfterSeconds), "X-Uncoil-Plan-Limit": String(spanLimit) } },
     );
   } catch (error) {
     // A broken counter must never drop customer data: accept the span and carry on.
@@ -55,24 +55,24 @@ export async function recordRateLimitStrike(project: { _id: unknown; planTier?: 
       apiKeyHash,
       reason: "Repeated rate-limit refusals on the Free plan",
     });
-    await alertTracifyOnce(project, "paused", "Free API key paused after repeated rate-limit refusals");
+    await alertUncoilOnce(project, "paused", "Free API key paused after repeated rate-limit refusals");
   } catch (error) {
     console.warn("Abuse check unavailable; leaving the key active:", error);
   }
 }
 
-/** Emails the Tracify team once per project and event, so we notice a spike before the database does. Never throws. */
-async function alertTracifyOnce(project: { _id: unknown; name?: string }, event: string, what: string) {
+/** Emails the Uncoil team once per project and event, so we notice a spike before the database does. Never throws. */
+async function alertUncoilOnce(project: { _id: unknown; name?: string }, event: string, what: string) {
   try {
     const first = await consumeRateLimit(`abuse-alert:${String(project._id)}:${event}`, 1, 1, 2 * 24 * 3600);
     if (!first.allowed) return;
-    const to = process.env.TRACIFY_ABUSE_ALERT_EMAIL || "kb@tracify.tech";
+    const to = (process.env.UNCOIL_ABUSE_ALERT_EMAIL ?? process.env.TRACIFY_ABUSE_ALERT_EMAIL) || "kb@uncoil.dev";
     const label = project.name ? `${project.name} (${String(project._id)})` : String(project._id);
     await sendTransactionalEmail({
       to,
-      subject: `[Tracify] ${what}`,
-      text: `${what}.\n\nProject: ${label}\nTime: ${new Date().toISOString()}\n\nSee it in the admin page: https://eu.cloud.tracify.tech/admin`,
-      html: `<p>${what}.</p><p>Project: ${label}<br>Time: ${new Date().toISOString()}</p><p><a href="https://eu.cloud.tracify.tech/admin">Open the admin page</a></p>`,
+      subject: `[Uncoil] ${what}`,
+      text: `${what}.\n\nProject: ${label}\nTime: ${new Date().toISOString()}\n\nSee it in the admin page: https://eu.cloud.uncoil.dev/admin`,
+      html: `<p>${what}.</p><p>Project: ${label}<br>Time: ${new Date().toISOString()}</p><p><a href="https://eu.cloud.uncoil.dev/admin">Open the admin page</a></p>`,
       idempotencyKey: `abuse-alert-${String(project._id)}-${event}`,
     });
   } catch (error) {

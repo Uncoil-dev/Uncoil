@@ -47,7 +47,7 @@ export function Footer() {
           <div>
             <Link
               href="/"
-              aria-label="Tracify home"
+              aria-label="Uncoil home"
               className="inline-block focus-visible:outline-2 focus-visible:outline-offset-4"
             >
               <BrandLogo className="text-3xl" />
@@ -61,7 +61,7 @@ export function Footer() {
             {/*
               <input type="hidden" name="intent" value="newsletter" />
               <label htmlFor="site-newsletter" className="sr-only">
-                Work email for the Tracify newsletter
+                Work email for the Uncoil newsletter
               </label>
               <input
                 id="site-newsletter"
@@ -110,7 +110,7 @@ export function Footer() {
           </div>
         </div>
         <div className="select-none pt-8 font-pixel text-[clamp(5.5rem,18.2vw,18rem)] leading-[0.66] tracking-[-0.1em] text-black">
-          tracify
+          uncoil
         </div>
       </div>
       <div className="h-4 bg-[#f4d44d]" />

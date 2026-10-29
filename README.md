@@ -1,6 +1,6 @@
-# Tracify
+# Uncoil
 
-Tracify is an observability and failure-prevention platform for AI agents. It captures agent runs, LLM generations, tool calls, costs, evaluations, and failures so teams can understand what happened, fix it, verify the fix, and prevent the same failure from returning.
+Uncoil is an observability and failure-prevention platform for AI agents. It captures agent runs, LLM generations, tool calls, costs, evaluations, and failures so teams can understand what happened, fix it, verify the fix, and prevent the same failure from returning.
 
 ## The product loop
 
@@ -13,12 +13,12 @@ capture → diagnose → assign → fix → verify → prevent recurrence
 ### TypeScript / Node.js
 
 ```bash
-npm install tracify-sdk
-export TRACIFY_API_KEY=tracify_sk_live_...
+npm install uncoil-sdk
+export UNCOIL_API_KEY=uncoil_sk_live_...
 ```
 
 ```typescript
-import { traceAgent, llmCall, toolCall } from "tracify-sdk";
+import { traceAgent, llmCall, toolCall } from "uncoil-sdk";
 
 const run = traceAgent(async (question: string) => {
   await llmCall({ input: question, output: "I will look that up.", modelId: "gpt-4o-mini", costUsd: 0.001 });
@@ -32,12 +32,12 @@ await run("What is agent observability?");
 ### Python
 
 ```bash
-pip install tracify-sdk
-export TRACIFY_API_KEY=tracify_sk_live_...
+pip install uncoil-sdk
+export UNCOIL_API_KEY=uncoil_sk_live_...
 ```
 
 ```python
-from tracify import trace_agent, llm_call, tool_call
+from uncoil import trace_agent, llm_call, tool_call
 
 @trace_agent(environment="development", release="quickstart")
 async def run_agent(question: str):
@@ -46,7 +46,7 @@ async def run_agent(question: str):
     return "Done"
 ```
 
-Run the example once, then open the [Tracify dashboard](https://tracify.tech/dashboard). The canonical guide is [docs/quickstart.md](docs/quickstart.md).
+Run the example once, then open the [Uncoil dashboard](https://uncoil.dev/dashboard). The canonical guide is [docs/quickstart.md](docs/quickstart.md).
 
 ## What is included
 
@@ -62,8 +62,8 @@ Run the example once, then open the [Tracify dashboard](https://tracify.tech/das
 | Surface | Location | Status |
 | --- | --- | --- |
 | Web app and API | `src/`, `convex/` | Active |
-| TypeScript SDK | `packages/ts-sdk/` | Active; package `tracify-sdk` |
-| Python SDK | `packages/python-sdk/` | Active; package `tracify-sdk` |
+| TypeScript SDK | `packages/ts-sdk/` | Active; package `uncoil-sdk` |
+| Python SDK | `packages/python-sdk/` | Active; package `uncoil-sdk` |
 | Playwright package | `packages/playwright/` | Active |
 | Documentation | `content/docs/`, `docs/` | Active |
 | Tinybird analytics | `tinybird/` | Active |
@@ -83,7 +83,7 @@ Tinybird is the analytical store for high-volume telemetry. Convex is the applic
 
 ## Hosted and regional status
 
-The hosted application is the supported path. Regional availability and data-flow claims are documented on the public [status](https://tracify.tech/status), [security](https://tracify.tech/security), and [data regions](content/docs/data-regions.mdoc) surfaces. The EU deployment currently discloses that asynchronous event processing transits the United States; it must not be described as end-to-end EU-resident until that boundary is removed or the product contract changes.
+The hosted application is the supported path. Regional availability and data-flow claims are documented on the public [status](https://uncoil.dev/status), [security](https://uncoil.dev/security), and [data regions](content/docs/data-regions.mdoc) surfaces. The EU deployment currently discloses that asynchronous event processing transits the United States; it must not be described as end-to-end EU-resident until that boundary is removed or the product contract changes.
 
 ## Verification
 

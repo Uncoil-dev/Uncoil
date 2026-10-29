@@ -11,12 +11,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isLocale(locale)) return {};
   const h = getCopy(locale).home;
   const path = localizedPath(locale, "/");
-  const image = ogImageUrl({ title: `${h.heroA} ${h.heroB}`, kicker: "Tracify", sub: h.metaDescription, kind: "home" });
+  const image = ogImageUrl({ title: `${h.heroA} ${h.heroB}`, kicker: "Uncoil", sub: h.metaDescription, kind: "home" });
   return {
     title: { absolute: h.metaTitle },
     description: h.metaDescription,
     alternates: { canonical: path, languages: languageAlternates("/") },
-    openGraph: { title: h.metaTitle, description: h.metaDescription, url: path, siteName: "Tracify", locale: ogLocale[locale], type: "website", images: [{ url: image, width: 1200, height: 630, alt: h.metaTitle }] },
+    openGraph: { title: h.metaTitle, description: h.metaDescription, url: path, siteName: "Uncoil", locale: ogLocale[locale], type: "website", images: [{ url: image, width: 1200, height: 630, alt: h.metaTitle }] },
     twitter: { card: "summary_large_image", title: h.metaTitle, description: h.metaDescription, images: [image] },
   };
 }

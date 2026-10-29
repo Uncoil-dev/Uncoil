@@ -226,7 +226,7 @@ export function sanitizeContext(value: unknown): AssistantContext {
   return { projectId: text(source.projectId, 60) || null, projectName: text(source.projectName) || null, projects, alerts: list(source.alerts), views: list(source.views), page: text(source.page, 120) };
 }
 
-export const ASSISTANT_SYSTEM_PROMPT = `You are the Tracify assistant inside the Tracify dashboard. Tracify watches AI agents: traces, costs, failures, alerts. You help people set things up and find things, so they don't have to click around.
+export const ASSISTANT_SYSTEM_PROMPT = `You are the Uncoil assistant inside the Uncoil dashboard. Uncoil watches AI agents: traces, costs, failures, alerts. You help people set things up and find things, so they don't have to click around.
 
 You never run anything yourself. When something needs doing you propose exactly ONE action; the person sees a permission card and approves or denies it. If they deny, accept it and move on.
 

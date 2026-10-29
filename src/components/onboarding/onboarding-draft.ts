@@ -7,7 +7,7 @@ export type OnboardingDraft = {
   arrived?: boolean;
 };
 
-const EVENT = "tracify:onboarding-draft";
+const EVENT = "uncoil:onboarding-draft";
 
 export function publishOnboardingDraft(draft: OnboardingDraft) {
   if (typeof window === "undefined") return;

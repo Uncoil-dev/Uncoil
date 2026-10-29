@@ -145,7 +145,7 @@ export function ReviewDeck({ projectId }: { projectId: string }) {
           ) : items === undefined || identity === undefined ? <div className="p-6 text-xs text-[#8B93A1]" role="status">Loading the line…</div>
             : !current ? (
               <div className="m-auto grid max-w-md place-items-center p-10 text-center">
-                <h2 className="text-sm font-semibold">{stats.waiting ? "Ready when you are" : stats.total ? "You are all caught up" : "Teach Tracify what good looks like"}</h2>
+                <h2 className="text-sm font-semibold">{stats.waiting ? "Ready when you are" : stats.total ? "You are all caught up" : "Teach Uncoil what good looks like"}</h2>
                 <p className="mt-2 text-xs leading-5 text-[#8B93A1]">{stats.waiting ? `${stats.waiting} trace${stats.waiting === 1 ? " is" : "s are"} waiting. You will see the question and the answer one at a time, and pick a label with the keys 1 to 4.` : stats.total ? "Nothing is waiting. New traces show up here when someone adds them." : "Add the id of a trace on the left. Each one you label becomes proof of how your agent really does, and can become a dataset row."}</p>
                 <button type="button" onClick={start} disabled={busy || !stats.waiting || !me} className="mt-4 h-8 rounded bg-[#F4D44D] px-4 text-xs font-medium text-[#090909] disabled:opacity-40">Start reviewing</button>
               </div>

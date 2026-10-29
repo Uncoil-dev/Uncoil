@@ -3,10 +3,10 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tracify-sdk"
+name = "uncoil-sdk"
 version = "0.6.0"
 authors = [
-  { name="Tracify Team", email="hello@tracify.tech" },
+  { name="Uncoil Team", email="hello@uncoil.dev" },
 ]
 description = "Observability, runtime enforcement, and tracing for AI agents."
 license = "MIT"
@@ -23,16 +23,16 @@ dependencies = [
 ]
 
 [project.scripts]
-tracify-doctor = "tracify.doctor:main"
+uncoil-doctor = "uncoil.doctor:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [project.urls]
-"Homepage" = "https://www.tracify.tech"
-"Documentation" = "https://www.tracify.tech/docs"
-"Bug Tracker" = "https://github.com/BN-KR/Tracify/issues"
-"Source" = "https://github.com/BN-KR/Tracify"
+"Homepage" = "https://www.uncoil.dev"
+"Documentation" = "https://www.uncoil.dev/docs"
+"Bug Tracker" = "https://github.com/Uncoil-dev/Uncoil/issues"
+"Source" = "https://github.com/Uncoil-dev/Uncoil"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

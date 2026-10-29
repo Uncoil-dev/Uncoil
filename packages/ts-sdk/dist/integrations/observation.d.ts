@@ -1,6 +1,6 @@
-import { TracifyClient, type SpanData } from "../index";
+import { UncoilClient, type SpanData } from "../index";
 export type IntegrationOptions = {
-    client?: TracifyClient;
+    client?: UncoilClient;
     name?: string;
     captureInput?: boolean;
     captureOutput?: boolean;

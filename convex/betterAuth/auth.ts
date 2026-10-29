@@ -31,16 +31,16 @@ async function sendAuthEmail(args: { to: string; subject: string; heading: strin
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM || "Tracify <kb@tracify.tech>", to: args.to, subject: args.subject, html, text }),
+    body: JSON.stringify({ from: process.env.EMAIL_FROM || "Uncoil <kb@uncoil.dev>", to: args.to, subject: args.subject, html, text }),
   });
   if (!response.ok) throw new Error(`Email provider returned ${response.status}`);
 }
 
 export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
   const database = authComponent.adapter(ctx);
-  const siteUrl = process.env.SITE_URL ?? "https://eu.cloud.tracify.tech";
+  const siteUrl = process.env.SITE_URL ?? "https://eu.cloud.uncoil.dev";
   return {
-  appName: "tracify",
+  appName: "uncoil",
   // Auth requests are proxied through the regional Next.js deployment. Resolve
   // the public host per request so OAuth callbacks and host-only session cookies
   // stay on the cloud origin the user selected instead of falling back to the
@@ -51,6 +51,10 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
       "www.tracify.tech",
       "tracify.tech",
       "*.preview.tracify.tech",
+      "eu.cloud.uncoil.dev",
+      "www.uncoil.dev",
+      "uncoil.dev",
+      "*.preview.uncoil.dev",
       "tracifytech.vercel.app",
       "*.tracify-tech.vercel.app",
       // Vercel branch previews: <project>-git-<branch>-tracify-tech.vercel.app
@@ -73,7 +77,7 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
     sendResetPassword: async ({ user, url }) => {
       await sendAuthEmail({
         to: user.email,
-        subject: "Reset your Tracify password",
+        subject: "Reset your Uncoil password",
         heading: "Reset your password",
         body: "Use the button below to choose a new password. The link works for 60 minutes. If you did not ask for this, you can ignore this email.",
         action: "Choose a new password",
@@ -87,9 +91,9 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
     sendVerificationEmail: async ({ user, url }) => {
       await sendAuthEmail({
         to: user.email,
-        subject: "Confirm your email for Tracify",
+        subject: "Confirm your email for Uncoil",
         heading: "Confirm your email",
-        body: "Welcome to Tracify. Confirm your email address to finish setting up your account.",
+        body: "Welcome to Uncoil. Confirm your email address to finish setting up your account.",
         action: "Confirm email",
         url,
       });
@@ -102,12 +106,16 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
     "https://tracify.tech",
     // Coolify per-PR previews: <pr number>.preview.tracify.tech
     "https://*.preview.tracify.tech",
+    "https://eu.cloud.uncoil.dev",
+    "https://www.uncoil.dev",
+    "https://uncoil.dev",
+    "https://*.preview.uncoil.dev",
     "https://*.tracify-tech.vercel.app",
     "https://tracify-git-*-tracify-tech.vercel.app",
     "https://tracify-cloud-eu-git-*-tracify-tech.vercel.app",
     "http://localhost:3000",
     "http://localhost:4000",
-    "https://tracifytech.vercel.app",
+    "https://uncoiltech.vercel.app",
   ].filter((origin): origin is string => Boolean(origin)),
   advanced: {
     // The Next.js auth handler overwrites these headers from the actual request

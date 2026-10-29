@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.maskKey = exports.formatReport = exports.runDoctor = exports.traceTools = exports.tracifyMiddleware = exports.TracifyLangGraphHandler = exports.wrapAnthropic = exports.wrapOpenAI = exports.decision = exports.toolCall = exports.llmCall = exports.Step = exports.TracifyClient = exports.MAX_PAYLOAD_CHARS = exports.TRACIFY_REGION_HOSTS = exports.TracifyError = void 0;
+exports.maskKey = exports.formatReport = exports.runDoctor = exports.uninit = exports.init = exports.traceTools = exports.uncoilMiddleware = exports.UncoilLangGraphHandler = exports.wrapAnthropic = exports.wrapOpenAI = exports.decision = exports.toolCall = exports.llmCall = exports.Step = exports.UncoilClient = exports.MAX_PAYLOAD_CHARS = exports.UNCOIL_REGION_HOSTS = exports.UncoilError = void 0;
 exports.currentRunId = currentRunId;
 exports.currentTraceContext = currentTraceContext;
 exports.integrationPayload = integrationPayload;
@@ -12,30 +12,30 @@ exports.observe = observe;
 exports.traceAgent = traceAgent;
 const node_async_hooks_1 = require("node:async_hooks");
 /** A problem the SDK ran into, with a plain-language fix in `hint`. */
-class TracifyError extends Error {
+class UncoilError extends Error {
     constructor(code, message, hint, status) {
         super(`${message} ${hint}`);
-        this.name = "TracifyError";
+        this.name = "UncoilError";
         this.code = code;
         this.hint = hint;
         this.status = status;
     }
 }
-exports.TracifyError = TracifyError;
-exports.TRACIFY_REGION_HOSTS = {
-    eu: "https://eu.cloud.tracify.tech",
-    us: "https://us.cloud.tracify.tech",
+exports.UncoilError = UncoilError;
+exports.UNCOIL_REGION_HOSTS = {
+    eu: "https://eu.cloud.uncoil.dev",
+    us: "https://us.cloud.uncoil.dev",
 };
 function parseRegion(value) {
     const normalized = value?.trim().toLowerCase();
     return normalized === "eu" || normalized === "us" ? normalized : undefined;
 }
 function apiKeyRegion(apiKey) {
-    if (apiKey.startsWith("tracify_sk_live_eu_"))
+    if (/^(uncoil|tracify)_sk_live_eu_/.test(apiKey))
         return "eu";
-    if (apiKey.startsWith("tracify_sk_live_us_"))
+    if (/^(uncoil|tracify)_sk_live_us_/.test(apiKey))
         return "us";
-    if (apiKey.startsWith("tracify_sk_live_"))
+    if (/^(uncoil|tracify)_sk_live_/.test(apiKey))
         return "eu";
     return undefined;
 }
@@ -45,7 +45,7 @@ function apiKeyRegion(apiKey) {
  */
 const stepContext = new node_async_hooks_1.AsyncLocalStorage();
 function currentRunId() {
-    return stepContext.getStore()?.runId || process.env.TRACIFY_CURRENT_RUN_ID || 'unknown';
+    return stepContext.getStore()?.runId || (process.env.UNCOIL_CURRENT_RUN_ID ?? process.env.TRACIFY_CURRENT_RUN_ID) || 'unknown';
 }
 function currentTraceContext() { return stepContext.getStore(); }
 function integrationPayload(value) { return payload(value); }
@@ -81,17 +81,32 @@ function payload(value) {
 }
 const PII_PATTERNS = [
     /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g,
-    /\b(?:\d[ -]?){13,19}\b/g,
     /(?<![\w.])\+?\d{1,3}[\s.-]?\(?\d{2,4}\)?[\s.-]\d{3,4}[\s.-]\d{3,4}\b/g,
 ];
-/** Build a function that applies the extra clean-up asked for in `redact`. Returns undefined when nothing is asked. */
+const CARD_NUMBER = /\b(?:\d[ -]?){13,19}\b/g;
+/** Card-number check, so long ids and timestamps are left alone. */
+function passesLuhn(digits) {
+    let sum = 0;
+    for (let i = 0; i < digits.length; i++) {
+        let d = Number(digits[digits.length - 1 - i]);
+        if (i % 2 === 1) {
+            d *= 2;
+            if (d > 9)
+                d -= 9;
+        }
+        sum += d;
+    }
+    return sum % 10 === 0;
+}
+/** Build the clean-up for `redact`. Emails, phone numbers and card numbers are masked unless `pii: false`. */
 function buildRedactor(options) {
-    if (!options)
-        return undefined;
-    const replacement = options.replacement ?? "[redacted]";
+    const replacement = options?.replacement ?? "[redacted]";
     const patterns = [];
-    if (options.pii)
+    const maskPii = options?.pii !== false;
+    if (maskPii)
         patterns.push(...PII_PATTERNS);
+    if (!options)
+        options = {};
     for (const pattern of options.patterns ?? []) {
         if (typeof pattern === "string") {
             if (pattern)
@@ -100,9 +115,11 @@ function buildRedactor(options) {
         else
             patterns.push(new RegExp(pattern.source, pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`));
     }
-    if (!patterns.length && !options.fn)
+    if (!patterns.length && !maskPii && !options.fn)
         return undefined;
     return (text) => {
+        if (maskPii)
+            text = text.replace(CARD_NUMBER, (m) => { const d = m.replace(/\D/g, ""); return d.length >= 13 && passesLuhn(d) ? replacement : m; });
         for (const pattern of patterns)
             text = text.replace(pattern, replacement);
         return options.fn ? options.fn(text) : text;
@@ -163,33 +180,33 @@ function isRetryableError(error, retryableErrors) {
 function isLatencyAbort(error) {
     return error instanceof Error && error.name === "AbortError";
 }
-class TracifyClient {
+class UncoilClient {
     constructor(config = {}) {
         this._lastFailOpen = false;
         this.promptCache = new Map();
         this.sampleRate = 1;
         this.keepErrors = true;
         this.warned = new Set();
-        this.apiKey = (config.apiKey || process.env.TRACIFY_API_KEY || '').trim();
+        this.apiKey = (config.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || '').trim();
         this.onError = config.onError;
         if (config.sampleRate !== undefined && !(config.sampleRate >= 0 && config.sampleRate <= 1)) {
-            throw new TracifyError("bad_sample_rate", `sampleRate must be a number from 0 to 1, but got ${String(config.sampleRate)}.`, "Use 1 to record every run, 0.1 to record about one in ten.");
+            throw new UncoilError("bad_sample_rate", `sampleRate must be a number from 0 to 1, but got ${String(config.sampleRate)}.`, "Use 1 to record every run, 0.1 to record about one in ten.");
         }
         this.sampleRate = config.sampleRate ?? 1;
         this.keepErrors = config.keepErrors ?? true;
         this.redactor = buildRedactor(config.redact);
         if (!this.apiKey) {
-            this.report(new TracifyError("missing_key", "No Tracify API key was found, so nothing will be recorded.", "Pass { apiKey } to the client or set the TRACIFY_API_KEY environment variable. You can create a key on the API keys page of your dashboard."));
+            this.report(new UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", "Pass { apiKey } to the client or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard."));
         }
-        else if (!this.apiKey.startsWith("tracify_sk_")) {
-            this.report(new TracifyError("odd_key", "That API key does not look like a Tracify key (they start with tracify_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."));
+        else if (!/^(uncoil|tracify)_sk_/.test(this.apiKey)) {
+            this.report(new UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."));
         }
-        const configuredRegion = config.region ?? parseRegion(process.env.TRACIFY_REGION) ?? "eu";
-        this.host = (config.host || process.env.TRACIFY_HOST || exports.TRACIFY_REGION_HOSTS[configuredRegion]).replace(/\/$/, '');
-        const selectedHostRegion = Object.entries(exports.TRACIFY_REGION_HOSTS).find(([, host]) => host === this.host)?.[0];
+        const configuredRegion = config.region ?? parseRegion((process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)) ?? "eu";
+        this.host = (config.host || (process.env.UNCOIL_HOST ?? process.env.TRACIFY_HOST) || exports.UNCOIL_REGION_HOSTS[configuredRegion]).replace(/\/$/, '');
+        const selectedHostRegion = Object.entries(exports.UNCOIL_REGION_HOSTS).find(([, host]) => host === this.host)?.[0];
         const keyRegion = apiKeyRegion(this.apiKey);
         if (keyRegion && selectedHostRegion && keyRegion !== selectedHostRegion) {
-            throw new TracifyError("region_mismatch", `Tracify API key region mismatch: this key belongs to ${keyRegion.toUpperCase()}, but the client is configured for ${selectedHostRegion.toUpperCase()}.`, `Set region: "${keyRegion}" (or TRACIFY_REGION=${keyRegion}), or create a key in the ${selectedHostRegion.toUpperCase()} region.`);
+            throw new UncoilError("region_mismatch", `Uncoil API key region mismatch: this key belongs to ${keyRegion.toUpperCase()}, but the client is configured for ${selectedHostRegion.toUpperCase()}.`, `Set region: "${keyRegion}" (or UNCOIL_REGION=${keyRegion}), or create a key in the ${selectedHostRegion.toUpperCase()} region.`);
         }
         this.projectId = config.projectId;
         this.release = config.release;
@@ -202,7 +219,7 @@ class TracifyClient {
             new URL(this.host);
         }
         catch {
-            throw new TracifyError("bad_host", `The host "${this.host}" is not a valid web address.`, 'Use a full address such as "https://eu.cloud.tracify.tech", or drop the host option and use region: "eu" or "us".');
+            throw new UncoilError("bad_host", `The host "${this.host}" is not a valid web address.`, 'Use a full address such as "https://eu.cloud.uncoil.dev", or drop the host option and use region: "eu" or "us".');
         }
         this.ingestUrl = `${this.host}/api/ingest`;
         this.checkCostUrl = `${this.host}/api/orchestration/check-cost`;
@@ -223,7 +240,7 @@ class TracifyClient {
             catch { /* a faulty handler must never break the app */ }
         }
         else
-            console.warn(`Tracify Warning: ${error.message}`);
+            console.warn(`Uncoil Warning: ${error.message}`);
     }
     /** True when this span should be dropped by sampling. */
     sampledOut(runId, data) {
@@ -238,15 +255,15 @@ class TracifyClient {
             return;
         const status = response.status;
         if (status === 401)
-            this.report(new TracifyError("bad_key", "Tracify rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check TRACIFY_API_KEY and TRACIFY_REGION.", status));
+            this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
         else if (status === 403)
-            this.report(new TracifyError("forbidden", "This API key is not allowed to send data (403).", "Check that the key belongs to the project you expect and has not been disabled.", status));
+            this.report(new UncoilError("forbidden", "This API key is not allowed to send data (403).", "Check that the key belongs to the project you expect and has not been disabled.", status));
         else if (status === 429)
-            this.report(new TracifyError("rate_limited", "Tracify is receiving too much data from this app (429).", "Lower the volume with sampleRate (for example 0.2), or upgrade your plan.", status));
+            this.report(new UncoilError("rate_limited", "Uncoil is receiving too much data from this app (429).", "Lower the volume with sampleRate (for example 0.2), or upgrade your plan.", status));
         else if (status >= 500)
-            this.report(new TracifyError("server_error", `Tracify had a problem on its side (${status}).`, "Your app is not affected; data from this moment may be missing. Check the status page if it keeps happening.", status));
+            this.report(new UncoilError("server_error", `Uncoil had a problem on its side (${status}).`, "Your app is not affected; data from this moment may be missing. Check the status page if it keeps happening.", status));
         else
-            this.report(new TracifyError("rejected", `Tracify did not accept a span (${status}).`, "Update the SDK to the latest version; if it still happens, contact support.", status));
+            this.report(new UncoilError("rejected", `Uncoil did not accept a span (${status}).`, "Update the SDK to the latest version; if it still happens, contact support.", status));
     }
     async ingest(data) {
         if (!this.apiKey)
@@ -281,7 +298,7 @@ class TracifyClient {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(span),
-            }).then((response) => this.checkIngestResponse(response)).catch((err) => this.report(new TracifyError("network", `Could not reach Tracify (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
+            }).then((response) => this.checkIngestResponse(response)).catch((err) => this.report(new UncoilError("network", `Could not reach Uncoil (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
         }
         catch {
             // Ignore errors in telemetry
@@ -290,7 +307,7 @@ class TracifyClient {
     /** Resolve a prompt version labeled for an environment without redeploying application code. */
     async getPrompt(name, environment = "production", options = {}) {
         if (!this.apiKey)
-            throw new Error("A Tracify API key is required to resolve prompts");
+            throw new Error("An Uncoil API key is required to resolve prompts");
         const key = `${name}:${environment}`;
         const cached = this.promptCache.get(key);
         if (cached && cached.expiresAt > Date.now())
@@ -316,13 +333,13 @@ class TracifyClient {
     feedback(traceId, value, options = {}) {
         if (!this.apiKey || !(options.projectId || this.projectId))
             return;
-        fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Tracify Warning: Failed to record feedback:', error));
+        fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
     }
     /** Attach a typed score to a trace or span through the feedback API. */
     score(traceId, name, value, options = {}) {
         if (!this.apiKey || !(options.projectId || this.projectId))
             return;
-        fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Tracify Warning: Failed to record score:', error));
+        fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
     }
     /**
      * Server-side cost check. Returns the server's decision on whether
@@ -352,7 +369,7 @@ class TracifyClient {
     }
     async orchestrate(options) {
         const { policy, call, model, input, calculateCost, runId: explicitRunId } = options;
-        const runId = explicitRunId || stepContext.getStore()?.runId || process.env.TRACIFY_CURRENT_RUN_ID || createId();
+        const runId = explicitRunId || stepContext.getStore()?.runId || (process.env.UNCOIL_CURRENT_RUN_ID ?? process.env.TRACIFY_CURRENT_RUN_ID) || createId();
         const allModels = [model, ...policy.fallbackChain.filter((m) => m !== model)];
         let lastError = null;
         for (let modelIndex = 0; modelIndex < allModels.length; modelIndex++) {
@@ -514,7 +531,7 @@ class TracifyClient {
         throw lastError instanceof Error ? lastError : new Error("All fallback models exhausted");
     }
 }
-exports.TracifyClient = TracifyClient;
+exports.UncoilClient = UncoilClient;
 /** A step in progress. Set its output and anything it measured before it ends. */
 class Step {
     constructor(name, type, input, metadata) {
@@ -546,7 +563,7 @@ class Step {
 exports.Step = Step;
 let defaultClientInstance;
 function defaultClient() {
-    return (defaultClientInstance ?? (defaultClientInstance = new TracifyClient()));
+    return (defaultClientInstance ?? (defaultClientInstance = new UncoilClient()));
 }
 /**
  * Record one step of the agent. Steps started inside `fn` become its children, so the trace shows which step
@@ -605,7 +622,7 @@ function observe(fn, options = {}) {
  * inside it hangs from. The root is sent as run_end (or error) when the call settles.
  */
 function traceAgent(func, config = {}) {
-    const client = new TracifyClient(config);
+    const client = new UncoilClient(config);
     const name = config.name || func.name || 'agent';
     return ((...args) => span(name, () => func(...args), { type: 'agent', client, runId: createId(), root: true }));
 }
@@ -621,11 +638,14 @@ var providers_1 = require("./integrations/providers");
 Object.defineProperty(exports, "wrapOpenAI", { enumerable: true, get: function () { return providers_1.wrapOpenAI; } });
 Object.defineProperty(exports, "wrapAnthropic", { enumerable: true, get: function () { return providers_1.wrapAnthropic; } });
 var langgraph_1 = require("./integrations/langgraph");
-Object.defineProperty(exports, "TracifyLangGraphHandler", { enumerable: true, get: function () { return langgraph_1.TracifyLangGraphHandler; } });
+Object.defineProperty(exports, "UncoilLangGraphHandler", { enumerable: true, get: function () { return langgraph_1.UncoilLangGraphHandler; } });
 var vercel_ai_1 = require("./integrations/vercel-ai");
-Object.defineProperty(exports, "tracifyMiddleware", { enumerable: true, get: function () { return vercel_ai_1.tracifyMiddleware; } });
+Object.defineProperty(exports, "uncoilMiddleware", { enumerable: true, get: function () { return vercel_ai_1.uncoilMiddleware; } });
 var tools_1 = require("./integrations/tools");
 Object.defineProperty(exports, "traceTools", { enumerable: true, get: function () { return tools_1.traceTools; } });
+var auto_1 = require("./integrations/auto");
+Object.defineProperty(exports, "init", { enumerable: true, get: function () { return auto_1.init; } });
+Object.defineProperty(exports, "uninit", { enumerable: true, get: function () { return auto_1.uninit; } });
 var doctor_1 = require("./doctor");
 Object.defineProperty(exports, "runDoctor", { enumerable: true, get: function () { return doctor_1.runDoctor; } });
 Object.defineProperty(exports, "formatReport", { enumerable: true, get: function () { return doctor_1.formatReport; } });

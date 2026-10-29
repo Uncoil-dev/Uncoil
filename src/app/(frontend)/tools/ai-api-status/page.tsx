@@ -16,9 +16,9 @@ const steps: Step[] = [
 const faqs: Faq[] = [
   { q: "Where does this data come from?", a: "Directly from each provider's public status feed, fetched by our server and cached for about a minute. We do not guess or run our own checks." },
   { q: "Why does a provider show as Unknown?", a: "Its status feed could not be reached or was not in a format we understand. We never show green without a real answer. Use the link to check its page." },
-  { q: "Why is the API failing for me when the page says operational?", a: "Status pages lag, and problems can be limited to one model, region or account. Check your own error rates and latency, which is what Tracify shows." },
+  { q: "Why is the API failing for me when the page says operational?", a: "Status pages lag, and problems can be limited to one model, region or account. Check your own error rates and latency, which is what Uncoil shows." },
   { q: "How often does it update?", a: "The page checks once a minute while it is open, and the server caches answers for about a minute." },
-  { q: "Can I get alerts when a provider goes down?", a: "Tracify alerts you when error rates or latency jump in your own agent traffic, which usually shows up before a status page does." },
+  { q: "Can I get alerts when a provider goes down?", a: "Uncoil alerts you when error rates or latency jump in your own agent traffic, which usually shows up before a status page does." },
 ];
 
 export default function Page() {

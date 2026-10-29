@@ -44,5 +44,5 @@
   <text x="800" y="614" text-anchor="middle" fill="#0a0a0a" font-family="monospace" font-size="12">attached at run close</text>
   <line x1="800" y1="470" x2="800" y2="560" stroke="#f4d44d" stroke-width="3"/>
 
-  <text x="800" y="850" text-anchor="middle" fill="#f6f1e6" font-family="monospace" font-size="14">tracify.tech · an unspanned run is a black box; a spanned run is a readable tree</text>
+  <text x="800" y="850" text-anchor="middle" fill="#f6f1e6" font-family="monospace" font-size="14">uncoil.dev · an unspanned run is a black box; a spanned run is a readable tree</text>
 </svg>

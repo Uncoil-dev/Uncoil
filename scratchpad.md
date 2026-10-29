@@ -87,7 +87,7 @@
 - **Behavior Change:**
   - Removed the Convex `projects.getProjectsByUserOrOrg` call from root redirect logic.
   - `sessionStorage` project id and `localStorage` last project id now drive `/dashboard` and `/onboarding` redirects.
-  - Project creation now writes `tracify.lastProjectId` so the next root visit can route into the dashboard without querying Convex.
+  - Project creation now writes `uncoil.lastProjectId` so the next root visit can route into the dashboard without querying Convex.
 - **Reason:**
   - A missing public function in Convex should not break route entry.
 
@@ -119,21 +119,21 @@
   - `/dashboard` sends users with no project to `/onboarding/project`.
   - Users with a project but no spans stay in the dashboard start state with Quickstart visible.
 - **Package Publication Check:**
-  - npm registry check for `tracify` returned `E404 Not Found`.
-  - PyPI JSON check for `tracify` returned `{"message": "Not Found"}`.
+  - npm registry check for `uncoil` returned `E404 Not Found`.
+  - PyPI JSON check for `uncoil` returned `{"message": "Not Found"}`.
   - Current install commands use beta GitHub sources:
-    - Python: `pip install git+https://github.com/tracify/sdk-python`
-    - TypeScript: `npm install github:tracify/sdk-typescript`
+    - Python: `pip install git+https://github.com/uncoil/sdk-python`
+    - TypeScript: `npm install github:uncoil/sdk-typescript`
   - TODO: Replace beta install commands with PyPI/npm commands once packages are published.
 - **AI Setup Prompt:**
   - `/onboarding/install` now has a third `AI setup prompt` mode.
   - The setup prompt is copyable with `Copy setup prompt`.
-  - The prompt uses `TRACIFY_API_KEY=your_key_here` and does not include the real API key.
+  - The prompt uses `UNCOIL_API_KEY=your_key_here` and does not include the real API key.
   - A visible warning tells users not to paste live API keys into AI coding tools unless they trust the environment.
 - **API Key Handling:**
   - Project creation still receives the one-time plaintext key from Convex.
   - Plaintext key handoff is now in-memory only via `src/lib/onboarding-client-state.ts`; it is not written to `sessionStorage`.
-  - Copying the key marks `tracify.onboarding.apiKeyCopied` and clears the in-memory key.
+  - Copying the key marks `uncoil.onboarding.apiKeyCopied` and clears the in-memory key.
 - **Scope Notes:**
   - Did not build trace viewer, runs list, cost dashboard, or landing page changes.
 
@@ -158,7 +158,7 @@
   - Dashboard empty-state `View quickstart` routes to `/onboarding/project` when no project context exists, `/onboarding/api-key` when a one-time key is still available and not copied, and `/onboarding/install` otherwise.
   - `Open sample trace` remains `/demo`; no `#` CTA destinations were added.
 - **API Key Leave Warning:**
-  - `/onboarding/api-key` records `tracify.onboarding.apiKeyCopied` after Copy key.
+  - `/onboarding/api-key` records `uncoil.onboarding.apiKeyCopied` after Copy key.
   - The escape link shows the API key warning only when the key exists and has not been copied.
 - **Context-Aware `/onboarding`:**
   - Deferred for this pass. It still redirects to `/onboarding/project`; direct dashboard/onboarding links now cover the required escape hatches without adding server-side state assumptions.
@@ -184,9 +184,9 @@
   - `task.md`
   - `implementation_plan.md`
 - **API Route:**
-  - `POST /api/ingest` validates Bearer keys, rejects missing/invalid keys with `401`, rejects invalid payloads with field-specific `422`, rejects >1MB payloads with `413`, updates API key last-used time, and sends `tracify/span.received`.
+  - `POST /api/ingest` validates Bearer keys, rejects missing/invalid keys with `401`, rejects invalid payloads with field-specific `422`, rejects >1MB payloads with `413`, updates API key last-used time, and sends `uncoil/span.received`.
 - **Inngest Function:**
-  - `processSpan` handles `tracify/span.received`.
+  - `processSpan` handles `uncoil/span.received`.
   - Writes span data to Tinybird.
   - Calls `agentRuns.upsertRunFromSpan` to create/update run summaries.
 - **Convex Functions Created/Updated:**
@@ -203,17 +203,17 @@
   - `ingestSpan` writes project/run/span IDs, span type, input, output, latency, cost, model, tool, parent span, metadata, and created time.
   - Production requires `TINYBIRD_TOKEN`; missing token throws instead of silently skipping.
 - **Onboarding Wiring:**
-  - Waiting screen reads `tracify.onboarding.projectId`, subscribes to `agentRuns.getProjectOnboardingState`, and routes to `/onboarding/success?projectId=<projectId>&runId=<runId>` only after a real run exists.
+  - Waiting screen reads `uncoil.onboarding.projectId`, subscribes to `agentRuns.getProjectOnboardingState`, and routes to `/onboarding/success?projectId=<projectId>&runId=<runId>` only after a real run exists.
   - Success screen reads `projectId` and `runId` from query params and links to `/dashboard/[projectId]/runs/[runId]`.
   - Dev-only first-span simulation was removed.
 - **Runtime Error Fix:**
   - Dashboard project switcher no longer calls Convex project-list queries during this pass.
-  - It reads `tracify.onboarding.projectId` and `tracify.onboarding.projectName` from `sessionStorage` when available, then falls back to existing mock projects.
+  - It reads `uncoil.onboarding.projectId` and `uncoil.onboarding.projectName` from `sessionStorage` when available, then falls back to existing mock projects.
   - TODO: Reconnect to Convex-backed project listing once `npx convex dev`/deployment registration is stable for the new functions.
 - **Manual Curl Test:**
   ```bash
   curl -X POST http://localhost:3000/api/ingest \
-    -H "Authorization: Bearer tracify_sk_live_REPLACE_WITH_REAL_KEY" \
+    -H "Authorization: Bearer uncoil_sk_live_REPLACE_WITH_REAL_KEY" \
     -H "Content-Type: application/json" \
     -d '{
       "spanId": "span_test_001",
@@ -239,7 +239,7 @@
   - Invalid key format returned `401`.
   - Missing required field returned `422`.
   - Payload over 1MB returned `413`.
-  - Valid-key end-to-end test requires a signed-in onboarding project key plus matching `TRACIFY_API_KEY_HASH_SECRET` in Next.js and Convex and `TINYBIRD_TOKEN` for span writes.
+  - Valid-key end-to-end test requires a signed-in onboarding project key plus matching `UNCOIL_API_KEY_HASH_SECRET` in Next.js and Convex and `TINYBIRD_TOKEN` for span writes.
 - **Known TODOs:**
   - Run the valid-key curl test after generating a real onboarding key in the browser.
   - Add key rotation/revocation UI later.
@@ -278,17 +278,17 @@
   - API key fields remain hash-only: `apiKeyPrefix`, `apiKeyLast4`, `apiKeyHash`, `apiKeyStatus`, `apiKeyCreatedAt`, optional `apiKeyLastUsedAt`.
   - Added indexes `by_clerkUserId` and `by_slug`; retained `by_clerkOrgId` and `by_apiKeyHash`.
 - **Security Notes:**
-  - API key format: `tracify_sk_live_` + 32 random hex chars.
+  - API key format: `uncoil_sk_live_` + 32 random hex chars.
   - API keys are generated with `crypto.getRandomValues`.
-  - API key hashes use HMAC-SHA256 with `TRACIFY_API_KEY_HASH_SECRET`.
-  - Plaintext API key is returned once from `createProject` and stored only in `sessionStorage` under `tracify.onboarding.apiKey`.
+  - API key hashes use HMAC-SHA256 with `UNCOIL_API_KEY_HASH_SECRET`.
+  - Plaintext API key is returned once from `createProject` and stored only in `sessionStorage` under `uncoil.onboarding.apiKey`.
   - Plaintext API key is not stored in Convex, memory, scratchpad, or localStorage.
 - **Onboarding Client Storage:**
-  - `tracify.onboarding.apiKey`
-  - `tracify.onboarding.projectId`
-  - `tracify.onboarding.projectName`
+  - `uncoil.onboarding.apiKey`
+  - `uncoil.onboarding.projectId`
+  - `uncoil.onboarding.projectName`
 - **Environment Variable Required:**
-  - Set `TRACIFY_API_KEY_HASH_SECRET` in Convex deployment env before creating projects.
+  - Set `UNCOIL_API_KEY_HASH_SECRET` in Convex deployment env before creating projects.
 - **Temporary Mocks / Deferred Work:**
   - Project switcher now prefers real Convex projects and falls back to mock projects if none are returned.
   - API route ingestion still uses the older local hashing helper and is intentionally not updated in this Part 2 pass.
@@ -297,9 +297,9 @@
   - Sign in through Clerk.
   - Visit `/onboarding/project`.
   - Create a project named `research-agent-prod`.
-  - Confirm `/onboarding/api-key` shows a key matching `tracify_sk_live_[32 hex chars]`.
+  - Confirm `/onboarding/api-key` shows a key matching `uncoil_sk_live_[32 hex chars]`.
   - Copy key and confirm Continue unlocks.
-  - Download `.env` and confirm it contains `TRACIFY_API_KEY=<one-time key>`.
+  - Download `.env` and confirm it contains `UNCOIL_API_KEY=<one-time key>`.
   - Continue to `/onboarding/install`.
   - Confirm Convex `projects` row stores hash/prefix/last4 but not plaintext.
 
@@ -331,13 +331,13 @@
   - `/onboarding/waiting`
   - `/onboarding/success`
 - **Mock Data:**
-  - Mock API key: `tracify_sk_live_mock_1234567890abcdef1234567890abcdef`.
+  - Mock API key: `uncoil_sk_live_mock_1234567890abcdef1234567890abcdef`.
   - Mock success project/run target: `/dashboard/research-agent-prod/runs/run_test_001`.
-  - Temporary project name storage: `sessionStorage` key `tracify.onboarding.mockProjectName`.
+  - Temporary project name storage: `sessionStorage` key `uncoil.onboarding.mockProjectName`.
 - **Behavior Notes:**
   - Project button is disabled until project name has a value.
   - API key Continue is disabled until Copy key is clicked.
-  - `.env` download writes `TRACIFY_API_KEY=<mock key>`.
+  - `.env` download writes `UNCOIL_API_KEY=<mock key>`.
   - Install step has Python and TypeScript tabs plus copy buttons for command/code.
   - Waiting step uses elapsed client time for secondary help: 30s sample trace, 60s troubleshooting, 120s support email.
   - Waiting step has a development-only `Simulate first span (dev only)` button that routes to success and must be replaced in Part 3.
@@ -363,15 +363,15 @@
 - **Behavior Removed:**
   - Removed collapsed hover-peek state and mouse enter/leave timers.
   - Removed draggable resize handle and pointer/keyboard resizing handlers.
-  - Removed shell usage of `tracify.sidebar.width`.
+  - Removed shell usage of `uncoil.sidebar.width`.
 - **Current Sidebar Widths:**
   - Expanded: `240px`.
   - Collapsed: `64px`.
 - **Persisted State:**
-  - `tracify.sidebar.collapsed` remains active.
-  - `tracify:dashboard-sidebar-groups` remains active.
-  - `tracify.lastProjectId` remains active.
-  - `tracify.sidebar.width` is deprecated/unused after this simplification.
+  - `uncoil.sidebar.collapsed` remains active.
+  - `uncoil:dashboard-sidebar-groups` remains active.
+  - `uncoil.lastProjectId` remains active.
+  - `uncoil.sidebar.width` is deprecated/unused after this simplification.
 - **Preserved Interactions:**
   - Header icon toggles collapse/expand.
   - Collapsed nav-icon clicks expand the sidebar before letting `Link` navigation continue.
@@ -389,10 +389,10 @@
   - `task.md`
   - `implementation_plan.md`
 - **localStorage Keys:**
-  - `tracify.sidebar.collapsed`: `"true"` or `"false"` for permanent collapse state.
-  - `tracify.sidebar.width`: saved permanent expanded width in pixels.
-  - `tracify:dashboard-sidebar-groups`: existing persisted group state, preserved.
-  - `tracify.lastProjectId`: last selected mock project id.
+  - `uncoil.sidebar.collapsed`: `"true"` or `"false"` for permanent collapse state.
+  - `uncoil.sidebar.width`: saved permanent expanded width in pixels.
+  - `uncoil:dashboard-sidebar-groups`: existing persisted group state, preserved.
+  - `uncoil.lastProjectId`: last selected mock project id.
 - **Width Values:**
   - Default expanded width: `240px`.
   - Minimum expanded width: `200px`.
@@ -420,7 +420,7 @@
   - Collapsed nav links retain route aria-labels and tooltips.
 - **Deferred Workspace Assist TODOs:**
   - Last selected project is remembered.
-  - Last dashboard route per project (`tracify.lastRoute.[projectId]`) was deferred to avoid modifying dashboard route/content behavior in this sidebar-only pass.
+  - Last dashboard route per project (`uncoil.lastRoute.[projectId]`) was deferred to avoid modifying dashboard route/content behavior in this sidebar-only pass.
   - No-spans dashboard home behavior was already represented by the existing start-here panel and was not changed.
 
 ## Dashboard Shell Usability Pass
@@ -440,8 +440,8 @@
   - `implementation_plan.md`
 - **Sidebar Notes:**
   - Expanded width is `240px`; collapsed width is `64px`.
-  - Sidebar collapsed state persists in `localStorage` as `tracify:dashboard-sidebar`.
-  - Group state persists in `localStorage` as `tracify:dashboard-sidebar-groups`.
+  - Sidebar collapsed state persists in `localStorage` as `uncoil:dashboard-sidebar`.
+  - Group state persists in `localStorage` as `uncoil:dashboard-sidebar-groups`.
   - Groups are OBSERVE, CONFIGURE, and RESOURCES.
   - Deferred Replay, Evals, Integrations, Team, Memory, and Runtime nav items remain hidden.
 - **Project Switcher Notes:**
@@ -491,20 +491,20 @@
   - `agentRuns.getRecentRunsByProject`
   - `agentRuns.getProjectOnboardingState`
 - **Inngest Functions Created/Updated:**
-  - Updated `processSpan` to listen for `tracify/span.received`.
+  - Updated `processSpan` to listen for `uncoil/span.received`.
   - Writes span rows to Tinybird and upserts Convex `agentRuns`.
   - Removed alert side effects from `processSpan`; alerts are outside Milestone 2.
 - **Temporary Mocks:**
   - None for activation. Waiting state only advances from a real Convex run returned by `agentRuns.getProjectOnboardingState`.
   - `/dashboard/[projectId]/runs/[runId]` is a temporary receipt placeholder, not a trace viewer.
 - **Unresolved Backend/Environment Issues:**
-  - `TRACIFY_API_KEY_HMAC_SECRET` must be set in both Next.js runtime env and Convex deployment env to create and validate API keys consistently.
+  - `UNCOIL_API_KEY_HMAC_SECRET` must be set in both Next.js runtime env and Convex deployment env to create and validate API keys consistently.
   - `TINYBIRD_TOKEN` and `TINYBIRD_HOST` must be configured for Tinybird ingestion.
   - `convex/auth.config.ts` uses the current Clerk issuer `https://many-crab-79.clerk.accounts.dev`.
 - **Manual Curl Test:**
   ```bash
   curl -X POST http://localhost:3000/api/ingest \
-    -H "Authorization: Bearer tracify_sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+    -H "Authorization: Bearer uncoil_sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
     -H "Content-Type: application/json" \
     -d '{
       "spanId": "span_test_001",
@@ -549,7 +549,7 @@
   - `src/app/dashboard/[projectId]/page.tsx`
 - **Sidebar Adaptation Notes:**
   - Removed demo team/user/workspace content from the product shell.
-  - Sidebar uses text-only tracify logo, no generic icon.
+  - Sidebar uses text-only uncoil logo, no generic icon.
   - Nav is limited to Overview, Runs, Costs, Alerts, Settings, and Docs.
   - Active state uses white text and a left border, not blue or rounded pill styling.
 - **Temporary Data:**
@@ -626,7 +626,7 @@
 - **Goal:** Replace static navbar with a high-fidelity dropdown navigation that exposes product depth.
 - **Implementation:** 
     - Created `DropdownNavigation` with `framer-motion` (opacity + 4px y-shift).
-    - Created `Navbar` with tracify product structure (Trace Viewer, Cost Dashboard, etc.).
+    - Created `Navbar` with uncoil product structure (Trace Viewer, Cost Dashboard, etc.).
     - Used `lucide-react` icons (monochrome #999999).
     - Fixed backdrop blur and translucent background.
 - **Verification:**
@@ -637,7 +637,7 @@
 
 ## Custom Auth Pages
 - **Status:** Completed.
-- **Goal:** Create a tracify-specific auth experience using Clerk.
+- **Goal:** Create a uncoil-specific auth experience using Clerk.
 - **Implementation:** 
     - Created `AuthShell` for the 45/55 split-screen layout.
     - Created `AuthTerminalPanel` with a looping tracer simulation (red/green/amber highlights).

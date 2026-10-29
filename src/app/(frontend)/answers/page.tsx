@@ -14,7 +14,7 @@ export const metadata = pageMetadata({
 export default function AnswersPage() {
   return (
     <div className="overflow-x-clip bg-[#090909]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString([breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Answers", path: "/answers" }]), itemListJsonLd("AI agent observability answers", answers.map((a) => ({ name: a.question, path: `/answers/${a.slug}` })))]) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString([breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Answers", path: "/answers" }]), itemListJsonLd("AI agent observability answers", answers.map((a) => ({ name: a.question, path: `/answers/${a.slug}` })))]) }} />
       <PageHeader eyebrow="Reference / answers" title="Questions, answered" lede="The questions teams ask when an AI agent breaks, costs too much or cannot be explained. Each answer is short and links to the docs.">
         <HeaderAction href="/docs/quickstart">Send your first trace</HeaderAction>
         <HeaderAction href="/glossary" kind="secondary">Glossary</HeaderAction>

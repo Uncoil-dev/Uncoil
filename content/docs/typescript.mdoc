@@ -14,17 +14,17 @@ Use the TypeScript SDK when your agent runs in Node.js, a Next.js route handler,
 ## Install and configure
 
 ```bash
-npm install tracify-sdk
+npm install uncoil-sdk
 ```
 
-The SDK reads `TRACIFY_API_KEY` from the environment. Pass options when you need to override it:
+The SDK reads `UNCOIL_API_KEY` from the environment. Pass options when you need to override it:
 
 ```ts
-import { traceAgent } from "tracify-sdk";
+import { traceAgent } from "uncoil-sdk";
 
 const runAgent = traceAgent(async (question: string) => callModel(question), {
   name: "support-agent",
-  apiKey: process.env.TRACIFY_API_KEY,
+  apiKey: process.env.UNCOIL_API_KEY,
   region: "eu",
   environment: "production",
   release: "2026-10-15",
@@ -34,18 +34,18 @@ const runAgent = traceAgent(async (question: string) => callModel(question), {
 Every option is optional. These are the ones you will use most:
 
 - `name`: the trace name shown in the dashboard. Defaults to the function name.
-- `region`: `"eu"` or `"us"`. Defaults to the `TRACIFY_REGION` variable, then `"eu"`. You can also set `host` or `TRACIFY_HOST` for a self-hosted deployment.
+- `region`: `"eu"` or `"us"`. Defaults to the `UNCOIL_REGION` variable, then `"eu"`. You can also set `host` or `UNCOIL_HOST` for a self-hosted deployment.
 - `environment`, `release`, `deploymentId`: compare runs across deployments.
 - `sessionId`, `endUserId`, `tags`: group related traces and find one customer's runs.
 
-A key belongs to one region. If the key and the configured region disagree, the client throws `Tracify API key region mismatch` when it is created, instead of sending data to the wrong place.
+A key belongs to one region. If the key and the configured region disagree, the client throws `Uncoil API key region mismatch` when it is created, instead of sending data to the wrong place.
 
 ## Record steps with span and observe
 
 Inside a `traceAgent` function, `span` records a block of work and `observe` wraps a function. Steps started inside another step become its children, so the trace graph shows which step called which and how loops repeat.
 
 ```ts
-import { observe, span, traceAgent } from "tracify-sdk";
+import { observe, span, traceAgent } from "uncoil-sdk";
 
 const searchDocs = observe(
   async function searchDocs(query: string) {
@@ -89,7 +89,7 @@ export const answer = traceAgent(async (question: string) => {
 When you already have the numbers, for example from a custom provider client, record a finished call without wrapping it:
 
 ```ts
-import { llmCall, toolCall } from "tracify-sdk";
+import { llmCall, toolCall } from "uncoil-sdk";
 
 await llmCall({
   input: question,
@@ -109,7 +109,7 @@ await toolCall({
 });
 ```
 
-Both calls attach to the step they were made in. Cost is whatever you pass: Tracify does not guess prices. See [Track model cost and latency](/docs/costs).
+Both calls attach to the step they were made in. Cost is whatever you pass: Uncoil does not guess prices. See [Track model cost and latency](/docs/costs).
 
 ## Wrap provider clients
 
@@ -121,4 +121,4 @@ Inputs and outputs are serialized, have obvious secrets removed (bearer tokens, 
 
 ## Feedback, scores and prompts
 
-Pass `projectId` when you construct a `TracifyClient` to attach end-user feedback and scores to a trace. See [Feedback and scores](/docs/feedback-and-scores). To load a prompt version without redeploying, see [Prompt deployment](/docs/prompts).
+Pass `projectId` when you construct a `UncoilClient` to attach end-user feedback and scores to a trace. See [Feedback and scores](/docs/feedback-and-scores). To load a prompt version without redeploying, see [Prompt deployment](/docs/prompts).

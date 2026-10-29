@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { formatReport, maskKey, runDoctor } from "../src/index";
 
-const KEY = "tracify_sk_live_eu_abcdefghijklmnop";
+const KEY = "uncoil_sk_live_eu_abcdefghijklmnop";
 let calls: Array<{ url: string; init?: any }> = [];
 function mockFetch(ingestStatus = 200, reach: "ok" | "down" = "ok") {
   calls = [];
@@ -13,7 +13,7 @@ function mockFetch(ingestStatus = 200, reach: "ok" | "down" = "ok") {
   }));
 }
 const status = (report: Awaited<ReturnType<typeof runDoctor>>, id: string) => report.checks.find((c) => c.id === id)?.status;
-afterEach(() => { vi.unstubAllGlobals(); delete process.env.TRACIFY_API_KEY; delete process.env.TRACIFY_REGION; delete process.env.TRACIFY_HOST; });
+afterEach(() => { vi.unstubAllGlobals(); delete process.env.UNCOIL_API_KEY; delete process.env.UNCOIL_REGION; delete process.env.UNCOIL_HOST; });
 
 describe("setup checker", () => {
   it("passes and sends one tagged test trace", async () => {
@@ -25,13 +25,13 @@ describe("setup checker", () => {
     expect(ingest).toHaveLength(1);
     expect(ingest[0].init.headers.Authorization).toBe(`Bearer ${KEY}`);
     const body = JSON.parse(ingest[0].init.body);
-    expect(body).toMatchObject({ spanType: "llm_call", tags: ["tracify-doctor"], traceName: "Tracify setup check" });
+    expect(body).toMatchObject({ spanType: "llm_call", tags: ["uncoil-doctor"], traceName: "Uncoil setup check" });
     expect(typeof body.latencyMs).toBe("number");
     expect(formatReport(report)).toContain("All good");
   });
   it("reads the key from the environment", async () => {
     mockFetch();
-    process.env.TRACIFY_API_KEY = KEY;
+    process.env.UNCOIL_API_KEY = KEY;
     expect((await runDoctor()).ok).toBe(true);
   });
   it("fails clearly on a missing or wrong-shaped key without any network call", async () => {

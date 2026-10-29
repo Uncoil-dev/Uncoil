@@ -19,8 +19,8 @@ from dataclasses import dataclass, field
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from tracify import (
-    TracifyClient,
+from uncoil import (
+    UncoilClient,
     RuntimePolicy,
     CancellationToken,
     LatencyBudgetExceeded,
@@ -153,7 +153,7 @@ def pick_failure_mode(mix: Dict[str, float]) -> str:
 
 # ─── Run harness ──────────────────────────────────────────────────
 def run_chaos_harness(config: ChaosConfig) -> List[IterationResult]:
-    client = TracifyClient(api_key=config.api_key, host=config.host)
+    client = UncoilClient(api_key=config.api_key, host=config.host)
     results: List[IterationResult] = []
 
     for i in range(config.iterations):

@@ -1,4 +1,4 @@
-const baseUrl = (process.env.TRACIFY_SMOKE_BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/, "");
+const baseUrl = (process.env.UNCOIL_SMOKE_BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/, "");
 const routes = [
   ["/", 200],
   ["/demo", [200, 302, 307, 308]],

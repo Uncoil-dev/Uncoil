@@ -7,12 +7,12 @@ import { captureAnalytics } from "@/lib/analytics";
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
 import { getOneTimeApiKey } from "@/lib/onboarding-client-state";
-import { getDeploymentRegion, getTracifyRegion } from "@/lib/regions";
+import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 import { useMutation } from "convex/react";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 
-const API_KEY_COPIED_STORAGE_KEY = "tracify.onboarding.apiKeyCopied";
+const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
 const isPostHogConfigured = Boolean(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
     process.env.NEXT_PUBLIC_POSTHOG_HOST,
@@ -24,9 +24,9 @@ export function ApiKeyStep() {
   const [confirmSkip, setConfirmSkip] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [initialized, setInitialized] = useState(false);
-  const region = getTracifyRegion(getDeploymentRegion());
+  const region = getUncoilRegion(getDeploymentRegion());
   const updateProgress = useMutation(api.projects.updateOnboardingProgress);
-  const projectId = typeof window !== "undefined" ? window.sessionStorage.getItem("tracify.onboarding.projectId") : null;
+  const projectId = typeof window !== "undefined" ? window.sessionStorage.getItem("uncoil.onboarding.projectId") : null;
   useEffect(() => {
     const id = window.setTimeout(() => {
       setApiKey(getOneTimeApiKey());
@@ -35,7 +35,7 @@ export function ApiKeyStep() {
     return () => window.clearTimeout(id);
   }, []);
   const envContent = useMemo(
-    () => (apiKey ? `TRACIFY_API_KEY=${apiKey}\nTRACIFY_REGION=${region.id}\n` : ""),
+    () => (apiKey ? `UNCOIL_API_KEY=${apiKey}\nUNCOIL_REGION=${region.id}\n` : ""),
     [apiKey, region.id],
   );
 
@@ -65,7 +65,7 @@ export function ApiKeyStep() {
     <div>
       <OnboardingHeader
         title="Here's your key."
-        description={`It works like a password for your agent, and you only see it once. Copy it now and keep it in your .env file or secrets manager, never in code. (Tracify ${region.shortName})`}
+        description={`It works like a password for your agent, and you only see it once. Copy it now and keep it in your .env file or secrets manager, never in code. (Uncoil ${region.shortName})`}
       />
       {!initialized ? (
         <div className="border border-black/15 bg-[#f3f2ed] p-4 text-sm text-black/60">

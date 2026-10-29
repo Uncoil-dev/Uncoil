@@ -124,7 +124,7 @@
 ## Prompt A — Design Tokens + globals.css
 
 ```
-Create src/app/globals.css for the tracify SaaS platform.
+Create src/app/globals.css for the uncoil SaaS platform.
 
 Requirements:
 - Dark mode only. Background: #0A0A0A. No light mode variables.
@@ -154,7 +154,7 @@ Requirements:
 ## Prompt B — Landing Page
 
 ```
-Build src/app/(marketing)/page.tsx — the tracify landing page.
+Build src/app/(marketing)/page.tsx — the uncoil landing page.
 
 Tech stack: Next.js 15 App Router, Tailwind CSS, Framer Motion, Lucide React, shadcn/ui.
 
@@ -169,14 +169,14 @@ Build these sections in order:
 1. HERO
    - Left: eyebrow "AGENT OBSERVABILITY INFRASTRUCTURE" (badge, Geist Mono 11px uppercase)
    - Headline: "Every step your agent takes." (Geist Mono, clamp(48px,7vw,80px), font-weight 700)
-   - Subheadline: "tracify instruments your AI agents in two lines of code. See every tool call, 
+   - Subheadline: "uncoil instruments your AI agents in two lines of code. See every tool call, 
      LLM decision, and dollar spent — in real time. Debug in minutes, not hours."
    - CTA: "Start free — no credit card" → /sign-up (primary button)
    - Ghost CTA: "View live demo" (ghost button)
    - Right: static code block showing:
-     from tracify import trace_agent, llm_call, tool_call
+     from uncoil import trace_agent, llm_call, tool_call
      
-     @trace_agent(api_key=os.environ["TRACIFY_API_KEY"])
+     @trace_agent(api_key=os.environ["UNCOIL_API_KEY"])
      async def research_agent(query: str) -> str:
          result = await llm_call(model="claude-sonnet-4-5", prompt=query)
          sources = await tool_call("web_search", query=query)
@@ -213,7 +213,7 @@ Export default as LandingPage. Use Show from @clerk/nextjs for signed-in/signed-
 ## Prompt C — Auth Shell with Clerk
 
 ```
-Build the auth layout and auth pages for tracify.
+Build the auth layout and auth pages for uncoil.
 
 Files to create:
 - src/app/(auth)/layout.tsx
@@ -230,7 +230,7 @@ Auth layout (layout.tsx):
 - Left panel: bg #111111, border-right 1px #2A2A2A
 
 Brand panel (brand-panel.tsx):
-- Logo: "■ tracify" in Geist Pixel
+- Logo: "■ uncoil" in Geist Pixel
 - Tagline: "Five signals. One truth."
 - Feature list:
   • Real-time agent observability
@@ -272,7 +272,7 @@ forgot-password/page.tsx:
 ## Prompt D — Dashboard Shell
 
 ```
-Build the authenticated dashboard shell for tracify.
+Build the authenticated dashboard shell for uncoil.
 
 Files:
 - src/app/dashboard/layout.tsx
@@ -317,7 +317,7 @@ Use useOrganization from @clerk/nextjs for org switcher.
 ```
 Build the trace viewer page at src/app/dashboard/[projectId]/runs/[runId]/page.tsx
 
-This is the hero page of tracify. It must be extremely detailed.
+This is the hero page of uncoil. It must be extremely detailed.
 
 Layout:
 - Run header (full width)
@@ -550,5 +550,5 @@ And ErrorBanner component:
 
 ---
 
-*End of tracify Full Frontend Design Package — v1.0 — 2026-05-12*
+*End of uncoil Full Frontend Design Package — v1.0 — 2026-05-12*
 *All sections: 01 through 40 complete.*

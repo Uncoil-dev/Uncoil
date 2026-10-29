@@ -211,7 +211,7 @@ function IntegrationExplorations() {
           <Tag group="Integration ecosystem" number="01 / signal orbit" />
           <div className="relative mt-12 min-h-[620px] overflow-hidden border border-white/15 bg-[radial-gradient(circle_at_center,rgba(139,124,255,0.2),transparent_34%)]">
             <div className="absolute left-1/2 top-1/2 flex size-36 -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-[#8b7cff] bg-black font-pixel text-3xl">
-              tracify
+              uncoil
             </div>
             <div className="absolute left-1/2 top-1/2 size-[360px] -translate-x-1/2 -translate-y-1/2 animate-[exploration-spin_24s_linear_infinite] rounded-full border border-dashed border-white/20 motion-reduce:animate-none" />
             <div className="absolute left-1/2 top-1/2 size-[560px] -translate-x-1/2 -translate-y-1/2 animate-[exploration-spin_38s_linear_infinite_reverse] rounded-full border border-dashed border-white/10 motion-reduce:animate-none" />
@@ -288,7 +288,7 @@ function IntegrationExplorations() {
             <div className="flex flex-col gap-0 lg:flex-row">
               {[
                 ["01", "Instrument", "SDK / OTLP", "#f4d44d"],
-                ["02", "Route", "Tracify ingest", "#ff655a"],
+                ["02", "Route", "Uncoil ingest", "#ff655a"],
                 ["03", "Store", "Tinybird + Convex", "#8b7cff"],
                 ["04", "Act", "Slack + dashboard", "#7ee0b8"],
               ].map(([number, title, body, color], index) => (
@@ -468,7 +468,7 @@ function FaqExplorations() {
     ],
     [
       "Is self-hosting available?",
-      "Managed Tracify is the current path. Deployment requirements can be discussed for enterprise plans.",
+      "Managed Uncoil is the current path. Deployment requirements can be discussed for enterprise plans.",
     ],
   ] as const;
   return (
@@ -567,10 +567,10 @@ function FaqExplorations() {
               </div>
               <div className="max-w-[720px] border-l-4 border-[#7ee0b8] bg-[#111] p-5">
                 <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#7ee0b8]">
-                  Tracify
+                  Uncoil
                 </p>
                 <p className="mt-3 text-lg leading-7">
-                  No. Keep them. Tracify adds the run-level context that
+                  No. Keep them. Uncoil adds the run-level context that
                   connects model calls, tools, quality, cost, and releases.
                 </p>
               </div>
@@ -582,7 +582,7 @@ function FaqExplorations() {
               </div>
               <div className="max-w-[720px] border-l-4 border-[#f4d44d] bg-[#111] p-5">
                 <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#f4d44d]">
-                  Tracify
+                  Uncoil
                 </p>
                 <p className="mt-3 text-lg leading-7">
                   That is the recommended path: one production workflow, one
@@ -617,16 +617,16 @@ function DocsExplorations() {
               <pre className="overflow-x-auto p-7 font-mono text-[13px] leading-8 text-zinc-300">
                 <code>
                   <span className="text-[#8b7cff]">import</span>
-                  {" { TracifyClient } from 'tracify-sdk'\n\n"}
+                  {" { UncoilClient } from 'uncoil-sdk'\n\n"}
                   <span className="text-[#f4d44d]">const</span>
-                  {" tracify = new TracifyClient()\n\n"}
+                  {" uncoil = new UncoilClient()\n\n"}
                   <span className="text-zinc-600">
                     {"// instrument → trace → inspect"}
                   </span>
                   {"\n"}
                   <span className="text-[#f4d44d]">await</span>
                   {
-                    " tracify.trace('support-agent', () => {\n  return agent.respond(ticket)\n})"
+                    " uncoil.trace('support-agent', () => {\n  return agent.respond(ticket)\n})"
                   }
                 </code>
               </pre>
@@ -659,7 +659,7 @@ function DocsExplorations() {
             </h2>
             <div className="mt-12 grid border-l border-t border-black/20 lg:grid-cols-3">
               {[
-                ["01", "Install", "npm install tracify-sdk", "< 1 min"],
+                ["01", "Install", "npm install uncoil-sdk", "< 1 min"],
                 ["02", "Trace", "wrap(agent.run)", "one function"],
                 ["03", "Inspect", "open run_0182", "full evidence"],
               ].map(([number, title, code, time]) => (
@@ -859,13 +859,13 @@ function ComparisonExplorations() {
           <Tag group="Comparison" number="01 / blind spots" />
           <div className="py-12">
             <h2 className="max-w-[1000px] font-pixel text-7xl leading-[0.82] tracking-[-0.075em] md:text-9xl">
-              Logs tell you events. Tracify tells you the run.
+              Logs tell you events. Uncoil tells you the run.
             </h2>
             <div className="mt-14 grid gap-px bg-white/15 lg:grid-cols-3">
               {[
                 ["Logs", "Scattered events", "What emitted"],
                 ["Dashboards", "Aggregated symptoms", "What moved"],
-                ["Tracify", "Connected evidence", "What to change"],
+                ["Uncoil", "Connected evidence", "What to change"],
               ].map(([title, problem, outcome], index) => (
                 <article
                   key={title}
@@ -922,7 +922,7 @@ function ComparisonExplorations() {
               </div>
               <div className="text-right">
                 <p className="font-pixel text-5xl tracking-[-0.06em]">
-                  Tracify
+                  Uncoil
                 </p>
                 <p className="mt-3 text-sm opacity-60">Decision + outcome</p>
               </div>

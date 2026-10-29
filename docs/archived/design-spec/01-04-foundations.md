@@ -1,4 +1,4 @@
-# tracify — Full Frontend Design Package
+# uncoil — Full Frontend Design Package
 **Dark-mode-only design system, pages, flows, components, and implementation spec**
 *CONFIDENTIAL — v1.0 — 2026-05-12*
 
@@ -9,7 +9,7 @@
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║   ■ tracify                                                    ║
+║   ■ uncoil                                                    ║
 ║                                                              ║
 ║   Full Frontend Design Package                               ║
 ║   Dark-mode-only design system, pages, flows,                ║
@@ -26,7 +26,7 @@
 
 ## Product Overview
 
-tracify is an agent observability infrastructure platform for developers building AI agents. In two lines of SDK code, it instruments every tool call, LLM decision, token cost, latency measurement, and failure event — streaming them in real time into a structured trace viewer. Unlike generic logging or APM tools, tracify understands the semantics of agent execution: it knows the difference between a reasoning span and a tool-call span, it tracks cost at the model level, and it surfaces failures before they become invisible production bugs. The product is built for teams who ship AI agents into production and need the same debugging confidence they have with distributed systems.
+uncoil is an agent observability infrastructure platform for developers building AI agents. In two lines of SDK code, it instruments every tool call, LLM decision, token cost, latency measurement, and failure event — streaming them in real time into a structured trace viewer. Unlike generic logging or APM tools, uncoil understands the semantics of agent execution: it knows the difference between a reasoning span and a tool-call span, it tracks cost at the model level, and it surfaces failures before they become invisible production bugs. The product is built for teams who ship AI agents into production and need the same debugging confidence they have with distributed systems.
 
 ## Design Principles
 
@@ -35,7 +35,7 @@ tracify is an agent observability infrastructure platform for developers buildin
 | 1 | **Precision over decoration** | Every pixel serves information. No gradients, glows, or shadows unless they carry semantic meaning. |
 | 2 | **Traceability over abstraction** | Show raw data close to the surface. IDs, timestamps, token counts, and latency are always visible — never hidden behind "friendly" summaries. |
 | 3 | **Developer speed over marketing fluff** | Copy is direct. CTAs are clear. No vague AI buzzwords. The UI respects the developer's time. |
-| 4 | **Dark-only identity** | tracify has no light mode. The dark theme is not a preference — it is the product's visual DNA. |
+| 4 | **Dark-only identity** | uncoil has no light mode. The dark theme is not a preference — it is the product's visual DNA. |
 | 5 | **Every element earns its place** | If a UI element cannot be justified by user need, it is removed. Empty space is used intentionally, not filled. |
 | 6 | **No UI element without a job** | No decorative icons, no filler illustrations, no padding-as-content. |
 | 7 | **Dashboard clarity over visual noise** | Data-dense views prefer tables over cards, monochrome over color, alignment over ornamentation. |
@@ -158,7 +158,7 @@ tracify is an agent observability infrastructure platform for developers buildin
 
 ## 3.5 Shadows
 
-> **Default: none.** tracify uses borders, not shadows, to define elevation. The only permitted shadow is a subtle ambient glow on marketing hero sections: `box-shadow: 0 0 120px rgba(99,102,241,0.08)`.
+> **Default: none.** uncoil uses borders, not shadows, to define elevation. The only permitted shadow is a subtle ambient glow on marketing hero sections: `box-shadow: 0 0 120px rgba(99,102,241,0.08)`.
 
 ## 3.6 Border Radius
 

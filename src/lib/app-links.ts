@@ -9,7 +9,7 @@ import { getAvailableRegions } from "@/lib/regions";
  * more than one region is offered, because then the visitor still has to pick a region first.
  */
 export function appHref(path: string): string {
-  if (process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND === "cloud") return path;
+  if ((process.env.NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND ?? process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND) === "cloud") return path;
   if (process.env.NODE_ENV !== "production") return path;
   const regions = getAvailableRegions();
   return regions.length === 1 ? `${regions[0].origin}${path}` : path;

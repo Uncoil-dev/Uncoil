@@ -13,9 +13,9 @@
 ### Azure Bot Resource
 1. Go to **Azure Portal → Create a resource → Azure Bot**
 2. Fill in:
-   - Name: `tracify-bot`
+   - Name: `uncoil-bot`
    - Subscription: your Azure subscription
-   - Resource group: `tracify-rg`
+   - Resource group: `uncoil-rg`
    - Pricing tier: S1 (or Free F0 for testing)
    - **Microsoft App ID**: Create new (generates App Registration automatically)
    - **App type**: MultiTenant
@@ -267,9 +267,9 @@ Zip `manifest.json`, `color.png` (192x192), and `outline.png` (32x32) — all at
 ## Key Files in This Project
 | File | Purpose |
 |------|---------|
-| `C:\tracify\teams-bot\bot.js` | Bot server code |
-| `C:\tracify\teams-bot\start-bot.bat` | Environment vars + launch script |
-| `C:\tracify\teams-bot\sessions.json` | Persisted opencode session mappings |
-| `C:\tracify\teams-bot\manifest\manifest.json` | Teams app manifest |
-| `C:\tracify\teams-bot\manifest\tracify-bot.zip` | Packaged Teams app |
+| `C:\uncoil\teams-bot\bot.js` | Bot server code |
+| `C:\uncoil\teams-bot\start-bot.bat` | Environment vars + launch script |
+| `C:\uncoil\teams-bot\sessions.json` | Persisted opencode session mappings |
+| `C:\uncoil\teams-bot\manifest\manifest.json` | Teams app manifest |
+| `C:\uncoil\teams-bot\manifest\uncoil-bot.zip` | Packaged Teams app |
 | `C:\Users\krist\.config\opencode\opencode.jsonc` | opencode config with Composio MCP |

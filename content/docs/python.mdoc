@@ -14,13 +14,13 @@ Use the Python SDK for agents built with plain functions, async code, or framewo
 ## Install and configure
 
 ```bash
-pip install tracify-sdk
+pip install uncoil-sdk
 ```
 
-Set `TRACIFY_API_KEY` in the environment where your agent runs. Configure the rest on the decorator:
+Set `UNCOIL_API_KEY` in the environment where your agent runs. Configure the rest on the decorator:
 
 ```python
-from tracify import trace_agent
+from uncoil import trace_agent
 
 @trace_agent(name="support-agent", environment="production", release="2026-10-15")
 def answer(question: str):
@@ -36,17 +36,17 @@ Each call of the decorated function is one trace. A key belongs to one region, E
 Use `span` for a block of work and `observe` for a function. Steps started inside another step become its children.
 
 ```python
-import tracify
+import uncoil
 
-@tracify.observe(type="tool")
+@uncoil.observe(type="tool")
 def search_docs(query):
     return search(query)
 
-@tracify.trace_agent()
+@uncoil.trace_agent()
 def answer(question):
     for turn in range(5):
-        with tracify.span("think", type="agent"):
-            with tracify.span("chat", type="llm", input=question) as step:
+        with uncoil.span("think", type="agent"):
+            with uncoil.span("chat", type="llm", input=question) as step:
                 reply = call_model(question)
                 step.set_output(reply.text)
                 step.set(
@@ -64,7 +64,7 @@ def answer(question):
 ## Record finished calls directly
 
 ```python
-from tracify import llm_call, tool_call
+from uncoil import llm_call, tool_call
 
 llm_call(
     input_data=question,
@@ -86,7 +86,7 @@ tool_call(
 
 ## Wrap provider clients
 
-`tracify.wrap_openai`, `tracify.wrap_anthropic` and `tracify.langgraph_callback()` record provider calls without changing your code. See [OpenAI, Anthropic and LangGraph](/docs/provider-integrations).
+`uncoil.wrap_openai`, `uncoil.wrap_anthropic` and `uncoil.langgraph_callback()` record provider calls without changing your code. See [OpenAI, Anthropic and LangGraph](/docs/provider-integrations).
 
 ## What the SDK sends
 
@@ -94,4 +94,4 @@ Inputs and outputs have obvious secrets removed and are capped at 10,000 charact
 
 ## Feedback, scores and prompts
 
-Create a `TracifyClient` with `project_id` to attach feedback and scores. See [Feedback and scores](/docs/feedback-and-scores). To resolve a deployed prompt, see [Prompt deployment](/docs/prompts).
+Create a `UncoilClient` with `project_id` to attach feedback and scores. See [Feedback and scores](/docs/feedback-and-scores). To resolve a deployed prompt, see [Prompt deployment](/docs/prompts).

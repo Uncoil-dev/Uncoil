@@ -3,9 +3,9 @@ export type ScoreSnippetLanguage = "python" | "typescript";
 
 export function scoreSnippet(language: ScoreSnippetLanguage, projectId: string): string {
   if (language === "python") {
-    return `from tracify import TracifyClient, trace_agent, current_run_id
+    return `from uncoil import UncoilClient, trace_agent, current_run_id
 
-client = TracifyClient(project_id="${projectId}")  # API key comes from TRACIFY_API_KEY
+client = UncoilClient(project_id="${projectId}")  # API key comes from UNCOIL_API_KEY
 
 @trace_agent(client=client)
 async def run_my_agent(question: str):
@@ -15,9 +15,9 @@ async def run_my_agent(question: str):
     client.score(current_run_id(), "followed_policy", True, data_type="boolean")
     return answer`;
   }
-  return `import { TracifyClient, traceAgent, currentRunId } from 'tracify-sdk';
+  return `import { UncoilClient, traceAgent, currentRunId } from 'uncoil-sdk';
 
-const client = new TracifyClient({ projectId: '${projectId}' }); // API key comes from TRACIFY_API_KEY
+const client = new UncoilClient({ projectId: '${projectId}' }); // API key comes from UNCOIL_API_KEY
 
 const runAgent = traceAgent(async (question: string) => {
   const answer = 'Observability for AI agents.';

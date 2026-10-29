@@ -6,26 +6,26 @@ import { PageHeader } from "@/components/marketing/page-header";
 import { ClosingBand, CreamBand, Eyebrow, HeaderAction, SectionTitle } from "@/components/marketing/company/blocks";
 
 export const metadata = pageMetadata({
-  title: "Tracify alternatives and comparisons",
-  description: "Compare Tracify with Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust and Datadog for AI agent observability, cost tracking and evaluation.",
+  title: "Uncoil alternatives and comparisons",
+  description: "Compare Uncoil with Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust and Datadog for AI agent observability, cost tracking and evaluation.",
   path: "/compare",
 });
 
 export default function ComparePage() {
   const schema = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Compare", path: "/compare" }]),
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Compare", path: "/compare" }]),
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: "Tracify comparisons",
-      itemListElement: comparisons.map((c, i) => ({ "@type": "ListItem", position: i + 1, url: `https://www.tracify.tech/compare/${c.slug}`, name: `Tracify vs ${c.name}` })),
+      name: "Uncoil comparisons",
+      itemListElement: comparisons.map((c, i) => ({ "@type": "ListItem", position: i + 1, url: `https://www.uncoil.dev/compare/${c.slug}`, name: `Uncoil vs ${c.name}` })),
     },
   ];
   return (
     <div className="overflow-x-clip bg-[#090909]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(schema) }} />
-      <PageHeader eyebrow="Compare / alternatives" title="Tracify vs the rest." lede="Plain comparisons with the other tools teams look at, including the cases where they are the better pick.">
-        <HeaderAction href={appHref("/demo/project")}>See Tracify live</HeaderAction>
+      <PageHeader eyebrow="Compare / alternatives" title="Uncoil vs the rest." lede="Plain comparisons with the other tools teams look at, including the cases where they are the better pick.">
+        <HeaderAction href={appHref("/demo/project")}>See Uncoil live</HeaderAction>
         <HeaderAction href="/pricing" kind="secondary">Pricing</HeaderAction>
       </PageHeader>
       <CreamBand>
@@ -38,7 +38,7 @@ export default function ComparePage() {
           {comparisons.map((c) => (
             <li key={c.slug} className="bg-[#eceae3]">
               <Link href={`/compare/${c.slug}`} className="block h-full p-8 transition-colors hover:bg-[#f4d44d]">
-                <h3 className="font-pixel text-3xl tracking-[-0.06em]">Tracify vs {c.name}</h3>
+                <h3 className="font-pixel text-3xl tracking-[-0.06em]">Uncoil vs {c.name}</h3>
                 <p className="mt-4 text-sm leading-6 text-black/70">{c.oneLine}</p>
               </Link>
             </li>

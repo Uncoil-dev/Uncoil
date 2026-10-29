@@ -19,7 +19,7 @@ The same trace can contain model generations, retrieval, and multiple tool calls
 Wrap a tool function with `observe`, and its arguments, result, latency and any error are recorded as a child of the step that called it:
 
 ```ts
-import { observe } from "tracify-sdk";
+import { observe } from "uncoil-sdk";
 
 const lookupOrder = observe(
   async function lookupOrder(orderId: string) {
@@ -30,9 +30,9 @@ const lookupOrder = observe(
 ```
 
 ```python
-import tracify
+import uncoil
 
-@tracify.observe(type="tool")
+@uncoil.observe(type="tool")
 def lookup_order(order_id):
     return orders.find(order_id)
 ```

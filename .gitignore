@@ -48,18 +48,18 @@ next-env.d.ts
 install_skills.js
 scratch/temp.zip
 scratch/docx_extract/
-scratch/user-test-tracify/node_modules/
+scratch/user-test-uncoil/node_modules/
 
 # regional operator artifacts: deploy keys, tokens, and filled-in env files.
 # docs/regional-cloud-runbook.md describes this directory as ignored; before
 # 2026-08-18 it was not, so real credentials here were one `git add .` from
 # being committed. Never remove this rule.
-scratch/tracify-regional/
+scratch/uncoil-regional/
 *.env
 !*.env.example
 
 # local reference documents; do not publish
-/Tracify - Docs/
+/Uncoil - Docs/
 
 # generated local artifacts and credentials
 **/__pycache__/

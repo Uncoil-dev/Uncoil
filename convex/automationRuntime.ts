@@ -9,7 +9,7 @@ const THROTTLE_MS: Record<string, number> = { "run.failed": 60_000 };
 
 /** Turns a rule and an event into the request to send. Pure, so it is tested without the network. */
 export function buildDelivery(actionType: string, destination: string, event: AutomationEvent, projectId: string, at: string) {
-  const headers: Record<string, string> = { "Content-Type": "application/json", "User-Agent": "Tracify-Automations/1.0" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", "User-Agent": "Uncoil-Automations/1.0" };
   if (actionType === "slack") {
     return { url: destination, headers, body: { text: `:zap: *${event.title}*\n${event.message}` } };
   }
@@ -19,7 +19,7 @@ export function buildDelivery(actionType: string, destination: string, event: Au
     return {
       url: `https://api.github.com/repos/${destination}/dispatches`,
       headers: { ...headers, Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
-      body: { event_type: `tracify.${event.source}`, client_payload: { title: event.title, message: event.message, projectId, firedAt: at, ...event.data } },
+      body: { event_type: `uncoil.${event.source}`, client_payload: { title: event.title, message: event.message, projectId, firedAt: at, ...event.data } },
     };
   }
   return { url: destination, headers, body: { event: event.source, title: event.title, message: event.message, data: event.data ?? {}, projectId, firedAt: at } };

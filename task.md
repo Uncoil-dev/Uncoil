@@ -19,7 +19,7 @@
 
 - [pending owner] Run provider-backed signed-in workflows with EU credentials; these cannot be verified from the public/local deterministic Sandbox.
 
-## 2026-09-08 — Captured Tracify dashboard follow-up
+## 2026-09-08 — Captured Uncoil dashboard follow-up
 
 - [pending owner] Supply provider-backed EU test-account credentials to exercise signed-in project creation, persisted mutations, invitation, checkout, and first-trace ingestion end to end. Public Sandbox behavior, regional routing, unauthenticated safety, auth callback state, and the production build are verified without those credentials.
 
@@ -27,7 +27,7 @@
 
 Current verification gap: provider-backed authenticated journeys still require a real EU account/session with a project. The unauthenticated route safety, local EU-backed coverage, production auth endpoints, corrected EU Convex browser binding, current Vercel Production deployment, and deterministic Playground interactions are verified. The regional Convex deployment still needs its missing `sandbox` functions deployed before any future backend-backed Playground persistence is reintroduced. The failed PR Preview build also showed that `CONVEX_SITE_URL` is not currently configured for generic Preview branches; Production is configured and live.
 
-- [pending owner] Run authenticated Explore/Build, onboarding, invitation, recovery, checkout, and first-trace journeys with provider-backed test credentials (`TRACIFY_E2E_AUTH=1`).
+- [pending owner] Run authenticated Explore/Build, onboarding, invitation, recovery, checkout, and first-trace journeys with provider-backed test credentials (`UNCOIL_E2E_AUTH=1`).
 
 - [pending owner] Create the live one-time $1,000 Stripe Payment Link in the intended Stripe account using `docs/first-customer/stripe-payment-link-setup.md`; no Stripe credentials were available to this workspace.
 - [pending owner] Verify public contact channels and one current trigger for the 15 Qualified accounts, then personally send outreach. Continue research until 50 accounts meet the full qualification gate; do not count Watch accounts as qualified.
@@ -45,13 +45,13 @@ section first whenever asked "what do I need to do."
 
 ## Regional cloud — EU-first launch (decision recorded 2026-08-16)
 
-Free-plan provider environments do not necessarily guarantee physical EU/US data residency. Launch only EU for now and keep the US option hidden/disabled. Do not describe Tracify as multi-region until every US stateful provider has a verified US location.
+Free-plan provider environments do not necessarily guarantee physical EU/US data residency. Launch only EU for now and keep the US option hidden/disabled. Do not describe Uncoil as multi-region until every US stateful provider has a verified US location.
 
 ### ⚠ BLOCKER (found 2026-08-18): "europe-west2" is London, UK — not the EU
 
 Both stateful EU services are physically in the **United Kingdom**, which left the EU in 2020:
 
-- Tinybird `tracify_eu` → `api.europe-west2.gcp.tinybird.co` → GCP **europe-west2 = London, UK**.
+- Tinybird `uncoil_eu` → `api.europe-west2.gcp.tinybird.co` → GCP **europe-west2 = London, UK**.
 - Redis `database-MSZ2JEQR` → `start-crisp-coherent-91539.db.redis.io` → `35.246.69.33`, which
   falls in `35.246.0.0/17`, published by Google in `https://www.gstatic.com/ipranges/cloud.json`
   with `scope: europe-west2` — same London region.
@@ -68,7 +68,7 @@ GDPR Art. 4(2) defines processing to include storage; there is no cache exemptio
 TTL is not ephemeral. The UK holds a UK-GDPR regime and an EU adequacy decision, so transfers are lawful today — but
 adequacy is renewable and has been challenged, and "EU data residency" is a factual claim that
 London hosting does not satisfy. Many EU buyers (public sector, health, finance) exclude UK
-hosting outright. Shipping `eu.cloud.tracify.tech` on this infrastructure while calling it EU
+hosting outright. Shipping `eu.cloud.uncoil.dev` on this infrastructure while calling it EU
 would repeat exactly the overclaim this EU-first decision was made to avoid.
 
 DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu-west-1`
@@ -87,7 +87,7 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
       `52.211.129.79`, published by AWS as `eu-west-1` (Ireland) — genuinely EU. Note the write
       flipped the variable from Non-sensitive to Sensitive, so its value is no longer visible in
       `vercel env ls` for future audits.
-      `src/instrumentation.ts` required set are now present on `tracify-cloud-eu`.
+      `src/instrumentation.ts` required set are now present on `uncoil-cloud-eu`.
       server at `https://mcp.tinybird.co?token=${TINYBIRD_MCP_TOKEN}`. The token is referenced by
       env-var expansion, never written to the file — `.mcp.json` is NOT gitignored, so a literal
       token there would be committed to the repo. Set `TINYBIRD_MCP_TOKEN` in the environment or
@@ -98,7 +98,7 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
 - [ ] ⚠ STILL SUSPECT — `TINYBIRD_TOKEN` has not been touched since the original swapped-value
       entry and may contain the *host* string rather than the token. Re-add it with `--force` and
       confirm. Symptom if wrong: every Tinybird call fails auth with 403.
-      `npx vercel env ls production --project tracify-cloud-eu` on 2026-08-18: the variable is
+      `npx vercel env ls production --project uncoil-cloud-eu` on 2026-08-18: the variable is
       marked Non-sensitive so its value is visible, and it begins `eyJ2IjoidjIiLCJjIj…`, which
       base64-decodes to `{"v":"v2","c"…` — a Tinybird JWT. The host and token values were
       swapped when added. Every Tinybird call would throw on an invalid URL. Fix: set
@@ -106,7 +106,7 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
       `TINYBIRD_TOKEN` holds the token.
       `vercel env ls`. Value hidden, so the `rediss://` scheme could not be verified — if the
       deployment can't reach Redis, check that first.
-- [ ] ⚠ STILL MISSING — `INNGEST_EVENT_KEY` is absent from `tracify-cloud-eu`. It is in the
+- [ ] ⚠ STILL MISSING — `INNGEST_EVENT_KEY` is absent from `uncoil-cloud-eu`. It is in the
       `src/instrumentation.ts` required set, so the EU deployment still hard-throws at boot:
       "Regional cloud deployment is missing required environment variables: INNGEST_EVENT_KEY".
       2026-08-18, same verification caveat.
@@ -116,7 +116,7 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
       exposed token is for the London workspace being deleted, which limits the damage.
       `tb deploy` from the repo root (NOT `tinybird/` — `.tinyb` lives at the root, and running
       from the subdirectory fails with "requires authentication"). Deployment #1 to workspace
-      `tracify_eu_west1` created all four objects, verified via the API:
+      `uncoil_eu_west1` created all four objects, verified via the API:
         datasources: `spans` (MergeTree), `evaluation_scores` (MergeTree)
         pipes:       `recent_runs_summary` (endpoint), `spans_by_run` (endpoint)
       Both endpoints smoke-tested: HTTP 200, 0 rows (expected — nothing ingested yet).
@@ -129,10 +129,10 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
       /v0/datasources` returns 200 and confirms the workspace is empty (`{"datasources": []}`) —
       but `tb deploy` rejects it with "This action requires authentication. Run 'tb login' first".
       ONLY REMAINING STEP: BN-KR runs `tb login` (interactive browser), then `tb deploy` from
-      `C:\Tracify	inybird`. Nothing else is outstanding; all four datafiles are staged and valid.
+      `C:\Uncoil	inybird`. Nothing else is outstanding; all four datafiles are staged and valid.
       `.tinyb` now points at `https://api.eu-west-1.aws.tinybird.co` so login targets the right host.
 - [ ] Superseded note: local `.tinyb` used to read `host: https://api.europe-west2.gcp.tinybird.co`,
-      `name: tracify_eu` — i.e. the CLI is still authenticated against the OLD London workspace.
+      `name: uncoil_eu` — i.e. the CLI is still authenticated against the OLD London workspace.
       Running `tb push`/`tb deploy` right now would deploy the four definitions to London, not to
       the new eu-west-1 workspace. Re-auth (`tb auth`) before pushing anything.
 - [ ] Re-verify by IP once created, same method as below.
@@ -189,7 +189,7 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
       - [ ] ROTATE the Upstash REST token for `concrete-buffalo-140061` — it was pasted
             unmasked into a chat transcript on 2026-08-18 and must be considered compromised.
             Upstash console → database → rotate/reset token.
-      - [ ] Also delete the short-lived Redis Cloud Ireland database `tracify-eu-west1`
+      - [ ] Also delete the short-lived Redis Cloud Ireland database `uncoil-eu-west1`
             (`patient-microsteady-porter-27084`), superseded by Upstash.
 
 - [ ] Option A (keeps the "EU" claim): recreate the Tinybird workspace **and** the Redis database
@@ -203,9 +203,9 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
 
 ### EU launch — required
       US architecture without offering it to customers. DONE 2026-08-18:
-      - `src/lib/regions.ts` — added an `available` flag to `TracifyRegion` (eu: true, us: false)
+      - `src/lib/regions.ts` — added an `available` flag to `UncoilRegion` (eu: true, us: false)
         plus `getAvailableRegions()` / `isRegionAvailable()`. Public surfaces must iterate the
-        helper, never `TRACIFY_REGIONS` directly, so a dormant region can't be advertised by
+        helper, never `UNCOIL_REGIONS` directly, so a dormant region can't be advertised by
         accident.
       - `src/app/(frontend)/cloud/page.tsx` — selector lists only available regions; the
         hardcoded "02 regions" label is now derived from the count.
@@ -216,14 +216,14 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
         region stays routable so US keys are still detected as wrong-region rather than silently
         treated as EU.
       - Verified: `tsc --noEmit` clean, `npm run test:regions` 6/6, `npm run verify:regions` OK.
-      - ⚠ DEPLOY TARGET: `/cloud` only renders when `NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND=marketing`
-        — `src/proxy.ts:22` redirects it to `www.tracify.tech` on a cloud deployment. So the
-        region selector lives on the **marketing** project (`tracify` / www.tracify.tech), NOT on
-        `tracify-cloud-eu`. This EU-only change must ship to the marketing project or the public
+      - ⚠ DEPLOY TARGET: `/cloud` only renders when `NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND=marketing`
+        — `src/proxy.ts:22` redirects it to `www.uncoil.dev` on a cloud deployment. So the
+        region selector lives on the **marketing** project (`uncoil` / www.uncoil.dev), NOT on
+        `uncoil-cloud-eu`. This EU-only change must ship to the marketing project or the public
         selector will keep offering the US region regardless of what the EU project runs.
       - NOT visually verified: local `/cloud` 307-redirects to production because `.env.local`
         sets `DEPLOYMENT_KIND=cloud`. Correctness rests on the unit tests, not a rendered page.
-- [!] ⚠ REGION CLAIM IS WRONG — see the "europe-west2 is not the EU" blocker below. Tinybird workspace `tracify_eu` (host `api.europe-west2.gcp.tinybird.co`, GCP europe-west2) was recorded as "confirmed EU-located" and deployed 2026-08-17, but europe-west2 is London, United Kingdom, which is not in the EU: `spans` and `evaluation_scores` datasources plus `recent_runs_summary`/`spans_by_run` endpoint pipes are live (deployment #4). Datasources are schema-only right now — no data has been ingested yet, since nothing in the app currently pushes events to this workspace. Auth for this project's `.tinyb` was broken (blank token) and had to be re-logged-in; CLI browser login kept timing out in this environment, so credentials were copied from a working session instead. Next: wire actual span/eval ingestion (Events API or existing logging hook) to `tracify_eu`.
+- [!] ⚠ REGION CLAIM IS WRONG — see the "europe-west2 is not the EU" blocker below. Tinybird workspace `uncoil_eu` (host `api.europe-west2.gcp.tinybird.co`, GCP europe-west2) was recorded as "confirmed EU-located" and deployed 2026-08-17, but europe-west2 is London, United Kingdom, which is not in the EU: `spans` and `evaluation_scores` datasources plus `recent_runs_summary`/`spans_by_run` endpoint pipes are live (deployment #4). Datasources are schema-only right now — no data has been ingested yet, since nothing in the app currently pushes events to this workspace. Auth for this project's `.tinyb` was broken (blank token) and had to be re-logged-in; CLI browser login kept timing out in this environment, so credentials were copied from a working session instead. Next: wire actual span/eval ingestion (Events API or existing logging hook) to `uncoil_eu`.
 - [ ] ⚠⚠ BLOCKER FOUND 2026-08-18 — **INNGEST RUNS IN THE UNITED STATES.** `inn.gs` (event
       ingestion) and `api.inngest.com` both resolve exclusively to AWS `us-east-2` (Ohio):
       `3.20.90.35`, `3.13.225.237`, `18.221.3.32`, `18.227.206.98` — all four confirmed against
@@ -233,7 +233,7 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
       `src/app/(frontend)/api/otel/route.ts:401` both call `inngest.send()` with the full span
       payload — `SpanIngestedEvent` (`src/lib/inngest.ts:6`) includes `input` and `output`, i.e.
       raw LLM prompts and completions. So 100% of customer traces transit and are queued in Ohio,
-      and Inngest retains event payloads for replay/history. `eu.cloud.tracify.tech` cannot be
+      and Inngest retains event payloads for replay/history. `eu.cloud.uncoil.dev` cannot be
       described as EU-resident while this is true.
       Partial mitigation already in code: when a project enables redaction, `redactPayload()` runs
       BEFORE the send, so redacted projects leak less. It is opt-in per project, not the default.
@@ -257,28 +257,28 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
       `connectTimeout` so a hung connect fails fast instead of burning the function budget.
 - [ ] Use `rediss://` (TLS) for the EU `REDIS_URL`, not `redis://` — credentials and cached trace
       data otherwise cross the wire in clear text.
-- [ ] Add the existing EU Tinybird, Redis, and Inngest credentials to `tracify-cloud-eu` without printing or committing them. Env-var checklists live at `scratch/tracify-regional/env/{eu,us,production}.env`.
+- [ ] Add the existing EU Tinybird, Redis, and Inngest credentials to `uncoil-cloud-eu` without printing or committing them. Env-var checklists live at `scratch/uncoil-regional/env/{eu,us,production}.env`.
     CORRECTION 2026-08-18: an earlier note here claimed Vercel env vars were unreachable from this
     environment. That was wrong. `vercel` is not on PATH, but `npx vercel` works and the CLI is
-    still authenticated as `bnkr` (scope `tracify-tech`) — the same route
-    `scratch/tracify-regional/configure-vercel-env.mjs` used on 2026-08-15. So `vercel env ls`,
+    still authenticated as `bnkr` (scope `uncoil-tech`) — the same route
+    `scratch/uncoil-regional/configure-vercel-env.mjs` used on 2026-08-15. So `vercel env ls`,
     `add`, `rm`, and `pull` are all available; only *typing secret values* is off-limits, not
-    Vercel access itself. Use `npx vercel env ls production --project tracify-cloud-eu --scope
-    tracify-tech` to audit which names are set. EU's `STRIPE_WEBHOOK_SECRET` is already filled in there (created 2026-08-17); everything else needs BN-KR to fill in by hand from the Vercel dashboard / provider consoles. Older redacted `vercel env pull` dumps (`eu-vercel-production.env`, `us-vercel-production.env`, `marketing-production.env`) also exist in `scratch/tracify-regional/` from 2026-08-15 but only show `[SENSITIVE]` placeholders, not usable values.
+    Vercel access itself. Use `npx vercel env ls production --project uncoil-cloud-eu --scope
+    uncoil-tech` to audit which names are set. EU's `STRIPE_WEBHOOK_SECRET` is already filled in there (created 2026-08-17); everything else needs BN-KR to fill in by hand from the Vercel dashboard / provider consoles. Older redacted `vercel env pull` dumps (`eu-vercel-production.env`, `us-vercel-production.env`, `marketing-production.env`) also exist in `scratch/uncoil-regional/` from 2026-08-15 but only show `[SENSITIVE]` placeholders, not usable values.
   - GOTCHA (found 2026-08-17): `TINYBIRD_HOST` must include the `https://` scheme —
     `https://api.europe-west2.gcp.tinybird.co`, not the bare hostname. `src/lib/tinybird.ts:6`
     interpolates it directly into `fetch()` (lines 13/76/103/379) with no normalization, and its
     fallback is `https://api.tinybird.co`. A bare hostname makes every Tinybird call throw on an
     invalid URL. A first draft of `env/eu.env` had the bare hostname; corrected.
   - The authoritative required-at-boot list is `src/instrumentation.ts:9-20` (10 vars), which
-    hard-throws when `NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND=cloud` and any are blank. Note the
+    hard-throws when `NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND=cloud` and any are blank. Note the
     Tinybird fallback means a *missing* `TINYBIRD_HOST` on a non-cloud deployment would silently
     hit the global `api.tinybird.co` host instead of the EU workspace.
   - `INNGEST_SIGNING_KEY` is not read anywhere in `src/` or `convex/` — only `INNGEST_EVENT_KEY`.
       `091d9da`, now the tip of `origin/main`. Deployed that exact commit to BOTH projects from a
       clean detached worktree (never from the dirty main tree, so no `scratch/` upload):
-        `tracify-cloud-eu`  -> tracify-cloud-d4pqdn0fh, Ready, production
-        `tracify` (marketing) -> tracify-1zmm63ov5, Ready, production, serving www.tracify.tech
+        `uncoil-cloud-eu`  -> uncoil-cloud-d4pqdn0fh, Ready, production
+        `uncoil` (marketing) -> uncoil-1zmm63ov5, Ready, production, serving www.uncoil.dev
       Git automation remains disconnected on the regional project; deploys were done via
       `vercel deploy --prod` with a locally written `.vercel/project.json`. Reconnecting Git is
       still optional/outstanding.
@@ -294,7 +294,7 @@ DECISION 2026-08-18: Option A. BN-KR is recreating the Tinybird workspace in `eu
 - [ ] Verify EU DNS/TLS, authentication, onboarding, API-key creation, native/OTLP ingestion, Tinybird storage, Redis quotas, Inngest processing, Stripe billing, dashboard reads, and `/api/health/region`.
 
 ### US launch — deferred, must remain unavailable
-- [ ] Keep `us.cloud.tracify.tech` without customer traffic and keep US out of the region selector.
+- [ ] Keep `us.cloud.uncoil.dev` without customer traffic and keep US out of the region selector.
 - [ ] Before enabling US, obtain a physically US Tinybird workspace, Redis database, and event-processing environment with documented residency.
 - [ ] Configure unique US credentials, OAuth callbacks, Stripe webhook signing secret, backups, retention, monitoring, and end-to-end isolation tests.
 - [ ] Enable US only after proving an EU trace never appears in US and a US trace never appears in EU.
@@ -327,7 +327,7 @@ Verified: `tsc --noEmit`, `eslint` (no new problems), `npm run test:content` (16
 
 ## Local dev environment is broken — root cause of the two Convex codegen gaps above
 Diagnosed 2026-08-16 while trying to preview the dashboard locally:
-      quoted into the value itself (`"dev:diligent-dragon-604 # team: kristoffer-bon-6fab2, project: tracify"`),
+      quoted into the value itself (`"dev:diligent-dragon-604 # team: kristoffer-bon-6fab2, project: uncoil"`),
       so `npx convex codegen` tried to parse the whole string as one deployment name. Trimmed
       to `"dev:diligent-dragon-604"`.
       the `/cloud` redirect for local dashboard testing.
@@ -349,12 +349,12 @@ Diagnosed 2026-08-16 while trying to preview the dashboard locally:
 
 4. [pending] Re-run the production build after the currently active Next.js build releases `.next/lock`.
 
-# tracify Execution Task List
+# uncoil Execution Task List
 
 ## Better Auth Migration (2026-08-10)
 - [ ] Deploy the complete dirty worktree to production only after reviewing unrelated changes
-- [ ] Set the Better Auth dashboard server URL to `https://www.tracify.tech` with path `/api/auth`
-- [ ] Add the Google OAuth callback `https://www.tracify.tech/api/auth/callback/google`
+- [ ] Set the Better Auth dashboard server URL to `https://www.uncoil.dev` with path `/api/auth`
+- [ ] Add the Google OAuth callback `https://www.uncoil.dev/api/auth/callback/google`
 
 ## Dashboard Excellence Program
 - [ ] Add environment selector once environment becomes a project-level source of truth
@@ -365,10 +365,10 @@ Diagnosed 2026-08-16 while trying to preview the dashboard locally:
 - [ ] Update Landing Page with real dashboard screenshots
 - [ ] Connect Pricing page to real Stripe checkout links when Stripe is ready
 - [ ] Publish SDKs to PyPI and npm
-  - [ ] Publish `tracify` with npm 2FA OTP or granular publish token
-  - [ ] Publish Python `tracify` package to PyPI with a PyPI API token
+  - [ ] Publish `uncoil` with npm 2FA OTP or granular publish token
+  - [ ] Publish Python `uncoil` package to PyPI with a PyPI API token
 - [ ] Smoke test report page states: no data, normal runs, failed runs, and analytics unavailable
-- [ ] Run `npm run smoke:beta` with `TRACIFY_SMOKE_API_KEY` and `TRACIFY_SMOKE_PROJECT_ID`
+- [ ] Run `npm run smoke:beta` with `UNCOIL_SMOKE_API_KEY` and `UNCOIL_SMOKE_PROJECT_ID`
 
 ---
 
@@ -425,11 +425,11 @@ Diagnosed 2026-08-16 while trying to preview the dashboard locally:
 
 # EU/US regional cloud — 2026-08-15
 
-- [ ] ⚠ STALE CLAIM, corrected 2026-08-19 — "Attach `eu.cloud.tracify.tech` and
-      `us.cloud.tracify.tech` to their matching Vercel projects" was marked done, but the Vercel
-      API reports `domains: []` for `tracify-cloud-eu` (vs 7 domains on the main `tracify`
+- [ ] ⚠ STALE CLAIM, corrected 2026-08-19 — "Attach `eu.cloud.uncoil.dev` and
+      `us.cloud.uncoil.dev` to their matching Vercel projects" was marked done, but the Vercel
+      API reports `domains: []` for `uncoil-cloud-eu` (vs 7 domains on the main `uncoil`
       project, so the field is reliable). The domain is NOT attached. Evidence:
-      `eu.cloud.tracify.tech` resolves correctly to `76.76.21.21` (Vercel) but returns HTTP 404,
+      `eu.cloud.uncoil.dev` resolves correctly to `76.76.21.21` (Vercel) but returns HTTP 404,
       i.e. Vercel receives the request and has no project bound to that hostname.
       Also `latestDeployment: null` — the EU project has never deployed anything, which is
       expected: Git automation is intentionally disconnected per
@@ -506,7 +506,7 @@ Follow-ups still open:
 
 5. [pending] After localhost approval, force-add the ignored PNGs, create the focused commit and PR, and merge only after hosted checks pass; report the unrelated dashboard build type error separately.
 
-# Reusable Tracify blog-quality skill — 2026-08-26
+# Reusable Uncoil blog-quality skill — 2026-08-26
 
 5. [pending] Force-add the locally ignored skill files and article PNGs when preparing the already-planned focused PR.
 
@@ -534,7 +534,7 @@ Follow-ups still open:
 # 2026-09-03 — SEO/AEO blog ideation
 
 ## 2026-09-03 email sender configuration
-- Set transactional email defaults to `Kristoffer from Tracify <kb@tracify.tech>` and `kb@tracify.tech` reply-to.
+- Set transactional email defaults to `Kristoffer from Uncoil <kb@uncoil.dev>` and `kb@uncoil.dev` reply-to.
 - Added the required Resend/Vercel variable names to `.env.local.example`; API key must be supplied by the owner.
 # 2026-09-03 — Langfuse parity and release operating model
 
@@ -553,17 +553,17 @@ Follow-ups still open:
 # Private Plane workspace — 2026-09-04
 
 5. [pending] Provision a dedicated VPS and complete the pinned Plane Docker Compose deployment.
-6. [pending] After Cloudflare activation, create the Tunnel, Access/MFA policy, and `plane.tracify.tech` route.
+6. [pending] After Cloudflare activation, create the Tunnel, Access/MFA policy, and `plane.uncoil.dev` route.
 # 2026-09-04 — Explore / Build playground and site assistant
 
-- [pending owner] Run authenticated Convex codegen/deployment and configure the internal assistant Tracify credentials in the target deployment.
+- [pending owner] Run authenticated Convex codegen/deployment and configure the internal assistant Uncoil credentials in the target deployment.
 - [pending] Add browser E2E coverage for the new paths.
 - [pending] Submit and review the prepared draft PR for `codex/assistant-spend-guardrails` before merging and deploying the playground/assistant to production.
 - [pending owner] Add OpenAI billing details/credits, then configure the provider-side organization/project budget limit; application-side caps are already configured.
 
 # Langfuse clone surface — 2026-09-06
 
-Latest parity pass: visible captured-workspace branding and accent cleanup completed on 2026-09-08. The static reference is now available at `https://tracify-dashboard-reference.vercel.app/pages/023.html`; implementation viewport comparison remains pending until the local app server is available.
+Latest parity pass: visible captured-workspace branding and accent cleanup completed on 2026-09-08. The static reference is now available at `https://uncoil-dashboard-reference.vercel.app/pages/023.html`; implementation viewport comparison remains pending until the local app server is available.
 
 # Langfuse empty dashboard parity — 2026-09-06
 
@@ -572,7 +572,7 @@ Latest parity pass: visible captured-workspace branding and accent cleanup compl
 # 2026-09-05 — EU cloud TLS regression
 
 - [pending] Resolve Vercel custom-domain TLS renegotiation or migrate to a one-level hostname covered by the free certificate.
-# Tracify dashboard feature parity — 2026-09-06
+# Uncoil dashboard feature parity — 2026-09-06
 
 Current verification gap: completing a valid provider-backed sign-in still requires a real EU account/session. Callback race handling, return-path preservation, unauthenticated route safety, local EU-backed coverage, and production auth redirect checks are complete.
 
@@ -607,8 +607,8 @@ Current verification gap: completing a valid provider-backed sign-in still requi
 53. [x] Clean the stale sidebar hook dependency and verify shell lint.
 54. [x] Wire topbar Filters button to the live Home filter popover.
 55. [x] Separate widget layouts per dashboard name and verify dashboard editor lint.
-56. [x] Add rename/delete actions for custom dashboards and protect the default Tracify Home dashboard.
-57. [x] Make local and EU Cloud dashboard previews render with the Tracify sidebar and dashboard canvas.
+56. [x] Add rename/delete actions for custom dashboards and protect the default Uncoil Home dashboard.
+57. [x] Make local and EU Cloud dashboard previews render with the Uncoil sidebar and dashboard canvas.
 58. Continue visual parity review of linked dashboard surfaces against their captured references.
 59. Compare linked-surface content and controls against the captured screenshots and wire the highest-value interactions.
 60. Verify the upgraded linked-surface controls through the authenticated-style preview and refine visual spacing against the capture.
@@ -617,7 +617,7 @@ Current verification gap: completing a valid provider-backed sign-in still requi
 63. Complete the remaining capture-path and feature audit across both regional runtimes.
 64. Perform final visual comparison of the Home dashboard against the captured reference at the same viewport.
 65. Continue feature-depth parity for non-Home captured surfaces with real list/detail interactions.
-66. Extend linked forms with persistence-backed project data where the corresponding Tracify API exists.
+66. Extend linked forms with persistence-backed project data where the corresponding Uncoil API exists.
 67. Replace local draft markers with Convex mutations for surfaces that have backend schemas.
 68. Wire prompt and evaluation create forms to their existing typed Convex mutations, then design schemas for the remaining linked surfaces.
 69. Verify prompt and evaluation linked routes with authenticated project data and preserve the generic surfaces for schema-less features.
@@ -636,7 +636,7 @@ Current verification gap: completing a valid provider-backed sign-in still requi
 81. [in progress] Continue replacing legacy project route components with live captured-workspace adapters.
 82. [in progress] Migrate remaining search, comparison, administration, settings, and detail routes to canonical captured surfaces.
 84. [in progress] Continue migrating project settings, administration, and create/edit routes to captured surfaces.
-85. [in progress] Remove remaining dashboard-visible Tracify branding and yellow accents from legacy fallbacks and migrated shared surfaces.
+85. [in progress] Remove remaining dashboard-visible Uncoil branding and yellow accents from legacy fallbacks and migrated shared surfaces.
 86. [in progress] Implement captured control/detail density and compare local/reference screenshots for all 14 primary surfaces at all six required viewport sizes.
 87. [in progress] Continue evidence-driven surface corrections: latest verified work aligns Tracing toolbar controls, removes the unreachable top filter popover, corrects the shared default environment label, neutralizes the captured dashboard marker, and refines mobile Sessions toolbar/surface offsets. Full six-viewport capture remains green; raw visual parity is still incomplete.
 88. [in progress] Follow-up correction: the Tracing Filters control is restored as a visible URL-backed menu and verified in the current six-viewport artifact; residual pixel-level parity work and external Vercel preview remain open.

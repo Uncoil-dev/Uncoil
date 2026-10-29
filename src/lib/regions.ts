@@ -78,6 +78,7 @@ export function getUncoilRegion(id: UncoilRegionId = getDeploymentRegion()) {
 export function getRegionForHostname(hostname: string | null | undefined): UncoilRegionId | null {
   const normalized = hostname?.split(":")[0].toLowerCase();
   if (!normalized) return null;
+  if (normalized === "eu.cloud.uncoil.dev") return "eu";
   return (Object.values(UNCOIL_REGIONS).find((region) => region.hostname === normalized)?.id ?? null);
 }
 

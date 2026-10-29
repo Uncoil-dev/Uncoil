@@ -47,15 +47,19 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
   // marketing host stored in older Convex environments.
   baseURL: {
     allowedHosts: [
+      "eu.cloud.tracify.tech",
+      "www.tracify.tech",
+      "tracify.tech",
+      "*.preview.tracify.tech",
       "eu.cloud.uncoil.dev",
       "www.uncoil.dev",
       "uncoil.dev",
       "*.preview.uncoil.dev",
-      "uncoiltech.vercel.app",
-      "*.uncoil-tech.vercel.app",
-      // Vercel branch previews: <project>-git-<branch>-uncoil-tech.vercel.app
-      "uncoil-git-*-uncoil-tech.vercel.app",
-      "uncoil-cloud-eu-git-*-uncoil-tech.vercel.app",
+      "tracifytech.vercel.app",
+      "*.tracify-tech.vercel.app",
+      // Vercel branch previews: <project>-git-<branch>-tracify-tech.vercel.app
+      "tracify-git-*-tracify-tech.vercel.app",
+      "tracify-cloud-eu-git-*-tracify-tech.vercel.app",
       "localhost:*",
       "127.0.0.1:*",
     ],
@@ -97,14 +101,18 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
   },
   trustedOrigins: [
     siteUrl,
+    "https://eu.cloud.tracify.tech",
+    "https://www.tracify.tech",
+    "https://tracify.tech",
+    // Coolify per-PR previews: <pr number>.preview.tracify.tech
+    "https://*.preview.tracify.tech",
     "https://eu.cloud.uncoil.dev",
     "https://www.uncoil.dev",
     "https://uncoil.dev",
-    // Coolify per-PR previews: <pr number>.preview.uncoil.dev
     "https://*.preview.uncoil.dev",
-    "https://*.uncoil-tech.vercel.app",
-    "https://uncoil-git-*-uncoil-tech.vercel.app",
-    "https://uncoil-cloud-eu-git-*-uncoil-tech.vercel.app",
+    "https://*.tracify-tech.vercel.app",
+    "https://tracify-git-*-tracify-tech.vercel.app",
+    "https://tracify-cloud-eu-git-*-tracify-tech.vercel.app",
     "http://localhost:3000",
     "http://localhost:4000",
     "https://uncoiltech.vercel.app",

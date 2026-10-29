@@ -11,8 +11,8 @@ order: 4
 Use the ingestion endpoint when an SDK or OpenTelemetry exporter is not a fit. Authenticate every request with a project API key and send timestamps in ISO 8601 format.
 
 ```bash
-curl -X POST https://tracify.tech/api/ingest \
-  -H "Authorization: Bearer tracify_sk_live_..." \
+curl -X POST https://uncoil.dev/api/ingest \
+  -H "Authorization: Bearer uncoil_sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{"spanId":"span_123","runId":"run_123","spanType":"llm","createdAt":"2026-01-01T12:00:00Z","latencyMs":420}'
 ```

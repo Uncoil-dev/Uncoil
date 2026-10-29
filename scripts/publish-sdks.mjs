@@ -30,7 +30,7 @@ if (missing.length) {
 }
 if (!process.env.TWINE_USERNAME) process.env.TWINE_USERNAME = "__token__";
 
-console.log("\n=== npm: @tracify/sdk ===");
+console.log("\n=== npm: @uncoil/sdk ===");
 const who = spawnSync(win ? "npm.cmd" : "npm", ["whoami"], { encoding: "utf8", shell: win });
 if (who.status !== 0) {
   console.error("npm authentication failed. The token is invalid or lacks publish rights.");
@@ -42,7 +42,7 @@ if (run("npm", ["publish", "--access", "public"], "packages/ts-sdk").status !== 
   console.error("npm publish failed."); process.exit(1);
 }
 
-console.log("\n=== pypi: tracify-sdk ===");
+console.log("\n=== pypi: uncoil-sdk ===");
 const py = "packages/python-sdk";
 // Rebuild from scratch so no stale artifact under an old name can be uploaded.
 for (const d of ["dist", "build"]) if (existsSync(`${py}/${d}`)) rmSync(`${py}/${d}`, { recursive: true, force: true });

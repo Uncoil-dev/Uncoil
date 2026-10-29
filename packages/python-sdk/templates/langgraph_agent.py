@@ -1,6 +1,6 @@
 from typing import TypedDict
 from langgraph.graph import StateGraph, START, END
-import tracify
+import uncoil
 
 
 class State(TypedDict):
@@ -15,6 +15,6 @@ graph.add_edge("answer", END)
 
 result = graph.compile().invoke(
     {"question": "What is tracing?"},
-    config={"callbacks": [tracify.langgraph_callback()]},
+    config={"callbacks": [uncoil.langgraph_callback()]},
 )
 print(result["answer"])

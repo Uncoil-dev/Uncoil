@@ -157,7 +157,7 @@ const ANSWERS: Record<string, string[]> = {
   ],
   onboarding: [
     "Install the SDK, set your API key as an environment variable, and wrap your agent's entry point. Your first run appears within a few seconds.",
-    "For Python, run pip install tracify and call tracify.init() once at start-up. I've shared a copy-paste example below.",
+    "For Python, run pip install uncoil and call uncoil.init() once at start-up. I've shared a copy-paste example below.",
   ],
 };
 

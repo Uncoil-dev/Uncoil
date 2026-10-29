@@ -34,7 +34,7 @@ export function ProjectDataControls({ projectId, projectName }: { projectId: str
         throw new Error(body?.error ?? "The project could not be deleted.");
       }
       try {
-        if (window.localStorage.getItem("tracify.lastProjectId") === projectId) window.localStorage.removeItem("tracify.lastProjectId");
+        if (window.localStorage.getItem("uncoil.lastProjectId") === projectId) window.localStorage.removeItem("uncoil.lastProjectId");
       } catch {}
       router.replace("/dashboard");
     } catch (err) {

@@ -1,5 +1,5 @@
 DESCRIPTION >
-    Recent tracify run summaries from raw spans for dashboard fallback and smoke tests.
+    Recent uncoil run summaries from raw spans for dashboard fallback and smoke tests.
 
 NODE endpoint
 SQL >

@@ -15,7 +15,7 @@ test("unauthorized users cannot list or mutate leads", async () => {
 });
 
 test("admins can transition, assign, and annotate a lead", async () => {
-  process.env.TRACIFY_LIBRARY_ADMIN_EMAILS = "admin@example.com";
+  process.env.UNCOIL_LIBRARY_ADMIN_EMAILS = "admin@example.com";
   const t = convexTest(schema, modules);
   const id = await t.mutation(api.leads.submit, lead);
   const admin = t.withIdentity({ subject: "admin", email: "admin@example.com" });
@@ -26,7 +26,7 @@ test("admins can transition, assign, and annotate a lead", async () => {
 });
 
 test("blank notes are rejected and duplicate keys are idempotent", async () => {
-  process.env.TRACIFY_LIBRARY_ADMIN_EMAILS = "admin@example.com";
+  process.env.UNCOIL_LIBRARY_ADMIN_EMAILS = "admin@example.com";
   const t = convexTest(schema, modules);
   const admin = t.withIdentity({ subject: "admin", email: "admin@example.com" });
   const first = await t.mutation(api.leads.submit, { ...lead, dedupeKey: "same-key" });
@@ -36,7 +36,7 @@ test("blank notes are rejected and duplicate keys are idempotent", async () => {
 });
 
 test("authorized empty lead list is empty", async () => {
-  process.env.TRACIFY_LIBRARY_ADMIN_EMAILS = "admin@example.com";
+  process.env.UNCOIL_LIBRARY_ADMIN_EMAILS = "admin@example.com";
   const t = convexTest(schema, modules);
   const admin = t.withIdentity({ subject: "admin", email: "admin@example.com" });
   await expect(admin.query(api.leads.list, {})).resolves.toEqual([]);

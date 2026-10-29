@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-  TracifyClient,
+  UncoilClient,
   RuntimePolicy,
-  TRACIFY_REGION_HOSTS,
+  UNCOIL_REGION_HOSTS,
 } from "../src/index";
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -20,8 +20,8 @@ function makePolicy(overrides: Partial<RuntimePolicy> = {}): RuntimePolicy {
   };
 }
 
-function makeClient(): TracifyClient {
-  const client = new TracifyClient({
+function makeClient(): UncoilClient {
+  const client = new UncoilClient({
     apiKey: "test-key",
     host: "http://localhost:9999",
   });
@@ -31,17 +31,17 @@ function makeClient(): TracifyClient {
 
 describe("regional cloud configuration", () => {
   it("selects the requested regional host", () => {
-    const client = new TracifyClient({ apiKey: "test-key", region: "us" });
-    expect((client as any).host).toBe(TRACIFY_REGION_HOSTS.us);
+    const client = new UncoilClient({ apiKey: "test-key", region: "us" });
+    expect((client as any).host).toBe(UNCOIL_REGION_HOSTS.us);
   });
 
   it("rejects a regional key configured for the wrong cloud", () => {
-    expect(() => new TracifyClient({ apiKey: "tracify_sk_live_eu_example", region: "us" }))
+    expect(() => new UncoilClient({ apiKey: "uncoil_sk_live_eu_example", region: "us" }))
       .toThrow("belongs to EU");
   });
 
   it("assigns pre-region keys to the EU cloud", () => {
-    expect(() => new TracifyClient({ apiKey: "tracify_sk_live_legacy", region: "us" }))
+    expect(() => new UncoilClient({ apiKey: "uncoil_sk_live_legacy", region: "us" }))
       .toThrow("belongs to EU");
   });
 });
@@ -95,22 +95,22 @@ describe("RuntimePolicy type structure", () => {
   });
 });
 
-// ─── TracifyClient construction ─────────────────────────────────
-describe("TracifyClient", () => {
+// ─── UncoilClient construction ─────────────────────────────────
+describe("UncoilClient", () => {
   it("constructs with API key", () => {
     const client = makeClient();
-    expect(client).toBeInstanceOf(TracifyClient);
+    expect(client).toBeInstanceOf(UncoilClient);
   });
 
   it("constructs with env fallback", () => {
-    process.env.TRACIFY_API_KEY = "env-key";
-    const client = new TracifyClient({ host: "http://localhost:9999" });
-    expect(client).toBeInstanceOf(TracifyClient);
-    delete process.env.TRACIFY_API_KEY;
+    process.env.UNCOIL_API_KEY = "env-key";
+    const client = new UncoilClient({ host: "http://localhost:9999" });
+    expect(client).toBeInstanceOf(UncoilClient);
+    delete process.env.UNCOIL_API_KEY;
   });
 
   it("copies release context onto ingested observations", async () => {
-    const client = new TracifyClient({
+    const client = new UncoilClient({
       apiKey: "test-key",
       host: "http://localhost:9999",
       release: "release-42",

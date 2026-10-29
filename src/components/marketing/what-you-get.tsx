@@ -79,7 +79,7 @@ export function WhatYouGet() {
             Every run becomes inspectable.
           </h2>
           <p className="text-[#888888] text-[15px] leading-relaxed max-w-[340px]">
-            Tracify turns one agent run into a trace, cost map, retry trail, and failure record.
+            Uncoil turns one agent run into a trace, cost map, retry trail, and failure record.
           </p>
         </div>
 

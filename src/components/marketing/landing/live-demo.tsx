@@ -108,7 +108,7 @@ export function LiveDemo() {
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-black/55">Watch one run</p>
             <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">See it happen, as it happens.</h2>
           </div>
-          <p className="max-w-sm text-base leading-7 text-black/65">Every step lands in Tracify the moment it finishes. Here a support agent answers a refund request, and you can see exactly where it goes wrong.</p>
+          <p className="max-w-sm text-base leading-7 text-black/65">Every step lands in Uncoil the moment it finishes. Here a support agent answers a refund request, and you can see exactly where it goes wrong.</p>
         </Reveal>
 
         <Reveal delay={0.1} className="mt-14">

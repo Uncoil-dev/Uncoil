@@ -10,7 +10,7 @@ import { authClient } from "@/lib/auth-client";
 import { UsageBar } from "@/components/dashboard/usage-bar";
 import { usageLevel } from "@/lib/plan-limits";
 import { planById, type PlanId } from "@/lib/pricing-plans";
-import { getTracifyRegion } from "@/lib/regions";
+import { getUncoilRegion } from "@/lib/regions";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const MARKETING_ORIGIN = process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech";
+const MARKETING_ORIGIN = process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.uncoil.dev";
 
 /** The person's profile picture, or their initial on yellow when they have none (or it fails to load). */
 function Avatar({ image, name }: { image?: string | null; name: string }) {
@@ -48,7 +48,7 @@ export function SidebarAccountMenu({
   const currentProject = projects.find((project) => project._id === projectId) ?? projects[0] ?? null;
   const adminAccess = useQuery(api.admin.access, synthetic ? "skip" : undefined);
   const isFree = !synthetic && (currentProject?.planTier ?? "free") === "free";
-  const region = getTracifyRegion();
+  const region = getUncoilRegion();
   const usage = useQuery(
     api.billing.getMonthlyUsage,
     synthetic || !currentProject ? "skip" : { projectId: currentProject._id },

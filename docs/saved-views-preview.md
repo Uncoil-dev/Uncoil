@@ -6,7 +6,7 @@ The existing `jovial-owl-711` deployment is production. Its `prod:` deploy key i
 ## Vercel configuration
 
 In the Convex project's Settings, generate a **Preview Deploy Key**. In Vercel project
-`tracify-cloud-eu`, add an additional `CONVEX_DEPLOY_KEY` environment entry with **Preview** as its
+`uncoil-cloud-eu`, add an additional `CONVEX_DEPLOY_KEY` environment entry with **Preview** as its
 only target and `codex/tracing-saved-views` as its branch. Keep the existing production entry.
 Never put a deploy key in a `NEXT_PUBLIC_` variable, a PR, a screenshot, or a chat message.
 

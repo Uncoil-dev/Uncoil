@@ -7,7 +7,7 @@ import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import { DocsJourney, DocsTerminal } from "@/components/docs/docs-experience";
 import { Reveal } from "@/components/marketing/landing/reveal";
 
-export const metadata = pageMetadata({ title: "Tracify docs: trace AI agents in minutes", description: "Install the TypeScript or Python SDK, send OpenTelemetry traces, instrument an agent and inspect every run, tool call and cost.", path: "/docs" });
+export const metadata = pageMetadata({ title: "Uncoil docs: trace AI agents in minutes", description: "Install the TypeScript or Python SDK, send OpenTelemetry traces, instrument an agent and inspect every run, tool call and cost.", path: "/docs" });
 
 const eyebrow = "font-mono text-[10px] uppercase tracking-[.16em] text-black/55";
 

@@ -1,0 +1,282 @@
+---
+title: "New Relic vs Uncoil: Full-Stack APM vs Agent-Native Observability"
+slug: newrelic-vs-uncoil
+excerpt: "New Relic monitors your entire stack — infrastructure, services, and now LLM calls bolted on top. Uncoil is built agent-first: traces, evaluation, and cost in one native model. Here's the real cost and capability gap at different agent-workload shares."
+publishedAt: 2026-08-29T12:00:00.000Z
+author: Uncoil Team
+draft: false
+categories:
+  - engineering
+  - platform-comparison
+tags:
+  - new relic
+  - apm
+  - enterprise observability
+  - agent observability
+relatedPosts:
+  - ai-agent-observability-complete-guide
+  - reduce-llm-costs-without-hurting-quality
+heroImage:
+  src: /media/newrelic-vs-uncoil-hero.svg
+  alt: "Diagram contrasting New Relic's full-stack instrumentation pyramid (infrastructure, APM, LLM monitoring bolted on top) with Uncoil's agent-native funnel (traces, cost, evaluation in one model)"
+seo:
+  metaTitle: "New Relic vs Uncoil: APM vs Agent-Native Observability"
+  metaDescription: "Compare New Relic's full-stack APM with Uncoil's agent-native observability. Worked cost math by agent-traffic share, three personas, and a real migration path."
+---
+
+{% trace-scenario title="You already run New Relic. Do you need a second platform for agents?" prompt="Your platform team has New Relic wired into 40 services — infrastructure, APM, error tracking, the works. Now three of those services are LLM agents, and someone just asked why a single customer request generates twelve ingest events and a bill line you can't explain. Do you extend New Relic's LLM monitoring, or add a platform built for this specific shape of traffic?" outcome="It depends almost entirely on one number: what share of your monthly ingest volume is agent traffic today, and where is that share headed in 12 months. This article gives you the math to answer that honestly." /%}
+
+## At a glance
+
+| Dimension | New Relic | Uncoil |
+| --- | --- | --- |
+| **Scope** | Full-stack: infrastructure, APM, logs, LLM monitoring | Agent-native: traces, evaluation, cost, sessions |
+| **Billing model** | Per-GB data ingest + per-user seat | Flat per-interaction tier |
+| **LLM/agent support** | Added 2024+, layered on existing APM primitives | Built agent-first from the schema up |
+| **Evaluation** | Not native; requires a separate tool or custom build | Native test-case library, LLM-as-judge, regression alerts |
+| **Cost tracking** | Ingest cost visible; LLM $-cost not native | Automatic per-call cost by model/provider |
+| **Existing infrastructure fit** | Strong if you already run New Relic elsewhere | N/A — standalone for agent traffic |
+| **Setup for agents specifically** | Extends existing agents/integrations | Native SDK, ~20-30 minutes to first evaluated trace |
+| **Best for** | Teams with mostly non-agent infrastructure to monitor | Teams where agent traffic is a meaningful or growing share |
+
+New Relic answers "is our system healthy," across everything. Uncoil answers "is this agent's output good, and what did it cost," for the agent slice specifically.
+
+### The operating model
+
+New Relic's data model treats an LLM call the way it treats any other instrumented span: an event with attributes, billed by the byte, aggregated into dashboards built for infrastructure and application performance. That's not a limitation so much as a different design center — New Relic was built to answer "which service is slow, which host is unhealthy, which deploy caused the error spike," across an entire fleet, and it does that well. Uncoil's data model starts from the agent interaction as the primary unit: one customer request, however many LLM calls and tool calls it takes internally, rolled up with a cost figure and — if you've defined one — a pass/fail evaluation result, automatically.
+
+The practical consequence shows up in two places: what you're billed for, and what you can ask the platform without building it yourself.
+
+| Decision point | Question | New Relic | Uncoil |
+| --- | --- | --- | --- |
+| Billing unit | What are you charged for? | Bytes ingested + seats | Interactions |
+| Span multiplication | Does an 8-span agent call cost 8x a 1-span call? | Yes, roughly | No — priced per interaction |
+| "Was this output good?" | Native answer? | No | Yes |
+| "What did this cost in dollars?" | Native answer? | Partial (ingest cost, not LLM $-cost) | Yes, automatic |
+| Existing fleet monitoring | Native answer? | Yes | No — not its job |
+| Setup for a new agent service | Effort | Moderate — extend existing config | Low — dedicated SDK, ~20-30 min |
+
+Keep this table in mind through the worked scenarios below — most of the disagreement between teams evaluating these two platforms traces back to one row: how much of your traffic is actually agents, today and in a year.
+
+## The billing gap, explained
+
+{% highlight %}New Relic bills by the byte ingested. An agent interaction that produces 8-12 spans — routing decision, LLM call, tool call, retry, a second LLM call to summarize — generates 8-12 separate ingest events, each with its own attributes payload. Uncoil bills by the interaction, regardless of how many internal steps it took.{% /highlight %}
+
+This is the single biggest reason the two platforms produce different bills for what looks like the same workload. It's not that one vendor is more expensive in the abstract — New Relic's per-GB pricing is genuinely competitive for traditional service telemetry, where a request might generate one or two spans. The mismatch appears specifically with agents, where internal step count is high relative to the "one customer action" the business actually cares about.
+
+![Diagram contrasting New Relic's full-stack instrumentation pyramid (infrastructure, APM, LLM monitoring bolted on top) with Uncoil's agent-native funnel (traces, cost, evaluation in one model)](/media/newrelic-vs-uncoil-hero.svg)
+
+## Scenario 1: token-heavy multi-model agent routing
+
+Your team runs a research-assistant agent that routes across three models (a fast/cheap model for classification, a mid-tier model for retrieval synthesis, a frontier model for final answer generation) and calls two internal tools (a vector search, a citation formatter) per request. A single user question can produce 6-9 spans: routing decision, vector search call, three LLM calls across the model tiers, citation formatting, and occasionally a retry on the frontier call. You're at 40,000 requests/month and climbing.
+
+### With New Relic
+
+**Setup:** If your team already has New Relic's Python or Node agent instrumented elsewhere, adding the LLM monitoring integration is a config change plus wrapping your model-call functions — a day or two of work, mostly familiar since it follows the same instrumentation pattern as your existing services.
+
+**What you get:** Span-level visibility into each LLM call — latency, token counts, which model was used — inside the same dashboards you already use for the rest of your services. Errors and retries show up in the same alerting pipeline as everything else, which is genuinely valuable: your on-call rotation doesn't need a second tool to check during an incident.
+
+**What you don't get natively:** A dollar figure. New Relic shows you token counts per call; turning that into "$0.14 for this research answer, broken down by which model tier drove the cost" means writing your own pricing logic against three providers' rate cards and maintaining it as rates change. You also don't get a way to say "flag any answer where the citation formatter returned zero results but the LLM still generated citations" as a reusable, versioned check — that's a custom build, likely a scheduled job that queries the NRQL data and runs your own scoring logic.
+
+**Billing reality at this volume:** 40,000 requests × 7 spans average = 280,000 ingest events/month, each carrying a moderately sized attributes payload (model name, token counts, latency, a truncated prompt/response excerpt). At New Relic's typical data-ingest pricing for this payload size, this specific workload's ingest cost lands in the **$1,800-2,600/month** range, layered on top of whatever your existing per-GB commitment already covers for the rest of your fleet — meaning this is incremental cost on top of infrastructure you're likely already paying for.
+
+### With Uncoil
+
+**Setup:** Native SDK, explicit spans around the same routing/tool/LLM-call structure — roughly the same code, about 20-30 minutes including a first test case.
+
+**What you get:** The same trace visibility, plus cost calculated automatically per call using live provider pricing across all three model tiers — no rate-card maintenance. And the citation-formatter-returns-nothing check becomes an actual test case in the dashboard, versioned, running against every new trace, with a regression alert if the failure rate crosses a threshold.
+
+**Billing reality at this volume:** Uncoil's Pro tier at this request volume runs **$300-500/month** flat, with cost breakdown and evaluation included — no separate ingest-byte calculation, because the pricing unit is the interaction, not the span count inside it.
+
+{% editorial-panel eyebrow="Where the gap comes from" title="Span count, not request count, drives the New Relic bill for agents." body="A traditional microservice request might produce 1-2 spans. This research-assistant agent produces 6-9 per request because agent workloads are inherently multi-step: a routing decision, a tool call, multiple model calls, sometimes a retry. New Relic's per-GB ingest pricing was built assuming the first shape of traffic. Uncoil's per-interaction pricing was built assuming the second. Neither pricing model is wrong on its own terms — they optimize for different traffic shapes, and agent workloads are decisively the second shape." tone="yellow" /%}
+
+## Scenario 2: compliance-heavy long-running sessions
+
+You operate a multi-turn agent inside a regulated workflow — think insurance claims triage — where a single customer session can span 20-40 minutes and dozens of LLM calls as the agent gathers information, checks policy details, and drafts a recommendation for human review. Every session needs a complete, auditable record, and compliance needs to confirm no session skipped a required verification step.
+
+### With New Relic
+
+Session-level continuity isn't a first-class concept in New Relic's data model — you'd correlate spans by a custom session ID attribute and build your own session-reconstruction view, likely a saved NRQL query or a custom dashboard panel that groups by that ID. It works, but you're building the "did this session complete all required steps" check yourself, probably as a scheduled job that flags sessions missing an expected span type. Audit trail completeness is achievable through New Relic's existing retention and export tooling — the platform is genuinely strong here for compliance purposes broadly, just not agent-session-shaped compliance specifically.
+
+**Estimated cost at 5,000 sessions/month, ~25 spans/session average:** 125,000 ingest events, landing around **$900-1,400/month** incremental, plus the engineering time to build and maintain the session-reconstruction and step-completeness views (roughly **0.15-0.2 FTE** ongoing, call it **$1,500-2,000/month** in loaded engineering cost).
+
+### With Uncoil
+
+Native multi-turn session support means the 20-40 minute claims session is already one unit in the dashboard, not a custom-built view. A test case — "every session must include a policy-verification span before the recommendation span" — runs automatically and flags incomplete sessions without a scheduled job to maintain.
+
+**Estimated cost at the same volume:** Uncoil's tier covering this session volume runs **$500-800/month** flat, evaluation and session view included, with no separate engineering-time line item for building the session-completeness check.
+
+**Result:** For pure infrastructure and service-level compliance monitoring, New Relic's existing tooling is mature and shouldn't be replaced. For the specific job of "prove this agent session didn't skip a required step," Uncoil's native session model removes a build project that New Relic would otherwise require you to do yourself.
+
+## Scenario 3: early-stage startup with a constrained budget
+
+Three engineers, one agent product, 8,000 requests/month, no existing observability platform at all — a genuine blank slate rather than an extend-vs-replace decision.
+
+### With New Relic
+
+New Relic's free tier covers a meaningful amount of ingest volume, which makes it attractive for a team watching every dollar. But you're building the LLM-specific pieces — cost-per-request, evaluation — from nothing, on a platform whose free tier is generous for infrastructure telemetry but doesn't include agent-specific tooling. At this volume the ingest cost itself stays near or inside the free tier (**roughly $0-200/month**), but the "who builds the eval and cost layer" question is identical to the enterprise case, just smaller — call it **a few hours a month** of ad hoc script maintenance rather than a dedicated FTE fraction, but it's real time that isn't going into the product.
+
+### With Uncoil
+
+At this volume, Uncoil's starter tier runs **$100-200/month**, with evaluation and cost tracking included from day one — no build phase, but also not free.
+
+**Result:** This is the closest of the three scenarios. A team with genuinely zero observability today and extreme budget sensitivity might reasonably start on New Relic's free tier and defer the evaluation-layer build until it's a real bottleneck. A team that already knows evaluation and cost visibility will matter within a few months is better served starting on Uncoil and skipping the build-then-migrate step entirely.
+
+## Working the cost math for your own workload
+
+![Line chart showing relative cost per event for New Relic and Uncoil as agent-traffic share of total workload increases from 0% to 100%, with a crossover point around 40% agent traffic where Uncoil becomes the cheaper option](/media/newrelic-vs-uncoil-workload-crossover.svg)
+
+The three scenarios above share a pattern: New Relic's relative cost advantage shrinks — and eventually reverses — as the share of your workload that's agent traffic grows. Use this rough formula to locate yourself:
+
+```
+agent_ingest_share = (agent_requests/month × avg_spans_per_agent_request)
+                      ÷ (total_requests/month × avg_spans_per_request, all traffic)
+```
+
+**Below roughly 40% agent-traffic share of total ingest volume**, New Relic's existing infrastructure investment and per-GB pricing usually wins on total operating cost — you're already paying for the platform, and the agent slice isn't big enough to justify a second bill and a second integration.
+
+**Above roughly 40%**, the math flips: Uncoil's flat per-interaction pricing stops scaling with span count, while New Relic's ingest cost keeps climbing with every additional tool call or retry your agents make. The crossover point moves with your specific span-per-request ratio — a simpler single-model agent with 2-3 spans per request pushes the crossover higher (New Relic stays competitive longer); a complex multi-tool agent with 10+ spans per request pushes it lower (Uncoil wins sooner).
+
+{% editorial-panel eyebrow="Field note" title="The crossover isn't about total traffic volume — it's about traffic shape." body="A team at 500,000 total monthly requests with 5% agent traffic and a team at 50,000 total monthly requests with 80% agent traffic can land on opposite sides of this decision, even though the second team has ten times less total traffic. What matters is the agent share and the span-per-request ratio inside that share, not the absolute request count. Calculate your own ratio before trusting either platform's marketing about which is 'cheaper.'" tone="dark" /%}
+
+## Feature-by-feature comparison
+
+### Instrumentation and tracing
+
+**New Relic:** Mature APM agents for most major languages, broad ecosystem of integrations, LLM-specific instrumentation added as an extension of existing agent SDKs. Strong for teams already deep in the New Relic ecosystem — adding an LLM call to existing instrumentation is incremental work, not a new integration.
+
+**Uncoil:** Purpose-built SDK for agent traces from the start — explicit spans designed to carry evaluation and cost metadata natively, not retrofitted onto a general-purpose APM schema.
+
+**Winner:** New Relic if you're extending existing fleet-wide instrumentation and want everything in one dashboard. Uncoil if agent tracing is the primary job and you don't want APM-shaped constraints on an agent-shaped problem.
+
+### Evaluation
+
+**New Relic:** No native test-case library, no LLM-as-judge scoring, no regression detection comparable to a dedicated evaluation platform. This is consistently the largest gap teams discover after they've already committed to extending New Relic for agents.
+
+**Uncoil:** Native test-case library, batch evaluation runner, LLM-as-judge and rule-based scorers, regression alerts on threshold breach.
+
+**Winner:** Uncoil, decisively — this isn't close.
+
+### Cost tracking
+
+**New Relic:** Ingest-byte cost is visible (what you're paying New Relic), but LLM dollar-cost (what you're paying OpenAI/Anthropic/etc. per call) is not natively calculated — you'd build a pricing table yourself from token-count attributes.
+
+**Uncoil:** Automatic per-call cost from live provider pricing, rolled up per session, per agent, per model.
+
+**Winner:** Uncoil. This is the second-largest gap after evaluation, and the two compound: without cost tracking, you can't answer "did the cost-saving model swap also hurt quality" without building both layers yourself.
+
+### Infrastructure and fleet monitoring
+
+**New Relic:** This is the category New Relic is built for and excels at — hosts, containers, Kubernetes, databases, error tracking, synthetic monitoring, real user monitoring, all in one platform with mature alerting.
+
+**Uncoil:** Not designed for this and doesn't claim to be. Uncoil has no opinion about your Kubernetes cluster health.
+
+**Winner:** New Relic, unambiguously, for anything beyond the agent slice of your stack.
+
+### Alerting and on-call integration
+
+**New Relic:** Deep, mature alerting with wide integration support (PagerDuty, Slack, Opsgenie, and more), unified with the rest of your infrastructure alerts — an agent error shows up in the same rotation as a database error.
+
+**Uncoil:** Alerting exists for evaluation regressions and cost thresholds, scoped to agent behavior specifically, with its own integration surface rather than your existing fleet-wide on-call tooling.
+
+**Winner:** New Relic for unified on-call across your whole stack. Uncoil for agent-specific quality/cost alerts that New Relic has no equivalent for at all.
+
+### Setup and time-to-value
+
+**New Relic:** Fast if you're extending an existing deployment; a full new deployment (agents on every host, dashboards, alert policies) is a bigger project measured in days to weeks depending on fleet size.
+
+**Uncoil:** Fast for its scope — 20-30 minutes to a first evaluated, costed trace, but it's solving a narrower problem, so this isn't a fully comparable "time to value" since the value delivered is different in kind.
+
+**Winner:** Depends entirely on what you're setting up. New Relic for fleet-wide observability from scratch; Uncoil for agent-specific observability from scratch.
+
+## Trade-offs and honest boundaries
+
+### New Relic's blind spots for agents
+
+- **No native LLM cost calculation.** You see tokens; you build the dollar figure.
+- **No evaluation framework.** "Was this output good" has no home in the product.
+- **Billing scales with span count**, which means agent complexity (more tool calls, more retries, more model hops) directly increases your bill even when the underlying business event — one resolved customer request — didn't get more valuable.
+- **Session-level agent context** requires custom correlation logic; it's not a native concept the way a distributed trace across microservices is.
+
+### Uncoil's blind spots outside agents
+
+- **No infrastructure monitoring.** Host health, container orchestration, database performance — none of this is Uncoil's job, and it shouldn't be asked to do it.
+- **No unified fleet-wide alerting.** If your on-call rotation needs one pane of glass across databases, load balancers, and agents, Uncoil only covers the last piece.
+- **SaaS-only.** Teams with hard on-premises requirements for the observability layer itself need to check this against their compliance posture before committing.
+- **Narrower ecosystem** than a 15-year-old APM platform — fewer pre-built integrations for things unrelated to agent/LLM traffic.
+
+Neither platform is trying to be the other. The honest framing isn't "which is better" — it's "which slice of your traffic does each one actually need to cover."
+
+## Decision framework by persona
+
+![Three persona cards showing different recommended outcomes: an SRE with 5% agent traffic should keep New Relic only, a platform lead with 35% agent traffic and growing should run both, and a founder with 90% agent traffic should choose Uncoil](/media/newrelic-vs-uncoil-decision-personas.svg)
+
+**The SRE managing a mostly-traditional fleet** (agent traffic is a small, stable fraction of total traffic): keep New Relic for everything, including the agent slice. The engineering cost of a second platform and integration isn't justified by a traffic share this small, even accounting for the evaluation gap — bolt on manual review or a lightweight external evaluation script if quality checks are genuinely needed.
+
+**The platform lead with a growing agent footprint** (agent traffic is a meaningful and rising share, but not yet dominant): run both. Keep New Relic for the fleet you already have instrumented and trust; bring in Uncoil specifically for the agent services, where evaluation and cost tracking pay for themselves quickly. Revisit the split at your next planning cycle — this is very likely a temporary state, not a permanent architecture.
+
+**The founder or team building an agent-native product** (agent traffic is the large majority of what you run): New Relic's fleet-wide monitoring has little to offer when there's barely a fleet to monitor beyond the agent itself, and its per-GB billing on high-span-count agent traffic has no upside. Start with Uncoil; add New Relic later only if and when you build out enough non-agent infrastructure to need fleet-wide monitoring.
+
+## A real-world case study: customer support agent routing optimization
+
+A mid-sized SaaS company ran a customer-support agent on New Relic for its first six months in production — reasonable, since the team already had New Relic instrumented across their core product and adding the agent was the path of least resistance. Three things became visible only after they added Uncoil alongside it for a two-month evaluation period:
+
+**Cost visibility revealed a routing inefficiency.** Uncoil's automatic per-call cost breakdown showed that 30% of support tickets were being routed to the frontier model for questions a mid-tier model handled just as well, based on evaluation scores that showed no measurable quality difference on that ticket category. New Relic's token counts existed but nobody had built the model-tier-vs-outcome-quality cross-reference; it took an afternoon in Uncoil's dashboard to see it because cost and evaluation lived on the same trace.
+
+**Evaluation caught a regression New Relic's alerting never would have.** A prompt update intended to make responses more concise had, in a subset of billing-related tickets, started omitting a required disclosure. New Relic's error-rate alerting saw nothing wrong — the calls succeeded, latency was normal, no exceptions were thrown. Uncoil's regression alert on the "response includes required disclosure" test case caught it within a day of the prompt change shipping.
+
+**The routing fix, once identified, saved real money.** Shifting the identified 30% of tickets to the mid-tier model cut the team's per-ticket LLM cost by roughly 22% with no measurable drop in resolution quality, confirmed by the same evaluation suite that had flagged the disclosure regression.
+
+The team's decision after the evaluation period: keep New Relic for their core product infrastructure (unchanged, still the right tool for that job), and move the support agent's observability fully to Uncoil — not because New Relic was bad at what it does, but because the routing optimization and the regression catch both came from capabilities New Relic's data model doesn't have a place for.
+
+## Migration and hybrid-deployment paths
+
+### Adding Uncoil alongside an existing New Relic deployment (most common)
+
+This is the path most teams actually take, since it rarely starts as a deliberate platform migration — it starts as "we need evaluation for this one agent service" and grows from there.
+
+1. **Instrument the agent service with Uncoil's SDK without touching New Relic.** The two platforms observe independently; there's no conflict in running both against the same service simultaneously, since they're separate instrumentation layers reading the same underlying calls.
+2. **Define your first test cases from known failure modes.** If you've had an incident New Relic's alerting didn't catch — a quality regression, not an error — that's your first test case. You already know what "bad" looked like; encoding it is the fast part.
+3. **Cross-check cost figures for a week.** Compare Uncoil's automatic per-call cost against any manual token-cost estimate you've been maintaining, to build confidence in the numbers before they go in front of finance or leadership.
+4. **Decide on alerting ownership.** Quality and cost-threshold alerts route through Uncoil; infrastructure and error-rate alerts stay in New Relic's existing on-call pipeline. Document which platform owns which alert type so responders aren't checking two dashboards during an incident.
+5. **Set a review date.** 90 days after adding Uncoil, revisit the agent-traffic-share math above. If the agent slice has grown, consider whether New Relic's role in that slice should shrink further.
+
+**Total migration risk:** Low. This is additive, not a replacement — New Relic keeps doing what it already does well, and nothing about your existing fleet monitoring changes.
+
+### Moving agent observability fully off New Relic (less common, higher-agent-share teams)
+
+Teams do this when the agent-traffic-share crossover has clearly passed and New Relic's per-GB billing on agent spans has stopped making sense relative to Uncoil's flat pricing.
+
+1. **Keep New Relic running in parallel for at least 2-4 weeks** rather than cutting over in one step, so you can validate that Uncoil's trace fidelity matches what you were relying on.
+2. **Rebuild any custom NRQL-based session-reconstruction or completeness checks as native Uncoil test cases** — this is usually a downgrade in effort, not an upgrade, since you're replacing a hand-built query with a dashboard-configured test case.
+3. **Redirect agent-specific alerts to Uncoil** and remove the corresponding New Relic alert policies for that service once you've confirmed Uncoil's alerting is catching what you need.
+4. **Leave New Relic's historical data in place** rather than trying to migrate it — let it age out under your existing retention policy while new agent telemetry flows to Uncoil.
+5. **Keep New Relic instrumented on any non-agent services that specific team owns.** This is a migration of the agent slice specifically, not a wholesale platform switch — most teams doing this still use New Relic elsewhere in the company.
+
+**Total migration risk:** Moderate. The instrumentation swap is mechanical, but rebuilding any custom NRQL dashboards or checks takes deliberate effort, and you should confirm nothing your on-call team relies on silently stops working during the transition.
+
+> **Decision rule:** Keep New Relic for fleet and service telemetry when it is already working; add Uncoil for the agent-specific quality, trace, and cost questions it does not answer natively.
+
+## Action checklist
+
+- [ ] **Calculate your agent-traffic share.** Use the formula above with your actual request volume and average spans-per-request, not an estimate.
+- [ ] **Check where you land on the crossover.** Below ~40% agent share, weight toward extending New Relic. Above it, weight toward Uncoil or a hybrid split.
+- [ ] **Inventory what "was this output good" currently means at your company.** If the honest answer is "someone reads transcripts occasionally," that's a real gap regardless of which platform you extend.
+- [ ] **Get an actual New Relic ingest-cost estimate for your agent traffic specifically** — not your total bill, the agent-attributable slice — using your real span-per-request ratio.
+- [ ] **Identify your persona** from the three above (mostly-traditional fleet, growing agent footprint, agent-native product) and use its recommendation as a starting point, not a final answer.
+- [ ] **If running a hybrid split, set a review date** — 90 days is reasonable — to re-check whether the agent share has grown enough to change the calculus.
+- [ ] **Confirm your compliance and on-prem requirements** for the observability layer itself before ruling either platform in or out on those grounds.
+
+If cost optimization across your whole LLM stack — not just observability platform choice — is the underlying goal, [reducing LLM costs without hurting quality](/blog/reduce-llm-costs-without-hurting-quality) covers the model- and prompt-level levers that compound with whichever platform you land on. And if you're earlier in the process and still mapping out what agent observability should cover before comparing specific vendors, the [complete guide to AI agent observability](/blog/ai-agent-observability-complete-guide) is the right starting point.
+
+## Frequently asked questions
+
+{% faq-item question="Does New Relic have any LLM-specific features at all?" answer="Yes — New Relic added LLM monitoring integrations that capture model calls, token counts, and latency inside its existing APM data model, extending agents for major languages and frameworks. What it doesn't include natively is automatic dollar-cost calculation from those token counts, a structured evaluation framework for judging output quality, or session-level rollups purpose-built for multi-turn agent interactions — these require custom work on top of New Relic's existing primitives." /%}
+
+{% faq-item question="Is New Relic more expensive than Uncoil for agent workloads?" answer="It depends heavily on your agent-traffic share of total workload. Below roughly 40% agent share, New Relic's existing per-GB pricing and infrastructure investment usually wins on total cost, since the agent slice isn't large enough to justify a second platform. Above that threshold, New Relic's per-span ingest billing on high-span-count agent traffic tends to cost more than Uncoil's flat per-interaction pricing — calculate your own crossover using the formula in this article rather than assuming either direction." /%}
+
+{% faq-item question="Can I run New Relic and Uncoil together?" answer="Yes, and for teams with a meaningful but not dominant agent-traffic share, this is often the right answer rather than a compromise. Keep New Relic for fleet-wide infrastructure and service monitoring, where it's mature and your on-call team already trusts it, and add Uncoil specifically for agent services, where evaluation and cost tracking close a real gap. The cost is running two integrations and two bills — worth it once the agent slice is large enough to matter, not worth it when it's marginal." /%}
+
+{% faq-item question="What's the biggest thing teams underestimate when extending New Relic for agents?" answer="The evaluation gap, consistently. Teams correctly extend their existing New Relic instrumentation to cover LLM calls and get real value from unified alerting and dashboards — but several months in, someone asks 'how do we know the last prompt change didn't make things worse,' and there's no native answer. That question either gets hand-built (a scheduled job querying NRQL data with custom scoring logic) or it goes unanswered until a customer notices first. Plan for this explicitly rather than discovering it during an incident." /%}
+
+{% faq-item question="Should a team already deep in New Relic switch entirely to Uncoil?" answer="Rarely, and it's usually not the right question. New Relic's fleet-wide infrastructure and service monitoring doesn't have a reason to change if it's working — that's a separate decision from how you observe agent traffic specifically. The more common and more defensible move is adding Uncoil for the agent slice while keeping New Relic for everything else, then revisiting the split only if agent traffic grows to dominate the workload, at which point the case study and workload-crossover math in this article become directly relevant." /%}

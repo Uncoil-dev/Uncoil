@@ -1,12 +1,12 @@
 import asyncio
 import pytest
-import tracify
-from tracify import TracifyClient, TracifyError, build_redactor, sample_bucket, trace_tools
+import uncoil
+from uncoil import UncoilClient, UncoilError, build_redactor, sample_bucket, trace_tools
 
-KEY = "tracify_sk_live_eu_abcdefghijklmnop"
+KEY = "uncoil_sk_live_eu_abcdefghijklmnop"
 
 
-class Recorder(TracifyClient):
+class Recorder(UncoilClient):
     def __init__(self, **options):
         super().__init__(api_key=KEY, **options)
         self.sent = []
@@ -21,32 +21,32 @@ class FakeResponse:
 
 
 def test_missing_key_explains_the_fix(monkeypatch):
-    monkeypatch.delenv("TRACIFY_API_KEY", raising=False)
-    with pytest.raises(TracifyError) as caught:
-        TracifyClient()
+    monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
+    with pytest.raises(UncoilError) as caught:
+        UncoilClient()
     assert caught.value.code == "missing_key"
-    assert "TRACIFY_API_KEY" in str(caught.value)
+    assert "UNCOIL_API_KEY" in str(caught.value)
     assert isinstance(caught.value, ValueError)  # older code catching ValueError keeps working
 
 
 def test_odd_key_is_flagged_without_failing():
     seen = []
-    TracifyClient(api_key="sk-openai-123", on_error=seen.append)
+    UncoilClient(api_key="sk-openai-123", on_error=seen.append)
     assert seen[0].code == "odd_key"
 
 
 def test_bad_options_are_rejected_clearly():
-    with pytest.raises(TracifyError, match="0 to 1"):
-        TracifyClient(api_key=KEY, sample_rate=2)
-    with pytest.raises(TracifyError, match="valid web address"):
-        TracifyClient(api_key=KEY, host="nonsense")
-    with pytest.raises(TracifyError, match="region"):
-        TracifyClient(api_key=KEY, region="mars")
+    with pytest.raises(UncoilError, match="0 to 1"):
+        UncoilClient(api_key=KEY, sample_rate=2)
+    with pytest.raises(UncoilError, match="valid web address"):
+        UncoilClient(api_key=KEY, host="nonsense")
+    with pytest.raises(UncoilError, match="region"):
+        UncoilClient(api_key=KEY, region="mars")
 
 
 def test_rejected_key_is_reported_once():
     seen = []
-    client = TracifyClient(api_key=KEY, on_error=seen.append)
+    client = UncoilClient(api_key=KEY, on_error=seen.append)
     client._check_response(401)
     client._check_response(401)
     client._check_response(200)
@@ -56,20 +56,20 @@ def test_rejected_key_is_reported_once():
 
 def test_network_failure_does_not_raise(monkeypatch):
     seen = []
-    client = TracifyClient(api_key=KEY, on_error=seen.append)
+    client = UncoilClient(api_key=KEY, on_error=seen.append)
 
     def boom(*a, **k):
         raise OSError("offline")
 
     client._http = None
-    monkeypatch.setattr("tracify._requests_fallback.post", boom)
+    monkeypatch.setattr("uncoil._requests_fallback.post", boom)
     client.ingest(spanType="llm_call", runId="r1")
     assert seen[0].code == "network"
 
 
 def test_status_codes_map_to_helpful_messages():
     seen = []
-    client = TracifyClient(api_key=KEY, on_error=seen.append)
+    client = UncoilClient(api_key=KEY, on_error=seen.append)
     for status in (403, 429, 503, 422):
         client._check_response(status)
     assert [e.code for e in seen] == ["forbidden", "rate_limited", "server_error", "rejected"]

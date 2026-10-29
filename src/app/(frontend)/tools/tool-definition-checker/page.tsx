@@ -18,7 +18,7 @@ const faqs: Faq[] = [
   { q: "Why do descriptions matter so much?", a: "Models choose tools by reading names and descriptions. A vague description or a name like \u201crun\u201d makes wrong calls much more likely, especially when tools look alike." },
   { q: "What does strict mode check?", a: "If a tool has strict set, OpenAI requires every property to be listed as required and additionalProperties to be false. The tool flags both." },
   { q: "Does it send my definitions anywhere?", a: "No. Everything is checked in your browser." },
-  { q: "How do I see which tool calls fail in production?", a: "Tracify records every tool call with its input, output and error, so you see which tools fail, how often and why." },
+  { q: "How do I see which tool calls fail in production?", a: "Uncoil records every tool call with its input, output and error, so you see which tools fail, how often and why." },
 ];
 
 export default function Page() {

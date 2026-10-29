@@ -16,10 +16,10 @@ You need the run id of the trace and a client created with your `projectId`. The
 ## Record end-user feedback
 
 ```ts
-import { TracifyClient } from "tracify-sdk";
+import { UncoilClient } from "uncoil-sdk";
 
-const client = new TracifyClient({
-  apiKey: process.env.TRACIFY_API_KEY,
+const client = new UncoilClient({
+  apiKey: process.env.UNCOIL_API_KEY,
   projectId: "your-project-id",
 });
 
@@ -28,9 +28,9 @@ client.feedback(runId, 4, { kind: "star", reason: "Correct but slow" });
 ```
 
 ```python
-from tracify import TracifyClient
+from uncoil import UncoilClient
 
-client = TracifyClient(project_id="your-project-id")
+client = UncoilClient(project_id="your-project-id")
 
 client.feedback(run_id, True, kind="thumb", comment="Helpful answer")
 client.feedback(run_id, 4, kind="star", reason="Correct but slow")
@@ -57,7 +57,7 @@ client.score(run_id, "followed_policy", True, data_type="boolean")
 To let an agent grade its own run, call `score` from inside the traced function with the current run id:
 
 ```ts
-const client = new TracifyClient({ projectId: "your-project-id" });
+const client = new UncoilClient({ projectId: "your-project-id" });
 
 const runAgent = traceAgent(async (question: string) => {
   const answer = await answerQuestion(question);
@@ -67,7 +67,7 @@ const runAgent = traceAgent(async (question: string) => {
 ```
 
 ```python
-client = TracifyClient(project_id="your-project-id")
+client = UncoilClient(project_id="your-project-id")
 
 @trace_agent(client=client)
 async def run_my_agent(question: str):

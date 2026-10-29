@@ -286,7 +286,7 @@ function EmailPrefs() {
     { key: "product" as const, title: "Product updates", text: "Occasional feature and release notes." },
   ];
   return (
-    <Panel title="Email" text="Choose which emails you get from Tracify.">
+    <Panel title="Email" text="Choose which emails you get from Uncoil.">
       <ul className="divide-y divide-[#1F242C] border border-[#1F242C]">
         {rows.map((row) => (
           <li key={row.key}>
@@ -305,7 +305,7 @@ function EmailPrefs() {
           </li>
         ))}
       </ul>
-      <button type="button" className={cn(ghost, "mt-4")} onClick={() => window.dispatchEvent(new Event("tracify:open-consent"))}>
+      <button type="button" className={cn(ghost, "mt-4")} onClick={() => window.dispatchEvent(new Event("uncoil:open-consent"))}>
         <ShieldCheck className="size-3.5" /> Cookie and privacy choices
       </button>
     </Panel>
@@ -317,7 +317,7 @@ function useBackHref() {
     () => () => undefined,
     () => {
       try {
-        return window.localStorage.getItem("tracify.lastProjectId");
+        return window.localStorage.getItem("uncoil.lastProjectId");
       } catch {
         return null;
       }
@@ -344,7 +344,7 @@ export function AccountSettings() {
             <ArrowLeft className="size-4" /> Back to dashboard
           </Link>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logos/dissolve/tracify-name-on-dark.svg" alt="tracify" height={20} className="block h-5 w-auto md:mt-6" />
+          <img src="/logos/uncoil/uncoil-name-on-dark.svg" alt="uncoil" height={20} className="block h-5 w-auto md:mt-6" />
         </div>
         <div className="hidden items-center gap-3 border-y border-[#1F242C] px-5 py-4 md:flex">
           <span className="flex size-10 shrink-0 items-center justify-center bg-[#F4D44D] text-base font-semibold text-[#090909]">

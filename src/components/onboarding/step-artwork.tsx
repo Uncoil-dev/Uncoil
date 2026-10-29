@@ -66,7 +66,7 @@ export function StepArtwork({ step }: { step: OnboardingStepId }) {
   return (
     <div className="w-full max-w-xl border border-white/20 bg-[#090909] font-mono text-[#eceae3] backdrop-blur-sm">
       <div className="flex items-center justify-between border-b border-white/15 px-4 py-3 text-[10px] uppercase tracking-[0.14em] text-white/55">
-        <span className="flex items-center gap-2"><span className="size-2 bg-[#f4d44d]" aria-hidden="true" />tracify / {name}</span>
+        <span className="flex items-center gap-2"><span className="size-2 bg-[#f4d44d]" aria-hidden="true" />uncoil / {name}</span>
         <span className="text-white/35">live preview</span>
       </div>
       <div className="p-5">
@@ -81,7 +81,7 @@ export function StepArtwork({ step }: { step: OnboardingStepId }) {
         {step === "api-key" ? (
           <div className="space-y-3 text-[12px] leading-6">
             <p className="text-white/40"># .env (never commit this)</p>
-            <p className="break-all text-[#f4d44d]">TRACIFY_API_KEY=tracify_sk_live_{draft.keyCopied ? "saved ✓" : "••••••••••••"}</p>
+            <p className="break-all text-[#f4d44d]">UNCOIL_API_KEY=uncoil_sk_live_{draft.keyCopied ? "saved ✓" : "••••••••••••"}</p>
             <p className="text-white/35">OPENAI_API_KEY=sk-••••</p>
           </div>
         ) : null}
@@ -90,12 +90,12 @@ export function StepArtwork({ step }: { step: OnboardingStepId }) {
             <p className="text-white/40">{draft.runtime === "typescript" ? "// agent.ts" : "# agent.py"}</p>
             {draft.runtime === "typescript" ? (
               <>
-                <p className="text-white/50">import &#123; traceAgent &#125; from &quot;tracify-sdk&quot;</p>
+                <p className="text-white/50">import &#123; traceAgent &#125; from &quot;uncoil-sdk&quot;</p>
                 <p className="text-[#f4d44d]">const agent = traceAgent(run)</p>
               </>
             ) : (
               <>
-                <p className="text-white/50">from tracify import trace_agent</p>
+                <p className="text-white/50">from uncoil import trace_agent</p>
                 <p className="text-[#f4d44d]">@trace_agent()</p>
                 <p>async def agent(query): ...</p>
               </>

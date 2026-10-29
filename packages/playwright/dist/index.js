@@ -1,6 +1,6 @@
 const REGION_HOSTS = {
-    eu: "https://eu.cloud.tracify.tech",
-    us: "https://us.cloud.tracify.tech",
+    eu: "https://eu.cloud.uncoil.dev",
+    us: "https://us.cloud.uncoil.dev",
 };
 function createId(prefix) {
     return globalThis.crypto?.randomUUID?.() ?? `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
@@ -71,7 +71,7 @@ export class PlaywrightReporter {
     runMetadata = {};
     constructor(options = {}) {
         this.options = options;
-        this.runId = options.runId ?? process.env.TRACIFY_CURRENT_RUN_ID ?? createId("run");
+        this.runId = options.runId ?? process.env.UNCOIL_CURRENT_RUN_ID ?? createId("run");
     }
     onBegin(config, suite) {
         this.runMetadata = {
@@ -169,8 +169,8 @@ export class PlaywrightReporter {
     record(event) {
         const span = eventToSpan(event, {
             runId: this.runId,
-            environment: this.options.environment ?? process.env.TRACIFY_ENVIRONMENT,
-            release: this.options.release ?? process.env.TRACIFY_RELEASE,
+            environment: this.options.environment ?? process.env.UNCOIL_ENVIRONMENT,
+            release: this.options.release ?? process.env.UNCOIL_RELEASE,
             tags: this.options.tags,
         });
         const delivery = this.send(span);
@@ -210,10 +210,10 @@ export class PlaywrightReporter {
                 await this.options.transport(span);
                 return;
             }
-            if (!this.options.apiKey && !process.env.TRACIFY_API_KEY)
+            if (!this.options.apiKey && !process.env.UNCOIL_API_KEY)
                 return;
-            const apiKey = this.options.apiKey ?? process.env.TRACIFY_API_KEY;
-            const host = (this.options.host ?? process.env.TRACIFY_HOST ?? REGION_HOSTS[this.options.region ?? "eu"]).replace(/\/$/, "");
+            const apiKey = this.options.apiKey ?? process.env.UNCOIL_API_KEY;
+            const host = (this.options.host ?? process.env.UNCOIL_HOST ?? REGION_HOSTS[this.options.region ?? "eu"]).replace(/\/$/, "");
             const fetchImpl = this.options.fetch ?? globalThis.fetch;
             if (!fetchImpl)
                 return;
@@ -223,7 +223,7 @@ export class PlaywrightReporter {
                 body: JSON.stringify(span),
             });
             if (!response.ok)
-                throw new Error(`Tracify Playwright ingest failed (${response.status})`);
+                throw new Error(`Uncoil Playwright ingest failed (${response.status})`);
         }
         catch (error) {
             this.options.onTransportError?.(error, span);

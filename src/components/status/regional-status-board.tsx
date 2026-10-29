@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { getAvailableRegions, type TracifyRegionId } from "@/lib/regions";
+import { getAvailableRegions, type UncoilRegionId } from "@/lib/regions";
 
 type RegionState = "checking" | "operational" | "unavailable";
 
@@ -31,8 +31,8 @@ function Pulse({ state }: { state: RegionState }) {
 }
 
 export function RegionalStatusBoard() {
-  const [states, setStates] = useState<Record<TracifyRegionId, RegionState>>({ eu: "checking", us: "checking" });
-  const [ms, setMs] = useState<Partial<Record<TracifyRegionId, number>>>({});
+  const [states, setStates] = useState<Record<UncoilRegionId, RegionState>>({ eu: "checking", us: "checking" });
+  const [ms, setMs] = useState<Partial<Record<UncoilRegionId, number>>>({});
 
   useEffect(() => {
     const controllers = getAvailableRegions().map((region) => {

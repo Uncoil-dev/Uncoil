@@ -16,12 +16,12 @@ const esmImport = new Function("name", "return import(name)") as (name: string) 
 
 function patch(cls: any, target: Target, options: IntegrationOptions) {
   const original = cls?.prototype?.create;
-  if (typeof original !== "function" || original.__tracify) return;
+  if (typeof original !== "function" || original.__uncoil) return;
   const patched = function (this: unknown, ...args: any[]) {
     if (isInsideWrapped()) return original.apply(this, args);
     return traced(target.provider, target.endpoint, (params) => original.apply(this, [params, ...args.slice(1)]), args[0], options, false);
   };
-  (patched as any).__tracify = true;
+  (patched as any).__uncoil = true;
   cls.prototype.create = patched;
   restore.push(() => { cls.prototype.create = original; });
 }
@@ -33,8 +33,8 @@ function patch(cls: any, target: Target, options: IntegrationOptions) {
  * lands a moment later, so `await init().ready` if your very first call happens at once.
  * Call the returned function to switch it off again.
  *
- * For LangChain / LangGraph add `new TracifyLangGraphHandler()` to `callbacks`; for the Vercel AI SDK use
- * `tracifyMiddleware()`. Use these OR `init()` for the same model calls, not both, or they are recorded twice.
+ * For LangChain / LangGraph add `new UncoilLangGraphHandler()` to `callbacks`; for the Vercel AI SDK use
+ * `uncoilMiddleware()`. Use these OR `init()` for the same model calls, not both, or they are recorded twice.
  */
 export function init(options: IntegrationOptions = {}): (() => void) & { ready: Promise<void> } {
   uninit();

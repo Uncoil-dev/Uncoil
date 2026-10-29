@@ -61,7 +61,7 @@ export function InvestigationMode({ projectId }: { projectId: string }) {
     return () => { cancelled = true; };
   }, [projectId, runId]);
 
-  const storageKey = `tracify.investigation.${projectId}.${runId}`;
+  const storageKey = `uncoil.investigation.${projectId}.${runId}`;
   useEffect(() => {
     if (!runId) return;
     try { setBoard(JSON.parse(window.localStorage.getItem(storageKey) ?? "[]") as BoardItem[]); } catch { setBoard([]); }
@@ -99,7 +99,7 @@ export function InvestigationMode({ projectId }: { projectId: string }) {
     const confirmed = board.filter((item) => item.kind === "confirmed");
     const inferences = board.filter((item) => item.kind === "inference");
     const summary = [
-      `Tracify investigation: ${window.location.href}`,
+      `Uncoil investigation: ${window.location.href}`,
       `Run: ${run?.runId ?? "Not selected"}`,
       "",
       "Confirmed evidence:",

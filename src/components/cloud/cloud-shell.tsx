@@ -24,7 +24,7 @@ export function CloudShell({
   return (
     <main className="min-h-screen bg-[#090909] text-[#eceae3] selection:bg-[#f4d44d] selection:text-black">
       <header className="flex h-16 items-center justify-between border-b border-white/15 px-5 md:px-8">
-        <Link href={process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech"} aria-label="Tracify home"><BrandLogo /></Link>
+        <Link href={process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.uncoil.dev"} aria-label="Uncoil home"><BrandLogo /></Link>
         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/50">Cloud directory / {step}</span>
       </header>
       <div className="grid min-h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">

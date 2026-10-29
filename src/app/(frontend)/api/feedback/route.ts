@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { api } from "convex/_generated/api";
 import { getAuthedConvexClient } from "@/lib/convex-server";
 import { getConvexClient } from "@/lib/convex";
-import { getWrongRegionApiKeyResponse, hashApiKey, isTracifyApiKey } from "@/lib/api-keys";
+import { getWrongRegionApiKeyResponse, hashApiKey, isUncoilApiKey } from "@/lib/api-keys";
 
 type Body = {
   projectId: string;
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   try { body = await request.json() as Body; } catch { return Response.json({ error: "Invalid JSON body" }, { status: 422 }); }
   if (!body.projectId || !body.traceId || body.value === undefined) return Response.json({ error: "projectId, traceId, and value are required" }, { status: 422 });
   const bearer = request.headers.get("authorization");
-  if (bearer?.startsWith("Bearer ") && isTracifyApiKey(bearer.slice(7).trim())) {
+  if (bearer?.startsWith("Bearer ") && isUncoilApiKey(bearer.slice(7).trim())) {
     const apiKey = bearer.slice(7).trim();
     const wrongRegion = getWrongRegionApiKeyResponse(apiKey);
     if (wrongRegion) return wrongRegion;

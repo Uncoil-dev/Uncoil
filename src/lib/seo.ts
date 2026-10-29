@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = "https://www.tracify.tech";
-export const SITE_NAME = "Tracify";
+export const SITE_URL = "https://www.uncoil.dev";
+export const SITE_NAME = "Uncoil";
 
 type PageMetadataInput = {
   title: string;
@@ -13,18 +13,18 @@ type PageMetadataInput = {
   type?: "website" | "article";
 };
 
-const TITLE_SUFFIX = " | Tracify";
+const TITLE_SUFFIX = " | Uncoil";
 const TITLE_MAX = 60;
 const DESCRIPTION_MIN = 110;
 const DESCRIPTION_MAX = 160;
 const DESCRIPTION_TAILS = [
-  "Tracify is AI agent observability.",
+  "Uncoil is AI agent observability.",
   "Trace runs, tool calls, cost and quality in one place.",
   "Start free with 25,000 spans a month.",
 ];
 
 /**
- * Keeps the full `<title>` (page title + " | Tracify") within 60 characters so search results do not cut it.
+ * Keeps the full `<title>` (page title + " | Uncoil") within 60 characters so search results do not cut it.
  * Fits as-is when it can, drops the brand suffix when the title alone fits, and otherwise shortens the
  * title at its last natural break (colon, dash, bracket, comma) or word.
  */
@@ -49,7 +49,7 @@ export function fitTitleText(title: string) {
 
 /**
  * Keeps a meta description between 110 and 160 characters: trims long ones at a sentence or word
- * boundary and tops short ones up with a short Tracify line so snippets are neither cut nor thin.
+ * boundary and tops short ones up with a short Uncoil line so snippets are neither cut nor thin.
  */
 export function fitDescription(description: string) {
   let text = description.replace(/\s+/g, " ").trim();
@@ -137,7 +137,7 @@ export function articleJsonLd({ headline, description, path, image, datePublishe
     image: [picture],
     ...(datePublished ? { datePublished } : {}),
     ...(dateModified || datePublished ? { dateModified: dateModified ?? datePublished } : {}),
-    author: author && author !== "Tracify Team" ? { "@type": "Person", name: author } : { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    author: author && author !== "Uncoil Team" ? { "@type": "Person", name: author } : { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
     publisher,
   };
 }
@@ -161,7 +161,7 @@ export function productJsonLd({ name, description, path }: { name: string; descr
     category: "AI agent observability software",
     offers: PLAN_OFFERS.map((plan) => ({
       "@type": "Offer",
-      name: `Tracify ${plan.name}`,
+      name: `Uncoil ${plan.name}`,
       url: `${SITE_URL}/pricing`,
       price: plan.price,
       priceCurrency: "USD",

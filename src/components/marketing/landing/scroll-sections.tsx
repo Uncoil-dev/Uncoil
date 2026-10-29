@@ -33,7 +33,7 @@ export function Statement() {
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
   const words =
-    "Agents don't crash. They wander. A search comes back empty, a fallback model guesses, a tool times out, and the answer still looks fine. *Tracify *shows *the *whole *path.".split(
+    "Agents don't crash. They wander. A search comes back empty, a fallback model guesses, a tool times out, and the answer still looks fine. *Uncoil *shows *the *whole *path.".split(
       " ",
     );
   return (
@@ -76,7 +76,7 @@ const chapters = [
   {
     n: "03",
     title: "Find the first crack.",
-    body: "Failures don't start where they surface. Tracify points at the first step that went wrong, so you fix the empty search, not the tool that timed out three steps later.",
+    body: "Failures don't start where they surface. Uncoil points at the first step that went wrong, so you fix the empty search, not the tool that timed out three steps later.",
     img: "/images/landing/failure-shatter.png",
     tag: "Root cause, not the symptom",
   },
@@ -217,7 +217,7 @@ export function ProductWindow() {
       <div className="mx-auto max-w-[1320px]">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <h2 className="max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em] text-black">Every run, drawn as a map.</h2>
-          <p className="max-w-sm text-base leading-7 text-black/70">Pick a run and Tracify draws it: who called whom, what came back, how long it took and what it cost. The red flag is where you start.</p>
+          <p className="max-w-sm text-base leading-7 text-black/70">Pick a run and Uncoil draws it: who called whom, what came back, how long it took and what it cost. The red flag is where you start.</p>
         </div>
 
         <div ref={ref} className="mt-14 [perspective:1600px]">
@@ -228,7 +228,7 @@ export function ProductWindow() {
                 <span className="size-2.5 bg-white/25" />
                 <span className="size-2.5 bg-[#f4d44d]" />
               </span>
-              <span className="flex-1 truncate border border-white/15 px-3 py-1 font-mono text-[10px] text-white/50">tracify.tech / support-bot / tracing / run_9f3a</span>
+              <span className="flex-1 truncate border border-white/15 px-3 py-1 font-mono text-[10px] text-white/50">uncoil.dev / support-bot / tracing / run_9f3a</span>
             </div>
             <div className="grid min-h-[460px] md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr_260px]">
               <div className="hidden border-r border-white/15 md:block">

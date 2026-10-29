@@ -6,7 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { DitherField } from "@/components/auth/dither-field";
 import { BrandLogo } from "@/components/brand-logo";
-import { getRegionForHostname, getTracifyRegion } from "@/lib/regions";
+import { getRegionForHostname, getUncoilRegion } from "@/lib/regions";
 
 type AuthMode = "sign-in" | "sign-up" | "forgot-password" | "reset-password" | "invitation" | "device" | "error";
 
@@ -23,13 +23,13 @@ const copy = {
 
 export function AuthShell({ mode, children }: { mode: AuthMode; children: ReactNode }) {
   const modeCopy = copy[mode];
-  const [regionId, setRegionId] = useState(getTracifyRegion().id);
+  const [regionId, setRegionId] = useState(getUncoilRegion().id);
   useEffect(() => {
     // The host is only available in the browser; this replaces the deployment fallback after hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRegionId(getRegionForHostname(window.location.host) ?? getTracifyRegion().id);
+    setRegionId(getRegionForHostname(window.location.host) ?? getUncoilRegion().id);
   }, []);
-  const region = getTracifyRegion(regionId);
+  const region = getUncoilRegion(regionId);
 
   return (
     <main className="grid min-h-svh bg-[#f4d44d] text-black selection:bg-[#090909] selection:text-[#f4d44d] lg:grid-cols-[minmax(380px,0.85fr)_minmax(0,1fr)]">
@@ -37,8 +37,8 @@ export function AuthShell({ mode, children }: { mode: AuthMode; children: ReactN
         <Image src={modeCopy.img} alt="" fill priority unoptimized sizes="(min-width:1024px) 45vw, 100vw" className="-z-10 object-cover opacity-30 [image-rendering:pixelated]" />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,#090909_10%,rgba(9,9,9,0.88)_55%,rgba(9,9,9,0.65)_100%)]" />
         <div className="flex items-center justify-between">
-          <Link href="/" aria-label="Tracify home" className="active-press focus-visible:outline-2 focus-visible:outline-offset-4"><BrandLogo className="text-[#eceae3]" /></Link>
-          <Link href={process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech"} className="active-press hidden min-h-11 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/60 hover:text-white sm:flex">Back to site <ArrowUpRight className="size-3.5" /></Link>
+          <Link href="/" aria-label="Uncoil home" className="active-press focus-visible:outline-2 focus-visible:outline-offset-4"><BrandLogo className="text-[#eceae3]" /></Link>
+          <Link href={process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.uncoil.dev"} className="active-press hidden min-h-11 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/60 hover:text-white sm:flex">Back to site <ArrowUpRight className="size-3.5" /></Link>
         </div>
         <div className="mt-10 lg:mt-0">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#f4d44d]">{modeCopy.marker}</p>

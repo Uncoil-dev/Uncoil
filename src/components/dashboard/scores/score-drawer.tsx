@@ -43,7 +43,7 @@ export function ScorePanel({ projectId, row, onClose, onFilter, now }: { project
         {row.comment ? <div><div className="text-[10px] uppercase tracking-wider text-[#6B7380]">Reason or comment</div><p className="mt-1 whitespace-pre-wrap rounded border border-[#1F242C] bg-[#0E1115] p-3 text-xs leading-5 text-[#C9CED6]">{row.comment}</p></div> : null}
         <dl className="grid grid-cols-[6rem_1fr] gap-x-3 gap-y-1.5 text-xs">
           <dt className="text-[#6B7380]">Recorded</dt><dd className="font-mono">{new Date(row.createdAt).toLocaleString()}</dd>
-          <dt className="text-[#6B7380]">Given by</dt><dd className="break-all font-mono">{row.createdBy === "system" ? "Tracify (automatic)" : row.createdBy}</dd>
+          <dt className="text-[#6B7380]">Given by</dt><dd className="break-all font-mono">{row.createdBy === "system" ? "Uncoil (automatic)" : row.createdBy}</dd>
           {row.traceId ? <><dt className="text-[#6B7380]">Trace</dt><dd><Link href={`/dashboard/${projectId}/tracing?trace=${encodeURIComponent(row.traceId)}`} className="break-all font-mono text-[#8AB4FF] underline">{row.traceId}</Link></dd></> : null}
           {row.spanId ? <><dt className="text-[#6B7380]">Span</dt><dd className="break-all font-mono">{row.spanId}</dd></> : null}
         </dl>

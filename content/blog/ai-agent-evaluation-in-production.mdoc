@@ -3,7 +3,7 @@ title: "AI Agent Evaluation in Production: A Practical Debugging Framework"
 slug: ai-agent-evaluation-in-production
 excerpt: Learn how to evaluate AI agents after launch, connect quality scores to traces, and decide whether a failure needs a prompt, tool, retrieval, or human-review fix.
 publishedAt: 2026-09-16T12:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories:
   - engineering
@@ -19,7 +19,7 @@ heroImage:
   src: /media/ai-agent-evaluation-in-production-hero.png
   alt: A highlighted AI agent execution path crossing several evaluation gates on a telemetry grid
 seo:
-  metaTitle: "AI Agent Evaluation in Production | Tracify"
+  metaTitle: "AI Agent Evaluation in Production | Uncoil"
   metaDescription: A practical framework for evaluating AI agents in production, diagnosing failures, and choosing prompt, tool, retrieval, or human-review fixes.
 ---
 
@@ -122,7 +122,7 @@ function mayContinue(result: ToolResult): boolean {
 }
 ```
 
-This is illustrative rather than a drop-in Tracify SDK call. The important behavior is explicit: a cached or empty result is not silently treated as proof. Add tests for malformed arguments, partial results, retries, and permission boundaries.
+This is illustrative rather than a drop-in Uncoil SDK call. The important behavior is explicit: a cached or empty result is not silently treated as proof. Add tests for malformed arguments, partial results, retries, and permission boundaries.
 
 ### Retrieval and context failures
 

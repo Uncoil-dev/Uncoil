@@ -32,11 +32,11 @@ export function LiveCapturedHome({ projectId, surface = "home" }: { projectId: s
     ...sandboxWorkspace,
     mode: "live" as const,
     readOnly: false,
-    dataSource: "tracify-live" as const,
+    dataSource: "uncoil-live" as const,
     project: { id: projectId, name: project.name, organizationName: "Workspace" },
     environments,
     models: models.length ? models : sandboxWorkspace.models,
-    collections: { ...sandboxWorkspace.collections, tracing: { description: "Recent traces from this Tracify project.", records } },
+    collections: { ...sandboxWorkspace.collections, tracing: { description: "Recent traces from this Uncoil project.", records } },
     metrics: { traces: summary.totals.totalRuns, observations: summary.totals.totalSpans, totalCost: summary.totals.totalCostUsd, scores: sandboxWorkspace.metrics.scores },
   };
   return <CapturedWorkspace workspace={workspace} segments={[surface]} />;

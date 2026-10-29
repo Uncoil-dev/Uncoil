@@ -9,14 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Copy, Check, Terminal, Code2, BookOpen, KeyRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { scoreSnippet } from "@/lib/score-snippets";
-import { getDeploymentRegion, getTracifyRegion } from "@/lib/regions";
+import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
 interface QuickstartGuideProps {
   projectId: string;
 }
 
 export function QuickstartGuide({ projectId }: QuickstartGuideProps) {
-  const region = getTracifyRegion(getDeploymentRegion());
+  const region = getUncoilRegion(getDeploymentRegion());
   const project = useQuery(
     api.projects.getProjectById,
     projectId ? { projectId: projectId as Id<"projects"> } : "skip"
@@ -30,12 +30,12 @@ export function QuickstartGuide({ projectId }: QuickstartGuideProps) {
     setTimeout(() => setCopied(null), 2000);
   }
 
-  const pythonCode = `from tracify import trace_agent, llm_call
+  const pythonCode = `from uncoil import trace_agent, llm_call
 
 @trace_agent()
 async def run_my_agent():
     llm_call(
-        input_data="What is Tracify?",
+        input_data="What is Uncoil?",
         output_data="Observability for AI agents.",
         model_id="gpt-4o",
         cost_usd=0.002,
@@ -43,11 +43,11 @@ async def run_my_agent():
     )
     return "Success"`;
 
-  const tsCode = `import { traceAgent, llmCall } from 'tracify-sdk';
+  const tsCode = `import { traceAgent, llmCall } from 'uncoil-sdk';
 
 const runAgent = traceAgent(async () => {
   await llmCall({
-    input: "What is Tracify?",
+    input: "What is Uncoil?",
     output: "Observability for AI agents.",
     modelId: "gpt-4o",
     costUsd: 0.002,
@@ -59,15 +59,15 @@ const runAgent = traceAgent(async () => {
   const scorePy = scoreSnippet("python", projectId);
   const scoreTs = scoreSnippet("typescript", projectId);
 
-  const installPy = "pip install tracify-sdk";
-  const installTs = "npm install tracify-sdk";
+  const installPy = "pip install uncoil-sdk";
+  const installTs = "npm install uncoil-sdk";
 
   return (
     <div className="space-y-8 max-w-4xl">
       <div className="space-y-2">
         <h2 className="font-mono text-lg text-black uppercase tracking-widest">Instrumentation</h2>
         <p className="text-sm text-black/55 font-sans">
-          Connect your agent to Tracify in less than 5 minutes.
+          Connect your agent to Uncoil in less than 5 minutes.
         </p>
       </div>
 
@@ -128,8 +128,8 @@ const runAgent = traceAgent(async () => {
           Inject your API key into your agent&apos;s environment.
         </p>
         <CodeBlock
-          code={`TRACIFY_API_KEY=${project?.apiKeyPrefix || `tracify_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || '••••'}\nTRACIFY_REGION=${region.id}`}
-          onCopy={() => copyToClipboard(`TRACIFY_API_KEY=YOUR_API_KEY\nTRACIFY_REGION=${region.id}`, 'env')}
+          code={`UNCOIL_API_KEY=${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || '••••'}\nUNCOIL_REGION=${region.id}`}
+          onCopy={() => copyToClipboard(`UNCOIL_API_KEY=YOUR_API_KEY\nUNCOIL_REGION=${region.id}`, 'env')}
           copied={copied === 'env'}
         />
       </section>

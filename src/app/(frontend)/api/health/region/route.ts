@@ -1,4 +1,4 @@
-import { getDeploymentRegion, getTracifyRegion } from "@/lib/regions";
+import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 import { checkRedisHealth } from "@/lib/redis-cache";
 import { checkTinybirdHealth } from "@/lib/tinybird";
 
@@ -17,7 +17,7 @@ async function check(name: "convex" | "tinybird" | "redis", task: () => Promise<
 }
 
 export async function GET() {
-  const region = getTracifyRegion(getDeploymentRegion());
+  const region = getUncoilRegion(getDeploymentRegion());
   const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_SITE_URL;
   const dependencyEntries = await Promise.all([
     check("convex", async () => {
@@ -35,7 +35,7 @@ export async function GET() {
   return Response.json(
     {
       ok,
-      service: "tracify-cloud",
+      service: "uncoil-cloud",
       region: region.id,
       hostname: region.hostname,
       dependencies: {
@@ -44,6 +44,6 @@ export async function GET() {
       },
       checkedAt: new Date().toISOString(),
     },
-    { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "https://www.tracify.tech" } },
+    { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "https://www.uncoil.dev" } },
   );
 }

@@ -169,9 +169,9 @@ export const checkAll = internalAction({
         if (notice.emailTo.length > 0) {
           sends.push(sendEmail({
             to: notice.emailTo,
-            subject: `Tracify ${heading.toLowerCase()}: ${notice.name}`,
-            text: `${notice.message}\n\nOpen your Tracify dashboard to see where the spend is coming from.`,
-            html: `<p>${escapeHtml(notice.message)}</p><p>Open your Tracify dashboard to see where the spend is coming from.</p>`,
+            subject: `Uncoil ${heading.toLowerCase()}: ${notice.name}`,
+            text: `${notice.message}\n\nOpen your Uncoil dashboard to see where the spend is coming from.`,
+            html: `<p>${escapeHtml(notice.message)}</p><p>Open your Uncoil dashboard to see where the spend is coming from.</p>`,
             idempotencyKey: `budget-${budgetId}-${notice.periodKey}-${notice.level}`,
           }));
         }

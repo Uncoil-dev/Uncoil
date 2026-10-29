@@ -25,8 +25,8 @@ export default async function GlossaryTermPage({ params }: { params: Promise<{ t
   const next = glossaryTerms[(index + 1) % glossaryTerms.length];
   const related = t.related.map((slug) => glossaryTerms.find((x) => x.slug === slug)).filter((x): x is (typeof glossaryTerms)[number] => Boolean(x));
   const schema = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Glossary", path: "/glossary" }, { name: t.term, path: `/glossary/${t.slug}` }]),
-    { "@context": "https://schema.org", "@type": "DefinedTerm", name: t.term, description: t.definition, url: `https://www.tracify.tech/glossary/${t.slug}`, inDefinedTermSet: "https://www.tracify.tech/glossary" },
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Glossary", path: "/glossary" }, { name: t.term, path: `/glossary/${t.slug}` }]),
+    { "@context": "https://schema.org", "@type": "DefinedTerm", name: t.term, description: t.definition, url: `https://www.uncoil.dev/glossary/${t.slug}`, inDefinedTermSet: "https://www.uncoil.dev/glossary" },
   ];
   return (
     <div className="overflow-x-clip bg-[#090909]">

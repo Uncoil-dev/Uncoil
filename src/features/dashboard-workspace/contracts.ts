@@ -62,5 +62,5 @@ export type DashboardWorkspaceData = {
 };
 
 export type DashboardWorkspace = DashboardWorkspaceData & {
-  dataSource: "tracify-live" | "tracify-sandbox";
+  dataSource: "uncoil-live" | "uncoil-sandbox";
 };

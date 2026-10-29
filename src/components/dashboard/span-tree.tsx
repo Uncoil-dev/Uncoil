@@ -8,7 +8,7 @@ import {
   buildSpanTree,
   flattenTree,
   type SpanTreeNode,
-} from "@/lib/tracify-ports";
+} from "@/lib/uncoil-ports";
 
 interface SpanTreeProps {
   spans: SpanRow[];

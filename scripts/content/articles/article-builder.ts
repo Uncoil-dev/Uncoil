@@ -7,7 +7,7 @@ export type ArticleBlueprint = {
   audience: string;
   framework: string;
   outcome: string;
-  tracifyLink: string;
+  uncoilLink: string;
   related: readonly [string, string, ...string[]];
   topics: readonly [string, string, string, string, string];
   signals: readonly [string, string, string, string, string];
@@ -126,7 +126,7 @@ export const buildLongformArticle = (blueprint: ArticleBlueprint, mediaId: numbe
     paragraph(`This topic is strongest when it is connected to adjacent operating practices. Read the related guides below as a sequence, not as interchangeable keywords: each addresses a different decision in the lifecycle.`),
     link("Related guide", blogUrl(blueprint.related[0])),
     link("Related guide", blogUrl(blueprint.related[1])),
-    link("Explore the relevant Tracify workflow", blueprint.tracifyLink),
+    link("Explore the relevant Uncoil workflow", blueprint.uncoilLink),
 
     heading("h2", "Frequently asked questions"),
     heading("h3", `Is ${blueprint.keyword} only for large teams?`),
@@ -139,7 +139,7 @@ export const buildLongformArticle = (blueprint: ArticleBlueprint, mediaId: numbe
     paragraph(`Pick one end-to-end task. Define success and unacceptable outcomes, trace its execution path, collect a modest set of representative examples, and write the escalation path. That milestone gives the team a baseline for future instrumentation and a way to verify that the next change improves the outcome ${sentenceCase(blueprint.outcome)}.`),
 
     heading("h2", `Next step: make ${blueprint.keyword} actionable`),
-    paragraph(`Start with one workflow this week. Instrument the evidence needed to explain a single completed run, review it against the intended outcome, and turn the finding into a named test or operating decision. Then use the relevant Tracify resource above to inspect the connected execution path. The final CTA is deliberately practical: choose one bounded improvement, measure its effect, and keep the rollback path clear.`),
+    paragraph(`Start with one workflow this week. Instrument the evidence needed to explain a single completed run, review it against the intended outcome, and turn the finding into a named test or operating decision. Then use the relevant Uncoil resource above to inspect the connected execution path. The final CTA is deliberately practical: choose one bounded improvement, measure its effect, and keep the rollback path clear.`),
   ];
 
   return createDocument(children);

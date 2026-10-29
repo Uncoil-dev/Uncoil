@@ -5,7 +5,7 @@ import type { Id } from "convex/_generated/dataModel";
 
 import { getConvexClient } from "@/lib/convex";
 import { inngest } from "@/lib/inngest";
-import { getWrongRegionApiKeyResponse, hashApiKey, isTracifyApiKey } from "@/lib/api-keys";
+import { getWrongRegionApiKeyResponse, hashApiKey, isUncoilApiKey } from "@/lib/api-keys";
 import { DEFAULT_REDACTION_RULES, redactPayload, redactRecord } from "@/lib/redaction";
 import { planLimitResponse, recordRateLimitStrike } from "@/lib/plan-limits-server";
 import { FREE_MAX_SPAN_BYTES, ingestLimitPerMinute, trimOversizedSpan } from "@/lib/plan-limits";
@@ -14,7 +14,7 @@ import { apiKeyProjectCache, cachedProjectForKey } from "@/lib/ingest-cache";
 import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
 
 const MAX_BODY_BYTES = 1024 * 1024;
-const PAID_INGEST_LIMIT_PER_MINUTE = Number(process.env.TRACIFY_INGEST_LIMIT_PER_MINUTE ?? 6_000);
+const PAID_INGEST_LIMIT_PER_MINUTE = Number((process.env.UNCOIL_INGEST_LIMIT_PER_MINUTE ?? process.env.TRACIFY_INGEST_LIMIT_PER_MINUTE) ?? 6_000);
 
 type SpanPayload = {
   spanId: string;
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
   }
 
   const apiKey = authHeader.slice(7).trim();
-  if (!isTracifyApiKey(apiKey)) {
+  if (!isUncoilApiKey(apiKey)) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
   }
   const wrongRegion = getWrongRegionApiKeyResponse(apiKey);
@@ -356,7 +356,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     // Evaluations and alert thresholds run in the background; storage above no longer depends on the queue.
-    await inngest.send({ name: "tracify/span.received", data: { ...spanEvent, persisted: true } });
+    await inngest.send({ name: "uncoil/span.received", data: { ...spanEvent, persisted: true } });
   } catch (err) {
     console.warn("Background follow-up for a stored span could not be queued:", err);
   }

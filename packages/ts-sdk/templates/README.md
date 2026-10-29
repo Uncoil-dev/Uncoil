@@ -1,6 +1,6 @@
 # Quick-start templates
 
-Copy one file into your project, set `TRACIFY_API_KEY`, and run it.
+Copy one file into your project, set `UNCOIL_API_KEY`, and run it.
 
 | File | What it shows |
 | --- | --- |

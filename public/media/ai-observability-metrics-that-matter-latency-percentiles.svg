@@ -32,5 +32,5 @@
   <line x1="1300" y1="740" x2="1300" y2="260" stroke="#e2543a" stroke-width="3" stroke-dasharray="6,6"/>
   <text x="1300" y="250" text-anchor="middle" fill="#e2543a" font-family="monospace" font-size="14">p99: 8.4s</text>
 
-  <text x="800" y="820" text-anchor="middle" fill="#f6f1e6" font-family="monospace" font-size="14">tracify.tech · the p50 looks fine while roughly one in a hundred users waits 8 seconds</text>
+  <text x="800" y="820" text-anchor="middle" fill="#f6f1e6" font-family="monospace" font-size="14">uncoil.dev · the p50 looks fine while roughly one in a hundred users waits 8 seconds</text>
 </svg>

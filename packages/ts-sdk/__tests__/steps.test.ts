@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { TracifyClient, span, observe, traceAgent, type SpanData } from "../src/index";
+import { UncoilClient, span, observe, traceAgent, type SpanData } from "../src/index";
 
-class Recorder extends TracifyClient {
+class Recorder extends UncoilClient {
   sent: Array<Record<string, any>> = [];
-  constructor() { super({ apiKey: "tracify_sk_live_eu_test" }); }
+  constructor() { super({ apiKey: "uncoil_sk_live_eu_test" }); }
   async ingest(data: SpanData) {
     // Reuse the real span shaping, but capture instead of POSTing.
     const original = globalThis.fetch;
@@ -23,7 +23,7 @@ describe("steps", () => {
         await span("chat", (step) => { step.set({ model: "claude", inputTokens: 10, outputTokens: 3 }); return "reply"; }, { type: "llm", client });
       }, { type: "agent", client });
       return "done";
-    }, { apiKey: "tracify_sk_live_eu_test", name: "answer" });
+    }, { apiKey: "uncoil_sk_live_eu_test", name: "answer" });
     // traceAgent builds its own client, so record the root through the same fetch hook.
     const original = globalThis.fetch;
     globalThis.fetch = (async (_url: string, init: { body: string }) => { client.sent.push(JSON.parse(init.body)); return new Response("{}"); }) as any;

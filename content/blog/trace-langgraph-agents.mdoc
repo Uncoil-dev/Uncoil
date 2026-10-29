@@ -3,7 +3,7 @@ title: "How to Trace LangGraph Agents: Nodes, Tools and Model Calls"
 slug: trace-langgraph-agents
 excerpt: Add tracing to a LangGraph agent with one callback handler, read the resulting graph, node, tool and model spans, and avoid the mistakes that double count or hide a loop.
 publishedAt: 2026-10-16T19:00:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories: [engineering]
 tags: [LangGraph, agent tracing, LLM observability, TypeScript, Python]
@@ -31,7 +31,7 @@ LangGraph lets you describe an agent as nodes and edges, with state passed along
 ### The operating model: Wrap, Run, Read, Bound
 
 1. **Wrap** the run so every callback lands in one trace.
-2. **Run** the graph with a Tracify handler in its configuration.
+2. **Run** the graph with an Uncoil handler in its configuration.
 3. **Read** the tree of graph, node, tool and model spans.
 4. **Bound** the loops and the cost with limits you can see in the data.
 
@@ -46,7 +46,7 @@ LangGraph lets you describe an agent as nodes and edges, with state passed along
 
 LangGraph and the LangChain libraries beneath it emit callback events as work starts and ends: a chain starts, a model is called, a tool runs, an error is raised. A tracing handler listens to those events and turns each start and end pair into a span.
 
-The Tracify handler maps the events like this:
+The Uncoil handler maps the events like this:
 
 | Event in the graph | Span recorded | Notes |
 | --- | --- | --- |
@@ -66,13 +66,13 @@ You need the SDK, an API key, and one handler.
 
 ### TypeScript
 
-Install the SDK and set `TRACIFY_API_KEY` in your environment. Then pass a handler in the invocation configuration of your compiled graph.
+Install the SDK and set `UNCOIL_API_KEY` in your environment. Then pass a handler in the invocation configuration of your compiled graph.
 
 ```ts
-import { TracifyLangGraphHandler, traceAgent } from "tracify-sdk";
+import { UncoilLangGraphHandler, traceAgent } from "uncoil-sdk";
 
 // One reusable handler. `graph` is your compiled LangGraph graph.
-const handler = new TracifyLangGraphHandler();
+const handler = new UncoilLangGraphHandler();
 
 export const answer = traceAgent(
   async (question: string) => {
@@ -93,15 +93,15 @@ Wrapping the call in `traceAgent` is optional but recommended. Without it, the f
 Install the extra and add the callback to the config:
 
 ```bash
-pip install 'tracify-sdk[langgraph]'
+pip install 'uncoil-sdk[langgraph]'
 ```
 
 ```python
-import tracify
+import uncoil
 
 graph.invoke(
     {"messages": [("user", question)]},
-    config={"callbacks": [tracify.langgraph_callback()]},
+    config={"callbacks": [uncoil.langgraph_callback()]},
 )
 ```
 
@@ -112,7 +112,7 @@ The same rules apply: the callback records the graph, nodes, tools and model cal
 The handler sees what the framework reports through callbacks. Anything your nodes do outside the framework, such as a direct HTTP request or a plain function that never touches a LangChain tool or model, produces no span by itself. If a node does important work that way, wrap that work in a span so it appears in the tree.
 
 ```ts
-import { span } from "tracify-sdk";
+import { span } from "uncoil-sdk";
 
 async function loadCustomer(id: string) {
   return span("load_customer", () => crm.fetch(id), { type: "retrieval", input: id });
@@ -139,7 +139,7 @@ Click a span to see its input, output, tokens and error. For a model call, check
 
 ### Mistake 1: recording the same model call twice
 
-If you add the LangGraph handler and also wrap the provider client with a Tracify wrapper, the same model call can be recorded twice: once from the framework callback and once from the wrapper. Token counts and cost then double. Use {% highlight %}either the framework's model callbacks or a wrapped provider{% /highlight %} for each model call, not both.
+If you add the LangGraph handler and also wrap the provider client with an Uncoil wrapper, the same model call can be recorded twice: once from the framework callback and once from the wrapper. Token counts and cost then double. Use {% highlight %}either the framework's model callbacks or a wrapped provider{% /highlight %} for each model call, not both.
 
 Which should you choose? The handler is simpler and gives you the graph structure, tools and models in one place. A wrapped provider client captures more provider-level detail, such as the raw usage breakdown and request ids, and works the same whether or not LangGraph is involved. If you use both, make sure the model calls inside the graph are recorded by only one of them.
 
@@ -255,7 +255,7 @@ A trace of a graph agent is the closest thing you have to a replay. Make sure it
 
 ## Frequently asked questions
 
-{% faq-item question="How do I add tracing to a LangGraph agent?" answer="Create a Tracify handler and pass it in the callbacks of your graph invocation: in TypeScript, new TracifyLangGraphHandler() inside the config passed to graph.invoke; in Python, tracify.langgraph_callback() in the config. Wrap the call in traceAgent or trace_agent so the whole task is one run." /%}
+{% faq-item question="How do I add tracing to a LangGraph agent?" answer="Create an Uncoil handler and pass it in the callbacks of your graph invocation: in TypeScript, new UncoilLangGraphHandler() inside the config passed to graph.invoke; in Python, uncoil.langgraph_callback() in the config. Wrap the call in traceAgent or trace_agent so the whole task is one run." /%}
 {% faq-item question="What does the trace show for a LangGraph run?" answer="A tree of spans: the graph and its nodes, the tools they call and the model calls inside them, with parent relationships preserved, inputs and outputs, latency, token usage when reported, and errors. Repeated passes through a loop appear as repeated branches." /%}
 {% faq-item question="Why are my token counts doubled?" answer="Most likely the same model call is recorded twice, once by the LangGraph callback and once by a wrapped provider client. Use either the framework's model callbacks or a wrapped provider for each model call, not both." /%}
 {% faq-item question="How do I stop an agent from looping forever?" answer="Set a recursion or step limit in the graph configuration, cap retries inside tools, return clear failure messages the model can act on, and add a fallback route. Then track turns per run so you can see loops before they become incidents." /%}

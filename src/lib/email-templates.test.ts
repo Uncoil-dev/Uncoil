@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { renderNoTraceEmail, renderWelcomeEmail } from "./email-templates.ts";
 
-const origin = "https://www.tracify.tech";
+const origin = "https://www.uncoil.dev";
 
 test("welcome email escapes names and stays in the palette", () => {
   const email = renderWelcomeEmail({ name: '<script>alert(1)</script> Eve', origin });

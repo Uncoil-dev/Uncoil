@@ -172,7 +172,7 @@ export function CostEstimator() {
         </div>
 
         <p className="mt-8 text-sm leading-6 text-black/70">
-          This is a planning estimate from the numbers you typed. To see what your agent really spends, run by run, <Link href={appHref("/sign-up")} className="underline decoration-[#f4d44d] decoration-2 underline-offset-4 hover:bg-[#f4d44d]">send a trace to Tracify</Link> and compare.
+          This is a planning estimate from the numbers you typed. To see what your agent really spends, run by run, <Link href={appHref("/sign-up")} className="underline decoration-[#f4d44d] decoration-2 underline-offset-4 hover:bg-[#f4d44d]">send a trace to Uncoil</Link> and compare.
         </p>
       </div>
     </div>

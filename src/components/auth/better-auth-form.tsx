@@ -113,7 +113,7 @@ export function BetterAuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       </form>
 
       <p className="mt-6 text-center text-xs text-black/55">
-        {mode === "sign-up" ? "Already have an account? " : "New to tracify? "}
+        {mode === "sign-up" ? "Already have an account? " : "New to uncoil? "}
         <Link className="font-medium text-black underline underline-offset-4" href={`${mode === "sign-up" ? "/sign-in" : "/sign-up"}?redirect_url=${encodeURIComponent(callbackPath)}`}>{mode === "sign-up" ? "Sign in" : "Create one"}</Link>
       </p>
       {mode === "sign-up" ? <p className="mt-4 text-center text-[10px] leading-5 text-black/55">By continuing, you agree to our <Link href="/terms" className="underline underline-offset-2">Terms</Link> and <Link href="/privacy" className="underline underline-offset-2">Privacy Policy</Link>.</p> : null}

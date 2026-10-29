@@ -56,7 +56,7 @@ describe("delivery", () => {
     const gh = buildDelivery("github_dispatch", "acme/api", event, "p", "t");
     expect(gh.url).toBe("https://api.github.com/repos/acme/api/dispatches");
     expect(gh.headers.Authorization).toBe("Bearer tok");
-    expect(gh.body).toMatchObject({ event_type: "tracify.run.failed" });
+    expect(gh.body).toMatchObject({ event_type: "uncoil.run.failed" });
     vi.unstubAllEnvs();
   });
 

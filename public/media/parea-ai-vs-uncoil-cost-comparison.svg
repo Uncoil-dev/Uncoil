@@ -1,0 +1,47 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="46" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Annual cost: stretching one tool to cover both stages vs pairing them
+  </text>
+  <text x="600" y="72" font-size="13" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Modeled team: 8 engineers, active prompt development plus 150k production calls/month
+  </text>
+
+  <!-- axis -->
+  <line x1="140" y1="560" x2="1100" y2="560" stroke="#444444" stroke-width="1"/>
+  <text x="120" y="565" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$0</text>
+  <line x1="140" y1="440" x2="1100" y2="440" stroke="#222222" stroke-width="1"/>
+  <text x="120" y="445" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$20k</text>
+  <line x1="140" y1="320" x2="1100" y2="320" stroke="#222222" stroke-width="1"/>
+  <text x="120" y="325" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$40k</text>
+  <line x1="140" y1="200" x2="1100" y2="200" stroke="#222222" stroke-width="1"/>
+  <text x="120" y="205" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$60k</text>
+  <line x1="140" y1="80" x2="1100" y2="80" stroke="#222222" stroke-width="1"/>
+  <text x="120" y="85" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">$80k</text>
+
+  <!-- Bar 1: Parea stretched to cover production, $72,000 -->
+  <rect x="190" y="128" width="200" height="432" fill="#FFFFFF"/>
+  <text x="290" y="112" font-size="20" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$72,000</text>
+  <text x="290" y="590" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">Parea only</text>
+  <text x="290" y="608" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">+ hand-built production</text>
+  <text x="290" y="624" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">tracing &amp; cost dashboards</text>
+
+  <!-- Bar 2: Uncoil stretched to cover dev, $52,800 -->
+  <rect x="480" y="240" width="200" height="320" fill="#AAAAAA"/>
+  <text x="580" y="224" font-size="20" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$52,800</text>
+  <text x="580" y="590" font-size="14" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Uncoil only</text>
+  <text x="580" y="608" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">+ ad-hoc prompt testing</text>
+  <text x="580" y="624" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">in notebooks and scripts</text>
+
+  <!-- Bar 3: Combined, $27,600 -->
+  <rect x="770" y="393" width="200" height="167" fill="#FFFF00"/>
+  <text x="870" y="377" font-size="20" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$27,600</text>
+  <text x="870" y="590" font-size="14" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">Parea + Uncoil</text>
+  <text x="870" y="608" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">each tool does what it</text>
+  <text x="870" y="624" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">was actually built for</text>
+
+  <text x="600" y="665" font-size="12" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace">
+    The gap is not license cost — it is engineering time spent rebuilding the other tool's core job. Full breakdown below.
+  </text>
+</svg>

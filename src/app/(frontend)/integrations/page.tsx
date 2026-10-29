@@ -8,13 +8,13 @@ import { IntegrationGrid, type Integration } from "@/components/marketing/compan
 
 import { faqJsonLd, jsonLdString } from "@/lib/seo";
 import { CodeTabs } from "@/components/marketing/company/code-tabs";
-export const metadata = pageMetadata({ title: "AI agent integrations: trace OpenAI, LangChain, OTel", description: "Trace OpenAI, Anthropic, LangChain, LangGraph, CrewAI, LlamaIndex, AutoGen, Vercel AI SDK and OpenTelemetry agents in Tracify, plus Slack alerts.", path: "/integrations" });
+export const metadata = pageMetadata({ title: "AI agent integrations: trace OpenAI, LangChain, OTel", description: "Trace OpenAI, Anthropic, LangChain, LangGraph, CrewAI, LlamaIndex, AutoGen, Vercel AI SDK and OpenTelemetry agents in Uncoil, plus Slack alerts.", path: "/integrations" });
 
 const faqs = [
-  { q: "Which AI agent frameworks does Tracify work with?", a: "Anything that speaks OpenTelemetry works through the OTLP endpoint. LangChain, CrewAI, LlamaIndex, AutoGen, Mastra, Pydantic AI and the OpenAI Agents SDK are covered through the Python and TypeScript SDKs or OTel instrumentation." },
+  { q: "Which AI agent frameworks does Uncoil work with?", a: "Anything that speaks OpenTelemetry works through the OTLP endpoint. LangChain, CrewAI, LlamaIndex, AutoGen, Mastra, Pydantic AI and the OpenAI Agents SDK are covered through the Python and TypeScript SDKs or OTel instrumentation." },
   { q: "Do I need to change my agent code to trace it?", a: "Usually a few lines: install the SDK, set a project key and wrap the client or add the OTel exporter. Provider calls such as OpenAI and Anthropic record model, latency, tokens and cost automatically." },
-  { q: "Can I send traces from an OpenTelemetry setup I already have?", a: "Yes. Point an OTLP HTTP JSON exporter at Tracify with your project key. See the ingest reference in the docs for the endpoint and headers." },
-  { q: "Does Tracify send alerts to Slack?", a: "Yes. Project alerts can post failures and threshold breaches to a validated Slack webhook." },
+  { q: "Can I send traces from an OpenTelemetry setup I already have?", a: "Yes. Point an OTLP HTTP JSON exporter at Uncoil with your project key. See the ingest reference in the docs for the endpoint and headers." },
+  { q: "Does Uncoil send alerts to Slack?", a: "Yes. Project alerts can post failures and threshold breaches to a validated Slack webhook." },
   { q: "What if my tool is not listed?", a: "If it can export OpenTelemetry spans it already works. Otherwise use the contact page to request an adapter." },
 ] as const;
 
@@ -38,7 +38,7 @@ const integrations: Integration[] = [
   { name: "Microsoft Teams", description: "Route alerts and failed-trace notifications into a Teams channel through an incoming webhook or Power Automate flow.", category: "Alerts" },
   { name: "PagerDuty", description: "Escalate high-severity agent failures into the on-call workflow.", category: "Alerts" },
   { name: "Webhooks", description: "Send spans, alerts, cost thresholds, and orchestration events to any HTTP endpoint.", category: "Alerts" },
-  { name: "Docs MCP Server", description: "Give AI agents and MCP-compatible clients read access to Tracify's documentation as structured resources.", badge: "Native", category: "Agent tooling" },
+  { name: "Docs MCP Server", description: "Give AI agents and MCP-compatible clients read access to Uncoil's documentation as structured resources.", badge: "Native", category: "Agent tooling" },
 ];
 
 const steps = [

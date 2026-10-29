@@ -1,4 +1,4 @@
-# Releasing Tracify
+# Releasing Uncoil
 
 Every promoted artifact must be traceable to a verified commit. The application and SDK packages may version independently, but each release records all included versions and compatibility notes.
 

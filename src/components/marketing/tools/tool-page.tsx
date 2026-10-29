@@ -12,7 +12,7 @@ export type Step = { title: string; body: string };
 
 const underline = "underline decoration-[#f4d44d] decoration-2 underline-offset-4 hover:bg-[#f4d44d]";
 
-/** Shared frame for every free tool page: header, the tool, how-to, FAQ, related tools, and the Tracify prompt. */
+/** Shared frame for every free tool page: header, the tool, how-to, FAQ, related tools, and the Uncoil prompt. */
 export function ToolPage({
   slug,
   title,
@@ -40,7 +40,7 @@ export function ToolPage({
   const path = toolPath(slug);
   const related = tools.filter((t) => t.slug !== slug).slice(0, 4);
   const schema = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Free tools", path: "/tools" }, { name: tool.name, path }]),
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Free tools", path: "/tools" }, { name: tool.name, path }]),
     { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
   ];
   return (
@@ -56,13 +56,13 @@ export function ToolPage({
         <SectionTitle>{toolTitle}</SectionTitle>
         <div className="mt-12">{children}</div>
         {notes ? <div className="mt-10 max-w-3xl border-l-2 border-black pl-5 text-sm leading-6 text-black/65">{notes}</div> : null}
-        <aside aria-label="Track this with Tracify" className="mt-14 grid gap-6 border border-black bg-[#090909] p-6 text-[#eceae3] md:grid-cols-[1.5fr_auto] md:items-center md:p-8">
+        <aside aria-label="Track this with Uncoil" className="mt-14 grid gap-6 border border-black bg-[#090909] p-6 text-[#eceae3] md:grid-cols-[1.5fr_auto] md:items-center md:p-8">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">From one check to every run</p>
             <p className="mt-3 max-w-2xl text-balance text-lg leading-7">{tool.trackLine}</p>
           </div>
           <Link href={appHref("/sign-up")} className="group inline-flex min-h-12 items-center justify-center bg-[#f4d44d] px-6 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black transition-colors hover:bg-white">
-            Track this automatically with Tracify
+            Track this automatically with Uncoil
           </Link>
         </aside>
       </CreamBand>
@@ -115,7 +115,7 @@ export function ToolPage({
       <ClosingBand
         title="Now measure the real thing."
         body="Send a first trace and see the true cost, speed and failures of every run."
-        actions={[{ href: appHref("/sign-up"), label: "Track this automatically with Tracify", primary: true }, { href: "/docs/quickstart", label: "Read the quickstart" }]}
+        actions={[{ href: appHref("/sign-up"), label: "Track this automatically with Uncoil", primary: true }, { href: "/docs/quickstart", label: "Read the quickstart" }]}
       />
     </div>
   );

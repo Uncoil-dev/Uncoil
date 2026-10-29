@@ -58,7 +58,7 @@ export function SharedTraceView({ run, spans, unavailable }: { run: SharedRun; s
     <main className="min-h-screen bg-[#eceae3] text-[#090909]">
       <header className="border-b border-black/15 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4">
-          <Link href={process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.tracify.tech"} className="font-pixel text-xl tracking-[-0.06em]">tracify</Link>
+          <Link href={process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.uncoil.dev"} className="font-pixel text-xl tracking-[-0.06em]">uncoil</Link>
           <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-black/55"><Lock className="size-3" />Shared read-only trace</span>
         </div>
       </header>

@@ -16,7 +16,7 @@ export const metadata = pageMetadata({
 
 export default function ToolsIndex() {
   const schema = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Free tools", path }]),
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Free tools", path }]),
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
@@ -29,7 +29,7 @@ export default function ToolsIndex() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(schema) }} />
       <PageHeader eyebrow="Free tools" title="Tools for people building agents." lede="Debug a log, count tokens, compare prices, check a prompt, fix JSON. No sign-up, and nothing you paste leaves your browser.">
         <HeaderAction href="#tools">Pick a tool</HeaderAction>
-        <HeaderAction href={appHref("/sign-up")} kind="secondary">Track your agent with Tracify</HeaderAction>
+        <HeaderAction href={appHref("/sign-up")} kind="secondary">Track your agent with Uncoil</HeaderAction>
       </PageHeader>
       <CreamBand id="tools">
         <Eyebrow dark={false}>{tools.length} free tools / no sign-up</Eyebrow>
@@ -39,8 +39,8 @@ export default function ToolsIndex() {
       </CreamBand>
       <ClosingBand
         title="Checking once is good. Tracking always is better."
-        body="Tracify records every run, so cost, speed and failures are always one click away."
-        actions={[{ href: appHref("/sign-up"), label: "Track this automatically with Tracify", primary: true }, { href: "/docs/quickstart", label: "Read the quickstart" }]}
+        body="Uncoil records every run, so cost, speed and failures are always one click away."
+        actions={[{ href: appHref("/sign-up"), label: "Track this automatically with Uncoil", primary: true }, { href: "/docs/quickstart", label: "Read the quickstart" }]}
       />
     </div>
   );

@@ -9,9 +9,9 @@ API KEYS                                           [+ Create key]
 
 ──────────────────────────────────────────────────────────────────
 Name            Key (masked)          Created    Last used  Actions
-Production      tracify_sk_live_sk_a3f2••••      Apr 20     2m ago     [Reveal] [Copy] [Rotate] [Revoke]
-Staging         tracify_sk_live_sk_b1c2••••      Apr 21     1h ago     [Reveal] [Copy] [Rotate] [Revoke]
-CI/CD           tracify_sk_live_sk_c3d4••••      Apr 22     Never      [Reveal] [Copy] [Rotate] [Revoke]
+Production      uncoil_sk_live_sk_a3f2••••      Apr 20     2m ago     [Reveal] [Copy] [Rotate] [Revoke]
+Staging         uncoil_sk_live_sk_b1c2••••      Apr 21     1h ago     [Reveal] [Copy] [Rotate] [Revoke]
+CI/CD           uncoil_sk_live_sk_c3d4••••      Apr 22     Never      [Reveal] [Copy] [Rotate] [Revoke]
 ──────────────────────────────────────────────────────────────────
 ```
 
@@ -30,7 +30,7 @@ After creation — shown ONCE:
 
 YOUR NEW API KEY
 
-tracify_sk_live_sk_a3f2b1c9d4e5f6a7b8c9d0e1f2a3b4
+uncoil_sk_live_sk_a3f2b1c9d4e5f6a7b8c9d0e1f2a3b4
 
 ⚠ Copy this key now. It will not be shown again.
 
@@ -62,7 +62,7 @@ Any agents using it will stop sending spans.
 WEBHOOKS                                           [+ Add endpoint]
 
 Endpoint                        Events            Status   Actions
-https://hooks.myapp.com/tracify   run.failed        Active   [Edit] [Test] [Delete]
+https://hooks.myapp.com/uncoil   run.failed        Active   [Edit] [Test] [Delete]
 https://hooks.myapp.com/alerts  alert.triggered   Active   [Edit] [Test] [Delete]
 ```
 
@@ -100,7 +100,7 @@ Integration card anatomy:
 
 # 23 DOCS WEBSITE
 
-**Route:** `/docs` or `docs.tracify.tech`
+**Route:** `/docs` or `docs.uncoil.dev`
 
 ## Docs Navigation Tree
 
@@ -180,9 +180,9 @@ TIP:     left-border: 2px --success;   bg: --success-dim
 ```
 [filename.py]                                        [Copy ✓]
 ──────────────────────────────────────────────────────────
- 1  from tracify import trace_agent
+ 1  from uncoil import trace_agent
  2  
- 3  @trace_agent(api_key="tracify_sk_live_sk_...")
+ 3  @trace_agent(api_key="uncoil_sk_live_sk_...")
  4  async def research_agent(query: str) -> str:
  5      result = await llm_call(query)
  6      return result
@@ -212,7 +212,7 @@ Sticky. Auto-generated from H2/H3 in page. Active heading highlighted with `--ac
 
 BLOG
 ──────────────────────────────────────────────────
-From the tracify team: engineering, agents, and AI in production.
+From the uncoil team: engineering, agents, and AI in production.
 
 [All] [Engineering] [Agents] [Observability] [Cost Control] [Product] [Company]
 
@@ -301,7 +301,7 @@ From the tracify team: engineering, agents, and AI in production.
 ## SEO Metadata (per article)
 
 ```html
-<title>{article.title} — tracify Blog</title>
+<title>{article.title} — uncoil Blog</title>
 <meta name="description" content="{article.excerpt}" />
 <meta property="og:title" content="{article.title}" />
 <meta property="og:image" content="{article.coverImage}" />
@@ -408,11 +408,11 @@ Q: Is there a free trial of Pro?
 A: Yes — 14 days, no credit card required.
 
 Q: Do you offer startup discounts?
-A: Yes. Email founders@tracify.com with proof of incorporation.
+A: Yes. Email founders@uncoil.com with proof of incorporation.
 
 Q: Do you offer annual invoicing for Enterprise?
 A: Yes. Contact sales for a custom contract.
 
-Q: Can I self-host tracify?
+Q: Can I self-host uncoil?
 A: Enterprise plans include self-hosted deployment documentation.
 ```

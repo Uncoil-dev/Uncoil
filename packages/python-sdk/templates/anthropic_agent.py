@@ -1,11 +1,11 @@
 from anthropic import Anthropic
-import tracify
+import uncoil
 
-client = tracify.wrap_anthropic(Anthropic())
-tools = tracify.trace_tools({"get_weather": lambda city: f"Sunny in {city}"})
+client = uncoil.wrap_anthropic(Anthropic())
+tools = uncoil.trace_tools({"get_weather": lambda city: f"Sunny in {city}"})
 
 
-@tracify.trace_agent(name="weather-agent")
+@uncoil.trace_agent(name="weather-agent")
 def main():
     weather = tools["get_weather"]("Oslo")
     reply = client.messages.create(

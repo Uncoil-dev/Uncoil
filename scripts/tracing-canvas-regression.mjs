@@ -4,10 +4,10 @@ import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync } from "node:fs";
 
 const BASE = process.env.PREVIEW_URL;
-const PROJECT = process.env.TRACIFY_E2E_PROJECT_ID;
+const PROJECT = process.env.UNCOIL_E2E_PROJECT_ID;
 const OUT = process.env.OUT_DIR ?? "/tmp/tracing-canvas-regression";
 const STATE = process.env.PREVIEW_STATE_FILE;
-if (!BASE || !PROJECT) throw new Error("Set PREVIEW_URL and TRACIFY_E2E_PROJECT_ID.");
+if (!BASE || !PROJECT) throw new Error("Set PREVIEW_URL and UNCOIL_E2E_PROJECT_ID.");
 const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET ? { "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET } : {};
 let failed = 0;
 async function check(label, fn) {
@@ -94,8 +94,8 @@ await check("sign in and load Tracing", async () => {
     await page.goto(`${BASE}/sign-in?redirect_url=${encodeURIComponent(`/dashboard/${PROJECT}/tracing`)}`, { waitUntil: "domcontentloaded" });
     const consent = page.getByRole("button", { name: /reject optional/i });
     if (await consent.isVisible().catch(() => false)) await consent.click();
-    await page.locator("#auth-email-address").fill(process.env.TRACIFY_ROBOT_EMAIL);
-    await page.locator("#auth-password").fill(process.env.TRACIFY_ROBOT_PASSWORD);
+    await page.locator("#auth-email-address").fill(process.env.UNCOIL_ROBOT_EMAIL);
+    await page.locator("#auth-password").fill(process.env.UNCOIL_ROBOT_PASSWORD);
     await page.locator("#auth-password").press("Enter");
     await page.waitForURL(/\/dashboard\//, { timeout: 30_000 });
     if (STATE) await context.storageState({ path: STATE });

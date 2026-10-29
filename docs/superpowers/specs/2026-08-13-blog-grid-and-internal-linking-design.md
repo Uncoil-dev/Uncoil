@@ -20,7 +20,7 @@ Remove the `Monthly dispatch` blog-page band and its `NewsletterCta`. The global
 
 ## Internal links in articles
 
-Retrofit all 10 existing Markdoc articles with contextual links to relevant Tracify articles. Links must occur in ordinary explanatory sentences and use descriptive anchor phrases such as `[LLM tracing](/blog/llm-tracing-explained)`.
+Retrofit all 10 existing Markdoc articles with contextual links to relevant Uncoil articles. Links must occur in ordinary explanatory sentences and use descriptive anchor phrases such as `[LLM tracing](/blog/llm-tracing-explained)`.
 
 Each article must contain at least two distinct internal blog links when two relevant targets exist. A link is valid when:
 
@@ -34,7 +34,7 @@ Links should be distributed through the body rather than collected into an artif
 
 ## Future-agent rule
 
-Update `.agents/skills/tracify-blog-tool/` so agents writing or materially editing a blog post must:
+Update `.agents/skills/uncoil-blog-tool/` so agents writing or materially editing a blog post must:
 
 1. inspect the current published-post inventory;
 2. add at least two relevant, descriptive internal links when eligible targets exist;

@@ -11,8 +11,8 @@ import { projectGateState, type ProjectGateMemory } from "@/lib/project-gate-sta
 import { ConvexAuthState } from "@/components/auth/convex-auth-state";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 
-const LAST_PROJECT_STORAGE_KEY = "tracify.lastProjectId";
-const PROJECT_ID_STORAGE_KEY = "tracify.onboarding.projectId";
+const LAST_PROJECT_STORAGE_KEY = "uncoil.lastProjectId";
+const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
 
 export function ProjectRouteGate({
   projectId,

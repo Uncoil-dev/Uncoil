@@ -18,7 +18,7 @@ Provider packages are optional. Install the ones you use, then wrap the client:
 ```ts
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import { wrapOpenAI, wrapAnthropic, TracifyLangGraphHandler, traceAgent } from "tracify-sdk";
+import { wrapOpenAI, wrapAnthropic, UncoilLangGraphHandler, traceAgent } from "uncoil-sdk";
 
 const openai = wrapOpenAI(new OpenAI());
 const anthropic = wrapAnthropic(new Anthropic());
@@ -42,7 +42,7 @@ for await (const event of stream) {
 For LangGraph, pass one reusable handler in the invocation config:
 
 ```ts
-await graph.invoke(input, { callbacks: [new TracifyLangGraphHandler()] });
+await graph.invoke(input, { callbacks: [new UncoilLangGraphHandler()] });
 ```
 
 ## Python
@@ -50,17 +50,17 @@ await graph.invoke(input, { callbacks: [new TracifyLangGraphHandler()] });
 Install the extras for the providers you use:
 
 ```bash
-pip install 'tracify-sdk[openai,anthropic,langgraph]'
+pip install 'uncoil-sdk[openai,anthropic,langgraph]'
 ```
 
 ```python
-import tracify
+import uncoil
 from openai import OpenAI, AsyncOpenAI
 from anthropic import Anthropic
 
-openai = tracify.wrap_openai(OpenAI())
-anthropic = tracify.wrap_anthropic(Anthropic())
-async_openai = tracify.wrap_openai(AsyncOpenAI())
+openai = uncoil.wrap_openai(OpenAI())
+anthropic = uncoil.wrap_anthropic(Anthropic())
+async_openai = uncoil.wrap_openai(AsyncOpenAI())
 
 reply = openai.responses.create(model=MODEL, input="Hello")
 
@@ -72,7 +72,7 @@ with anthropic.messages.stream(
     for text in stream.text_stream:
         print(text, end="")
 
-graph.invoke(inputs, config={"callbacks": [tracify.langgraph_callback()]})
+graph.invoke(inputs, config={"callbacks": [uncoil.langgraph_callback()]})
 ```
 
 ## What is recorded
@@ -91,7 +91,7 @@ Calls made inside `traceAgent` or `span` (TypeScript), or `trace_agent` or `span
 
 ## Cost is never guessed
 
-Tracify does not know your negotiated prices, so cost defaults to zero and the span is marked with `costKnown` false. To record USD cost, give the wrapper your own current rate card:
+Uncoil does not know your negotiated prices, so cost defaults to zero and the span is marked with `costKnown` false. To record USD cost, give the wrapper your own current rate card:
 
 ```ts
 // Your own rates, in USD per token
@@ -113,14 +113,14 @@ def calculate_cost(usage):
     input_rate, output_rate = RATES[usage["model"]]
     return input_rate * usage["input_tokens"] + output_rate * usage["output_tokens"]
 
-openai = tracify.wrap_openai(OpenAI(), calculate_cost=calculate_cost)
+openai = uncoil.wrap_openai(OpenAI(), calculate_cost=calculate_cost)
 ```
 
 The callback receives the provider, model, input and output tokens, and the raw usage object (as a dictionary in Python). The numbers above are placeholders, not real prices. When the provider reports no usage, token counts stay unknown rather than estimated.
 
 ## Options
 
-- `client` (`client=` in Python): send spans through a custom `TracifyClient`.
+- `client` (`client=` in Python): send spans through a custom `UncoilClient`.
 - `name`: override the span name.
 - `captureInput` and `captureOutput` (`capture_input`, `capture_output`): set to `false` to keep prompts or responses out of the trace.
 

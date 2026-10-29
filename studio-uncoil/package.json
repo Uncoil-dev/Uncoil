@@ -1,0 +1,16 @@
+{
+  "name": "studio-uncoil",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "sanity dev",
+    "build": "sanity build",
+    "deploy": "sanity deploy"
+  },
+  "dependencies": {
+    "@sanity/code-input": "^7.1.3",
+    "@sanity/vision": "^6.0.0",
+    "sanity": "^6.0.0",
+    "styled-components": "^6.4.2"
+  }
+}

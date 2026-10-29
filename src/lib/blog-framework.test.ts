@@ -4,7 +4,7 @@ import test from "node:test";
 import { validateBlogFramework } from "./blog-framework.ts";
 import { getAllPosts } from "./markdoc-blog.ts";
 
-test("the published Tracify corpus follows the mandatory editorial framework", () => {
+test("the published Uncoil corpus follows the mandatory editorial framework", () => {
   assert.deepEqual(validateBlogFramework(getAllPosts()), []);
 });
 

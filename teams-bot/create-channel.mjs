@@ -14,7 +14,7 @@ const prompt = await client.session.prompt({
     parts: [
       {
         type: "text",
-        text: 'Using the Composio MCP Microsoft Teams tools, create a new public channel named "team-tracify" in the Tracify team (team ID: 19fb0b36-9d03-490c-a294-5a3ffec0da58) with description "Chat with Tracify AI bot". If it already exists, just confirm.',
+        text: 'Using the Composio MCP Microsoft Teams tools, create a new public channel named "team-uncoil" in the Uncoil team (team ID: 19fb0b36-9d03-490c-a294-5a3ffec0da58) with description "Chat with Uncoil AI bot". If it already exists, just confirm.',
       },
     ],
     agent: "general",

@@ -39,7 +39,7 @@ export function DefinitiveHeroExploration() {
               Understand every run. Improve the next.
             </h2>
             <p className="mt-7 max-w-[590px] text-[17px] leading-8 text-zinc-400 md:text-lg">
-              Tracify connects what your agent did, why it failed, what it cost, and whether the fix actually worked—from the first trace to the next production release.
+              Uncoil connects what your agent did, why it failed, what it cost, and whether the fix actually worked—from the first trace to the next production release.
             </p>
 
             <div className="mt-9 flex flex-wrap gap-3">

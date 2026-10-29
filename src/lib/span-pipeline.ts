@@ -4,7 +4,7 @@ import type { Id } from "convex/_generated/dataModel";
 import { getConvexClient } from "@/lib/convex";
 import { ingestSpan } from "@/lib/tinybird";
 
-/** The normalized span event produced by /api/ingest (and the `tracify/span.received` Inngest event). */
+/** The normalized span event produced by /api/ingest (and the `uncoil/span.received` Inngest event). */
 export type SpanEvent = {
   spanId: string; runId: string; projectId: string; projectDocId: string; spanType: string;
   input: string; output: string; attachments?: string; latencyMs: number; costUsd: number;

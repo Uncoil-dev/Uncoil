@@ -168,7 +168,7 @@ export async function fetchProvider(def: ProviderDef, doFetch: typeof fetch = fe
   let lastReason = "Could not reach the provider's status feed";
   for (const url of def.feeds) {
     try {
-      const res = await doFetch(url, { headers: { accept: "application/json", "user-agent": "Mozilla/5.0 (compatible; TracifyStatusCheck/1.0; +https://www.tracify.tech/tools/ai-api-status)" }, signal: AbortSignal.timeout(timeoutMs), redirect: "follow", next: { revalidate: 60 } } as RequestInit);
+      const res = await doFetch(url, { headers: { accept: "application/json", "user-agent": "Mozilla/5.0 (compatible; UncoilStatusCheck/1.0; +https://www.uncoil.dev/tools/ai-api-status)" }, signal: AbortSignal.timeout(timeoutMs), redirect: "follow", next: { revalidate: 60 } } as RequestInit);
       if (!res.ok) {
         lastReason = `The status feed answered with an error (${res.status})`;
         continue;

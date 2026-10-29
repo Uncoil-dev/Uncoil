@@ -5,13 +5,13 @@
 // from inside Next.js Client Components.
 import { createComponent } from "@lit/react";
 import * as React from "react";
-import { TracifyFilterBar, type FilterBarFilter } from "./tracify-filter-bar";
-import { TracifyTraceMap } from "./tracify-trace-map";
+import { UncoilFilterBar, type FilterBarFilter } from "./uncoil-filter-bar";
+import { UncoilTraceMap } from "./uncoil-trace-map";
 import "./index";
 
 export const FilterBar = createComponent({
-  tagName: "tracify-filter-bar",
-  elementClass: TracifyFilterBar,
+  tagName: "uncoil-filter-bar",
+  elementClass: UncoilFilterBar,
   react: React,
   events: {
     onFiltersChange: "filters-change",
@@ -19,13 +19,13 @@ export const FilterBar = createComponent({
 });
 
 export const TraceMap = createComponent({
-  tagName: "tracify-trace-map",
-  elementClass: TracifyTraceMap,
+  tagName: "uncoil-trace-map",
+  elementClass: UncoilTraceMap,
   react: React,
   events: {
     onSpanSelect: "span-select",
   },
 });
 
-export type { FilterBarFilter, FilterFieldOption } from "./tracify-filter-bar";
-export type { TraceMapSpan } from "./tracify-trace-map";
+export type { FilterBarFilter, FilterFieldOption } from "./uncoil-filter-bar";
+export type { TraceMapSpan } from "./uncoil-trace-map";

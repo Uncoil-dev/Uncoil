@@ -5,9 +5,9 @@ import { redactString } from "@/lib/redaction";
 
 const sample = `Customer jane.doe@acme.com called from +1 415 555 0134.
 Card on file: 4242 4242 4242 4242, SSN 123-45-6789.
-Agent used tracify_sk_live_9fA2kLm3Qx7Zp to refund.`;
+Agent used uncoil_sk_live_9fA2kLm3Qx7Zp to refund.`;
 
-/** Runs Tracify's real redaction rules on whatever you type. Nothing leaves the page. */
+/** Runs Uncoil's real redaction rules on whatever you type. Nothing leaves the page. */
 export function RedactionDemo() {
   const [text, setText] = useState(sample);
   const out = useMemo(() => redactString(text), [text]);
@@ -31,7 +31,7 @@ export function RedactionDemo() {
       </div>
       <div className="border border-[#f4d44d] bg-[#090909]">
         <div className="flex items-center justify-between border-b border-[#f4d44d]/40 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[#f4d44d]">
-          <span>What Tracify stores</span>
+          <span>What Uncoil stores</span>
           <span role="status">{hits} {hits === 1 ? "value" : "values"} removed</span>
         </div>
         <pre className="h-64 overflow-auto whitespace-pre-wrap p-4 font-mono text-[12px] leading-6 text-white/85">

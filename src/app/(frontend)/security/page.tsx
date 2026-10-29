@@ -6,20 +6,20 @@ import { ClosingBand, DarkBand, CreamBand, Eyebrow, HeaderAction, SectionTitle ,
 import { ControlExplorer } from "@/components/marketing/company/control-explorer";
 
 import { RedactionDemo } from "@/components/marketing/company/redaction-demo";
-export const metadata = pageMetadata({ title: "Security and EU data residency for AI agent traces", description: "How Tracify protects AI agent traces and prompts: encryption in transit and at rest, project isolation, access controls, EU data residency and redaction.", path: "/security" });
+export const metadata = pageMetadata({ title: "Security and EU data residency for AI agent traces", description: "How Uncoil protects AI agent traces and prompts: encryption in transit and at rest, project isolation, access controls, EU data residency and redaction.", path: "/security" });
 
 const faqs = [
-  { q: "Where is Tracify data stored?", a: "EU region accounts, traces and cache are stored in Ireland. Queued span events pass through Inngest in the United States, so Tracify does not claim end-to-end EU residency." },
+  { q: "Where is Uncoil data stored?", a: "EU region accounts, traces and cache are stored in Ireland. Queued span events pass through Inngest in the United States, so Uncoil does not claim end-to-end EU residency." },
   { q: "Are prompts and personal data redacted?", a: "Email, phone, card, SSN and API-key patterns are redacted before queued events leave the EU region." },
   { q: "How are API keys protected?", a: "Project keys are shown once at creation and only a hash is stored on our side." },
   { q: "Can one project see another project's traces?", a: "No. Telemetry is scoped to the project derived from the authenticated key, and there is no cross-project query path." },
-  { q: "Will Tracify slow down or break my production agent?", a: "Runtime policies are observe-first and cost ceilings fail open, so monitoring does not silently change or block production traffic." },
+  { q: "Will Uncoil slow down or break my production agent?", a: "Runtime policies are observe-first and cost ceilings fail open, so monitoring does not silently change or block production traffic." },
 ] as const;
 
 const controls = [
   { title: "Encryption", icon: "lock", summary: "TLS 1.3 in transit and AES-256 at rest.", items: ["API keys are hashed before storage.", "Plaintext project keys are shown once."] },
   { title: "Data isolation", icon: "layers", summary: "Telemetry is scoped to the project derived from the authenticated key.", items: ["No cross-project query path.", "Cost counters remain project-specific."] },
-  { title: "Data residency", icon: "globe", summary: "EU region accounts, traces, and cache are stored in Ireland; Inngest Cloud currently processes queued span events in the United States.", items: ["Convex, Tinybird, and Redis for the EU region are hosted in Ireland.", "Inngest receives queued span events in US infrastructure, so Tracify does not claim end-to-end EU residency.", "Email, phone, card, SSN, and API-key redaction is applied before queued events leave the EU."] },
+  { title: "Data residency", icon: "globe", summary: "EU region accounts, traces, and cache are stored in Ireland; Inngest Cloud currently processes queued span events in the United States.", items: ["Convex, Tinybird, and Redis for the EU region are hosted in Ireland.", "Inngest receives queued span events in US infrastructure, so Uncoil does not claim end-to-end EU residency.", "Email, phone, card, SSN, and API-key redaction is applied before queued events leave the EU."] },
   { title: "Access control", icon: "user", summary: "Better Auth sessions and Convex authorization protect workspace data.", items: ["Encrypted OAuth tokens and CSRF protection.", "Organization roles are enforced at the data layer."] },
   { title: "Runtime enforcement", icon: "server", summary: "Observe-first policies keep monitoring from silently changing production behavior.", items: ["Cost ceilings are evaluated server-side.", "Fail-open behavior protects production traffic."] },
   { title: "Infrastructure", icon: "shield", summary: "Convex, Tinybird, Inngest, and Redis have explicit jobs in the data path.", items: ["Durable event processing and retry semantics.", "Ephemeral cache and rate-limit state stay separate."] },
@@ -42,7 +42,7 @@ export default function SecurityPage() {
         lede="How agent telemetry is isolated, encrypted, governed and investigated, with the limits stated as plainly as the strengths."
         image="/images/company/security-boundaries.png"
       >
-        <HeaderAction href="mailto:security@tracify.tech?subject=Tracify%20Security%20inquiry">Email security</HeaderAction>
+        <HeaderAction href="mailto:security@uncoil.dev?subject=Uncoil%20Security%20inquiry">Email security</HeaderAction>
         <HeaderAction href="/status" kind="secondary">See live status</HeaderAction>
       </PageHeader>
       <StatStrip stats={[["TLS 1.3","In transit"],["AES-256","At rest"],["72 h","Breach notice"],["Ireland","EU region storage"]]} />
@@ -59,7 +59,7 @@ export default function SecurityPage() {
             <Eyebrow>Try it / runs in your browser</Eyebrow>
             <SectionTitle>Paste a secret. Watch it vanish.</SectionTitle>
           </div>
-          <p className="max-w-sm text-base leading-7 text-white/65">This is the same redaction rule set Tracify applies to inputs and outputs. Edit the text on the left. Nothing you type leaves this page.</p>
+          <p className="max-w-sm text-base leading-7 text-white/65">This is the same redaction rule set Uncoil applies to inputs and outputs. Edit the text on the left. Nothing you type leaves this page.</p>
         </div>
         <div className="mt-12"><RedactionDemo /></div>
       </DarkBand>
@@ -128,7 +128,7 @@ export default function SecurityPage() {
         title="Found something? Tell us first."
         body="Responsible disclosure goes straight to the people who can fix it. Affected users are notified within 72 hours."
         actions={[
-          { href: "mailto:security@tracify.tech?subject=Tracify%20Security%20inquiry", label: "Email security", primary: true },
+          { href: "mailto:security@uncoil.dev?subject=Uncoil%20Security%20inquiry", label: "Email security", primary: true },
           { href: "/contact", label: "Other questions" },
         ]}
       />

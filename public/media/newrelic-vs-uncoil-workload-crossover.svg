@@ -1,0 +1,41 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="40" font-size="28" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Cost by Agent-Traffic Share of Workload
+  </text>
+
+  <line x1="120" y1="580" x2="1100" y2="580" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="120" y1="100" x2="120" y2="580" stroke="#FFFFFF" stroke-width="2"/>
+
+  <text x="100" y="590" font-size="13" fill="#FFFFFF" text-anchor="end">0%</text>
+  <text x="100" y="470" font-size="13" fill="#FFFFFF" text-anchor="end">25%</text>
+  <text x="100" y="350" font-size="13" fill="#FFFFFF" text-anchor="end">50%</text>
+  <text x="100" y="230" font-size="13" fill="#FFFFFF" text-anchor="end">75%</text>
+  <text x="100" y="110" font-size="13" fill="#FFFFFF" text-anchor="end">100%</text>
+
+  <text x="600" y="640" font-size="15" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">% of monthly workload that is agent/LLM traffic</text>
+  <text x="40" y="340" font-size="15" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" transform="rotate(-90, 40, 340)">Relative cost per event</text>
+
+  <!-- New Relic: flat-ish, slightly favorable at low agent% because of existing infra discount, but rises -->
+  <polyline points="120,500 300,480 480,440 660,380 840,300 1020,220" stroke="#8888FF" stroke-width="3" fill="none"/>
+  <text x="1040" y="215" font-size="13" fill="#8888FF" font-family="'Geist Mono', monospace">New Relic</text>
+
+  <!-- Uncoil: flat line, favorable once agent% grows -->
+  <polyline points="120,540 300,530 480,510 660,490 840,470 1020,450" stroke="#44FF44" stroke-width="3" fill="none"/>
+  <text x="1040" y="445" font-size="13" fill="#44FF44" font-family="'Geist Mono', monospace">Uncoil</text>
+
+  <!-- crossover marker -->
+  <circle cx="600" cy="410" r="8" fill="none" stroke="#FFFF00" stroke-width="2"/>
+  <text x="600" y="380" font-size="12" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">crossover ~40%</text>
+
+  <rect x="150" y="100" width="420" height="70" fill="#1a1a1a" stroke="#FFFFFF" stroke-width="1"/>
+  <text x="170" y="125" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace">Below ~40% agent traffic:</text>
+  <text x="170" y="145" font-size="12" fill="#8888FF" font-family="'Geist Mono', monospace">New Relic's existing infra investment</text>
+  <text x="170" y="160" font-size="12" fill="#8888FF" font-family="'Geist Mono', monospace">often wins on total operating cost.</text>
+
+  <rect x="630" y="100" width="420" height="70" fill="#1a1a1a" stroke="#FFFFFF" stroke-width="1"/>
+  <text x="650" y="125" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace">Above ~40% agent traffic:</text>
+  <text x="650" y="145" font-size="12" fill="#44FF44" font-family="'Geist Mono', monospace">Uncoil's flat per-interaction pricing</text>
+  <text x="650" y="160" font-size="12" fill="#44FF44" font-family="'Geist Mono', monospace">wins decisively as span count grows.</text>
+</svg>

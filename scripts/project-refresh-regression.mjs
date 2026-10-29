@@ -1,9 +1,9 @@
 // Authenticated preview check: no test-time application patches or auth bypasses.
 import { chromium } from '@playwright/test';
 import { existsSync, mkdirSync } from 'node:fs';
-const base=process.env.PREVIEW_URL, project=process.env.TRACIFY_E2E_PROJECT_ID, state=process.env.PREVIEW_STATE_FILE;
+const base=process.env.PREVIEW_URL, project=process.env.UNCOIL_E2E_PROJECT_ID, state=process.env.PREVIEW_STATE_FILE;
 if(!base||!project||!state||!existsSync(state)) throw Error('Run the normal authenticated click suite first and reuse its session');
-const out=process.env.OUT_DIR??'/root/tracify-tools/shots-loading-refresh';mkdirSync(out,{recursive:true});
+const out=process.env.OUT_DIR??'/root/uncoil-tools/shots-loading-refresh';mkdirSync(out,{recursive:true});
 const browser=await chromium.launch();const context=await browser.newContext({storageState:state,viewport:{width:1440,height:900},extraHTTPHeaders:process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:{}});
 const page=await context.newPage();let requests=0;page.on('request',r=>{if(new URL(r.url()).pathname===`/api/projects/${project}/traces`)requests++});
 for(let n=0;n<12;n++){

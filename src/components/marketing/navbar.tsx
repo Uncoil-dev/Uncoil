@@ -58,7 +58,7 @@ const menus = {
   Company: [
     ["Blog", "Agent engineering notes", "/blog"],
     ["Roadmap", "What is shipping next", "/roadmap"],
-    ["Security", "How Tracify handles data", "/security"],
+    ["Security", "How Uncoil handles data", "/security"],
     ["Contact", "Talk through your stack", "/contact"],
   ],
 } as const;
@@ -135,7 +135,7 @@ export function Navbar() {
         <div className="flex h-[54px] items-center justify-between px-4 sm:px-6">
           <Link
             href="/"
-            aria-label="Tracify home"
+            aria-label="Uncoil home"
             className="active-press focus-visible:outline-2 focus-visible:outline-offset-4"
           >
             <BrandLogo />

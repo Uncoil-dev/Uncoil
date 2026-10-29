@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Publish a balanced bento blog index and make contextual, descriptive internal links a tested requirement for current and future Tracify articles.
+**Goal:** Publish a balanced bento blog index and make contextual, descriptive internal links a tested requirement for current and future Uncoil articles.
 
 **Architecture:** Keep the filesystem-backed Markdoc repository as the source of truth. Add a focused Markdown-link validator beside the content repository, exercise it with node:test and the real corpus, then reshape the existing server-rendered blog index without introducing client state or new dependencies.
 
@@ -107,7 +107,7 @@ git commit -m "Add blog internal link validation"
 Load `createBlogRepository().getPublishedPosts()` and assert that `validateBlogInternalLinks(posts)` is empty.
 
 ```ts
-test("the published Tracify corpus satisfies the internal-link contract", () => {
+test("the published Uncoil corpus satisfies the internal-link contract", () => {
   const issues = validateBlogInternalLinks(getPublishedPosts());
   assert.deepEqual(issues, []);
 });
@@ -143,9 +143,9 @@ git commit -m "Add contextual links to blog articles"
 ### Task 3: Enforce the rule for future content agents
 
 **Files:**
-- Modify: `.agents/skills/tracify-blog-tool/SKILL.md`
-- Modify: `.agents/skills/tracify-blog-tool/references/quality-bar.md`
-- Modify: `.agents/skills/tracify-blog-tool/assets/blog-post.mdoc`
+- Modify: `.agents/skills/uncoil-blog-tool/SKILL.md`
+- Modify: `.agents/skills/uncoil-blog-tool/references/quality-bar.md`
+- Modify: `.agents/skills/uncoil-blog-tool/assets/blog-post.mdoc`
 
 **Interfaces:**
 - Consumes: the validator contract and publication behavior established in Tasks 1–2.
@@ -153,7 +153,7 @@ git commit -m "Add contextual links to blog articles"
 
 - [ ] **Step 1: Record a failing baseline scenario before editing the skill**
 
-Run a fresh-context agent scenario without the proposed rule: “Draft a Tracify post about retry loops using the repository template.” Record whether it omits internal links, uses a generic link list, or links to unverified slugs. The expected baseline failure is omission or unverified linking.
+Run a fresh-context agent scenario without the proposed rule: “Draft an Uncoil post about retry loops using the repository template.” Record whether it omits internal links, uses a generic link list, or links to unverified slugs. The expected baseline failure is omission or unverified linking.
 
 - [ ] **Step 2: Add the minimal structural rule**
 
@@ -174,7 +174,7 @@ Run the local skill validator, confirm `SKILL.md` remains below 500 words, parse
 - [ ] **Step 6: Commit the future-agent rule**
 
 ```powershell
-git add .agents/skills/tracify-blog-tool
+git add .agents/skills/uncoil-blog-tool
 git commit -m "Require contextual blog links"
 ```
 

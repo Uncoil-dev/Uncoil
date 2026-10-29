@@ -1,6 +1,6 @@
 import { type IntegrationOptions } from "./observation";
 /** Structural LangChain/LangGraph callback handler; no mandatory framework dependency for SDK users. */
-export declare class TracifyLangGraphHandler {
+export declare class UncoilLangGraphHandler {
     private options;
     name: string;
     lc_serializable: boolean;

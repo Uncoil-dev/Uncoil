@@ -25,11 +25,11 @@ import { notFound } from "next/navigation";
 
 export const revalidate = 60;
 
-// Each "X vs Tracify" post has a matching /compare page that now carries the full article, so the post points search engines there.
+// Each "X vs Uncoil" post has a matching /compare page that now carries the full article, so the post points search engines there.
 const comparePageFor = (slug: string) => comparisons.find((c) => c.post === slug)?.slug;
 const canonicalPath = (slug: string) => { const compare = comparePageFor(slug); return compare ? `/compare/${compare}` : `/blog/${slug}`; };
 // Workflow notes for contributors, not reader-facing content.
-const internalPosts = new Set(["how-to-write-tracify-blog-posts"]);
+const internalPosts = new Set(["how-to-write-uncoil-blog-posts"]);
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
@@ -59,7 +59,7 @@ export async function generateMetadata({
       title: shareTitle,
       description: metaDescription,
       url: canonical,
-      siteName: "Tracify",
+      siteName: "Uncoil",
       locale: "en_US",
       type: "article",
       publishedTime: getPostDate(post),
@@ -89,7 +89,7 @@ function formatDate(dateString: string) {
 }
 
 function jsonLd(post: BlogPost) {
-  const canonical = post.seo?.canonicalUrl || `https://www.tracify.tech${canonicalPath(post.slug!)}`;
+  const canonical = post.seo?.canonicalUrl || `https://www.uncoil.dev${canonicalPath(post.slug!)}`;
   const image = post.heroImage?.og || post.heroImage?.src;
   const faqItems = extractBlogFaqItems(post.body);
 
@@ -107,8 +107,8 @@ function jsonLd(post: BlogPost) {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Tracify", item: "https://www.tracify.tech/" },
-        { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.tracify.tech/blog" },
+        { "@type": "ListItem", position: 1, name: "Uncoil", item: "https://www.uncoil.dev/" },
+        { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.uncoil.dev/blog" },
         { "@type": "ListItem", position: 3, name: post.title, item: canonical },
       ],
     },

@@ -28,7 +28,7 @@ export function TraceSearch({ projectId }: { projectId: string }) {
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem(`tracify.saved-searches.${projectId}`);
+      const stored = window.localStorage.getItem(`uncoil.saved-searches.${projectId}`);
       if (stored) setSavedSearches(JSON.parse(stored) as SavedSearch[]);
     } catch {
       setSavedSearches([]);
@@ -38,7 +38,7 @@ export function TraceSearch({ projectId }: { projectId: string }) {
 
   function persistSavedSearches(next: SavedSearch[]) {
     setSavedSearches(next);
-    window.localStorage.setItem(`tracify.saved-searches.${projectId}`, JSON.stringify(next));
+    window.localStorage.setItem(`uncoil.saved-searches.${projectId}`, JSON.stringify(next));
   }
 
   async function performSearch(values: { q: string; environment: string; release: string; status: string; days: string }) {

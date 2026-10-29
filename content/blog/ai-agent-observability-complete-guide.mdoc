@@ -4,7 +4,7 @@ slug: ai-agent-observability-complete-guide
 excerpt: "A systems-focused guide to making AI agents observable: the signals, instrumentation, operating practices, and decisions that turn opaque agent behavior into evidence."
 publishedAt: 2026-08-13T17:45:25.507Z
 updatedAt: 2026-08-13T17:45:25.508Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories:
   - observability
@@ -95,10 +95,10 @@ A span is useful when another person can read it without asking you anything. At
 - for model calls, the **model name, input tokens, output tokens and cost**;
 - the **release or version** that produced it, so you can compare before and after.
 
-Deep detail on the schema lives in [instrumenting AI agents for observability](/blog/instrumenting-ai-agents-for-observability), and the propagation rules in [LLM tracing explained](/blog/llm-tracing-explained). Here is what the minimum looks like with the Tracify TypeScript SDK. The names come from the [TypeScript SDK reference](/docs/typescript).
+Deep detail on the schema lives in [instrumenting AI agents for observability](/blog/instrumenting-ai-agents-for-observability), and the propagation rules in [LLM tracing explained](/blog/llm-tracing-explained). Here is what the minimum looks like with the Uncoil TypeScript SDK. The names come from the [TypeScript SDK reference](/docs/typescript).
 
 ```ts
-import { observe, span, traceAgent } from "tracify-sdk";
+import { observe, span, traceAgent } from "uncoil-sdk";
 
 const searchDocs = observe(
   async function searchDocs(query: string) {
@@ -138,7 +138,7 @@ If you already use the OpenAI or Anthropic client, or LangGraph, you can wrap th
 
 Open a failed run and read it from the first span, not the last. The last span shows the symptom. The first span where reality and expectation diverge shows the cause. Typical first divergences are a retrieval that returned the wrong document, a tool that returned an empty result the model then ignored, and a model call that received a truncated prompt.
 
-The [guide to debugging AI agents in production](/blog/debug-ai-agents-in-production) turns this into a repeatable incident workflow. The anatomy of a Tracify trace is also laid out in [trace anatomy](/docs/trace-anatomy).
+The [guide to debugging AI agents in production](/blog/debug-ai-agents-in-production) turns this into a repeatable incident workflow. The anatomy of an Uncoil trace is also laid out in [trace anatomy](/docs/trace-anatomy).
 
 ## Rung 3: outcomes
 
@@ -158,7 +158,7 @@ Record all three when you can, and always the first. A run with no terminal stat
 
 An average success rate hides the failures that matter. Break outcomes down by workflow, release, input type, model and customer. A {% highlight %}flat 94 percent{% /highlight %} can be 99 percent on routine questions and 60 percent on the one question type your biggest customer asks. If you can only add one dimension, add the **release**, because most regressions arrive with a change you made.
 
-Tracify lets you attach feedback and scores to a trace, described in [feedback and scores](/docs/feedback-and-scores), so the user's verdict sits next to the spans that produced it.
+Uncoil lets you attach feedback and scores to a trace, described in [feedback and scores](/docs/feedback-and-scores), so the user's verdict sits next to the spans that produced it.
 
 ## Rung 4: evals
 
@@ -176,7 +176,7 @@ Three habits keep evals trustworthy.
 
 {% editorial-panel eyebrow="Operating principle" title="Every fixed bug becomes a test case." body="When you debug a bad run, save its input and the behavior you expected. The next release is checked against it automatically, so the same mistake costs you nothing the second time." tone="yellow" /%}
 
-Tracify's [evaluation docs](/docs/evaluation) describe how to score runs, and [release gates](/docs/release-gates) describe how to block a deployment when scores drop.
+Uncoil's [evaluation docs](/docs/evaluation) describe how to score runs, and [release gates](/docs/release-gates) describe how to block a deployment when scores drop.
 
 ## Which signal to open first
 
@@ -207,7 +207,7 @@ Without the trace, the likely response is a longer prompt that says "follow the 
 
 For agents, cost and latency belong beside correctness, not in a separate finance report. Both are properties of the path the agent took, so they are best read from the same trace.
 
-Record the model, input tokens and output tokens on every model span. Cost follows from those, and the SDK also accepts a cost value when you have it from your own pricing. Tracify does not guess prices for you. The [cost tracking docs](/docs/costs) explain how cost is calculated and shown.
+Record the model, input tokens and output tokens on every model span. Cost follows from those, and the SDK also accepts a cost value when you have it from your own pricing. Uncoil does not guess prices for you. The [cost tracking docs](/docs/costs) explain how cost is calculated and shown.
 
 Then watch {% highlight %}cost per successful task{% /highlight %}, not cost per call. A cheap model that fails and retries three times can cost more than a larger model that gets it right once. A rising cost per task with flat traffic usually means more loop iterations or longer prompts.
 
@@ -222,11 +222,11 @@ The top rung is where observability starts to act. Once you can see a run, you c
 - **Human approval** gates irreversible actions such as sending money or messages. The [human-in-the-loop guide](/blog/human-in-the-loop-ai-agents) explains where to draw that line.
 - **Release gates** block a deployment when evals regress.
 
-> **Security note:** Treat traces as sensitive data. They contain prompts, retrieved documents and tool arguments. Remove secrets before sending, limit who can read raw inputs, and choose a data region that fits your obligations. Tracify's SDK removes obvious secrets such as bearer tokens, API keys and password-style values and caps long values, but this is a safety net, not a guarantee. See [data regions](/docs/data-regions) and the [security page](/security) for what is stored where.
+> **Security note:** Treat traces as sensitive data. They contain prompts, retrieved documents and tool arguments. Remove secrets before sending, limit who can read raw inputs, and choose a data region that fits your obligations. Uncoil's SDK removes obvious secrets such as bearer tokens, API keys and password-style values and caps long values, but this is a safety net, not a guarantee. See [data regions](/docs/data-regions) and the [security page](/security) for what is stored where.
 
 ### Fail open
 
-{% highlight %}Observability code must never break the agent it watches.{% /highlight %} Send telemetry in the background, treat a failed send as a warning, and never block the user's request on it. The Tracify SDK logs a warning on a failed send rather than throwing into your agent, and cost ceilings are designed to fail open so that monitoring cannot quietly stop production traffic.
+{% highlight %}Observability code must never break the agent it watches.{% /highlight %} Send telemetry in the background, treat a failed send as a warning, and never block the user's request on it. The Uncoil SDK logs a warning on a failed send rather than throwing into your agent, and cost ceilings are designed to fail open so that monitoring cannot quietly stop production traffic.
 
 ## Special cases worth knowing
 
@@ -289,7 +289,7 @@ Short answers to related questions live on our [questions page](/answers), inclu
 
 ## Next step
 
-Pick the one workflow that would hurt most if it failed quietly. Instrument its boundary with the SDK, open three real runs (one good, one slow, one wrong), and write down what you could not answer. Add only the evidence that closes those gaps. The [Tracify quickstart](/docs/quickstart) walks through sending your first trace, and the free plan includes 25,000 spans a month, which is enough to try this on one real workflow.
+Pick the one workflow that would hurt most if it failed quietly. Instrument its boundary with the SDK, open three real runs (one good, one slow, one wrong), and write down what you could not answer. Add only the evidence that closes those gaps. The [Uncoil quickstart](/docs/quickstart) walks through sending your first trace, and the free plan includes 25,000 spans a month, which is enough to try this on one real workflow.
 
 ## Frequently asked questions
 

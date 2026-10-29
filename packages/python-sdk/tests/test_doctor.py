@@ -1,13 +1,13 @@
 import pytest
 
-from tracify import doctor
+from uncoil import doctor
 
-KEY = "tracify_sk_live_eu_abcdefghijklmnop"
+KEY = "uncoil_sk_live_eu_abcdefghijklmnop"
 
 
 @pytest.fixture(autouse=True)
 def clean_env(monkeypatch):
-    for name in ("TRACIFY_API_KEY", "TRACIFY_REGION", "TRACIFY_HOST"):
+    for name in ("UNCOIL_API_KEY", "UNCOIL_REGION", "UNCOIL_HOST"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -43,13 +43,13 @@ def test_passes_and_sends_one_tagged_trace(calls):
     posts = [c for c in calls if c[0] == "POST"]
     assert len(posts) == 1
     assert posts[0][2]["Authorization"] == f"Bearer {KEY}"
-    assert posts[0][3]["tags"] == ["tracify-doctor"] and posts[0][3]["spanType"] == "llm_call"
+    assert posts[0][3]["tags"] == ["uncoil-doctor"] and posts[0][3]["spanType"] == "llm_call"
     assert "All good" in doctor.format_report(result)
 
 
 def test_reads_key_from_environment(calls, monkeypatch):
     calls.fake()
-    monkeypatch.setenv("TRACIFY_API_KEY", KEY)
+    monkeypatch.setenv("UNCOIL_API_KEY", KEY)
     assert doctor.run_doctor()["ok"]
 
 

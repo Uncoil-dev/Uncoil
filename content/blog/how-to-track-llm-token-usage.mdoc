@@ -3,7 +3,7 @@ title: "How to Track LLM Token Usage Per Request, Run and Release"
 slug: how-to-track-llm-token-usage
 excerpt: Record input and output tokens on every model call, roll them up to runs and releases, and find the prompts and loops that quietly use most of your budget.
 publishedAt: 2026-10-16T18:30:00.000Z
-author: Tracify Team
+author: Uncoil Team
 draft: false
 categories: [operations]
 tags: [token usage, LLM observability, AI cost, tracing]
@@ -54,7 +54,7 @@ Second, {% highlight %}input and output are separate meters{% /highlight %}. Out
 
 Providers add detail beyond the two basic counts. Some report how many input tokens were served from a prompt cache and how many were written to it, and price those differently. Some report tokens spent on internal reasoning. The names and the arithmetic differ between providers: for example, Anthropic's total input tokens include uncached input plus cache reads and cache writes, and the breakdown is reported separately.
 
-The safe rule is to keep the full usage object as returned, in addition to the headline input and output counts. That way a future price calculation can use fields you did not think to promote today. Tracify's provider wrappers follow this rule: usage is stored exactly as the provider returned it, including cache breakdowns in metadata.
+The safe rule is to keep the full usage object as returned, in addition to the headline input and output counts. That way a future price calculation can use fields you did not think to promote today. Uncoil's provider wrappers follow this rule: usage is stored exactly as the provider returned it, including cache breakdowns in metadata.
 
 > **Field note:** Do not compute "total tokens" by adding fields you have not verified. Different providers count cached and reasoning tokens in different ways. Store the raw usage and do the arithmetic in one place that you can test.
 
@@ -69,7 +69,7 @@ If you call OpenAI or Anthropic directly, the least work is to wrap the client o
 ```ts
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import { wrapOpenAI, wrapAnthropic } from "tracify-sdk";
+import { wrapOpenAI, wrapAnthropic } from "uncoil-sdk";
 
 const openai = wrapOpenAI(new OpenAI());
 const anthropic = wrapAnthropic(new Anthropic());
@@ -88,7 +88,7 @@ The setup is described in the [provider integrations guide](/docs/provider-integ
 If you use a different provider, a gateway or your own model server, record the numbers on a span where you make the call.
 
 ```ts
-import { span } from "tracify-sdk";
+import { span } from "uncoil-sdk";
 
 const text = await span(
   "chat",
@@ -111,7 +111,7 @@ Here `callModel` and the shape of `reply.usage` stand in for your own client. Th
 
 With streaming, usage often arrives at the end, in the last event, and some APIs only send it if you ask. If your stream ends early because the user cancelled, you may get partial or no usage. Two habits help. First, iterate the stream to completion or close it properly, so the wrapper can record the partial output once. Second, treat a missing count as unknown, not zero. A zero {% highlight %}hides a real gap in your data{% /highlight %} and pulls your averages down.
 
-When the provider reports no usage, Tracify keeps the count unknown instead of inventing a number. Your dashboards then show the gap, which is the honest result.
+When the provider reports no usage, Uncoil keeps the count unknown instead of inventing a number. Your dashboards then show the gap, which is the honest result.
 
 ## Attribute tokens to the right owner
 
@@ -206,7 +206,7 @@ const openai = wrapOpenAI(new OpenAI(), {
 });
 ```
 
-Tracify does not guess prices. If you do not provide a calculation, cost stays at zero and the span is marked as having unknown cost, so a zero never passes for a real number. For cached tokens, use the usage object the provider returned, because cached input is priced differently from fresh input. If you want to plan before you have traces, the [free cost estimator](/tools/ai-cost-estimator) turns token assumptions into a monthly range, and the [cost per task guide](/blog/ai-agent-cost-per-task) shows how to include retries and failures.
+Uncoil does not guess prices. If you do not provide a calculation, cost stays at zero and the span is marked as having unknown cost, so a zero never passes for a real number. For cached tokens, use the usage object the provider returned, because cached input is priced differently from fresh input. If you want to plan before you have traces, the [free cost estimator](/tools/ai-cost-estimator) turns token assumptions into a monthly range, and the [cost per task guide](/blog/ai-agent-cost-per-task) shows how to include retries and failures.
 
 ## Protect privacy while you measure
 
@@ -272,4 +272,4 @@ Tokens are cheap to record and expensive to ignore. Start with the smallest vers
 {% faq-item question="How do I track token usage per request or per user?" answer="Record usage on each model call, link calls to a run, and add identifiers such as a session or end-user id to the span. Then sum tokens by run, session or user. Treat per-user data as personal data and aggregate where you can." /%}
 {% faq-item question="Why do my token counts differ from my provider's usage page?" answer="Common causes are calls that are not traced, calls recorded twice by overlapping instrumentation, streams that ended before usage arrived, and different handling of cached or reasoning tokens. Check coverage, duplicates and the share of spans with unknown usage first." /%}
 {% faq-item question="Should I track input and output tokens separately?" answer="Yes. They are priced differently and behave differently. Input tends to grow with history, retrieval and tool results; output follows how verbose the model is. A combined total hides which one changed." /%}
-{% faq-item question="Can I track tokens without storing prompts?" answer="Yes. Capture usage, model, latency and errors while turning off input and output capture. The Tracify provider wrappers support options to disable input and output capture, so you keep the numbers without storing text." /%}
+{% faq-item question="Can I track tokens without storing prompts?" answer="Yes. Capture usage, model, latency and errors while turning off input and output capture. The Uncoil provider wrappers support options to disable input and output capture, so you keep the numbers without storing text." /%}

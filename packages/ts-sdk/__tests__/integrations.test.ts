@@ -6,12 +6,12 @@ import { DynamicTool } from "@langchain/core/tools";
 import {
   wrapOpenAI,
   wrapAnthropic,
-  TracifyClient,
-  TracifyLangGraphHandler,
+  UncoilClient,
+  UncoilLangGraphHandler,
   span,
 } from "../src/index";
 const records: any[] = [];
-const telemetry = new TracifyClient({ apiKey: "test-key" });
+const telemetry = new UncoilClient({ apiKey: "test-key" });
 telemetry.ingest = vi.fn(async (data: any) => {
   records.push({ ...data });
 });
@@ -223,7 +223,7 @@ describe("official SDK provider wrappers", () => {
     expect(records[0]).toMatchObject({ inputTokens: 60, outputTokens: 5 });
   });
   it("is idempotent and telemetry failures never affect the provider", async () => {
-    const bad = new TracifyClient();
+    const bad = new UncoilClient();
     bad.ingest = () => {
       throw Error("telemetry offline");
     };
@@ -237,7 +237,7 @@ describe("official SDK provider wrappers", () => {
 });
 describe("real LangGraph callbacks", () => {
   it("records real graph/node/tool parentage without mandatory framework imports", async () => {
-    const handler = new TracifyLangGraphHandler({
+    const handler = new UncoilLangGraphHandler({
       client: telemetry,
       name: "graph-test",
     });
@@ -267,6 +267,6 @@ describe("real LangGraph callbacks", () => {
   });
 });
 
-describe("LangGraph inside a manual root",()=>{it("inherits the enclosing run and parent",async()=>{const handler=new TracifyLangGraphHandler({client:telemetry});await span("outer",()=>{handler.handleChainStart({}, {}, "graph-id");handler.handleChainEnd({},"graph-id");},{client:telemetry,root:true});expect(records).toHaveLength(2);expect(records[0].runId).toBe(records[1].runId);expect(records[0].parentSpanId).toBe(records[1].spanId);expect(records[0].spanType).toBe("agent");});});
+describe("LangGraph inside a manual root",()=>{it("inherits the enclosing run and parent",async()=>{const handler=new UncoilLangGraphHandler({client:telemetry});await span("outer",()=>{handler.handleChainStart({}, {}, "graph-id");handler.handleChainEnd({},"graph-id");},{client:telemetry,root:true});expect(records).toHaveLength(2);expect(records[0].runId).toBe(records[1].runId);expect(records[0].parentSpanId).toBe(records[1].spanId);expect(records[0].spanType).toBe("agent");});});
 
 describe("Anthropic cache token accounting",()=>{it("includes cache reads/writes in total input while preserving raw usage",async()=>{const usage={input_tokens:8,output_tokens:3,cache_creation_input_tokens:20,cache_read_input_tokens:30};const client=wrapAnthropic(new Anthropic({apiKey:"fake",fetch:async()=>json({id:"msg",type:"message",role:"assistant",model:"test-model",content:[{type:"text",text:"ok"}],stop_reason:"end_turn",stop_sequence:null,usage})}),{client:telemetry});await client.messages.create({model:"test-model",max_tokens:20,messages:[]});expect(records[0].inputTokens).toBe(58);expect(records[0].metadata.usage).toMatchObject(usage);});});

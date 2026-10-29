@@ -8,7 +8,7 @@ const tabs = [
     id: "ts",
     label: "TypeScript",
     file: "agent.ts",
-    code: `import { traceAgent, span } from "tracify-sdk";
+    code: `import { traceAgent, span } from "uncoil-sdk";
 
 export const answer = traceAgent(async (q: string) => {
   const docs = await span("docs.search", () => search(q), { type: "tool" });
@@ -19,13 +19,13 @@ export const answer = traceAgent(async (q: string) => {
     id: "py",
     label: "Python",
     file: "agent.py",
-    code: `import tracify
+    code: `import uncoil
 
-@tracify.observe(type="tool")
+@uncoil.observe(type="tool")
 def search_docs(query):
     return search(query)
 
-@tracify.trace_agent()
+@uncoil.trace_agent()
 def answer(question):
     docs = search_docs(question)
     return call_model(question, docs)`,
@@ -34,8 +34,8 @@ def answer(question):
     id: "http",
     label: "HTTP",
     file: "terminal",
-    code: `curl -X POST https://tracify.tech/api/ingest \\
-  -H "Authorization: Bearer $TRACIFY_API_KEY" \\
+    code: `curl -X POST https://uncoil.dev/api/ingest \\
+  -H "Authorization: Bearer $UNCOIL_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"spanId":"span_123","runId":"run_123","spanType":"llm","createdAt":"2026-01-01T12:00:00Z","latencyMs":420}'`,
   },
@@ -43,8 +43,8 @@ def answer(question):
     id: "otlp",
     label: "OpenTelemetry",
     file: ".env",
-    code: `TRACIFY_OTLP_ENDPOINT=https://tracify.tech/api/otel
-TRACIFY_API_KEY=tracify_sk_live_...`,
+    code: `UNCOIL_OTLP_ENDPOINT=https://uncoil.dev/api/otel
+UNCOIL_API_KEY=uncoil_sk_live_...`,
   },
 ] as const;
 

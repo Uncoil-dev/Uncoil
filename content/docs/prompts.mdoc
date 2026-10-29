@@ -14,18 +14,18 @@ Keep prompt content versioned separately from application releases. Ask for the 
 ## Resolve a prompt
 
 ```ts
-import { TracifyClient } from "tracify-sdk";
+import { UncoilClient } from "uncoil-sdk";
 
-const client = new TracifyClient({ apiKey: process.env.TRACIFY_API_KEY });
+const client = new UncoilClient({ apiKey: process.env.UNCOIL_API_KEY });
 
 const deployed = await client.getPrompt("support-agent", "production");
 const content = deployed.version.content;
 ```
 
 ```python
-from tracify import TracifyClient
+from uncoil import UncoilClient
 
-client = TracifyClient()
+client = UncoilClient()
 
 deployed = client.get_prompt("support-agent", "production")
 content = deployed["version"]["content"]

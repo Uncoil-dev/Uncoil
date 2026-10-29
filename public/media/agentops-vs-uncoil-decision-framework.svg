@@ -1,0 +1,57 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="44" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Decision framework: setup speed vs. evaluation velocity
+  </text>
+  <text x="600" y="68" font-size="13" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Plot your team's priority on both axes, then read off the zone you land in
+  </text>
+
+  <!-- Axes -->
+  <line x1="180" y1="600" x2="1040" y2="600" stroke="#666666" stroke-width="1.5"/>
+  <line x1="180" y1="600" x2="180" y2="120" stroke="#666666" stroke-width="1.5"/>
+
+  <text x="610" y="640" font-size="13" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Evaluation &amp; cost-visibility priority →</text>
+  <text x="120" y="360" font-size="13" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace" transform="rotate(-90 120 360)">↑ Setup-speed priority</text>
+
+  <text x="200" y="618" font-size="11" fill="#777777" font-family="'Geist Mono', monospace">low</text>
+  <text x="1010" y="618" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">high</text>
+  <text x="168" y="590" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">low</text>
+  <text x="168" y="135" font-size="11" fill="#777777" text-anchor="end" font-family="'Geist Mono', monospace">high</text>
+
+  <!-- Quadrant divider lines -->
+  <line x1="610" y1="120" x2="610" y2="600" stroke="#222222" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="180" y1="360" x2="1040" y2="360" stroke="#222222" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Zone: top-left = AgentOps -->
+  <rect x="195" y="135" width="400" height="210" fill="#151515" stroke="#FFFFFF" stroke-width="1.5"/>
+  <text x="395" y="168" font-size="15" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">AgentOps zone</text>
+  <text x="395" y="196" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Ship a debuggable prototype this week.</text>
+  <text x="395" y="218" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Quality checks are still manual/eyeballed.</text>
+  <text x="395" y="240" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Multi-agent framework (CrewAI/AutoGen)</text>
+  <text x="395" y="262" font-size="12" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">session replay is the main debug tool.</text>
+  <text x="395" y="300" font-size="11" fill="#888888" text-anchor="middle" font-family="'Geist Mono', monospace">Typical stage: pre-PMF, prototype, hackathon,</text>
+  <text x="395" y="320" font-size="11" fill="#888888" text-anchor="middle" font-family="'Geist Mono', monospace">solo/small team debugging agent behavior.</text>
+
+  <!-- Zone: bottom-right = Uncoil -->
+  <rect x="625" y="375" width="400" height="210" fill="#1a1a08" stroke="#FFFF00" stroke-width="1.5"/>
+  <text x="825" y="408" font-size="15" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil zone</text>
+  <text x="825" y="436" font-size="12" fill="#EEEE99" text-anchor="middle" font-family="'Geist Mono', monospace">Quality gates block deploys. Finance</text>
+  <text x="825" y="458" font-size="12" fill="#EEEE99" text-anchor="middle" font-family="'Geist Mono', monospace">wants real per-request cost. You need</text>
+  <text x="825" y="480" font-size="12" fill="#EEEE99" text-anchor="middle" font-family="'Geist Mono', monospace">regression detection, not just replay.</text>
+  <text x="825" y="502" font-size="12" fill="#EEEE99" text-anchor="middle" font-family="'Geist Mono', monospace">Setup is still ~30 minutes, not weeks.</text>
+  <text x="825" y="540" font-size="11" fill="#AAAA66" text-anchor="middle" font-family="'Geist Mono', monospace">Typical stage: post-PMF, production traffic,</text>
+  <text x="825" y="560" font-size="11" fill="#AAAA66" text-anchor="middle" font-family="'Geist Mono', monospace">multiple models/routing, cost accountability.</text>
+
+  <!-- Zone labels for other two quadrants -->
+  <text x="825" y="200" font-size="12" fill="#666666" text-anchor="middle" font-family="'Geist Mono', monospace">High setup speed + high eval need:</text>
+  <text x="825" y="220" font-size="12" fill="#666666" text-anchor="middle" font-family="'Geist Mono', monospace">Uncoil still fits — 30 min setup covers this too</text>
+
+  <text x="395" y="440" font-size="12" fill="#666666" text-anchor="middle" font-family="'Geist Mono', monospace">Low priority on both:</text>
+  <text x="395" y="460" font-size="12" fill="#666666" text-anchor="middle" font-family="'Geist Mono', monospace">re-examine whether you need a platform yet</text>
+
+  <text x="600" y="672" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Most teams migrate from the top-left toward the bottom-right as they approach production — see "Migration paths" below
+  </text>
+</svg>

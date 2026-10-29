@@ -43,7 +43,7 @@ const PLANS = [
     name: "Enterprise",
     price: "Custom",
     cta: "Contact us",
-    href: "mailto:sales@tracify.tech",
+    href: "mailto:sales@uncoil.dev",
     popular: false,
     lines: [
       ["spans", "unlimited"],

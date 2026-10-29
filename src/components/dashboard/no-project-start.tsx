@@ -8,10 +8,10 @@ import { api } from "convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { setOneTimeApiKey } from "@/lib/onboarding-client-state";
 
-const API_KEY_COPIED_STORAGE_KEY = "tracify.onboarding.apiKeyCopied";
-const PROJECT_ID_STORAGE_KEY = "tracify.onboarding.projectId";
-const PROJECT_NAME_STORAGE_KEY = "tracify.onboarding.projectName";
-const LAST_PROJECT_STORAGE_KEY = "tracify.lastProjectId";
+const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
+const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
+const PROJECT_NAME_STORAGE_KEY = "uncoil.onboarding.projectName";
+const LAST_PROJECT_STORAGE_KEY = "uncoil.lastProjectId";
 
 const STEPS = [
   ["1", "Create a project", "One click. It holds your traces, costs and alerts."],
@@ -47,7 +47,7 @@ export function NoProjectStart() {
   return (
     <main className="mx-auto flex min-h-[70svh] w-full max-w-3xl flex-col justify-center px-4 py-12" data-testid="no-project-start">
       <div className="border border-black bg-[#090909] p-8 text-[#eceae3] md:p-12">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#f4d44d]">Welcome to Tracify</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#f4d44d]">Welcome to Uncoil</p>
         <h1 className="mt-3 font-mono text-3xl normal-case tracking-normal md:text-4xl">See what your AI agent really did.</h1>
         <p className="mt-4 max-w-xl font-sans text-sm leading-6 text-[#eceae3]/70">
           Start with a project. It takes one click, and you can rename it any time.

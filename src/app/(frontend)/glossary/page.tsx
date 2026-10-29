@@ -9,20 +9,20 @@ import { GlossaryExplorer } from "@/components/marketing/company/glossary-explor
 
 import { TermFlipper } from "@/components/marketing/company/term-flipper";
 import { SpanAnatomy } from "@/components/marketing/company/span-anatomy";
-export const metadata = pageMetadata({ title: "AI observability glossary", description: "Plain-language definitions of LLM observability, AI agent tracing, spans, tool calls, and agent evaluation terms used across the Tracify platform.", path: "/glossary" });
+export const metadata = pageMetadata({ title: "AI observability glossary", description: "Plain-language definitions of LLM observability, AI agent tracing, spans, tool calls, and agent evaluation terms used across the Uncoil platform.", path: "/glossary" });
 
 function GlossarySchema() {
   const data = {
     "@context": "https://schema.org",
     "@type": "DefinedTermSet",
     name: "AI Observability Glossary",
-    url: "https://www.tracify.tech/glossary",
+    url: "https://www.uncoil.dev/glossary",
     hasDefinedTerm: terms.map((t) => ({
       "@type": "DefinedTerm",
-      "@id": `https://www.tracify.tech/glossary#${t.slug}`,
+      "@id": `https://www.uncoil.dev/glossary#${t.slug}`,
       name: t.term,
       description: t.definition,
-      inDefinedTermSet: "https://www.tracify.tech/glossary",
+      inDefinedTermSet: "https://www.uncoil.dev/glossary",
     })),
   };
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;

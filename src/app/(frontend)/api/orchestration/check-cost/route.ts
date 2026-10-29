@@ -2,7 +2,7 @@ import { type NextRequest } from "next/server";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { getConvexClient } from "@/lib/convex";
-import { getWrongRegionApiKeyResponse, hashApiKey, isTracifyApiKey } from "@/lib/api-keys";
+import { getWrongRegionApiKeyResponse, hashApiKey, isUncoilApiKey } from "@/lib/api-keys";
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   }
 
   const apiKey = authHeader.slice(7).trim();
-  if (!isTracifyApiKey(apiKey)) {
+  if (!isUncoilApiKey(apiKey)) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
   }
   const wrongRegion = getWrongRegionApiKeyResponse(apiKey);

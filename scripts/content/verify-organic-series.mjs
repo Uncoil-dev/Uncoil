@@ -38,7 +38,7 @@ for (const entry of SERIES_MANIFEST) {
   if (entry.relatedSlugs.length < 2) errors.push(`${entry.slug}: at least two related slugs are required.`);
   if (!entry.primaryKeyword?.trim()) errors.push(`${entry.slug}: primary keyword is required.`);
   if (!entry.unsplash?.sourceUrl?.trim() || !entry.unsplash?.description?.trim()) errors.push(`${entry.slug}: Unsplash source data is required.`);
-  if (!entry.tracifyLink?.startsWith("/docs/") && !entry.tracifyLink?.startsWith("/product/")) errors.push(`${entry.slug}: a Tracify /docs/ or /product/ link is required.`);
+  if (!entry.uncoilLink?.startsWith("/docs/") && !entry.uncoilLink?.startsWith("/product/")) errors.push(`${entry.slug}: an Uncoil /docs/ or /product/ link is required.`);
   for (const [field, limit] of Object.entries(max)) {
     const value = field === "excerpt" ? entry.excerpt : entry.seo[field];
     if (!value?.trim()) errors.push(`${entry.slug}: ${field} is required.`);
@@ -84,7 +84,7 @@ for (const entry of SERIES_MANIFEST) {
     const headings = nodes.filter((node) => node.type === "heading");
     const links = nodes.filter((node) => node.type === "link").map((node) => node.fields?.url).filter((url) => typeof url === "string");
     const blogLinks = links.filter((url) => url.startsWith("/blog/"));
-    const tracifyLinks = links.filter((url) => url.startsWith("/docs/") || url.startsWith("/product/"));
+    const uncoilLinks = links.filter((url) => url.startsWith("/docs/") || url.startsWith("/product/"));
     const uploads = nodes.filter((node) => node.type === "upload");
 
     if (!document?.root || document.root.type !== "root") errors.push(`${entry.slug}: buildArticle must return a Lexical root document.`);
@@ -100,9 +100,9 @@ for (const entry of SERIES_MANIFEST) {
     if (!hasHeading(nodes, "next step")) errors.push(`${entry.slug}: required final CTA heading is missing.`);
     if (!uploads.some((node) => node.relationTo === "media" && node.value === mediaIdBySlug[entry.slug])) errors.push(`${entry.slug}: hero-media upload node is required.`);
     if (blogLinks.length < 2) errors.push(`${entry.slug}: at least two /blog/ links are required.`);
-    if (tracifyLinks.length < 1) errors.push(`${entry.slug}: at least one /docs/ or /product/ link is required.`);
+    if (uncoilLinks.length < 1) errors.push(`${entry.slug}: at least one /docs/ or /product/ link is required.`);
     if (text.indexOf("Next step:") < text.lastIndexOf("Frequently asked questions")) errors.push(`${entry.slug}: final CTA must follow the FAQ.`);
-    reports.push({ slug: entry.slug, headings: headings.length, words, blogLinks: blogLinks.length, tracifyLinks: tracifyLinks.length });
+    reports.push({ slug: entry.slug, headings: headings.length, words, blogLinks: blogLinks.length, uncoilLinks: uncoilLinks.length });
   } catch (error) {
     errors.push(`${entry.slug}: could not load or validate article module (${error instanceof Error ? error.message : String(error)}).`);
   }
@@ -145,4 +145,4 @@ if (errors.length) {
 }
 
 console.log(`Organic-series content validation passed for ${SERIES_MANIFEST.length} entries.`);
-for (const report of reports) console.log(`${report.slug}: ${report.words} words, ${report.headings} headings, ${report.blogLinks} blog links, ${report.tracifyLinks} Tracify links.`);
+for (const report of reports) console.log(`${report.slug}: ${report.words} words, ${report.headings} headings, ${report.blogLinks} blog links, ${report.uncoilLinks} Uncoil links.`);

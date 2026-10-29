@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace Payload CMS with repository-backed Markdoc content while preserving Tracify's public blog, metadata, filtering, related posts, RSS feed, and sitemap.
+**Goal:** Replace Payload CMS with repository-backed Markdoc content while preserving Uncoil's public blog, metadata, filtering, related posts, RSS feed, and sitemap.
 
-**Architecture:** Store one `.mdoc` file per post under `content/blog` with validated YAML frontmatter and public media paths. A server-only content module reads, parses, validates, sorts, and filters posts; a focused React renderer converts the Markdoc render tree using Tracify components. Existing App Router routes remain stable, while Payload admin/API routes and runtime/database dependencies are removed.
+**Architecture:** Store one `.mdoc` file per post under `content/blog` with validated YAML frontmatter and public media paths. A server-only content module reads, parses, validates, sorts, and filters posts; a focused React renderer converts the Markdoc render tree using Uncoil components. Existing App Router routes remain stable, while Payload admin/API routes and runtime/database dependencies are removed.
 
 **Tech Stack:** Next.js 16 App Router, React 19, TypeScript, `@markdoc/markdoc`, YAML frontmatter, Node test runner.
 

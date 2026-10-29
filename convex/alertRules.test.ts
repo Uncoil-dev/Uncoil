@@ -72,13 +72,13 @@ test("Slack and webhook destinations are validated, hidden from the page and ret
   await expect(owner.mutation(api.alertRules.create, { ...base, webhookUrl: "https://localhost/hook" })).rejects.toThrow(/public/i);
 
   const slackUrl = "https://hooks.slack.com/services/T000/B000/secret";
-  const ruleId = await owner.mutation(api.alertRules.create, { ...base, slackUrl, webhookUrl: "https://hooks.example.com/tracify" });
+  const ruleId = await owner.mutation(api.alertRules.create, { ...base, slackUrl, webhookUrl: "https://hooks.example.com/uncoil" });
   const listed = (await owner.query(api.alertRules.overview, { projectId }))?.rules[0];
   expect(JSON.stringify(listed)).not.toContain("secret");
   expect(listed).toMatchObject({ hasSlack: true, webhookHost: "hooks.example.com" });
 
   await addRuns(t, projectId as never, "failed", 3);
-  expect(await t.mutation(internal.alertRules.evaluate, { ruleId })).toMatchObject({ fired: true, emailTo: [], slackUrl, webhookUrl: "https://hooks.example.com/tracify" });
+  expect(await t.mutation(internal.alertRules.evaluate, { ruleId })).toMatchObject({ fired: true, emailTo: [], slackUrl, webhookUrl: "https://hooks.example.com/uncoil" });
 });
 
 test("tags are cleaned, capped and limited to the project", async () => {

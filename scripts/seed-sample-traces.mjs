@@ -8,7 +8,7 @@
  *
  * Usage (PowerShell), with a project API key from the project you want to fill
  * (sign in as that project's owner, e.g. kristoffer.bon@gmail.com on staging):
- *   $env:SEED_API_KEY="tracify_sk_live_..."; $env:SEED_BASE_URL="https://staging.eu.cloud.tracify.tech"; node scripts/seed-sample-traces.mjs
+ *   $env:SEED_API_KEY="uncoil_sk_live_..."; $env:SEED_BASE_URL="https://staging.eu.cloud.uncoil.dev"; node scripts/seed-sample-traces.mjs
  *
  * Optional: SEED_RUNS (default 60), SEED_DAYS (default 7), SEED_DRY_RUN=1 to print one run only.
  * Run ids start with "seed_" so they are easy to spot. Running it twice adds more runs.

@@ -42,5 +42,5 @@
     ".next-cloud/types/**/*.ts",
     ".next-cloud/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "scratch", "sanity", "studio-tracify", "scripts", "packages/playwright", "packages/ts-sdk", "packages/*/templates", "video/archive", "playwright.config.ts"]
+  "exclude": ["node_modules", "scratch", "sanity", "studio-uncoil", "scripts", "packages/playwright", "packages/ts-sdk", "packages/*/templates", "video/archive", "playwright.config.ts"]
 }

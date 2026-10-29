@@ -289,15 +289,15 @@ function ProductBreadcrumb({ title, slug }: { title: string; slug: string }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Tracify", item: "https://www.tracify.tech/" },
-      { "@type": "ListItem", position: 2, name: title, item: `https://www.tracify.tech/product/${slug}` },
+      { "@type": "ListItem", position: 1, name: "Uncoil", item: "https://www.uncoil.dev/" },
+      { "@type": "ListItem", position: 2, name: title, item: `https://www.uncoil.dev/product/${slug}` },
     ],
   };
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 }
 
 function ProductSchema({ title, description, slug }: { title: string; description: string; slug: string }) {
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(productJsonLd({ name: `Tracify ${title}`, description, path: `/product/${slug}` })) }} />;
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(productJsonLd({ name: `Uncoil ${title}`, description, path: `/product/${slug}` })) }} />;
 }
 
 function ProductFaqSchema({ faq }: { faq: FeaturePage["faq"] }) {

@@ -1,0 +1,403 @@
+---
+title: "Datadog vs Uncoil: Enterprise APM vs Specialist Agent Observability"
+slug: datadog-vs-uncoil
+excerpt: "Datadog dominates traditional APM, but it bills by the span and was never designed around how agents actually run. This guide breaks down the architecture gap, works real cost math at three volume tiers, and gives a decision framework based on how much of your workload is agents."
+publishedAt: 2026-08-29T12:00:00.000Z
+author: Uncoil Team
+draft: false
+categories:
+  - engineering
+  - platform-comparison
+tags:
+  - datadog
+  - apm
+  - enterprise
+  - agent-observability
+relatedPosts:
+  - ai-agent-observability-complete-guide
+  - ai-agent-evaluation-practical-guide
+  - llm-tracing-explained
+  - reduce-llm-costs-without-hurting-quality
+heroImage:
+  src: /media/datadog-vs-uncoil-cost-at-scale.svg
+  alt: "Bar chart comparing monthly observability cost for Datadog and Uncoil at 100K and 1M monthly agent interactions, showing Datadog rising from roughly $1,500-2,000 to $8,000-15,000 while Uncoil rises from $300-500 to $2,000-4,000"
+  card: /media/datadog-vs-uncoil-cost-at-scale.svg
+  hero: /media/datadog-vs-uncoil-cost-at-scale.svg
+  og: /media/datadog-vs-uncoil-cost-at-scale.svg
+  caption: "Datadog's per-span billing and Uncoil's per-trace billing diverge further as agent interaction volume grows."
+seo:
+  metaTitle: "Datadog vs Uncoil: APM vs Agent Observability"
+  metaDescription: "Compare Datadog's enterprise APM with Uncoil's specialist agent observability. See real cost math at three volume tiers, an architecture comparison, and a decision framework by agent-workload share."
+---
+
+{% trace-scenario title="Choosing observability for a multi-agent system" prompt="Your team is shipping a customer-facing multi-agent system. You need end-to-end observability -- agent decisions, LLM calls, tool use, retries, and costs. Datadog is already in your infrastructure; Uncoil is designed specifically for this workload. Which platform gives you production confidence faster and at what cost?" outcome="Choose based on your operating model: how much of your monthly observability volume is agents, and does that share justify Datadog's per-span billing or Uncoil's per-trace billing?" /%}
+
+## At a glance
+
+![Bar chart comparing monthly observability cost for Datadog and Uncoil at 100K and 1M monthly agent interactions, showing Datadog rising from roughly $1,500-2,000 to $8,000-15,000 while Uncoil rises from $300-500 to $2,000-4,000](/media/datadog-vs-uncoil-cost-at-scale.svg)
+
+You are evaluating observability for a production agent system, and Datadog is probably already somewhere in your stack -- for infrastructure, for microservices, or both. The question this article answers is narrower than "which platform is better": it is whether Datadog's general-purpose APM model, applied to agent workloads, is the right fit for *this* workload, at *this* volume, given *this* team's compliance posture.
+
+| Dimension | Datadog | Uncoil |
+| --- | --- | --- |
+| **Model** | Enterprise APM (metrics + logs + traces) | SaaS agent observability specialist |
+| **Core strength** | Full-stack microservices monitoring | Agent-specific tracing and evaluation |
+| **Designed for** | Traditional services and infrastructure | LLM agents and multi-turn interactions |
+| **Billing unit** | Per span / per custom metric | Per trace (complete agent interaction) |
+| **Setup time** | Days to weeks (agent instrumentation, dashboards) | Minutes (API key + SDK) |
+| **Evaluation framework** | None built in; external tooling required | Integrated, linked to traces and sessions |
+| **Agent-specific features** | Span tags and custom dashboards | Session context, retry analysis, decision trees |
+| **Cost at 100K interactions/mo** | ~$1,500-2,000 | ~$300-500 |
+| **Cost at 1M interactions/mo** | ~$8,000-15,000 | ~$2,000-4,000 |
+| **Deployment options** | Cloud, dedicated, on-prem (enterprise) | SaaS only |
+| **Best for** | Existing microservices estate + agents | Agent-only and agent-first teams |
+
+### The operating model
+
+**Datadog** optimizes for *unified enterprise infrastructure monitoring*: applications, services, databases, and networks in one console. Agents are treated as another workload -- instrumented like microservices, billed like everything else that emits a span or a metric.
+
+**Uncoil** optimizes for *agent-specific visibility and cost efficiency*: tracing, evaluation, cost tracking, and session management designed around how agents actually work -- looping calls, tool use, retries, and nested context, billed as complete interactions rather than internal steps.
+
+The difference is not a feature gap so much as a billing-and-design gap: {% highlight %}Datadog charges by the span; Uncoil charges by the trace. For agent workloads, where a single interaction can generate 8-15 spans, this difference alone drives a 3-5x cost gap that widens with volume.{% /highlight %}
+
+This article works through that gap with real numbers, walks three scenarios that cover most teams' actual situations, and ends with an honest accounting of where Datadog's maturity still wins.
+
+## Opening situation: the cost realization
+
+A team shipping a RAG agent system started with Datadog because it was already the company's default. Tracing was straightforward at first: instrument the retrieval call, the embedding call, the LLM call, the tool invocation, return the result. Each span showed up cleanly in the trace view, correlated with the surrounding request.
+
+Then the agent went to production and the shape of the bill changed:
+
+- Each customer interaction generated 8-15 spans: retrieval, embedding, the primary LLM call, one or two tool calls, and -- on the roughly 15% of calls that hit a rate limit or a transient failure -- a retry that added its own spans.
+- At 100K monthly interactions, that is on the order of 800K-1.2M monthly spans, before counting the custom metrics the team added for token counts and latency percentiles.
+- Datadog's APM pricing combines a per-host base fee with per-span and per-custom-metric ingestion charges. With retries, tool calls, and metric tags multiplying the span count, the team's Datadog bill for agent observability alone landed at $1,500-2,000/month at that volume -- and the trend line pointed toward $8,000-15,000/month once the product reached 1M monthly interactions.
+- A parallel evaluation of Uncoil, instrumented against the same agent over the same week of traffic, showed equivalent visibility -- session context, per-call cost breakdowns, evaluation results -- for $300-500/month at 100K interactions.
+
+The team's first reaction was to look for a pricing tier that fixed the mismatch. There isn't one, because the mismatch is architectural, not a pricing-page technicality. The rest of this article explains why, and gives you the tools to work out whether the gap matters for your own workload.
+
+## Core difference: APM architecture vs. agent-native design
+
+### Datadog: built for infrastructure
+
+Datadog is architected as an APM platform for traditional software, and its strengths in that domain are well-earned:
+
+- **Unified infrastructure monitoring.** Applications, services, databases, containers, and networks in one console, with a single query language across all of them.
+- **Mature integrations.** Kubernetes, Docker, CI/CD, every major cloud provider, and most popular databases ship first-party integrations.
+- **Enterprise-grade SLAs.** 99.9% uptime, SOC2/HIPAA/FedRAMP-track compliance certifications, and dedicated enterprise support.
+- **Flexible metrics.** Custom metrics, custom tags, and full-fidelity trace ingestion with no built-in sampling penalty for teams willing to pay for it.
+
+The design assumes: *each span is a discrete operation worth observing independently, and cost should scale with observability detail.* For a microservices architecture with 100 services, this is the right trade-off. A cache miss, a database query, and an upstream API call are each independently valuable to see, and fine-grained metrics justify the fine-grained price.
+
+Datadog bills based on **ingested metrics and traces**. More detail costs more. For agent workloads, this assumption breaks down, because a single business-meaningful event -- "the agent answered the customer's question" -- decomposes into many spans that were never independently interesting on their own. You don't want to see the embedding call in isolation; you want to see it as one step inside the interaction that mattered.
+
+### Uncoil: built for agents
+
+Uncoil is designed from first principles around how agents operate:
+
+- **Agent-native tracing.** Session context, multi-turn interactions, and nested tool use are first-class, not reconstructed after the fact from span tags.
+- **Integrated evaluation.** Define test cases, run evaluations, and detect regressions against production traces without wiring up a separate tool.
+- **Cost transparency.** Per-call cost breakdown by model, provider, and route, updated as pricing changes, with no separate cost-modeling project required.
+- **Agent-specific dashboards.** Retry analysis, decision trees, failure modes, and token efficiency, built around the shapes agent traffic actually takes.
+
+The design assumes: *the agent interaction is the unit of observability, and cost should scale with business usage, not instrumentation detail.* Uncoil bills based on **traces ingested**, where a trace is one complete agent interaction. An agent that makes 10 LLM calls, 3 tool invocations, and 2 retries within a single customer interaction counts as one trace -- one billable event, not fifteen.
+
+![Diagram comparing Datadog's span-first ingestion pipeline (SDK to per-host agent to intake API to APM backend, billed per span) against Uncoil's trace-first pipeline (SDK to /api/ingest to Inngest to Tinybird and Convex, billed per complete trace)](/media/datadog-vs-uncoil-architecture.svg)
+
+That inversion -- spans as the billable unit versus traces as the billable unit -- is the single fact that explains almost every other difference in this article: {% highlight %}the cost curve, the dashboard defaults, and which team reaches for which platform first all trace back to what counts as "one billable thing."{% /highlight %}
+
+## Cost divergence: real numbers at scale
+
+Ground this in concrete numbers. Assume a team running a multi-agent system with these characteristics, which is a realistic shape for a customer-facing agent product:
+
+- 5 different agents in the pipeline (research, planning, execution, validation, reporting)
+- Each agent makes 2-5 LLM calls per interaction
+- Tool use: 2-4 tool calls per agent per interaction
+- Retries: roughly 15% of calls retry once due to rate limits or transient provider errors
+- Monthly interaction volume: starts at 100K, growing toward 1M over the following year
+
+**At 100K interactions/month (roughly 800K-1.2M spans):**
+
+| Platform | Pricing model | Monthly cost |
+| --- | --- | --- |
+| Datadog | Per-host base + per-span/metric billing | ~$1,500-2,000 |
+| Uncoil | Per-trace SaaS pricing | ~$300-500 |
+| **Gap** | | **Datadog: roughly 3-4x more expensive** |
+
+**At 1M interactions/month (roughly 8M-12M spans):**
+
+| Platform | Pricing model | Monthly cost |
+| --- | --- | --- |
+| Datadog | Per-host base + per-span/metric billing | ~$8,000-15,000 |
+| Uncoil | Per-trace SaaS pricing | ~$2,000-4,000 |
+| **Gap** | | **Datadog: roughly 4-5x more expensive** |
+
+The gap widens rather than narrows with scale, because Datadog's cost is tied to *ingestion volume* (every span, every custom metric) while Uncoil's cost is tied to *business events* (agent interactions, traces). As the agent handles more customers, {% highlight %}Datadog's bill grows with the internal complexity of each interaction; Uncoil's bill grows with the count of interactions themselves.{% /highlight %}
+
+{% editorial-panel eyebrow="Why spans matter" title="Agent workloads generate many spans per business event." body="A single customer interaction with a multi-step agent can generate 8-15 spans: the LLM calls, the embeddings, the tool invocations, the retries. Datadog charges per span. Uncoil charges once per interaction. At scale, this drives the 3-5x cost divergence shown above -- and the gap grows as agents get more capable and call more tools per turn, not less." tone="yellow" /%}
+
+### Working the math for your own volume
+
+Use the two anchor points above as a template. Take your monthly interaction volume, multiply by your average spans per interaction (2-5 LLM calls plus 2-4 tool calls is typical for a multi-step agent, before counting retries), and you have your approximate monthly span count on Datadog. Compare that to Datadog's published per-span and per-custom-metric rates for your tier, then compare the result to Uncoil's flat per-trace pricing for the same interaction volume.
+
+The formula is simple enough to run by hand or drop into a spreadsheet. This is illustrative arithmetic, not a live pricing API -- plug in your own per-span and per-trace rates from each vendor's current pricing page before you treat the output as a number to take to finance:
+
+```text
+monthly_spans   = monthly_interactions * avg_llm_calls * (1 + retry_rate)
+                  + monthly_interactions * avg_tool_calls * (1 + retry_rate)
+
+datadog_cost_estimate  = (monthly_spans / 1000) * datadog_price_per_1k_spans
+                          + datadog_base_fee
+
+uncoil_cost_estimate  = monthly_interactions * uncoil_price_per_trace
+```
+
+> **Field note:** Retry rate is the variable teams underestimate most. A 15% retry rate at 100K interactions adds roughly 15K extra span-generating events to the Datadog side of the formula above, at no extra cost on the Uncoil side, because a retried call still belongs to the same trace.
+
+Two adjustments matter in practice. First, retries inflate span count disproportionately at scale -- if your retry rate creeps from 15% toward 25% as you add more tool calls per turn (each one a new chance to hit a rate limit), your Datadog bill grows faster than your interaction volume does, while your Uncoil bill does not, because a retried call is still part of the same trace. Second, custom metrics compound the gap: teams that add per-token, per-latency-bucket, or per-tool-success metrics on top of span ingestion are paying for that instrumentation detail on every single span, which is exactly the kind of fine-grained cost Datadog's model was built to charge for.
+
+## Three scenarios: when each platform wins
+
+### Scenario 1: Cost-sensitive startup, agent-only workload
+
+**Setup:** A team shipping a RAG agent product, currently at 200K monthly interactions and growing roughly 20% month over month. The company is budget-conscious and needs to reach profitability without an observability line item outgrowing the product.
+
+**With Datadog:**
+- Setup: about a week, covering SDK installation, agent-specific instrumentation, and building custom dashboards from scratch (Datadog ships no agent-native dashboard defaults).
+- Monthly cost at 200K interactions (roughly 1.6M-2.4M spans): interpolating from the anchor points above, approximately $2,700-4,000.
+- At 1M interactions: $8,000-15,000, as shown in the table above.
+- Evaluation: manual testing plus external tooling; no native agent evaluation framework inside Datadog.
+- Result: full-fidelity observability, but a cost curve that climbs steeply against a product that is not yet profitable.
+
+**With Uncoil:**
+- Setup: about an hour -- create an API key, install the SDK, dashboards are populated from the first trace.
+- Monthly cost at 200K interactions: approximately $550-800, interpolating from the same anchor points.
+- At 1M interactions: $2,000-4,000.
+- Evaluation: native test cases, automated regression detection against production traffic, and cost-optimization dashboards included in the same subscription.
+- Result: cost-efficient observability with evaluation features that directly support product iteration, not just monitoring.
+
+**Winner:** Uncoil. The cost savings compound as the product grows, and the built-in evaluation tooling removes a separate line item the startup would otherwise have to build or buy.
+
+### Scenario 2: Enterprise with mixed workloads (microservices + agents)
+
+**Setup:** A large SaaS platform running 50 traditional microservices plus a newly launched multi-agent feature, with an existing Datadog contract (roughly $50K/year for infrastructure monitoring) already in place. The agent feature is at 500K monthly interactions and growing.
+
+**With Datadog:**
+- Leverage the existing infrastructure investment and integrations; no new vendor relationship required.
+- Add agent instrumentation to the existing Datadog account and dashboards.
+- One console for everything: services, databases, and agents, with correlated traces across all three.
+- Cost for the agent component alone, interpolating between the 100K and 1M anchor points at 500K interactions: approximately $5,500-7,500/month.
+- Benefit: no new tooling, no integration work, and workflows the on-call team already knows.
+
+**With Uncoil:**
+- A separate observability platform dedicated to the agent system.
+- Native agent evaluation and cost optimization out of the box.
+- Cost at 500K interactions, using the same interpolation: approximately $1,300-2,000/month.
+- Integration cost: two platforms, two dashboards, and additional operational overhead for the team maintaining both.
+
+**Winner:** Depends on the team's tolerance for platform fragmentation. If the team can absorb running two platforms and values agent-specific features enough to justify the switching and maintenance cost, Uncoil saves on the order of 65-75% on the agent observability line. If unified infrastructure monitoring is a hard requirement -- one on-call rotation, one alerting pipeline, one query language across services and agents -- Datadog's existing footprint wins despite the higher cost.
+
+{% editorial-panel eyebrow="Enterprise decision criteria" title="The multi-platform question" body="Large organizations often choose to pay more for Datadog specifically to avoid operational fragmentation: one on-call rotation, one alerting system, one query language across every service. The decision hinges on whether agent-specific features (evaluation, cost optimization, session context) are worth maintaining a second platform and a second on-call runbook for the subset of traffic that touches agents." tone="dark" /%}
+
+### Scenario 3: Regulated industry, compliance-first
+
+**Setup:** A financial services firm where agents process customer queries, generate recommendations, and in some workflows initiate trade execution. Strict audit, compliance, and data residency requirements govern every system the agents touch, at roughly 300K monthly interactions.
+
+**With Datadog:**
+- Mature compliance certifications (SOC2, HIPAA-track configurations, FedRAMP-authorized offerings for government-adjacent customers).
+- Deployment flexibility: cloud, dedicated single-tenant instances, and negotiated on-prem or hybrid deployments for the largest accounts.
+- Established audit trails, configurable data retention, and compliance-specialist support as part of enterprise contracts.
+- Cost: premium tier plus compliance add-ons pushes this well above the standard curve -- realistically $15,000-20,000+/month for a fully compliant deployment at this volume.
+
+**With Uncoil:**
+- SOC2-certified SaaS platform with standard cloud data handling.
+- No on-prem or dedicated-tenant deployment option today.
+- For regulated industries with strict data residency requirements, this requires a careful review of Uncoil's current data handling and retention policies against the firm's specific regulatory obligations before committing.
+- Cost at 300K interactions, interpolating from the anchor points: approximately $850-1,300/month, assuming data residency is not a blocker.
+
+**Winner:** Depends entirely on the data residency and audit posture, not on cost. If on-prem or dedicated hosting is a hard regulatory requirement, Datadog is the only viable choice among the two, regardless of price. If SaaS with SOC2 certification satisfies the firm's compliance team, Uncoil offers comparable audit-trail visibility at a fraction of the cost -- but this is a compliance-team decision, not an engineering one, and should be verified against your specific regulator and jurisdiction before you commit either way.
+
+> **Security note:** Confirm data residency, retention, and sub-processor terms directly with each vendor's current documentation before signing. Compliance postures change between contract renewals, and neither platform's marketing page is a substitute for your own regulatory review.
+
+## Feature-by-feature comparison
+
+### Tracing and instrumentation
+
+**Datadog:**
+- Full-fidelity trace ingestion with no sampling penalty for teams willing to pay for it.
+- Excellent SDK coverage across Python, Node.js, Java, Go, Ruby, and .NET.
+- Integrations with popular agent frameworks including LangChain and LlamaIndex.
+- Both decorator-based and manual span creation.
+- Distributed tracing across services, which extends cleanly to agent-to-service calls.
+
+**Uncoil:**
+- Agent-optimized span and trace capture, grouped by interaction rather than by host.
+- SDK coverage for Python, Node.js, and TypeScript.
+- Integrations with the same major agent frameworks (LangChain, LlamaIndex).
+- Decorator-based instrumentation with minimal boilerplate.
+- Session context preserved automatically across multi-turn interactions, without manual correlation IDs.
+
+**Winner:** Roughly a tie for traditional instrumentation coverage. Uncoil pulls ahead specifically on agent-native features -- session context and multi-turn tracking that Datadog's span model can approximate but does not provide natively.
+
+### Evaluation and quality gates
+
+**Datadog:**
+- No native evaluation framework for agent outputs.
+- APM traces carry span data and tags, not evaluation results or test-case tracking.
+- Teams build custom evaluation pipelines outside Datadog and correlate results back to traces manually.
+
+**Uncoil:**
+- Native evaluation framework: define test cases, run evaluations against production or staged traffic, and track results over time.
+- Evaluation results linked directly to the traces and sessions that produced them.
+- Automated regression detection across prompt or model versions.
+- Cost-optimization recommendations based on token usage and model choice, surfaced alongside evaluation results.
+
+**Winner:** Uncoil. Evaluation is a first-class, built-in capability; on Datadog it is an entirely separate project. For teams that want a deeper look at how evaluation fits into an agent's production lifecycle, the [complete guide to AI agent observability](/blog/ai-agent-observability-complete-guide) covers where evaluation sits relative to tracing and monitoring.
+
+### Cost tracking and optimization
+
+**Datadog:**
+- Cost visibility through logs and custom metrics that the team defines and maintains.
+- No native provider pricing; OpenAI, Anthropic, and other provider rate cards must be integrated separately and kept current by hand.
+- Cost calculations require custom dashboards built and maintained by the team.
+
+**Uncoil:**
+- Real-time cost breakdown per call, per model, and per provider, without custom dashboard work.
+- Integrated, maintained provider pricing across OpenAI, Anthropic, and other major model providers.
+- Cost-optimization dashboards covering token efficiency, model-choice impact, and routing recommendations.
+- Cost per interaction visible immediately, not reconstructed after the fact.
+
+**Winner:** Uncoil. Integrated cost tracking ships by default; on Datadog it is a build-and-maintain project on top of the observability platform itself.
+
+### Agent-specific features
+
+**Datadog:**
+- Retry tracking is possible through span tags, but requires the team to design and maintain the tagging scheme.
+- Tool invocation visibility comes through distributed tracing, which works but was not purpose-built for agent tool-call patterns.
+- Agent decision trees require custom dashboards and meaningful engineering effort to build and keep current.
+
+**Uncoil:**
+- First-class retry analysis dashboard, built around agent retry patterns specifically.
+- Tool invocation tracking with success and failure rates surfaced automatically.
+- Agent decision trees with cost attached to each path, so you can see which branches are expensive as well as which fail.
+- Multi-turn interaction history with context preserved across turns.
+
+**Winner:** Uncoil, by a clear margin. {% highlight %}These features exist on Datadog only to the extent a team builds them; on Uncoil they are the default view.{% /highlight %}
+
+### Setup and ongoing maintenance
+
+**Datadog:**
+- Requires SDK installation, configuration, and often custom metric definitions to get agent-relevant views.
+- Ongoing: dashboard maintenance and instrumentation updates as the agent's call patterns evolve.
+- If the organization already runs Datadog, integration with existing infrastructure is genuinely straightforward -- this is the scenario where Datadog's setup cost is lowest.
+
+**Uncoil:**
+- API key plus SDK installation; agent-relevant dashboards populate from the first trace.
+- Ongoing maintenance is limited to dashboard configuration preferences and evaluation test-case management.
+
+**Winner:** Uncoil for a standalone agent product. The gap narrows substantially -- and can flip -- for a team that already runs Datadog broadly and is adding one more instrumented service to an existing setup.
+
+### Enterprise support and SLAs
+
+**Datadog:**
+- 99.9% uptime SLA on Pro tier and above.
+- Dedicated enterprise support with established escalation paths.
+- A long track record of compliance processes across regulated industries.
+
+**Uncoil:**
+- 99.9% uptime SLA.
+- Priority support available on paid tiers.
+- A shorter operating history, and correspondingly less-established enterprise support infrastructure than an incumbent with Datadog's tenure.
+
+**Winner:** Datadog for organizations that specifically need a long track record and established escalation processes as a procurement requirement. Roughly a tie on the technical SLA commitment itself.
+
+![Horizontal spectrum showing which platform to choose based on what share of monthly observability volume comes from agent workloads: Datadog below 45% agent share, evaluate both between 45-70%, Uncoil above 70%, with data residency and evaluation requirements as hard overrides](/media/datadog-vs-uncoil-decision-framework.svg)
+
+## Trade-offs: when Datadog is the right choice
+
+Datadog is still the right choice in several scenarios, and it is worth stating them plainly rather than treating this as a one-sided recommendation:
+
+1. **Existing infrastructure investment.** If your organization already runs Datadog for microservices monitoring, adding agent instrumentation to the same account avoids platform fragmentation and a second on-call surface.
+
+2. **Compliance and audit requirements.** Datadog's long-established compliance certifications and dedicated or on-prem deployment options serve highly regulated industries in ways Uncoil's current SaaS-only offering cannot yet match.
+
+3. **Full-stack correlation.** If you need to correlate agent behavior directly with application performance, database queries, and infrastructure metrics inside a single trace view, Datadog's unified platform has no equivalent on the Uncoil side.
+
+4. **Custom metrics at scale, beyond agents.** If your use case needs unlimited custom metrics across an estate much larger than the agent system alone, Datadog's general-purpose flexibility may justify the cost regardless of the agent-specific gap.
+
+5. **Sunk investment in Datadog tooling.** Large organizations often have years of custom dashboards, monitors, and automation built on top of Datadog. The migration cost of moving even the agent slice elsewhere can exceed the savings, especially in year one.
+
+{% highlight %}The trade-off is not "Datadog is wrong for agents" -- it's "Datadog optimizes for a different workload shape, and agent traffic is not that shape."{% /highlight %}
+
+## Limitations and boundaries
+
+Be precise about what each platform does not do well, rather than treating either as a universal answer.
+
+**For Datadog:**
+- Agent tracing cost does not scale efficiently with agent-workload growth; the per-span model that works for microservices actively works against you as call-and-retry counts rise.
+- No native agent evaluation framework; teams build or buy a separate solution and maintain the correlation back to traces themselves.
+- Cost tracking for LLM spend requires external integration or hand-built custom metrics, with provider pricing kept current manually.
+
+**For Uncoil:**
+- No on-prem or dedicated deployment option; it is SaaS only, which is a hard blocker for some regulated environments.
+- No native integration with non-agent infrastructure such as databases or general application services -- it is not a replacement for a full APM platform.
+- A smaller platform means a smaller third-party integration ecosystem relative to an incumbent like Datadog.
+
+Both platforms will keep evolving, and specific pricing, deployment options, and certifications should be re-verified against current vendor documentation before a procurement decision. This comparison reflects capabilities as of August 2026.
+
+## Decision framework
+
+Use the table below alongside the spectrum diagram above. Estimate what share of your monthly observability volume -- by trace or span count, not by revenue or headcount -- comes from agent and LLM workloads versus traditional services, then read across.
+
+| Agent-workload share | Recommendation | Why |
+| --- | --- | --- |
+| Under 20% | Datadog | Agents are a minor add-on to an existing services estate; per-span cost premium is small in absolute terms, and unified tooling wins. |
+| 20-45% | Datadog, with the cost math checked yearly | Existing investment still likely outweighs the gap, but re-run the numbers as agent traffic grows -- this band can flip within a year. |
+| 45-70% | Evaluate both explicitly | Run your own cost math from the anchor points above; weigh operational cost of two platforms against the agent-specific features you would gain. |
+| 70-90% | Uncoil, unless compliance overrides | Agent traffic dominates; per-trace billing and built-in evaluation compound in your favor. Confirm data residency requirements first. |
+| Over 90% | Uncoil | Agent-first or agent-only product. The Datadog cost curve and the missing evaluation tooling both work against you at this share. |
+
+{% highlight %}Two overrides sit outside the workload-share calculation entirely: a hard on-prem or data-residency requirement points to Datadog regardless of agent share, and a hard requirement for built-in agent evaluation without a separate tool points to Uncoil regardless of share.{% /highlight %} If your team is building the operating model for this decision from scratch, the [practical guide to AI agent evaluation](/blog/ai-agent-evaluation-practical-guide) is a useful companion for scoping what "built-in evaluation" needs to cover before you compare vendors on it.
+
+{% editorial-panel eyebrow="Decision framework" title="Choose based on your operating model, not brand familiarity." body="Datadog wins when existing infrastructure investment, full-stack correlation, or compliance deployment options outweigh a higher agent-specific bill. Uncoil wins when agent workload share, integrated evaluation, and cost efficiency are the priority. If you are building agent-first, Uncoil's trace-native billing and evaluation compound over time: faster iteration, lower cost per interaction, and evaluation results that live next to the traces that produced them." tone="paper" /%}
+
+## Make the operating decision
+
+The choice between Datadog and Uncoil is primarily about **workload shape and cost efficiency**, not a capability gap in either direction. Work through these questions in order:
+
+**1. What share of your monthly trace volume is agents, today and in 12 months?** Use the decision framework table above. If you cannot estimate this today, instrument for a week on whichever platform you are already using and read the split directly from the data.
+
+**2. What does your cost curve look like at 2x and 5x current volume?** Use the anchor points in the cost tables above and interpolate. If the Datadog line crosses $10K/month for the agent slice alone within your growth horizon, the gap is no longer theoretical.
+
+**3. Do you need built-in evaluation, or is a separate tool acceptable?** If evaluation lives in a different system than your traces today, you are already paying the integration tax Uncoil removes. Decide whether that tax is worth paying to stay on one platform for everything else.
+
+**4. Does your compliance posture allow SaaS-only deployment?** If on-prem or dedicated hosting is a hard requirement from your compliance or security team, this decision is largely made for you -- verify it before doing any further cost comparison.
+
+**5. What is the real cost of running two platforms, if you split by workload?** Factor in the on-call and dashboard-maintenance overhead of a second system, not just its subscription price, before deciding a split deployment is worth it.
+
+For teams shipping agent-only products, the cost difference alone -- often $5,000-15,000/month at meaningful scale -- frequently funds the engineering effort to integrate a second platform outright. For enterprises with existing Datadog infrastructure, the decision instead hinges on whether agent-specific features justify managing that second platform for the agent slice of traffic. Either way, tie the decision to production velocity: how quickly do you need evaluation results, cost insights, and failure analysis to ship the next iteration? Datadog typically requires weeks of custom dashboard and metric work to get there; Uncoil has these built in from the first trace. If cost efficiency across your stack is the underlying goal rather than observability alone, [reducing LLM costs without hurting quality](/blog/reduce-llm-costs-without-hurting-quality) covers the model- and prompt-level levers that compound with whichever observability platform you choose.
+
+> **Decision rule:** Compare the cost of the agent slice at its projected volume, then add the engineering cost of building evaluation and cost attribution before choosing on subscription price alone.
+
+## Action checklist
+
+- [ ] You've measured (not guessed) your current agent-workload share of total observability volume.
+- [ ] You've projected that share and your absolute trace volume 12 months out.
+- [ ] You've run the cost math for your own volume using the anchor points in this article, not just the headline ratios.
+- [ ] You understand why APM platforms charge differently than agent-native platforms, and can explain it to whoever owns the budget.
+- [ ] You've identified whether built-in evaluation and cost tracking would materially accelerate your iteration speed.
+- [ ] You've confirmed whether existing Datadog infrastructure makes it the practical choice despite a higher agent-specific bill.
+- [ ] You've verified data residency and compliance requirements with your compliance team before ruling either platform in or out.
+
+Start with a pilot rather than a spreadsheet exercise: instrument a single agent workflow on whichever platform you are leaning toward, run it in production for one week, and measure the actual cost and the actual time-to-answer for your first incident. Real numbers from your own workload beat any comparison article, including this one.
+
+## Frequently asked questions
+
+{% faq-item question="Why does Datadog charge more for agent workloads specifically?" answer="Datadog's pricing model is tied to ingested spans and custom metrics. Agent workloads generate many spans per business event -- LLM calls, tool use, retries -- because each internal step is billed independently. Uncoil's model is tied to complete traces (interactions), so the internal span count inside one agent interaction doesn't change the bill." /%}
+
+{% faq-item question="Can we use Datadog's APM tier without full-stack add-ons to control cost?" answer="Yes, and it lowers the base fee, but APM pricing still scales with ingested trace and span volume. Even an APM-only tier charges per span, so it remains expensive for agent workloads at scale relative to a trace-native billing model." /%}
+
+{% faq-item question="What if we need both full-stack observability and agent-specific efficiency?" answer="Some teams run both: Datadog for microservices and infrastructure, Uncoil for the agent slice of traffic. Scenario 2 above works through the real trade-off -- the operational overhead of two platforms has to be weighed against the agent-specific benefits (integrated evaluation, cost tracking, session context) and the roughly 65-75% cost reduction on that slice." /%}
+
+{% faq-item question="How does the cost gap change as we grow from 100K to 1M monthly interactions?" answer="With Datadog, cost scales with span volume, which itself grows with retries and tool-call counts as the agent gets more capable -- the gap widens from roughly 3-4x at 100K interactions/month to roughly 4-5x at 1M. With Uncoil, cost scales with trace count, so one interaction is billed once regardless of how many internal steps it takes." /%}
+
+{% faq-item question="Is Uncoil's SaaS-only deployment a blocker for compliance-heavy environments?" answer="Not always. Uncoil is SOC2 certified and works for many regulated use cases. But if on-prem or dedicated-tenant hosting is a hard requirement from your compliance or security team -- common in some financial services and government-adjacent environments -- Datadog's deployment flexibility is currently the only option between the two." /%}

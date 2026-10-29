@@ -13,10 +13,10 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { rankFilter } from "@/lib/tracify-ports/searchRank";
+import { rankFilter } from "@/lib/uncoil-ports/searchRank";
 import {
   getColumnOptionsForFilterRow,
-} from "@/lib/tracify-ports/filterTransform";
+} from "@/lib/uncoil-ports/filterTransform";
 import {
   emptyCondition,
   isConditionActive,

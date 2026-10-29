@@ -32,7 +32,7 @@ export async function postJson(kind: string, url: string, body: unknown): Promis
   let last: DeliveryResult = { ok: false, error: "Not sent" };
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", "User-Agent": "Tracify-Alerts/1.0" }, body: JSON.stringify(body), redirect: "manual", signal: AbortSignal.timeout(10_000) });
+      const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", "User-Agent": "Uncoil-Alerts/1.0" }, body: JSON.stringify(body), redirect: "manual", signal: AbortSignal.timeout(10_000) });
       const text = await response.text().catch(() => "");
       const slackRejected = kind === "slack" && response.ok && text.trim() !== "" && text.trim() !== "ok";
       if (response.ok && !slackRejected) return { ok: true, status: response.status };
@@ -55,7 +55,7 @@ export async function sendEmail(args: { to: string[]; subject: string; text: str
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": args.idempotencyKey },
-      body: JSON.stringify({ from: process.env.EMAIL_FROM || "Tracify <alerts@tracify.tech>", to: args.to, subject: args.subject, text: args.text, html: args.html }),
+      body: JSON.stringify({ from: process.env.EMAIL_FROM || "Uncoil <alerts@uncoil.dev>", to: args.to, subject: args.subject, text: args.text, html: args.html }),
       signal: AbortSignal.timeout(10_000),
     });
     if (!response.ok) console.error("[alerts] email provider returned", response.status);

@@ -1,0 +1,49 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="45" font-size="28" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Annual TCO: Early-Stage vs. Production Scale
+  </text>
+
+  <!-- Early-stage group -->
+  <text x="300" y="100" font-size="18" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Early-stage (15K calls/mo)</text>
+
+  <rect x="200" y="450" width="120" height="30" fill="#8888FF" stroke="#8888FF" stroke-width="1"/>
+  <text x="260" y="470" font-size="12" fill="#000000" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">AgentOps</text>
+  <text x="260" y="440" font-size="14" fill="#8888FF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$1,200/yr</text>
+
+  <rect x="340" y="380" width="120" height="100" fill="#44FF44" stroke="#44FF44" stroke-width="1"/>
+  <text x="400" y="435" font-size="12" fill="#000000" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil</text>
+  <text x="400" y="370" font-size="14" fill="#44FF44" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$4,200/yr</text>
+
+  <text x="300" y="510" font-size="13" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">AgentOps is 3.5x cheaper</text>
+
+  <!-- Production-scale group -->
+  <text x="900" y="100" font-size="18" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Production scale (100K calls/mo)</text>
+
+  <rect x="800" y="80" width="120" height="400" fill="#8888FF" stroke="#8888FF" stroke-width="1"/>
+  <text x="860" y="460" font-size="12" fill="#000000" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">AgentOps</text>
+  <text x="860" y="70" font-size="14" fill="#8888FF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$81,600/yr</text>
+  <text x="860" y="250" font-size="10" fill="#000000" text-anchor="middle" font-family="'Geist Mono', monospace">incl. 0.4 FTE</text>
+  <text x="860" y="264" font-size="10" fill="#000000" text-anchor="middle" font-family="'Geist Mono', monospace">hand-built eval</text>
+
+  <rect x="940" y="290" width="120" height="190" fill="#44FF44" stroke="#44FF44" stroke-width="1"/>
+  <text x="1000" y="460" font-size="12" fill="#000000" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil</text>
+  <text x="1000" y="280" font-size="14" fill="#44FF44" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">$38,400/yr</text>
+
+  <text x="900" y="510" font-size="13" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil is 2.1x cheaper</text>
+
+  <!-- baseline -->
+  <line x1="150" y1="480" x2="1100" y2="480" stroke="#FFFFFF" stroke-width="1"/>
+
+  <rect x="120" y="560" width="960" height="90" fill="none" stroke="#FFFF00" stroke-width="2" rx="4"/>
+  <text x="600" y="590" font-size="14" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">
+    The crossover isn't about trace volume — it's about who builds the evaluation layer.
+  </text>
+  <text x="600" y="615" font-size="12" fill="#CCCC00" text-anchor="middle" font-family="'Geist Mono', monospace">
+    At production scale, hand-building eval + cost tracking (0.4 FTE) costs more than Uncoil's native version.
+  </text>
+  <text x="600" y="636" font-size="12" fill="#CCCC00" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Track when "did this get worse" starts coming up in planning meetings — that's your signal to re-run this math.
+  </text>
+</svg>

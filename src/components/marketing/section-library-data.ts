@@ -216,7 +216,7 @@ export const librarySections: LibrarySection[] = [
     [
       "integrations-orbit",
       "Signal orbit",
-      "Animated connector constellation around Tracify.",
+      "Animated connector constellation around Uncoil.",
       "violet",
     ],
     [
@@ -329,7 +329,7 @@ export const librarySections: LibrarySection[] = [
   ...sections("Comparison", [
     [
       "comparison-blind-spots",
-      "Logs vs dashboards vs Tracify",
+      "Logs vs dashboards vs Uncoil",
       "Three-column operating-model comparison.",
     ],
     [
@@ -637,7 +637,7 @@ export const librarySections: LibrarySection[] = [
     [
       "navsys-comparison-matrix",
       "Comparison matrix",
-      "Logs, dashboards, and Tracify compared in a ledger.",
+      "Logs, dashboards, and Uncoil compared in a ledger.",
       "light",
     ],
     [
@@ -661,7 +661,7 @@ export const librarySections: LibrarySection[] = [
     [
       "navsys-footer-atlas",
       "Footer atlas",
-      "Light full-bleed footer with oversized Tracify wordmark.",
+      "Light full-bleed footer with oversized Uncoil wordmark.",
       "light",
     ],
   ]),
@@ -685,13 +685,13 @@ export const librarySections: LibrarySection[] = [
     [
       "footer-monument",
       "Brand monument footer",
-      "Large light Tracify wordmark.",
+      "Large light Uncoil wordmark.",
       "light",
     ],
     [
       "footer-full-bleed",
       "Full-bleed wordmark",
-      "Edge-to-edge dark Tracify signature.",
+      "Edge-to-edge dark Uncoil signature.",
     ],
     [
       "future-footer-finale",

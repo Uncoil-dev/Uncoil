@@ -16,5 +16,5 @@
   <line x1="180" y1="700" x2="1440" y2="700" stroke="#f6f1e6" stroke-width="2" stroke-dasharray="8,8"/>
   <text x="1250" y="690" fill="#f6f1e6" font-family="monospace" font-size="13">fixed absolute review count/day</text>
 
-  <text x="800" y="850" text-anchor="middle" fill="#f6f1e6" font-family="monospace" font-size="14">tracify.tech · hold the absolute number of human-reviewed outputs steady, not the percentage</text>
+  <text x="800" y="850" text-anchor="middle" fill="#f6f1e6" font-family="monospace" font-size="14">uncoil.dev · hold the absolute number of human-reviewed outputs steady, not the percentage</text>
 </svg>

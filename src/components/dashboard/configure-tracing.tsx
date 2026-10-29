@@ -6,11 +6,11 @@ import { useQuery } from "convex/react";
 import { Check, Copy } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { getDeploymentRegion, getTracifyRegion } from "@/lib/regions";
+import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
 const SNIPPETS = {
-  typescript: { label: "TypeScript", install: "npm install tracify-sdk", env: "TRACIFY_API_KEY=your_key_here", code: `import { init } from "tracify-sdk";\n\ninit(); // call once at startup\n// every OpenAI and Anthropic call is now traced` },
-  python: { label: "Python", install: "pip install tracify-sdk", env: "TRACIFY_API_KEY=your_key_here", code: `import tracify\n\ntracify.init()  # call once at startup\n# every OpenAI, Anthropic and LangChain call is now traced` },
+  typescript: { label: "TypeScript", install: "npm install uncoil-sdk", env: "UNCOIL_API_KEY=your_key_here", code: `import { init } from "uncoil-sdk";\n\ninit(); // call once at startup\n// every OpenAI and Anthropic call is now traced` },
+  python: { label: "Python", install: "pip install uncoil-sdk", env: "UNCOIL_API_KEY=your_key_here", code: `import uncoil\n\nuncoil.init()  # call once at startup\n# every OpenAI, Anthropic and LangChain call is now traced` },
 } as const;
 
 function Copyable({ label, value }: { label: string; value: string }) {
@@ -32,7 +32,7 @@ function Copyable({ label, value }: { label: string; value: string }) {
 export function ConfigureTracing({ projectId }: { projectId: string }) {
   const state = useQuery(api.agentRuns.getProjectOnboardingState, { projectId: projectId as Id<"projects"> });
   const [language, setLanguage] = useState<keyof typeof SNIPPETS>("typescript");
-  const region = getTracifyRegion(getDeploymentRegion());
+  const region = getUncoilRegion(getDeploymentRegion());
   const snippet = SNIPPETS[language];
   const keyShown = state?.apiKeyPrefix && state.apiKeyLast4 ? `${state.apiKeyPrefix}...${state.apiKeyLast4}` : null;
 
@@ -58,7 +58,7 @@ export function ConfigureTracing({ projectId }: { projectId: string }) {
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#8B93A1]">1 · Your API key</p>
         <p className="text-sm leading-6 text-[#8B93A1]">
           {keyShown ? <>This project&apos;s key ends <span className="font-mono text-[#E6E9EE]">{keyShown}</span>. </> : null}
-          A key is only shown once, when it is created. If you lost it, make a new one and put it in <span className="font-mono text-[#E6E9EE]">TRACIFY_API_KEY</span>.
+          A key is only shown once, when it is created. If you lost it, make a new one and put it in <span className="font-mono text-[#E6E9EE]">UNCOIL_API_KEY</span>.
         </p>
         <Link href={`/dashboard/${projectId}/api-keys`} className="w-fit border border-[#262C35] px-3 py-2 font-mono text-[10px] uppercase tracking-widest !text-[#E6E9EE] no-underline hover:border-[#F4D44D]">Manage API keys →</Link>
       </section>

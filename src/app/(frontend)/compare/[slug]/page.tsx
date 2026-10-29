@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const c = comparisons.find((item) => item.slug === slug);
   if (!c) return {};
   return pageMetadata({
-    title: `Tracify vs ${c.name}: AI agent observability compared`,
-    description: `Tracify vs ${c.name}: how they differ on tracing, cost tracking, evaluation and hosting, and when each is the better choice.`,
+    title: `Uncoil vs ${c.name}: AI agent observability compared`,
+    description: `Uncoil vs ${c.name}: how they differ on tracing, cost tracking, evaluation and hosting, and when each is the better choice.`,
     path: `/compare/${c.slug}`,
   });
 }
@@ -30,7 +30,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
   const c = comparisons.find((item) => item.slug === slug);
   if (!c) notFound();
   const schema = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Compare", path: "/compare" }, { name: `Tracify vs ${c.name}`, path: `/compare/${c.slug}` }]),
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Compare", path: "/compare" }, { name: `Uncoil vs ${c.name}`, path: `/compare/${c.slug}` }]),
     faqJsonLd(c.faq),
   ];
   const article = c.post ? await getPublishedPost(c.post) : null;
@@ -38,7 +38,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
   return (
     <div className="overflow-x-clip bg-[#090909]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(schema) }} />
-      <PageHeader eyebrow={`Compare / ${c.name}`} title={`Tracify vs ${c.name}`} lede={c.oneLine}>
+      <PageHeader eyebrow={`Compare / ${c.name}`} title={`Uncoil vs ${c.name}`} lede={c.oneLine}>
         <HeaderAction href={appHref("/sign-up")}>Start free</HeaderAction>
         {article && <HeaderAction href="#full-comparison" kind="secondary">Read the full comparison</HeaderAction>}
       </PageHeader>
@@ -52,8 +52,8 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             <ul className="mt-5 list-disc space-y-3 pl-5 text-sm leading-6 text-black/75">{c.pickThem.map((t) => <li key={t}>{t}</li>)}</ul>
           </div>
           <div className="bg-[#f4d44d] p-8">
-            <h3 className="font-pixel text-2xl tracking-[-0.05em]">Pick Tracify if</h3>
-            <ul className="mt-5 list-disc space-y-3 pl-5 text-sm leading-6 text-black/80">{c.pickTracify.map((t) => <li key={t}>{t}</li>)}</ul>
+            <h3 className="font-pixel text-2xl tracking-[-0.05em]">Pick Uncoil if</h3>
+            <ul className="mt-5 list-disc space-y-3 pl-5 text-sm leading-6 text-black/80">{c.pickUncoil.map((t) => <li key={t}>{t}</li>)}</ul>
           </div>
         </div>
         <p className="mt-8 max-w-3xl text-sm leading-6 text-black/60">About {c.name}: {c.theirs}</p>
@@ -64,7 +64,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
         <div className="mt-8 grid items-end gap-4 md:grid-cols-[1fr_auto_1fr]">
           <p className="font-pixel text-[clamp(2rem,5vw,4.2rem)] leading-[0.9] tracking-[-0.06em] text-white/80">{c.name}</p>
           <p aria-hidden="true" className="font-mono text-xs uppercase tracking-[0.3em] text-[#f4d44d]">vs</p>
-          <p className="font-pixel text-[clamp(2rem,5vw,4.2rem)] leading-[0.9] tracking-[-0.06em] text-[#f4d44d] md:text-right">Tracify</p>
+          <p className="font-pixel text-[clamp(2rem,5vw,4.2rem)] leading-[0.9] tracking-[-0.06em] text-[#f4d44d] md:text-right">Uncoil</p>
         </div>
         <dl className="mt-10 border-t border-white/30">
           {c.rows.map(([area, them, us], i) => (
@@ -78,7 +78,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
                 {area}
               </dt>
               <dd className="border-l-2 border-[#f4d44d] pl-4 text-sm leading-6 text-[#eceae3] md:text-base">
-                <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d] md:hidden">Tracify</span>
+                <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d] md:hidden">Uncoil</span>
                 {us}
               </dd>
             </div>
@@ -105,7 +105,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">More comparisons</p>
           <ul className="mt-4 flex flex-wrap gap-3">
             {others.map((o) => (
-              <li key={o.slug}><Link href={`/compare/${o.slug}`} className="inline-block border border-black px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] hover:bg-[#f4d44d]">Tracify vs {o.name}</Link></li>
+              <li key={o.slug}><Link href={`/compare/${o.slug}`} className="inline-block border border-black px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] hover:bg-[#f4d44d]">Uncoil vs {o.name}</Link></li>
             ))}
             <li><Link href="/pricing" className="inline-block border border-black px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] hover:bg-[#f4d44d]">Pricing</Link></li>
             <li><Link href="/docs" className="inline-block border border-black px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] hover:bg-[#f4d44d]">Docs</Link></li>

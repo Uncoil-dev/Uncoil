@@ -5,7 +5,7 @@ import type { Id } from "convex/_generated/dataModel";
 
 import { getConvexClient } from "@/lib/convex";
 import { inngest } from "@/lib/inngest";
-import { getWrongRegionApiKeyResponse, hashApiKey, isTracifyApiKey } from "@/lib/api-keys";
+import { getWrongRegionApiKeyResponse, hashApiKey, isUncoilApiKey } from "@/lib/api-keys";
 import { DEFAULT_REDACTION_RULES, redactPayload, redactRecord } from "@/lib/redaction";
 import { apiKeyProjectCache, cachedProjectForKey } from "@/lib/ingest-cache";
 import { planLimitResponse, recordRateLimitStrike } from "@/lib/plan-limits-server";
@@ -13,7 +13,7 @@ import { ingestLimitPerMinute, MAX_SPANS_PER_REQUEST } from "@/lib/plan-limits";
 import { consumeRateLimit } from "@/lib/redis-cache";
 
 const MAX_BODY_BYTES = 4 * 1024 * 1024; // 4MB for batched OTLP traces
-const PAID_INGEST_LIMIT_PER_MINUTE = Number(process.env.TRACIFY_INGEST_LIMIT_PER_MINUTE ?? 6_000);
+const PAID_INGEST_LIMIT_PER_MINUTE = Number((process.env.UNCOIL_INGEST_LIMIT_PER_MINUTE ?? process.env.TRACIFY_INGEST_LIMIT_PER_MINUTE) ?? 6_000);
 
 // ─── OTLP protobuf-JSON types ────────────────────────────────────
 // See: https://opentelemetry.io/docs/specs/otlp/#otlphttp-response
@@ -212,11 +212,11 @@ function mapSpanAttributes(attrs: OtlpKeyValue[] | undefined): {
       case "release":
         release = val;
         break;
-      case "tracify.tags":
+      case "uncoil.tags":
       case "ai.tags":
         tags = val.split(",").map((tag) => tag.trim()).filter(Boolean);
         break;
-      case "tracify.trace.name":
+      case "uncoil.trace.name":
       case "ai.trace.name":
         traceName = val;
         break;
@@ -226,32 +226,32 @@ function mapSpanAttributes(attrs: OtlpKeyValue[] | undefined): {
         ttftMs = Number(val);
         metadata.ttftMs = ttftMs;
         break;
-      case "tracify.retry_count":
+      case "uncoil.retry_count":
       case "ai.retry_count":
         retryCount = Number(val);
         metadata.retryCount = retryCount;
         break;
-      case "tracify.stream.chunk":
+      case "uncoil.stream.chunk":
         isStreamChunk = val === "true" || val === "1";
         break;
-      case "tracify.stream.sequence":
+      case "uncoil.stream.sequence":
         streamSequence = Number(val);
         break;
-      case "tracify.stream.final":
+      case "uncoil.stream.final":
         streamFinal = val !== "false" && val !== "0";
         break;
-      case "tracify.payload.format":
+      case "uncoil.payload.format":
         payloadFormat = val;
         break;
       case "exception.stacktrace":
       case "error.stacktrace":
         stackTrace = val;
         break;
-      case "tracify.timeout":
+      case "uncoil.timeout":
       case "ai.timeout":
         timedOut = val === "true" || val === "1";
         break;
-      case "tracify.timeout_ms":
+      case "uncoil.timeout_ms":
       case "ai.timeout_ms":
         timeoutMs = Number(val);
         break;
@@ -278,7 +278,7 @@ export async function POST(request: NextRequest) {
   }
 
   const apiKey = authHeader.slice(7).trim();
-  if (!isTracifyApiKey(apiKey)) {
+  if (!isUncoilApiKey(apiKey)) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
   }
   const wrongRegion = getWrongRegionApiKeyResponse(apiKey);
@@ -426,7 +426,7 @@ export async function POST(request: NextRequest) {
         };
 
         try {
-          await inngest.send({ name: "tracify/span.received", data: payload });
+          await inngest.send({ name: "uncoil/span.received", data: payload });
           enqueued.push(otelSpan.spanId);
         } catch (err) {
           console.error("Inngest send failed for OTel span:", otelSpan.spanId, err);

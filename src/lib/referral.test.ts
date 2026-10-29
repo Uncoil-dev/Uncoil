@@ -11,8 +11,8 @@ test("codes are cleaned and bounded", () => {
 });
 
 test("links and campaigns", () => {
-  assert.equal(referralLink("Anna"), "https://www.tracify.tech/?ref=anna");
-  assert.equal(referralLink("!"), "https://www.tracify.tech");
+  assert.equal(referralLink("Anna"), "https://www.uncoil.dev/?ref=anna");
+  assert.equal(referralLink("!"), "https://www.uncoil.dev");
   assert.equal(campaignFor("blog", "anna"), "blog|ref:anna");
   assert.equal(campaignFor("blog", null), "blog");
 });

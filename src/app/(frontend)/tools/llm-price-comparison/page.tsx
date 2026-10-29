@@ -18,7 +18,7 @@ const faqs: Faq[] = [
   { q: "Why is monthly cost not just the price per million tokens?", a: "Your bill is tokens in times the input price plus tokens out times the output price, for every request. This page does that maths with your numbers, and applies the cached-input price where the model has one." },
   { q: "Is the cheapest model the best choice?", a: "Not always. A cheaper model that needs more retries, longer prompts or human fixes can cost more per finished task. Compare on your own prompts." },
   { q: "Why are some prices missing a cached rate?", a: "Not every provider or model offers a cheaper price for cached input. A dash means there is no cache discount on record." },
-  { q: "How do I see what I really spend?", a: "Provider dashboards show totals. Tracify shows cost per run, per step and per model, so you can see which part of your agent is expensive." },
+  { q: "How do I see what I really spend?", a: "Provider dashboards show totals. Uncoil shows cost per run, per step and per model, so you can see which part of your agent is expensive." },
 ];
 
 export default function Page() {

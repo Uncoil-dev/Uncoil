@@ -75,7 +75,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   return new Response(stream, {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="tracify-${name}-${new Date().toISOString().slice(0, 10)}.json"`,
+      "Content-Disposition": `attachment; filename="uncoil-${name}-${new Date().toISOString().slice(0, 10)}.json"`,
       "Cache-Control": "no-store",
     },
   });

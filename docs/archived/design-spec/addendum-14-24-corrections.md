@@ -67,8 +67,8 @@ Status | Run ID | Spans | Cost | Duration | Model | Started
 
 ## §23 DOCS — Corrections
 
-**Deployment:** Separate subdomain `docs.tracify.tech`
-**Platform:** Mintlify or Nextra (dark theme, maintains tracify visual identity)
+**Deployment:** Separate subdomain `docs.uncoil.dev`
+**Platform:** Mintlify or Nextra (dark theme, maintains uncoil visual identity)
 **Search:** Cmd+K
 
 ### Full Navigation Tree

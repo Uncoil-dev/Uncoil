@@ -13,8 +13,8 @@ Most first-trace problems come down to the API key, the region, or where the run
 
 ## The run never appears
 
-- **The key is missing.** The TypeScript SDK prints `TRACIFY_API_KEY is not set` and records nothing. The Python SDK raises a `ValueError` when the client is created. Set `TRACIFY_API_KEY` in the environment where the agent actually runs, not just in your shell.
-- **The key and region disagree.** A key belongs to the EU or US region. If the configured region does not match, the client refuses to start with `Tracify API key region mismatch`. Set `region` (or the `TRACIFY_REGION` variable) to the region your project lives in. Keys without a region marker are treated as EU.
+- **The key is missing.** The TypeScript SDK prints `UNCOIL_API_KEY is not set` and records nothing. The Python SDK raises a `ValueError` when the client is created. Set `UNCOIL_API_KEY` in the environment where the agent actually runs, not just in your shell.
+- **The key and region disagree.** A key belongs to the EU or US region. If the configured region does not match, the client refuses to start with `Uncoil API key region mismatch`. Set `region` (or the `UNCOIL_REGION` variable) to the region your project lives in. Keys without a region marker are treated as EU.
 - **Nothing ran inside a traced function.** `traceAgent` (or `@trace_agent`) creates the run. Calls made outside one are recorded as separate standalone roots, so look for many one-step traces instead of one run.
 - **A request failed quietly.** Telemetry never throws into your agent, so failures show up as a `Failed to ingest span` warning in your logs. Check the log output of the process that runs the agent.
 
@@ -25,7 +25,7 @@ Most first-trace problems come down to the API key, the region, or where the run
 
 ## Cost shows as zero
 
-Tracify does not guess prices. Provider wrappers store token usage but set cost to zero and mark the span `costKnown` false until you supply a `calculateCost` function (`calculate_cost` in Python) with your own rate card. See [OpenAI, Anthropic and LangGraph](/docs/provider-integrations). For manual spans, pass `costUsd` yourself.
+Uncoil does not guess prices. Provider wrappers store token usage but set cost to zero and mark the span `costKnown` false until you supply a `calculateCost` function (`calculate_cost` in Python) with your own rate card. See [OpenAI, Anthropic and LangGraph](/docs/provider-integrations). For manual spans, pass `costUsd` yourself.
 
 ## A model call appears twice
 
@@ -37,4 +37,4 @@ Inputs and outputs are capped at 10,000 characters, and obvious secrets such as 
 
 ## Still stuck
 
-Check [Choose a Tracify Cloud region](/docs/data-regions) for the endpoints each region uses, and review [what is in a trace](/docs/trace-anatomy) to confirm what you expect to see.
+Check [Choose an Uncoil Cloud region](/docs/data-regions) for the endpoints each region uses, and review [what is in a trace](/docs/trace-anatomy) to confirm what you expect to see.

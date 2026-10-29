@@ -28,7 +28,7 @@ export const post = defineType({
       name: "author",
       title: "Author",
       type: "string",
-      initialValue: "Tracify Team",
+      initialValue: "Uncoil Team",
     }),
     defineField({
       name: "excerpt",

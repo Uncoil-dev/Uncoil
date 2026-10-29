@@ -33,7 +33,7 @@ export default async function DocsArticlePage({ params }: { params: Promise<{ sl
   const next = docs[index + 1];
 
   const structuredData = [
-    breadcrumbJsonLd([{ name: "Tracify", path: "/" }, { name: "Docs", path: "/docs" }, { name: doc.title, path: `/docs/${doc.slug}` }]),
+    breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Docs", path: "/docs" }, { name: doc.title, path: `/docs/${doc.slug}` }]),
     articleJsonLd({ headline: doc.title, description: doc.description, path: `/docs/${doc.slug}` }),
   ];
 

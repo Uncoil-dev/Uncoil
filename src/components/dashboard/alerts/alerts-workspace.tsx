@@ -14,10 +14,10 @@ import { QuietHoursBar } from "./quiet-hours-bar";
 
 type Status = "all" | "firing" | "ok" | "paused";
 type View = "cards" | "list";
-const VIEW_KEY = "tracify.alerts.view";
+const VIEW_KEY = "uncoil.alerts.view";
 
 type SavedView = { name: string; status: Status; tag: string | null; query: string };
-const SAVED_KEY = "tracify.alerts.savedViews";
+const SAVED_KEY = "uncoil.alerts.savedViews";
 let savedCache: { raw: string | null; value: SavedView[] } = { raw: null, value: [] };
 function readSaved(): SavedView[] {
   try {

@@ -1,7 +1,7 @@
 # Design QA — mobile navigation switchboard
 
 - Source visual truth: `C:\Users\krist\.codex\generated_images\019fffc5-99e0-7212-b878-0d992aac8496\exec-05719ccc-74fd-486f-948b-f7c6fd338dcd.png`
-- Implementation screenshot: `C:\Tracify\scratch\design-audit-2026-08-14\04-mobile-navigation-option2-implementation.png`
+- Implementation screenshot: `C:\Uncoil\scratch\design-audit-2026-08-14\04-mobile-navigation-option2-implementation.png`
 - Requested viewport: 390 × 844 CSS px
 - Captured implementation pixels: 375 × 754 at browser density 1
 - Source pixels: 853 × 1844; the generated concept is a tall scrolling composition rather than a literal 390 × 844 capture
@@ -13,7 +13,7 @@ The source and implementation were inspected together in one comparison input. T
 
 ## Focused-region comparison evidence
 
-The header, Product control, tile grid, and Pricing row are readable in the full-view comparison. A separate crop was not needed. Typography remains the existing Tracify pixel/mono system; borders, zero-radius geometry, paper/black/yellow tokens, and icon weight match the selected direction closely.
+The header, Product control, tile grid, and Pricing row are readable in the full-view comparison. A separate crop was not needed. Typography remains the existing Uncoil pixel/mono system; borders, zero-radius geometry, paper/black/yellow tokens, and icon weight match the selected direction closely.
 
 ## Required fidelity surfaces
 

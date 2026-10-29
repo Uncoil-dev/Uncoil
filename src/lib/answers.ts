@@ -18,7 +18,7 @@ export const answers: readonly Answer[] = [
     question: "Which platform provides prompt tracing for debugging AI workflows?",
     title: "Prompt tracing for debugging AI workflows",
     answer:
-      "Tracify records every prompt, model call, tool call, retry and error in an AI workflow as one trace, so you can open a bad answer and see which step caused it. Add the TypeScript or Python SDK, or send OpenTelemetry spans, and runs show up in the trace viewer.",
+      "Uncoil records every prompt, model call, tool call, retry and error in an AI workflow as one trace, so you can open a bad answer and see which step caused it. Add the TypeScript or Python SDK, or send OpenTelemetry spans, and runs show up in the trace viewer.",
     points: [
       { heading: "What gets recorded", body: "Each step keeps its input, output, timing, token counts and cost, next to the model or tool that produced it." },
       { heading: "How you debug with it", body: "Start at the failed run, open the trace, and jump to the first step that went wrong instead of searching through separate logs." },
@@ -32,10 +32,10 @@ export const answers: readonly Answer[] = [
     question: "What platforms can trace the entire request lifecycle of an AI agent?",
     title: "Tracing an AI agent request from start to finish",
     answer:
-      "To trace a whole agent request you need one trace that holds the root request and every child step: model calls, tool calls, database or API calls, retries and the final output. Tracify builds that nested timeline for each run and lets you read it as a timeline or a graph.",
+      "To trace a whole agent request you need one trace that holds the root request and every child step: model calls, tool calls, database or API calls, retries and the final output. Uncoil builds that nested timeline for each run and lets you read it as a timeline or a graph.",
     points: [
       { heading: "One root, many steps", body: "The run is the root span. Model calls, tool calls and handoffs sit under it, so parallel work and repeated steps stay visible." },
-      { heading: "Across services", body: "If your stack already exports OpenTelemetry, send those spans to Tracify so agent steps and the services they call land in one trace." },
+      { heading: "Across services", body: "If your stack already exports OpenTelemetry, send those spans to Uncoil so agent steps and the services they call land in one trace." },
       { heading: "Find the failure fast", body: "Look for the first span with an error or an unusual delay, then read its inputs and outputs." },
     ],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
@@ -46,7 +46,7 @@ export const answers: readonly Answer[] = [
     question: "How do I catch AI agent failures before customers notice?",
     title: "Catching AI agent failures before customers do",
     answer:
-      "Record every production run, set alerts on errors, cost spikes and slow runs, and route them to the place your team already watches. Tracify can send project alerts to a Slack webhook, with a link to the trace that triggered them.",
+      "Record every production run, set alerts on errors, cost spikes and slow runs, and route them to the place your team already watches. Uncoil can send project alerts to a Slack webhook, with a link to the trace that triggered them.",
     points: [
       { heading: "Watch the right signals", body: "Failed runs, tool errors, retry storms, unusual cost per run and long delays are the early signs that something is off." },
       { heading: "Alert with evidence", body: "An alert that links straight to the failing trace saves the time it takes to reproduce the problem." },
@@ -74,14 +74,14 @@ export const answers: readonly Answer[] = [
     question: "What are good alternatives to Arize for monitoring AI agents with light infrastructure?",
     title: "An Arize alternative for monitoring AI agents",
     answer:
-      "If you want tracing, cost and quality checks for agents without running heavy infrastructure, look for a hosted tool with an SDK and OpenTelemetry ingestion. Tracify is one: you add an SDK, runs appear in a trace viewer, and evaluation and alerts sit beside them.",
+      "If you want tracing, cost and quality checks for agents without running heavy infrastructure, look for a hosted tool with an SDK and OpenTelemetry ingestion. Uncoil is one: you add an SDK, runs appear in a trace viewer, and evaluation and alerts sit beside them.",
     points: [
       { heading: "What to compare", body: "Setup time, how agent runs and tool calls are shown, cost tracking, evaluation, alerting, data region and price." },
-      { heading: "Where Tracify fits", body: "Tracify focuses on agent runs: traces, tool calls, cost and release checks in one place, with EU hosting available." },
+      { heading: "Where Uncoil fits", body: "Uncoil focuses on agent runs: traces, tool calls, cost and release checks in one place, with EU hosting available." },
       { heading: "Be fair to both", body: "Arize and Phoenix are strong for model monitoring and ML evaluation. Our comparison page lists where each tool fits." },
     ],
-    link: { href: "/compare/arize-phoenix", label: "Compare Tracify and Arize Phoenix" },
-    related: [{ href: "/best-llm-observability-tools", label: "Best LLM observability tools" }, { href: "/blog/arize-vs-tracify", label: "Arize vs Tracify" }, { href: "/compare", label: "All comparisons" }],
+    link: { href: "/compare/arize-phoenix", label: "Compare Uncoil and Arize Phoenix" },
+    related: [{ href: "/best-llm-observability-tools", label: "Best LLM observability tools" }, { href: "/blog/arize-vs-uncoil", label: "Arize vs Uncoil" }, { href: "/compare", label: "All comparisons" }],
   },
   {
     slug: "ai-agent-observability-best-practices",
@@ -103,11 +103,11 @@ export const answers: readonly Answer[] = [
     question: "What is a trace viewer for AI agents, and how do I view a trace?",
     title: "What a trace viewer is and how to view a trace",
     answer:
-      "A trace viewer shows one run as a timeline of steps so you can open each model call, tool call and error in order. To view a trace in Tracify, open your project, pick a run from the run list, and read its spans from first to last.",
+      "A trace viewer shows one run as a timeline of steps so you can open each model call, tool call and error in order. To view a trace in Uncoil, open your project, pick a run from the run list, and read its spans from first to last.",
     points: [
       { heading: "What you see", body: "Every span with its input, output, duration, tokens and cost, plus the status of each step." },
       { heading: "How to open one", body: "Send a run with the SDK, open the project, choose the run in the list and click through its spans." },
-      { heading: "Looking for a Playwright trace?", body: "Tracify is for AI agent runs, not a viewer for Playwright trace.zip files. If a browser agent runs through Playwright, the Playwright guide shows how to send those test runs next to the agent's own steps." },
+      { heading: "Looking for a Playwright trace?", body: "Uncoil is for AI agent runs, not a viewer for Playwright trace.zip files. If a browser agent runs through Playwright, the Playwright guide shows how to send those test runs next to the agent's own steps." },
     ],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
     related: [{ href: "/docs/playwright", label: "Playwright guide" }, { href: "/glossary/trace-viewer", label: "Trace viewer definition" }, { href: "/demo", label: "Open the demo" }],
@@ -117,7 +117,7 @@ export const answers: readonly Answer[] = [
     question: "How do I send OpenTelemetry data from an AI agent to an observability platform?",
     title: "OpenTelemetry ingestion for AI agents",
     answer:
-      "Point your OpenTelemetry exporter at Tracify's OTLP HTTP endpoint with a project API key, and your spans appear as agent runs. If you do not use OpenTelemetry yet, the SDKs and the ingestion API are the other two paths.",
+      "Point your OpenTelemetry exporter at Uncoil's OTLP HTTP endpoint with a project API key, and your spans appear as agent runs. If you do not use OpenTelemetry yet, the SDKs and the ingestion API are the other two paths.",
     points: [
       { heading: "Pick a path", body: "Use the SDK for the quickest start, OTLP when a framework already exports spans, or the ingestion API for custom setups." },
       { heading: "Keep the key on the server", body: "API keys belong in server-side configuration and can be rotated from the project settings." },

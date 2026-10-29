@@ -25,7 +25,7 @@ export type DocArticle = {
   prerequisites: string[];
 };
 const directory = path.join(process.cwd(), "content", "docs");
-const canonicalOrigin = "https://www.tracify.tech";
+const canonicalOrigin = "https://www.uncoil.dev";
 
 function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
@@ -92,4 +92,4 @@ export function getDocs() {
 export function getDoc(slug: string) { return getDocs().find((doc) => doc.slug === slug) ?? null; }
 export function getPublicDocs() { return getDocs().filter((doc) => !doc.noindex); }
 export function getDocMarkdown(slug: string) { const doc = getDoc(slug); return doc && !doc.noindex ? `# ${doc.title}\n\n${doc.description}\n\n${doc.body}` : null; }
-export function getDocsMarkdownIndex() { return `# Tracify Documentation\n\n${getPublicDocs().map((doc) => `- [${doc.title}](${doc.canonicalUrl}.md): ${doc.description}`).join("\n")}\n`; }
+export function getDocsMarkdownIndex() { return `# Uncoil Documentation\n\n${getPublicDocs().map((doc) => `- [${doc.title}](${doc.canonicalUrl}.md): ${doc.description}`).join("\n")}\n`; }

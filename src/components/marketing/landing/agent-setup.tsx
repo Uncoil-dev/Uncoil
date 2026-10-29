@@ -10,19 +10,19 @@ import { Reveal } from "./reveal";
 
 // PLACEHOLDER prompt: swap in the tested text from the "Write the agent setup prompt" work when it lands.
 const STEPS = [
-  "Install the Tracify SDK in this project.",
-  "Run `npx tracify-sdk login` so I can sign in or sign up in the browser and pick this project.",
+  "Install the Uncoil SDK in this project.",
+  "Run `npx uncoil-sdk login` so I can sign in or sign up in the browser and pick this project.",
   "Add the one-line init() call at the start of the app.",
-  "Run `npx tracify-sdk doctor`, then send one test trace and tell me where to see it.",
+  "Run `npx uncoil-sdk doctor`, then send one test trace and tell me where to see it.",
 ];
 
 const AGENTS = ["Claude Code", "Cursor", "Codex"] as const;
 type Agent = (typeof AGENTS)[number];
 
 const PM = [
-  { id: "npm", cmd: "npm install tracify-sdk" },
-  { id: "pnpm", cmd: "pnpm add tracify-sdk" },
-  { id: "pip", cmd: "pip install tracify-sdk" },
+  { id: "npm", cmd: "npm install uncoil-sdk" },
+  { id: "pnpm", cmd: "pnpm add uncoil-sdk" },
+  { id: "pip", cmd: "pip install uncoil-sdk" },
 ] as const;
 
 const WHY = [
@@ -32,7 +32,7 @@ const WHY = [
 ] as const;
 
 function promptFor(agent: Agent) {
-  return `Set up Tracify tracing in this project (${agent}).\n\n${STEPS.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\nDo not invent an API key. Never print or commit the key.`;
+  return `Set up Uncoil tracing in this project (${agent}).\n\n${STEPS.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\nDo not invent an API key. Never print or commit the key.`;
 }
 
 function useCopy() {
@@ -61,12 +61,12 @@ type Line = { k: "you" | "run" | "ok"; text: string; meta?: string };
 
 function replayFor(agent: Agent): Line[] {
   return [
-    { k: "you", text: "Set up Tracify tracing in this project", meta: agent },
-    { k: "run", text: "npm install tracify-sdk", meta: "1.8s" },
-    { k: "run", text: "npx tracify-sdk login", meta: "opening browser" },
+    { k: "you", text: "Set up Uncoil tracing in this project", meta: agent },
+    { k: "run", text: "npm install uncoil-sdk", meta: "1.8s" },
+    { k: "run", text: "npx uncoil-sdk login", meta: "opening browser" },
     { k: "ok", text: "Signed in · connected to support-agent" },
     { k: "run", text: "init() added to src/index.ts" },
-    { k: "run", text: "npx tracify-sdk doctor", meta: "key ok · project ok" },
+    { k: "run", text: "npx uncoil-sdk doctor", meta: "key ok · project ok" },
     { k: "ok", text: "First trace sent" },
   ];
 }
@@ -200,7 +200,7 @@ export function AgentSetup() {
           </div>
           <div>
             <p className="max-w-md text-lg leading-8 text-black/75">
-              Copy one prompt into your coding agent. It installs Tracify, signs you in, connects this project and sends your first trace while you watch.
+              Copy one prompt into your coding agent. It installs Uncoil, signs you in, connects this project and sends your first trace while you watch.
             </p>
             <dl className="mt-6 grid grid-cols-3 border-y-2 border-black">
               {WHY.map(([n, label], i) => (

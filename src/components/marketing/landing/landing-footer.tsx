@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowUp, ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
-import { TracifyMark } from "@/components/brand/tracify-mark";
+import { UncoilMark } from "@/components/brand/uncoil-mark";
 import { LocaleSwitcher } from "@/components/marketing/locale/locale-switcher";
 
 const groups = [
@@ -15,7 +15,7 @@ const groups = [
   ["Company", [["About", "/about"], ["Blog", "/blog"], ["Roadmap", "/roadmap"], ["Changelog", "/changelog"], ["Security", "/security"], ["Status", "/status"], ["Contact", "/contact"]]],
 ] as const;
 
-const word = "tracify".split("");
+const word = "uncoil".split("");
 
 export function LandingFooter() {
   const reduce = useReducedMotion();
@@ -62,7 +62,7 @@ export function LandingFooter() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            <TracifyMark className="block h-[0.65em]" />
+            <UncoilMark className="block h-[0.65em]" />
           </motion.span>
           {word.map((ch, i) => (
             <motion.span
@@ -80,7 +80,7 @@ export function LandingFooter() {
         </div>
 
         <div className="relative z-10 flex flex-col gap-4 border-t border-white/15 py-6 font-mono text-[10px] uppercase tracking-[0.14em] text-white/50 md:flex-row md:items-center md:justify-between">
-          <span>© {new Date().getFullYear()} Tracify</span>
+          <span>© {new Date().getFullYear()} Uncoil</span>
           <div className="flex flex-wrap gap-5">
             <Link href="/privacy" className="hover:text-white">Privacy</Link>
             <Link href="/terms" className="hover:text-white">Terms</Link>

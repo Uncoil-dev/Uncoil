@@ -36,7 +36,7 @@ function downloadCsv(name: string, head: string[], rows: unknown[][]) {
   const body = [head, ...rows].map((r) => r.map((c) => `"${csvCell(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([body], { type: "text/csv" }));
-  a.download = `tracify-${name}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `uncoil-${name}-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
 }

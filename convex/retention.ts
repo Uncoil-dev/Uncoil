@@ -6,7 +6,7 @@ import { v } from "convex/values";
  * this mutation keeps the dashboard's durable summaries aligned with it.
  */
 function isJobAuthorized(jobSecret: string | undefined) {
-  const configured = process.env.TRACIFY_RETENTION_SECRET;
+  const configured = (process.env.UNCOIL_RETENTION_SECRET ?? process.env.TRACIFY_RETENTION_SECRET);
   return Boolean(configured && jobSecret && jobSecret === configured);
 }
 

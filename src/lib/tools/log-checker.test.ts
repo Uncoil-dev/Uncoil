@@ -4,9 +4,9 @@ import { analyzeLog, classifyError } from "./log-checker.ts";
 
 const trace = [
   { name: "plan", type: "llm", model: "gpt-4o", usage: { prompt_tokens: 1200, completion_tokens: 150 }, duration_ms: 900, start_time: "2026-10-17T10:00:00Z" },
-  { name: "search_web", type: "tool", input: { q: "tracify pricing" }, duration_ms: 400, start_time: "2026-10-17T10:00:01Z" },
-  { name: "search_web", type: "tool", input: { q: "tracify pricing" }, duration_ms: 420, start_time: "2026-10-17T10:00:02Z" },
-  { name: "search_web", type: "tool", input: { q: "tracify pricing" }, duration_ms: 410, start_time: "2026-10-17T10:00:03Z" },
+  { name: "search_web", type: "tool", input: { q: "uncoil pricing" }, duration_ms: 400, start_time: "2026-10-17T10:00:01Z" },
+  { name: "search_web", type: "tool", input: { q: "uncoil pricing" }, duration_ms: 420, start_time: "2026-10-17T10:00:02Z" },
+  { name: "search_web", type: "tool", input: { q: "uncoil pricing" }, duration_ms: 410, start_time: "2026-10-17T10:00:03Z" },
   { name: "answer", type: "llm", model: "gpt-4o", usage: { prompt_tokens: 5200, completion_tokens: 300 }, duration_ms: 9000, start_time: "2026-10-17T10:00:04Z" },
   { name: "answer", type: "llm", model: "gpt-4o", usage: { prompt_tokens: 5600, completion_tokens: 320 }, duration_ms: 1000, start_time: "2026-10-17T10:00:14Z", status: "error", error: "429 Rate limit reached for gpt-4o" },
 ];

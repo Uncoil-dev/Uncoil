@@ -8,7 +8,7 @@ import {
 const env = {
   VERCEL_ENV: "preview",
   VERCEL_GIT_COMMIT_REF: PREVIEW_BRANCH,
-  NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND: "cloud",
+  NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND: "cloud",
   CONVEX_DEPLOY_KEY: "preview:test:project|test",
 };
 test("only the authorized cloud preview branch can deploy a backend", () => {
@@ -16,7 +16,7 @@ test("only the authorized cloud preview branch can deploy a backend", () => {
   for (const patch of [
     { VERCEL_ENV: "production" },
     { VERCEL_GIT_COMMIT_REF: "main" },
-    { NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND: "marketing" },
+    { NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND: "marketing" },
     { CONVEX_DEPLOY_KEY: "" },
   ])
     assert.equal(buildPlan({ ...env, ...patch }), "frontend");

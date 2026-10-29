@@ -15,8 +15,8 @@ import { SectionLibrary } from "@/components/marketing/section-library";
 import { requireLibraryAccess } from "@/lib/library-access";
 
 export const metadata: Metadata = {
-  title: "Admin section library — Tracify",
-  description: "Private Tracify section and conversion concept workspace.",
+  title: "Admin section library — Uncoil",
+  description: "Private Uncoil section and conversion concept workspace.",
   robots: { index: false, follow: false, nocache: true },
 };
 

@@ -8,8 +8,8 @@ import { BrandLogo } from "@/components/brand-logo";
 import { ConvexAuthState } from "@/components/auth/convex-auth-state";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 
-const PROJECT_ID_STORAGE_KEY = "tracify.onboarding.projectId";
-const LAST_PROJECT_STORAGE_KEY = "tracify.lastProjectId";
+const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
+const LAST_PROJECT_STORAGE_KEY = "uncoil.lastProjectId";
 
 export function OnboardingEntryRouter() {
   const router = useRouter();

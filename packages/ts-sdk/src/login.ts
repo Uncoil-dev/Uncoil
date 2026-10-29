@@ -2,10 +2,10 @@ import { constants, generateKeyPairSync, privateDecrypt, type KeyObject } from "
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import { TRACIFY_REGION_HOSTS, type TracifyRegion } from "./index";
+import { UNCOIL_REGION_HOSTS, type UncoilRegion } from "./index";
 
 export interface LoginOptions {
-  region?: TracifyRegion;
+  region?: UncoilRegion;
   host?: string;
   /** Create a project with this name instead of picking one in the browser. */
   newProject?: string;
@@ -30,9 +30,9 @@ export interface LoginResult {
   envFile?: string;
 }
 
-const KEY_NAME = "TRACIFY_API_KEY";
-const PROJECT_ID_NAME = "TRACIFY_PROJECT_ID";
-const REGION_NAME = "TRACIFY_REGION";
+const KEY_NAME = "UNCOIL_API_KEY";
+const PROJECT_ID_NAME = "UNCOIL_PROJECT_ID";
+const REGION_NAME = "UNCOIL_REGION";
 
 /** Sets or replaces variables in an env file's text and keeps every other line as it was. */
 export function upsertEnv(content: string, vars: Record<string, string | undefined>) {
@@ -62,13 +62,13 @@ function insideGitRepo(dir: string) {
   }
 }
 
-/** Reads TRACIFY_* variables from env files into process.env without overriding values already set. Used by the CLI only. */
-export function loadTracifyEnv(cwd: string, files = [".env.local", ".env"]) {
+/** Reads UNCOIL_* variables from env files into process.env without overriding values already set. Used by the CLI only. */
+export function loadUncoilEnv(cwd: string, files = [".env.local", ".env"]) {
   for (const file of files) {
     let text: string;
     try { text = fs.readFileSync(path.resolve(cwd, file), "utf8"); } catch { continue; }
     for (const line of text.split(/\r?\n/)) {
-      const match = /^\s*(?:export\s+)?(TRACIFY_[A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);
+      const match = /^\s*(?:export\s+)?(UNCOIL_[A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);
       if (!match || process.env[match[1]] !== undefined) continue;
       process.env[match[1]] = match[2].replace(/^(["'])(.*)\1$/, "$2");
     }
@@ -101,9 +101,9 @@ export function decryptKey(privateKey: KeyObject, encrypted: string) {
 }
 
 function loginHost(options: LoginOptions) {
-  const envRegion = process.env.TRACIFY_REGION?.trim().toLowerCase();
+  const envRegion = (process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)?.trim().toLowerCase();
   const region = options.region ?? (envRegion === "us" || envRegion === "eu" ? envRegion : "eu");
-  return { region, host: (options.host || process.env.TRACIFY_HOST || TRACIFY_REGION_HOSTS[region]).replace(/\/$/, "") };
+  return { region, host: (options.host || (process.env.UNCOIL_HOST ?? process.env.TRACIFY_HOST) || UNCOIL_REGION_HOSTS[region]).replace(/\/$/, "") };
 }
 
 async function post(url: string, body: unknown) {
@@ -124,7 +124,7 @@ export async function runLogin(options: LoginOptions = {}): Promise<LoginResult>
   const say = (event: string, text: string, extra: Record<string, unknown> = {}) => out(options.json ? JSON.stringify({ event, ...extra, message: text }) : text);
 
   const nodeMajor = Number(process.versions?.node?.split(".")[0]);
-  if (typeof fetch !== "function" || nodeMajor < 18) return { ok: false, message: "Tracify login needs Node 18 or newer." };
+  if (typeof fetch !== "function" || nodeMajor < 18) return { ok: false, message: "Uncoil login needs Node 18 or newer." };
 
   const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   const spki = publicKey.export({ type: "spki", format: "der" }).toString("base64");
@@ -136,7 +136,7 @@ export async function runLogin(options: LoginOptions = {}): Promise<LoginResult>
     return { ok: false, message: `Could not reach ${host} (${(error as Error)?.message ?? error}). Check your internet connection.` };
   }
   if (started.status === 429) return { ok: false, message: started.data?.error || "Too many sign-in attempts. Try again in a few minutes." };
-  if (started.status !== 200 || !started.data?.deviceCode) return { ok: false, message: started.data?.error || `Tracify could not start the sign-in (${started.status}).` };
+  if (started.status !== 200 || !started.data?.deviceCode) return { ok: false, message: started.data?.error || `Uncoil could not start the sign-in (${started.status}).` };
 
   const { deviceCode, userCode, verificationUrl, expiresAt } = started.data as { deviceCode: string; userCode: string; verificationUrl: string; expiresAt: number };
   const interval = Math.max(2, Number(started.data.interval) || 3) * 1000;
@@ -157,7 +157,7 @@ export async function runLogin(options: LoginOptions = {}): Promise<LoginResult>
     if (status === "approved") {
       let apiKey: string;
       try { apiKey = decryptKey(privateKey, polled.data.encryptedKey); } catch {
-        return { ok: false, message: "Could not read the key Tracify sent. Run the command again." };
+        return { ok: false, message: "Could not read the key Uncoil sent. Run the command again." };
       }
       const target = path.resolve(cwd, envFile);
       const before = fs.existsSync(target) ? fs.readFileSync(target, "utf8") : "";

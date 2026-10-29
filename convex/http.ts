@@ -12,8 +12,8 @@ http.route({
   method: "GET",
   handler: httpAction(async () => Response.json({
     ok: true,
-    service: "tracify-convex",
-    region: process.env.TRACIFY_REGION ?? "unknown",
+    service: "uncoil-convex",
+    region: (process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION) ?? "unknown",
     checkedAt: new Date().toISOString(),
   }, { headers: { "Cache-Control": "no-store" } })),
 });
@@ -68,7 +68,7 @@ async function fetchJudge(url: string, init: RequestInit, retries = 1) {
 }
 
 async function hmacApiKey(apiKey: string) {
-  const secret = process.env.TRACIFY_API_KEY_HASH_SECRET;
+  const secret = (process.env.UNCOIL_API_KEY_HASH_SECRET ?? process.env.TRACIFY_API_KEY_HASH_SECRET);
   if (!secret) throw new Error("API key hashing is not configured");
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(apiKey));
@@ -146,7 +146,7 @@ http.route({
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     const secret = process.env.EVALUATION_INTERNAL_SECRET;
-    if (!secret || request.headers.get("x-tracify-evaluation-secret") !== secret) return new Response("Unauthorized", { status: 401 });
+    if (!secret || request.headers.get("x-uncoil-evaluation-secret") !== secret) return new Response("Unauthorized", { status: 401 });
     let body: ExecutionBody;
     try { body = await request.json() as ExecutionBody; } catch { return Response.json({ error: "Invalid JSON" }, { status: 422 }); }
     if (!body.projectId || !body.traceId || !body.spanId) return Response.json({ error: "projectId, traceId, and spanId are required" }, { status: 422 });

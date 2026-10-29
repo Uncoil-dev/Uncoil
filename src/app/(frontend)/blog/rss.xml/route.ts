@@ -16,7 +16,7 @@ function formatRssDate(dateString: string) {
 }
 
 export async function GET() {
-  const baseUrl = "https://www.tracify.tech";
+  const baseUrl = "https://www.uncoil.dev";
   const posts = await getPublishedPosts();
   const items = posts
     .filter((post) => post.slug)
@@ -37,9 +37,9 @@ export async function GET() {
   const rss = `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-  <title>Tracify Blog</title>
+  <title>Uncoil Blog</title>
   <link>${baseUrl}/blog</link>
-  <description>Engineering insights, agent patterns, and production AI from the Tracify team.</description>
+  <description>Engineering insights, agent patterns, and production AI from the Uncoil team.</description>
   <language>en</language>
   <lastBuildDate>${formatRssDate(new Date().toISOString())}</lastBuildDate>
   <atom:link href="${baseUrl}/blog/rss.xml" rel="self" type="application/rss+xml"/>

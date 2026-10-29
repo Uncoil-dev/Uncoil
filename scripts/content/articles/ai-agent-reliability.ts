@@ -7,7 +7,7 @@ export const buildArticle = (mediaIdBySlug: Record<string, number>) => buildLong
   audience: "engineers and leaders designing agent workflows that must behave safely under uncertainty",
   framework: "Classify, Contain, Recover, Escalate, Learn",
   outcome: "a predictable response to expected failures without exposing users to uncontrolled actions",
-  tracifyLink: "/product/failures",
+  uncoilLink: "/product/failures",
   related: ["debug-ai-agents-in-production", "llm-tracing-explained"],
   topics: ["Build a useful failure taxonomy", "Bound retries by risk", "Design guardrails as workflow controls", "Escalate with the right context", "Learn from recovery paths"],
   signals: ["failure category and impact", "attempt count, backoff, and terminal state", "policy checks and blocked actions", "handoff completeness and resolution time", "repeat failures and recovery effectiveness"],

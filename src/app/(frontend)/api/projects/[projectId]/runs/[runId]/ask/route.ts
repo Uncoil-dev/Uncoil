@@ -15,13 +15,13 @@ export const maxDuration = 30;
 const recent = new Map<string, number[]>();
 
 function limit(name: string, fallback: number) {
-  const value = Number(process.env[name] ?? fallback);
+  const value = Number((process.env[name] ?? process.env[name.replace("UNCOIL_", "TRACIFY_")]) ?? fallback);
   return Number.isFinite(value) ? Math.min(1000, Math.max(1, Math.floor(value))) : fallback;
 }
 
 /** Key order: dedicated Ask AI key, then OpenAI, then Anthropic. The key's own prefix decides the provider. */
 function askKey() {
-  return process.env.TRACIFY_ASK_AI_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || "";
+  return (process.env.UNCOIL_ASK_AI_API_KEY ?? process.env.TRACIFY_ASK_AI_API_KEY) || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || "";
 }
 
 /** An alternate OpenAI-compatible provider (allowed models only) is used when its key is set; then OpenAI, which can cost money, is not used at all. */
@@ -36,7 +36,7 @@ async function askClaude(apiKey: string, spans: AskSpan[], question: string, his
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: process.env.TRACIFY_ASK_AI_MODEL || "claude-haiku-5-5", max_tokens: 600, system: SYSTEM_PROMPT, messages: [{ role: "user", content: buildUserMessage(spans, question, history) }] }),
+      body: JSON.stringify({ model: (process.env.UNCOIL_ASK_AI_MODEL ?? process.env.TRACIFY_ASK_AI_MODEL) || "claude-haiku-5-5", max_tokens: 600, system: SYSTEM_PROMPT, messages: [{ role: "user", content: buildUserMessage(spans, question, history) }] }),
       signal: AbortSignal.timeout(20_000),
     });
     if (!response.ok) {
@@ -59,7 +59,7 @@ async function askModel(spans: AskSpan[], question: string, history: AskTurn[]):
     if (claude.text) return { answer: resolveCitations(claude.text, spans) };
     return { answer: null, busy: claude.busy };
   }
-  const result = await completeWithFallback("Ask AI", { alt: altKey() || undefined, openai: altKey() ? undefined : apiKey || undefined }, { alt: process.env.ASK_AI_ALT_MODEL, openai: process.env.TRACIFY_ASK_AI_MODEL }, { system: SYSTEM_PROMPT, user: buildUserMessage(spans, question, history), temperature: 0.2, maxOutputTokens: 1500, timeoutMs: 25_000 });
+  const result = await completeWithFallback("Ask AI", { alt: altKey() || undefined, openai: altKey() ? undefined : apiKey || undefined }, { alt: process.env.ASK_AI_ALT_MODEL, openai: (process.env.UNCOIL_ASK_AI_MODEL ?? process.env.TRACIFY_ASK_AI_MODEL) }, { system: SYSTEM_PROMPT, user: buildUserMessage(spans, question, history), temperature: 0.2, maxOutputTokens: 1500, timeoutMs: 25_000 });
   if (result.text) return { answer: resolveCitations(result.text, spans) };
   return { answer: null, busy: result.failures.some((failure) => failure === "rate" || failure === "quota") };
 }
@@ -79,15 +79,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
   if (!run) return NextResponse.json({ error: "Run not found" }, { status: 404 });
 
   // Each question can cost real money, so cap them per project: in memory per server, and shared through Redis when set.
-  const perMinute = limit("TRACIFY_ASK_AI_PER_MINUTE", 12);
-  const perDay = limit("TRACIFY_ASK_AI_PER_DAY", 300);
+  const perMinute = limit("UNCOIL_ASK_AI_PER_MINUTE", 12);
+  const perDay = limit("UNCOIL_ASK_AI_PER_DAY", 300);
   const now = Date.now();
   const hits = (recent.get(projectId) ?? []).filter((time) => now - time < 60_000);
   if (hits.length >= perMinute) return NextResponse.json({ error: "Too many questions. Please wait a moment." }, { status: 429 });
   recent.set(projectId, [...hits, now]);
   try {
-    const minute = await consumeRateLimit(`tracify:askai:min:${projectId}`, 1, perMinute, 60);
-    const day = await consumeRateLimit(`tracify:askai:day:${projectId}:${new Date(now).toISOString().slice(0, 10)}`, 1, perDay, 86_400);
+    const minute = await consumeRateLimit(`uncoil:askai:min:${projectId}`, 1, perMinute, 60);
+    const day = await consumeRateLimit(`uncoil:askai:day:${projectId}:${new Date(now).toISOString().slice(0, 10)}`, 1, perDay, 86_400);
     if (!minute.allowed || !day.allowed) return NextResponse.json({ error: !day.allowed ? "This project has reached today's Ask AI limit." : "Too many questions. Please wait a moment." }, { status: 429 });
   } catch {
     // Redis is optional; the in-memory guard stays active.

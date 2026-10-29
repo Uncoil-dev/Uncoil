@@ -1,0 +1,69 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="46" font-size="28" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Parea vs Uncoil — two stages of one lifecycle
+  </text>
+  <text x="600" y="72" font-size="14" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Development-time prompt work feeds production observability, which feeds the next round of development
+  </text>
+
+  <!-- Development stage: Parea -->
+  <rect x="60" y="110" width="480" height="380" fill="#0a0a0a" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="300" y="142" font-size="18" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">DEVELOPMENT — Parea AI</text>
+  <text x="300" y="163" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Before the prompt ever sees a real user</text>
+
+  <rect x="90" y="185" width="420" height="46" fill="#151515" stroke="#666666" stroke-width="1"/>
+  <text x="110" y="213" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">1. Draft &amp; version the prompt</text>
+
+  <rect x="90" y="241" width="420" height="46" fill="#151515" stroke="#666666" stroke-width="1"/>
+  <text x="110" y="269" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">2. Build a golden test dataset</text>
+
+  <rect x="90" y="297" width="420" height="46" fill="#151515" stroke="#666666" stroke-width="1"/>
+  <text x="110" y="325" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">3. Run offline experiments &amp; scoring</text>
+
+  <rect x="90" y="353" width="420" height="46" fill="#151515" stroke="#666666" stroke-width="1"/>
+  <text x="110" y="381" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">4. Compare versions, pick a winner</text>
+
+  <rect x="90" y="415" width="420" height="60" fill="#151515" stroke="#FFFFFF" stroke-width="1"/>
+  <text x="110" y="440" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Output</text>
+  <text x="110" y="463" font-size="15" fill="#FFFFFF" font-family="'Geist Mono', monospace" font-weight="bold">An approved prompt version, ready to ship</text>
+
+  <!-- Production stage: Uncoil -->
+  <rect x="660" y="110" width="480" height="380" fill="#1a1a08" stroke="#FFFF00" stroke-width="2"/>
+  <text x="900" y="142" font-size="18" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">PRODUCTION — Uncoil</text>
+  <text x="900" y="163" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Once real users and real agents are involved</text>
+
+  <rect x="690" y="185" width="420" height="46" fill="#0f0f00" stroke="#FFFF00" stroke-width="1"/>
+  <text x="710" y="213" font-size="13" fill="#FFFF00" font-family="'Geist Mono', monospace">5. Trace every span, tool call, session</text>
+
+  <rect x="690" y="241" width="420" height="46" fill="#0f0f00" stroke="#FFFF00" stroke-width="1"/>
+  <text x="710" y="269" font-size="13" fill="#FFFF00" font-family="'Geist Mono', monospace">6. Evaluate live traffic continuously</text>
+
+  <rect x="690" y="297" width="420" height="46" fill="#0f0f00" stroke="#FFFF00" stroke-width="1"/>
+  <text x="710" y="325" font-size="13" fill="#FFFF00" font-family="'Geist Mono', monospace">7. Track real cost per call &amp; session</text>
+
+  <rect x="690" y="353" width="420" height="46" fill="#0f0f00" stroke="#FFFF00" stroke-width="1"/>
+  <text x="710" y="381" font-size="13" fill="#FFFF00" font-family="'Geist Mono', monospace">8. Alert on quality &amp; cost regressions</text>
+
+  <rect x="690" y="415" width="420" height="60" fill="#0f0f00" stroke="#FFFF00" stroke-width="1"/>
+  <text x="710" y="440" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Output</text>
+  <text x="710" y="463" font-size="15" fill="#FFFF00" font-family="'Geist Mono', monospace" font-weight="bold">Failure cases, cost outliers, drift signals</text>
+
+  <!-- Deploy arrow -->
+  <line x1="540" y1="300" x2="655" y2="300" stroke="#FFFFFF" stroke-width="2"/>
+  <polygon points="655,300 640,292 640,308" fill="#FFFFFF"/>
+  <text x="597" y="288" font-size="12" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">deploy</text>
+
+  <!-- Feedback arrow -->
+  <path d="M 900 490 C 900 560, 300 560, 300 490" stroke="#FFFF00" stroke-width="2" fill="none"/>
+  <polygon points="300,490 292,505 308,505" fill="#FFFF00"/>
+  <text x="600" y="545" font-size="13" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">production failures become the next test dataset</text>
+
+  <text x="600" y="600" font-size="13" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Parea owns the loop on the left. Uncoil owns the loop on the right. The feedback arrow is the part most teams skip.
+  </text>
+  <text x="600" y="660" font-size="12" fill="#777777" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Full scenario detail, architecture, and cost breakdown in the article below
+  </text>
+</svg>

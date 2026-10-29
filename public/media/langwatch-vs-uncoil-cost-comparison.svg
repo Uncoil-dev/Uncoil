@@ -1,0 +1,81 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="46" font-size="26" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Total Cost of Ownership: Self-Hosted vs Managed
+  </text>
+  <text x="600" y="72" font-size="13" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Monthly cost, fully loaded (infrastructure + engineering time at $200/hr)
+  </text>
+
+  <!-- Gridlines + y-axis labels -->
+  <line x1="110" y1="620" x2="1110" y2="620" stroke="#333333" stroke-width="1"/>
+  <line x1="110" y1="525" x2="1110" y2="525" stroke="#222222" stroke-width="1"/>
+  <line x1="110" y1="430" x2="1110" y2="430" stroke="#222222" stroke-width="1"/>
+  <line x1="110" y1="335" x2="1110" y2="335" stroke="#222222" stroke-width="1"/>
+  <line x1="110" y1="240" x2="1110" y2="240" stroke="#222222" stroke-width="1"/>
+
+  <text x="100" y="624" font-size="11" fill="#888888" text-anchor="end" font-family="'Geist Mono', monospace">$0</text>
+  <text x="100" y="529" font-size="11" fill="#888888" text-anchor="end" font-family="'Geist Mono', monospace">$2,500</text>
+  <text x="100" y="434" font-size="11" fill="#888888" text-anchor="end" font-family="'Geist Mono', monospace">$5,000</text>
+  <text x="100" y="339" font-size="11" fill="#888888" text-anchor="end" font-family="'Geist Mono', monospace">$7,500</text>
+  <text x="100" y="244" font-size="11" fill="#888888" text-anchor="end" font-family="'Geist Mono', monospace">$10,000</text>
+
+  <!-- SMALL SCALE GROUP: 300K requests/month -->
+  <!-- LangWatch small: infra $300 + ops $2,000 = $2,300 -->
+  <rect x="150" y="608.6" width="140" height="11.4" fill="#4444CC" stroke="#8888FF" stroke-width="1"/>
+  <rect x="150" y="532.6" width="140" height="76" fill="#8888FF" stroke="#8888FF" stroke-width="1"/>
+  <text x="220" y="518" font-size="15" font-weight="bold" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">$2,300</text>
+  <text x="220" y="655" font-size="12" fill="#8888FF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">LangWatch</text>
+  <text x="220" y="670" font-size="10" fill="#8888FF" text-anchor="middle" font-family="'Geist Mono', monospace">self-hosted</text>
+
+  <!-- Uncoil small: $300 total, usage-based -->
+  <rect x="310" y="608.6" width="140" height="11.4" fill="#22AA22" stroke="#44FF44" stroke-width="1"/>
+  <text x="380" y="596" font-size="15" font-weight="bold" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">$300</text>
+  <text x="380" y="655" font-size="12" fill="#44FF44" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil</text>
+  <text x="380" y="670" font-size="10" fill="#44FF44" text-anchor="middle" font-family="'Geist Mono', monospace">managed</text>
+
+  <text x="300" y="695" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">SMALL SCALE — 300K requests/mo, 3-engineer team</text>
+
+  <!-- gap annotation small -->
+  <line x1="450" y1="600" x2="490" y2="600" stroke="#FFD400" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="470" y="585" font-size="12" font-weight="bold" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">7.7×</text>
+
+  <!-- LARGE SCALE GROUP: 3M requests/month -->
+  <!-- LangWatch large: infra $2,500 + ops $8,000 = $10,500 -->
+  <rect x="650" y="525" width="140" height="95" fill="#4444CC" stroke="#8888FF" stroke-width="1"/>
+  <rect x="650" y="221" width="140" height="304" fill="#8888FF" stroke="#8888FF" stroke-width="1"/>
+  <text x="720" y="206" font-size="15" font-weight="bold" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">$10,500</text>
+  <text x="720" y="655" font-size="12" fill="#8888FF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">LangWatch</text>
+  <text x="720" y="670" font-size="10" fill="#8888FF" text-anchor="middle" font-family="'Geist Mono', monospace">self-hosted</text>
+
+  <!-- Uncoil large: usage $3,000 + ops $400 = $3,400 -->
+  <rect x="810" y="490.8" width="140" height="15.2" fill="#22AA22" stroke="#44FF44" stroke-width="1"/>
+  <rect x="810" y="376.8" width="140" height="114" fill="#44FF44" stroke="#44FF44" stroke-width="1"/>
+  <text x="880" y="362" font-size="15" font-weight="bold" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">$3,400</text>
+  <text x="880" y="655" font-size="12" fill="#44FF44" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil</text>
+  <text x="880" y="670" font-size="10" fill="#44FF44" text-anchor="middle" font-family="'Geist Mono', monospace">managed</text>
+
+  <text x="800" y="695" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">LARGE SCALE — 3M requests/mo, 12-engineer team</text>
+
+  <!-- gap annotation large -->
+  <line x1="950" y1="380" x2="990" y2="380" stroke="#FFD400" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="1035" y="360" font-size="12" font-weight="bold" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">3.1×</text>
+  <text x="1035" y="376" font-size="10" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">$7,100/mo</text>
+  <text x="1035" y="390" font-size="10" fill="#FFD400" text-anchor="middle" font-family="'Geist Mono', monospace">wider gap</text>
+
+  <!-- Legend -->
+  <rect x="150" y="120" width="16" height="16" fill="#4444CC"/>
+  <text x="172" y="133" font-size="11" fill="#CCCCCC" font-family="'Geist Mono', monospace">Infrastructure (compute, storage, DB)</text>
+
+  <rect x="470" y="120" width="16" height="16" fill="#8888FF"/>
+  <text x="492" y="133" font-size="11" fill="#CCCCCC" font-family="'Geist Mono', monospace">Engineering ops time @ $200/hr</text>
+
+  <rect x="770" y="120" width="16" height="16" fill="#22AA22"/>
+  <text x="792" y="133" font-size="11" fill="#CCCCCC" font-family="'Geist Mono', monospace">Per-trace usage ($0.001/trace)</text>
+
+  <rect x="1010" y="120" width="16" height="16" fill="#44FF44"/>
+  <text x="1032" y="133" font-size="11" fill="#CCCCCC" font-family="'Geist Mono', monospace" text-anchor="start">Managed ops</text>
+
+  <text x="600" y="98" font-size="11" fill="#666666" text-anchor="middle" font-family="'Geist Mono', monospace">LangWatch: infra + 10-40 eng-hours/mo · Uncoil: $0.001/trace + ~1-2 eng-hours/mo</text>
+</svg>

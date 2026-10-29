@@ -18,7 +18,7 @@ const faqs: Faq[] = [
   { q: "Is my data sent anywhere?", a: "No. The repair runs in your browser." },
   { q: "Can it fix cut-off JSON?", a: "Yes. It closes open strings, lists and objects where the text stops, and drops a half-written final entry. It does not guess the missing data." },
   { q: "Why does my model return invalid JSON?", a: "Long outputs get truncated, models add explanations, or the prompt does not constrain the format. Use structured outputs or a JSON schema, and validate with a retry." },
-  { q: "How do I find out how often this happens?", a: "Tracify traces every model call, so you can see how often outputs fail to parse and which prompts cause it." },
+  { q: "How do I find out how often this happens?", a: "Uncoil traces every model call, so you can see how often outputs fail to parse and which prompts cause it." },
 ];
 
 export default function Page() {

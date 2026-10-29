@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 
 test.describe("authenticated journey", () => {
-test.skip(process.env.TRACIFY_E2E_AUTH !== "1", "Set TRACIFY_E2E_AUTH=1 with a cloud-auth test host to run the live journey.");
+test.skip(process.env.UNCOIL_E2E_AUTH !== "1", "Set UNCOIL_E2E_AUTH=1 with a cloud-auth test host to run the live journey.");
 
 test("authenticated onboarding to investigation journey", async ({ page, request }) => {
   test.setTimeout(120_000);
@@ -12,7 +12,7 @@ test("authenticated onboarding to investigation journey", async ({ page, request
 
   const identity = `playwright-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const email = `${identity}@example.test`;
-  const credential = process.env.TRACIFY_E2E_PASSWORD ?? randomUUID();
+  const credential = process.env.UNCOIL_E2E_PASSWORD ?? randomUUID();
   let apiKey = "";
   let projectId = "";
   let runId = "";
@@ -35,8 +35,8 @@ test("authenticated onboarding to investigation journey", async ({ page, request
     await page.getByLabel("Project name").fill(`Playwright QA ${identity}`);
     await page.getByRole("button", { name: "Create project" }).click();
     await expect(page).toHaveURL(/\/onboarding\/api-key$/, { timeout: 30_000 });
-    apiKey = (await page.getByText(/^tracify_sk_live_/).textContent())?.trim() ?? "";
-    expect(apiKey).toMatch(/^tracify_sk_live_/);
+    apiKey = (await page.getByText(/^uncoil_sk_live_/).textContent())?.trim() ?? "";
+    expect(apiKey).toMatch(/^uncoil_sk_live_/);
     await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: new URL(page.url()).origin });
     await page.getByRole("button", { name: "Copy key" }).click();
     await page.getByRole("button", { name: "Continue" }).click();

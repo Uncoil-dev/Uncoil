@@ -1,7 +1,7 @@
 ---
 slug: agent-setup
-title: Set up Tracify with your coding agent
-description: Copy one prompt into Claude Code, Cursor or Codex and it installs Tracify, signs you in from the terminal, and sends a first trace.
+title: Set up Uncoil with your coding agent
+description: Copy one prompt into Claude Code, Cursor or Codex and it installs Uncoil, signs you in from the terminal, and sends a first trace.
 section: Start here
 order: 3
 contentType: quickstart
@@ -10,24 +10,24 @@ relatedDocs:
   - troubleshooting
 ---
 
-# Set up Tracify with your coding agent
+# Set up Uncoil with your coding agent
 
 Paste the prompt below into Claude Code, Cursor or Codex, run inside your agent project. It installs the SDK, signs you in, adds one line of code and checks that a trace arrives. You do the one thing an agent cannot do for you: approve the sign-in in your browser.
 
 ## The prompt
 
 ```text
-Set up Tracify tracing in this project. Tracify records every model call and tool call of an AI agent so I can debug it. Follow these steps in order and stop to tell me if one fails.
+Set up Uncoil tracing in this project. Uncoil records every model call and tool call of an AI agent so I can debug it. Follow these steps in order and stop to tell me if one fails.
 
 1. Look at the project first. Find out whether it is TypeScript/JavaScript or Python, and which model SDK it uses (openai, @anthropic-ai/sdk, Vercel AI SDK, LangChain/LangGraph, or something else). Tell me in one line what you found.
 
 2. Install the SDK.
-   - JavaScript/TypeScript: install the package "tracify-sdk" with the project's own package manager (npm, pnpm, yarn or bun). Careful: the package called "tracify" is a different, unrelated project. Only ever use "tracify-sdk".
-   - Python: pip install tracify-sdk (use the project's own tool, such as uv or poetry, if it has one).
+   - JavaScript/TypeScript: install the package "uncoil-sdk" with the project's own package manager (npm, pnpm, yarn or bun). Careful: the package called "uncoil" is a different, unrelated project. Only ever use "uncoil-sdk".
+   - Python: pip install uncoil-sdk (use the project's own tool, such as uv or poetry, if it has one).
 
-3. Sign me in. Run: npx tracify-sdk login
+3. Sign me in. Run: npx uncoil-sdk login
    - It prints a web address and a short code. Show both to me, then wait for the command to finish. I will open the page, sign in or create my free account, and pick or create a project.
-   - Do not ask me to paste a key, and never invent or hard-code one. The command writes TRACIFY_API_KEY and TRACIFY_PROJECT_ID into .env.local for me.
+   - Do not ask me to paste a key, and never invent or hard-code one. The command writes UNCOIL_API_KEY and UNCOIL_PROJECT_ID into .env.local for me.
    - Add --no-browser if you are running somewhere without a browser. Add --region us if I asked for US data storage.
    - When it succeeds it prints: Connected to project "<name>". Tell me that project name.
 
@@ -37,28 +37,28 @@ Set up Tracify tracing in this project. Tracify records every model call and too
 
 5. Add tracing. Keep the change small.
    - JavaScript/TypeScript with openai or @anthropic-ai/sdk: call init() once at startup, before the first model call:
-       import { init } from "tracify-sdk";
+       import { init } from "uncoil-sdk";
        init();
-   - Vercel AI SDK: wrap the model with tracifyMiddleware() from "tracify-sdk".
-   - LangChain/LangGraph: pass callbacks: [new TracifyLangGraphHandler()].
-   - Python, or anything else: follow https://tracify.tech/docs/python or https://tracify.tech/docs/typescript and wrap the agent entry point with trace_agent / traceAgent.
+   - Vercel AI SDK: wrap the model with uncoilMiddleware() from "uncoil-sdk".
+   - LangChain/LangGraph: pass callbacks: [new UncoilLangGraphHandler()].
+   - Python, or anything else: follow https://uncoil.dev/docs/python or https://uncoil.dev/docs/typescript and wrap the agent entry point with trace_agent / traceAgent.
    Do not add the same call twice. Never put the key in browser/client code.
 
-6. Check the setup. Run: npx tracify-sdk doctor
-   (Python: tracify-doctor). It must print the project name under "Traces will land in" and send one test trace. If it fails, read its message, fix the cause and run it again. If it says the key and project do not match, run step 3 again in this folder.
+6. Check the setup. Run: npx uncoil-sdk doctor
+   (Python: uncoil-doctor). It must print the project name under "Traces will land in" and send one test trace. If it fails, read its message, fix the cause and run it again. If it says the key and project do not match, run step 3 again in this folder.
 
-7. Run the agent once for real, then tell me: which files you changed, the project name from step 6, and where to look: https://tracify.tech/dashboard (open that project, then Tracing). Do not change anything else.
+7. Run the agent once for real, then tell me: which files you changed, the project name from step 6, and where to look: https://uncoil.dev/dashboard (open that project, then Tracing). Do not change anything else.
 ```
 
 ## What happens when you run it
 
-1. The agent reads your project and installs `tracify-sdk`.
-2. It runs `npx tracify-sdk login`. The terminal shows a link and a short code like `ABCD-EFGH`. Open the link, sign in or sign up, and pick the project this folder should send to. Nothing is typed into the terminal, so the agent never waits on input.
-3. The command saves `TRACIFY_API_KEY` and `TRACIFY_PROJECT_ID` to `.env.local` in that folder and adds the file to `.gitignore` if needed. Each folder keeps its own project, so two repos can use two projects.
-4. The agent adds `init()` (or the matching helper for your framework), runs `npx tracify-sdk doctor`, and runs your agent once.
+1. The agent reads your project and installs `uncoil-sdk`.
+2. It runs `npx uncoil-sdk login`. The terminal shows a link and a short code like `ABCD-EFGH`. Open the link, sign in or sign up, and pick the project this folder should send to. Nothing is typed into the terminal, so the agent never waits on input.
+3. The command saves `UNCOIL_API_KEY` and `UNCOIL_PROJECT_ID` to `.env.local` in that folder and adds the file to `.gitignore` if needed. Each folder keeps its own project, so two repos can use two projects.
+4. The agent adds `init()` (or the matching helper for your framework), runs `npx uncoil-sdk doctor`, and runs your agent once.
 5. Your first trace appears in the project you picked.
 
-No account means no key, and no key means no data: Tracify refuses traces without a valid key from a signed-in account.
+No account means no key, and no key means no data: Uncoil refuses traces without a valid key from a signed-in account.
 
 ## Where to paste it
 
@@ -68,13 +68,13 @@ No account means no key, and no key means no data: Tracify refuses traces withou
 | Cursor | Open the project, open Agent chat, choose Agent mode, and paste the prompt. |
 | Codex | Run `codex` in your project folder (or open it in the Codex app) and paste the prompt. |
 
-The agent may ask permission to run `npx`, install packages, and edit files. Approve those. If it asks for a key, tell it to run `npx tracify-sdk login` instead.
+The agent may ask permission to run `npx`, install packages, and edit files. Approve those. If it asks for a key, tell it to run `npx uncoil-sdk login` instead.
 
 ## If something goes wrong
 
-- **No link appears.** Run `npx tracify-sdk login --no-browser` yourself and open the printed link on any device. The code expires after 10 minutes; run the command again for a new one.
-- **Traces land in the wrong project.** Run `npx tracify-sdk doctor`. It names the project the key belongs to. Run `npx tracify-sdk login` in this folder to switch.
-- **`TRACIFY_API_KEY is not set`.** Plain Node and Python do not read `.env.local` by themselves. Use `node --env-file=.env.local app.js` or python-dotenv.
+- **No link appears.** Run `npx uncoil-sdk login --no-browser` yourself and open the printed link on any device. The code expires after 10 minutes; run the command again for a new one.
+- **Traces land in the wrong project.** Run `npx uncoil-sdk doctor`. It names the project the key belongs to. Run `npx uncoil-sdk login` in this folder to switch.
+- **`UNCOIL_API_KEY is not set`.** Plain Node and Python do not read `.env.local` by themselves. Use `node --env-file=.env.local app.js` or python-dotenv.
 - **Nothing shows up after a minute.** Follow [Troubleshoot your first trace](/docs/troubleshooting).
 
 Prefer to do it by hand? The [quickstart](/docs/quickstart) shows every step.

@@ -1,10 +1,10 @@
 export const CONSENT_VERSION = "2026-09-02";
 export type ConsentState = { version: string; analytics: boolean; marketing: boolean };
-export const CONSENT_KEY = "tracify.consent";
+export const CONSENT_KEY = "uncoil.consent";
 // Analytics is enabled by default; marketing remains opt-in. Users can reject analytics from the banner.
 export const defaultConsent: ConsentState = { version: CONSENT_VERSION, analytics: true, marketing: false };
 
-export const CONSENT_EVENT = "tracify:consent" as const;
+export const CONSENT_EVENT = "uncoil:consent" as const;
 export type ConsentEvent = CustomEvent<ConsentState>;
 
 export function hasCurrentConsent(): boolean {

@@ -18,7 +18,7 @@ const faqs: Faq[] = [
   { q: "How are the savings calculated?", a: "The tool counts tokens before and after with the real OpenAI tokenizer and scales for other model families. It is a measured difference for your text, not a guess." },
   { q: "What is prompt caching and why does it matter?", a: "Providers charge much less for the identical start of a prompt they have seen recently. Putting dates, ids and user details near the top breaks that, so move changing values to the end." },
   { q: "Is my prompt stored?", a: "No. It is processed in your browser only." },
-  { q: "What else cuts cost besides shorter prompts?", a: "Fewer model calls per task, a cheaper model for easy steps, capped output length and fewer retries. Tracify shows which of these your agent spends the most on." },
+  { q: "What else cuts cost besides shorter prompts?", a: "Fewer model calls per task, a cheaper model for easy steps, capped output length and fewer retries. Uncoil shows which of these your agent spends the most on." },
 ];
 
 export default function Page() {

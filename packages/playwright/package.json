@@ -1,7 +1,7 @@
 {
-  "name": "@tracify/playwright",
+  "name": "@uncoil/playwright",
   "version": "0.1.0",
-  "description": "Playwright reporter and event contract for Tracify agent observability.",
+  "description": "Playwright reporter and event contract for Uncoil agent observability.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

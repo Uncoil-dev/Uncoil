@@ -5,7 +5,7 @@ type DocsSidebarItem = { slug: string; title: string; section: string };
 export function DocsSidebar({ docs, activeSlug }: { docs: DocsSidebarItem[]; activeSlug?: string }) {
   return <aside className="border-b border-black bg-[#eceae3] lg:sticky lg:top-16 lg:h-[calc(100vh-9rem)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r">
     <details className="group lg:hidden"><summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-5 font-mono text-[10px] uppercase tracking-[.13em]"><span>Browse documentation</span><span className="group-open:rotate-45">+</span></summary><DocsNavigation docs={docs} activeSlug={activeSlug} /></details>
-    <div className="hidden p-6 lg:block"><Link href="/docs" className={`block font-pixel text-2xl tracking-[-.06em] ${activeSlug ? "" : "bg-[#f4d44d] px-2"}`}>tracify docs</Link><DocsNavigation docs={docs} activeSlug={activeSlug} /></div>
+    <div className="hidden p-6 lg:block"><Link href="/docs" className={`block font-pixel text-2xl tracking-[-.06em] ${activeSlug ? "" : "bg-[#f4d44d] px-2"}`}>uncoil docs</Link><DocsNavigation docs={docs} activeSlug={activeSlug} /></div>
   </aside>;
 }
 

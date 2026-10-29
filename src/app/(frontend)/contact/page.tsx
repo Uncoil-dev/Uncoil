@@ -8,10 +8,10 @@ import { ClosingBand, CreamBand, DarkBand, Eyebrow, HeaderAction, SectionTitle ,
 import { CopyButton } from "@/components/marketing/company/copy-button";
 
 import { FitCheck } from "@/components/marketing/company/fit-check";
-export const metadata = pageMetadata({ title: "Contact the Tracify team", description: "Book an Agent Failure Fit Call or talk to Tracify about agent observability, security, and deployment.", path: "/contact" });
+export const metadata = pageMetadata({ title: "Contact the Uncoil team", description: "Book an Agent Failure Fit Call or talk to Uncoil about agent observability, security, and deployment.", path: "/contact" });
 
 const fitCallSubject = "Agent Failure Fit Call";
-const fitCallBody = `Hi Tracify,
+const fitCallBody = `Hi Uncoil,
 
 I would like to book a 20-minute Agent Failure Fit Call.
 
@@ -21,12 +21,12 @@ Framework or stack:
 Sanitized staging evidence available:
 Preferred times and timezone:`;
 
-const fitCallHref = `mailto:hello@tracify.tech?subject=${encodeURIComponent(fitCallSubject)}&body=${encodeURIComponent(fitCallBody)}`;
+const fitCallHref = `mailto:hello@uncoil.dev?subject=${encodeURIComponent(fitCallSubject)}&body=${encodeURIComponent(fitCallBody)}`;
 
 const routes = [
   {
     title: "Agent Failure Fit Call",
-    body: "A free 20-minute qualification call. Bring the symptom and your stack; we will decide whether Tracify can investigate it, what sanitized evidence is required, and whether the paid review fits. The call does not include written findings, regression cases, or a release recommendation.",
+    body: "A free 20-minute qualification call. Bring the symptom and your stack; we will decide whether Uncoil can investigate it, what sanitized evidence is required, and whether the paid review fits. The call does not include written findings, regression cases, or a release recommendation.",
     icon: Mail,
     href: fitCallHref,
     action: "Book the fit call",
@@ -36,7 +36,7 @@ const routes = [
     title: "Enterprise",
     body: "Architecture, security, procurement, and rollout planning.",
     icon: MessagesSquare,
-    href: `mailto:hello@tracify.tech?subject=${encodeURIComponent("Tracify Enterprise inquiry")}`,
+    href: `mailto:hello@uncoil.dev?subject=${encodeURIComponent("Uncoil Enterprise inquiry")}`,
     action: "Email enterprise",
     featured: false,
   },
@@ -44,7 +44,7 @@ const routes = [
     title: "Security",
     body: "Responsible disclosure and data-handling questions.",
     icon: ShieldCheck,
-    href: `mailto:security@tracify.tech?subject=${encodeURIComponent("Tracify Security inquiry")}`,
+    href: `mailto:security@uncoil.dev?subject=${encodeURIComponent("Uncoil Security inquiry")}`,
     action: "Email security",
     featured: false,
   },
@@ -162,7 +162,7 @@ export default function ContactPage() {
 
       <ClosingBand
         title="Prefer to look first?"
-        body="Open the demo project, or read how Tracify keeps your telemetry safe."
+        body="Open the demo project, or read how Uncoil keeps your telemetry safe."
         actions={[
           { href: appHref("/demo/project"), label: "Open the demo", primary: true },
           { href: "/security", label: "Review security" },

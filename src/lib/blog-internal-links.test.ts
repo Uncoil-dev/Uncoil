@@ -63,6 +63,6 @@ test("reports generic and bare anchors", () => {
   );
 });
 
-test("the published Tracify corpus satisfies the internal-link contract", () => {
+test("the published Uncoil corpus satisfies the internal-link contract", () => {
   assert.deepEqual(validateBlogInternalLinks(getAllPosts()), []);
 });

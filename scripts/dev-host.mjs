@@ -1,9 +1,9 @@
 /**
- * Run one Tracify host locally, mirroring how production is split.
+ * Run one Uncoil host locally, mirroring how production is split.
  *
  * Production serves two different applications from this one codebase:
- * www.tracify.tech (marketing) and eu.cloud.tracify.tech (the cloud app).
- * Which one you get is decided by NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND, so a
+ * www.uncoil.dev (marketing) and eu.cloud.uncoil.dev (the cloud app).
+ * Which one you get is decided by NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND, so a
  * single dev server can only ever be one of them — and a `cloud` server
  * redirects all marketing routes away, while a `marketing` server redirects
  * /dashboard to the region selector.
@@ -22,7 +22,7 @@ const HOSTS = {
   marketing: {
     port: 3000,
     env: {
-      NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND: "marketing",
+      NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND: "marketing",
       NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
     },
   },
@@ -30,9 +30,9 @@ const HOSTS = {
     port: 4000,
     env: {
       NEXT_DIST_DIR: ".next-cloud",
-      NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND: "cloud",
-      NEXT_PUBLIC_TRACIFY_REGION: "eu",
-      TRACIFY_REGION: "eu",
+      NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND: "cloud",
+      NEXT_PUBLIC_UNCOIL_REGION: "eu",
+      UNCOIL_REGION: "eu",
       NEXT_PUBLIC_SITE_URL: "http://localhost:4000",
     },
   },

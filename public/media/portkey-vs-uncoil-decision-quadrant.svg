@@ -1,0 +1,67 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="44" font-size="27" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Do you need routing, observability, or both?
+  </text>
+  <text x="600" y="70" font-size="14" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Plot your system against the two needs — most production teams land in the top-right
+  </text>
+
+  <!-- Axes -->
+  <line x1="180" y1="600" x2="1050" y2="600" stroke="#666666" stroke-width="1.5"/>
+  <line x1="180" y1="600" x2="180" y2="110" stroke="#666666" stroke-width="1.5"/>
+
+  <text x="615" y="642" font-size="13" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Need for multi-provider routing / failover →</text>
+  <text x="150" y="360" font-size="13" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace" transform="rotate(-90 150 360)">Need for deep observability / evaluation →</text>
+
+  <!-- quadrant divider lines -->
+  <line x1="615" y1="110" x2="615" y2="600" stroke="#333333" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="180" y1="355" x2="1050" y2="355" stroke="#333333" stroke-width="1" stroke-dasharray="5,5"/>
+
+  <!-- Quadrant labels -->
+  <!-- bottom-left: neither / early prototype -->
+  <rect x="205" y="440" width="380" height="135" fill="#0a0a0a" stroke="#444444" stroke-width="1"/>
+  <text x="395" y="470" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Neither, yet</text>
+  <text x="395" y="494" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Single provider, prototype stage,</text>
+  <text x="395" y="512" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">pre-production traffic.</text>
+  <text x="395" y="536" font-size="11" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">console logs + provider dashboard</text>
+  <text x="395" y="556" font-size="11" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">are enough for now</text>
+
+  <!-- bottom-right: Portkey only -->
+  <rect x="640" y="440" width="380" height="135" fill="#0a0a0a" stroke="#FFFF00" stroke-width="1"/>
+  <text x="830" y="470" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Portkey alone</text>
+  <text x="830" y="494" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">High-availability requirement,</text>
+  <text x="830" y="512" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">simple pass/fail success criteria.</text>
+  <text x="830" y="536" font-size="11" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">uptime is the whole job —</text>
+  <text x="830" y="556" font-size="11" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">deep tracing is optional</text>
+
+  <!-- top-left: Uncoil only -->
+  <rect x="205" y="150" width="380" height="180" fill="#0a0a0a" stroke="#FFFF00" stroke-width="1"/>
+  <text x="395" y="182" font-size="14" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Uncoil alone</text>
+  <text x="395" y="208" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Single provider by design or contract,</text>
+  <text x="395" y="226" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">failover/routing not on the roadmap.</text>
+  <text x="395" y="250" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Quality, cost, and regression visibility</text>
+  <text x="395" y="268" font-size="11" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">matter more than where the call routes.</text>
+  <text x="395" y="298" font-size="11" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace">tracing + eval, no proxy hop</text>
+
+  <!-- top-right: Both -->
+  <rect x="640" y="150" width="380" height="180" fill="#1a1a08" stroke="#FFFF00" stroke-width="2"/>
+  <text x="830" y="182" font-size="15" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Both, in production</text>
+  <text x="830" y="208" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Multi-provider, customer-facing,</text>
+  <text x="830" y="226" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">cost and quality both under scrutiny.</text>
+  <text x="830" y="250" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Portkey routes and fails over;</text>
+  <text x="830" y="268" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">Uncoil traces, evaluates, and prices</text>
+  <text x="830" y="286" font-size="11" fill="#CCCCCC" text-anchor="middle" font-family="'Geist Mono', monospace">every call that Portkey routed.</text>
+  <text x="830" y="312" font-size="12" fill="#FFFF00" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">where most mature stacks land</text>
+
+  <!-- axis end labels -->
+  <text x="1050" y="618" font-size="11" fill="#666666" text-anchor="end" font-family="'Geist Mono', monospace">high</text>
+  <text x="200" y="618" font-size="11" fill="#666666" text-anchor="start" font-family="'Geist Mono', monospace">low</text>
+  <text x="195" y="125" font-size="11" fill="#666666" text-anchor="start" font-family="'Geist Mono', monospace">high</text>
+  <text x="195" y="595" font-size="11" fill="#666666" text-anchor="start" font-family="'Geist Mono', monospace">low</text>
+
+  <text x="600" y="678" font-size="12" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    The two axes are independent. Routing needs do not predict observability needs, and vice versa.
+  </text>
+</svg>

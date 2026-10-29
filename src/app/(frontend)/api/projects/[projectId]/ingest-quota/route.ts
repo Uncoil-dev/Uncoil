@@ -6,7 +6,7 @@ import type { Id } from "convex/_generated/dataModel";
 import { getAuthedConvexClient } from "@/lib/convex-server";
 import { peekRateLimit } from "@/lib/redis-cache";
 
-const INGEST_LIMIT_PER_MINUTE = Number(process.env.TRACIFY_INGEST_LIMIT_PER_MINUTE ?? 6_000);
+const INGEST_LIMIT_PER_MINUTE = Number((process.env.UNCOIL_INGEST_LIMIT_PER_MINUTE ?? process.env.TRACIFY_INGEST_LIMIT_PER_MINUTE) ?? 6_000);
 
 export async function GET(
   _req: NextRequest,

@@ -1,10 +1,10 @@
-// Barrel file that registers all Tracify Lit custom elements. Import this
+// Barrel file that registers all Uncoil Lit custom elements. Import this
 // only from Client Components — defining custom elements touches `window`
 // and `customElements`, which don't exist during SSR.
-import "./tracify-filter-chip";
-import "./tracify-filter-bar";
-import "./tracify-trace-map";
+import "./uncoil-filter-chip";
+import "./uncoil-filter-bar";
+import "./uncoil-trace-map";
 
-export { TracifyFilterChip } from "./tracify-filter-chip";
-export { TracifyFilterBar, type FilterFieldOption, type FilterBarFilter } from "./tracify-filter-bar";
-export { TracifyTraceMap, type TraceMapSpan } from "./tracify-trace-map";
+export { UncoilFilterChip } from "./uncoil-filter-chip";
+export { UncoilFilterBar, type FilterFieldOption, type FilterBarFilter } from "./uncoil-filter-bar";
+export { UncoilTraceMap, type TraceMapSpan } from "./uncoil-trace-map";

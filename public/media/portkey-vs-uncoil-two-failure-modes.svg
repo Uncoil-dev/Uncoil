@@ -1,0 +1,62 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <text x="600" y="46" font-size="27" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Two different production failures, two different fixes
+  </text>
+  <text x="600" y="72" font-size="14" fill="#999999" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Illustrative model: 400k calls/month, mixed Claude + GPT-4 traffic
+  </text>
+
+  <!-- Left: outage / reliability failure, Portkey's domain -->
+  <rect x="60" y="105" width="520" height="430" fill="#0a0a0a" stroke="#666666" stroke-width="1"/>
+  <text x="320" y="138" font-size="17" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Failure mode 1: provider outage</text>
+  <text x="320" y="158" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Anthropic returns 529s for 40 minutes</text>
+
+  <text x="90" y="196" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Without a gateway</text>
+  <rect x="90" y="206" width="460" height="46" fill="#1a0505" stroke="#663333" stroke-width="1"/>
+  <text x="106" y="234" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace">Requests fail at the SDK call site. Errors surface to users.</text>
+
+  <text x="90" y="278" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">With Portkey in front</text>
+  <rect x="90" y="288" width="460" height="70" fill="#1a1a08" stroke="#FFFF00" stroke-width="1"/>
+  <text x="106" y="312" font-size="12" fill="#FFFF00" font-family="'Geist Mono', monospace">Gateway detects error budget breach,</text>
+  <text x="106" y="332" font-size="12" fill="#FFFF00" font-family="'Geist Mono', monospace">fails over to a configured backup model</text>
+  <text x="106" y="350" font-size="12" fill="#FFFF00" font-family="'Geist Mono', monospace">automatically. No app code change.</text>
+
+  <rect x="90" y="380" width="460" height="80" fill="#151505" stroke="#666666" stroke-width="1"/>
+  <text x="110" y="404" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Requests protected during the window</text>
+  <text x="110" y="434" font-size="24" fill="#FFFF00" font-family="'Geist Mono', monospace" font-weight="bold">~11,000 calls</text>
+  <text x="330" y="434" font-size="12" fill="#AAAAAA" font-family="'Geist Mono', monospace">(400k/mo ÷ 30 × 40min share)</text>
+
+  <text x="320" y="500" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">This is a routing problem.</text>
+  <text x="320" y="518" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Uncoil does not sit inline, so it cannot fail this over.</text>
+
+  <!-- Right: silent quality/cost bleed, Uncoil's domain -->
+  <rect x="620" y="105" width="520" height="430" fill="#0a0a0a" stroke="#FFFF00" stroke-width="1"/>
+  <text x="880" y="138" font-size="17" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Failure mode 2: silent cost/quality bleed</text>
+  <text x="880" y="158" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">No outage — everything returns 200 OK</text>
+
+  <text x="650" y="196" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Without deep observability</text>
+  <rect x="650" y="206" width="460" height="46" fill="#1a0505" stroke="#663333" stroke-width="1"/>
+  <text x="666" y="234" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace">A routing rule quietly sends easy queries to GPT-4.</text>
+
+  <text x="650" y="278" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">With Uncoil tracing every call</text>
+  <rect x="650" y="288" width="460" height="70" fill="#1a1a08" stroke="#FFFF00" stroke-width="1"/>
+  <text x="666" y="312" font-size="12" fill="#FFFF00" font-family="'Geist Mono', monospace">Per-call cost + eval scores expose the</text>
+  <text x="666" y="332" font-size="12" fill="#FFFF00" font-family="'Geist Mono', monospace">overspend: 22% of calls could use a</text>
+  <text x="666" y="350" font-size="12" fill="#FFFF00" font-family="'Geist Mono', monospace">cheaper model at equal eval score.</text>
+
+  <rect x="650" y="380" width="460" height="80" fill="#151505" stroke="#666666" stroke-width="1"/>
+  <text x="670" y="404" font-size="12" fill="#CCCCCC" font-family="'Geist Mono', monospace">Monthly spend recovered once fixed</text>
+  <text x="670" y="434" font-size="24" fill="#FFFF00" font-family="'Geist Mono', monospace" font-weight="bold">~$1,940 / mo</text>
+  <text x="850" y="434" font-size="12" fill="#AAAAAA" font-family="'Geist Mono', monospace">(88k misrouted calls × $0.022 delta)</text>
+
+  <text x="880" y="500" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">This is a visibility problem.</text>
+  <text x="880" y="518" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">A gateway routed the call correctly by its own rules —</text>
+  <text x="880" y="536" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">it had no eval signal telling it the rule was wrong.</text>
+
+  <rect x="60" y="565" width="1080" height="100" fill="#0a0a0a" stroke="#666666" stroke-width="1"/>
+  <text x="600" y="592" font-size="13" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace" font-weight="bold">Neither tool catches the other's failure mode</text>
+  <text x="600" y="616" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Portkey's failover would not have caught the misrouting; Uncoil's tracing would not have failed over the outage.</text>
+  <text x="600" y="638" font-size="12" fill="#AAAAAA" text-anchor="middle" font-family="'Geist Mono', monospace">Teams running both catch roughly $1,940/mo in avoidable spend and ~11k protected calls during any single outage window.</text>
+</svg>

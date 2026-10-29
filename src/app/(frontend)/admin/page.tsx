@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { fetchAuthQuery } from "@/lib/auth-server";
 import { AdminOverview } from "@/components/admin/admin-overview";
 
-export const metadata: Metadata = { title: "Admin — Tracify", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Admin — Uncoil", robots: { index: false, follow: false } };
 
 export default async function AdminPage() {
   // Same rule the backend enforces for the data, so the page, the menu link and the numbers always agree.

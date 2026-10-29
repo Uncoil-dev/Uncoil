@@ -21,7 +21,7 @@ const clip = (value: string | undefined, max: number) => (value ?? "").slice(0, 
 export function scrub(text: string) {
   return text
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
-    .replace(/(?:tracify_sk_live_|sk-|Bearer\s+)[A-Za-z0-9_\-.]{8,}/g, "[key]");
+    .replace(/(?:uncoil_sk_live_|sk-|Bearer\s+)[A-Za-z0-9_\-.]{8,}/g, "[key]");
 }
 
 export function crashFingerprint(report: CrashReport) {
@@ -47,8 +47,8 @@ export async function reportCrash(input: CrashReport) {
     const overall = await consumeRateLimit("crash:all", 1, GLOBAL_LIMIT_PER_HOUR, 60 * 60);
     if (!overall.allowed) return { emailed: false as const, reason: "throttled" as const };
 
-    const to = process.env.CRASH_ALERT_EMAIL || process.env.EMAIL_REPLY_TO || "kb@tracify.tech";
-    const env = process.env.TRACIFY_ENVIRONMENT || process.env.NODE_ENV || "production";
+    const to = process.env.CRASH_ALERT_EMAIL || process.env.EMAIL_REPLY_TO || "kb@uncoil.dev";
+    const env = (process.env.UNCOIL_ENVIRONMENT ?? process.env.TRACIFY_ENVIRONMENT) || process.env.NODE_ENV || "production";
     const lines = [
       `Where: ${report.source}${report.route ? ` ${report.route}` : ""}`,
       `Environment: ${env}`,
@@ -62,7 +62,7 @@ export async function reportCrash(input: CrashReport) {
     const html = `<pre style="font:13px/1.5 ui-monospace,monospace;white-space:pre-wrap">${text.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</pre>`;
     await sendTransactionalEmail({
       to,
-      subject: `Tracify crash: ${report.message.slice(0, 80) || "unknown error"}`,
+      subject: `Uncoil crash: ${report.message.slice(0, 80) || "unknown error"}`,
       html,
       text,
       idempotencyKey: `crash-${fingerprint}-${Math.floor(Date.now() / (PER_ERROR_WINDOW_SECONDS * 1000))}`,

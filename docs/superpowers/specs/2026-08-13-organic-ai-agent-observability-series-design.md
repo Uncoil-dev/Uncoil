@@ -2,11 +2,11 @@
 
 ## Goal
 
-Create ten private Payload CMS drafts, each 5,000–10,000 words, for a mixed audience of AI engineers and engineering leaders. The series prioritizes organic search growth while naturally introducing Tracify's observability, evaluation, cost, and reliability capabilities.
+Create ten private Payload CMS drafts, each 5,000–10,000 words, for a mixed audience of AI engineers and engineering leaders. The series prioritizes organic search growth while naturally introducing Uncoil's observability, evaluation, cost, and reliability capabilities.
 
 ## Editorial approach
 
-The series is a connected search cluster, not ten loosely related posts. Each article owns a distinct search intent, provides a durable practical resource, and links to two to four related articles plus the most relevant first-party Tracify product or documentation page. No anchor text is to be forced or repetitive.
+The series is a connected search cluster, not ten loosely related posts. Each article owns a distinct search intent, provides a durable practical resource, and links to two to four related articles plus the most relevant first-party Uncoil product or documentation page. No anchor text is to be forced or repetitive.
 
 ## Drafts
 
@@ -25,7 +25,7 @@ The series is a connected search cluster, not ten loosely related posts. Each ar
 
 Every draft includes a descriptive title, short excerpt, intentional slug, category/tags, author, SEO title and description, canonical field only when appropriate, a table of contents, H2/H3 hierarchy, practical examples, checklists, FAQ, clear next step, and an image-rich hero. Posts also contain original explanatory diagrams or comparison tables where they make the idea easier to understand.
 
-Hero photography is sourced from Unsplash with descriptive alt text and attribution/caption where the selected image requires it. Original diagrams use Tracify's monochrome and acid-yellow visual language. Image selection must support the specific article rather than act as generic decoration.
+Hero photography is sourced from Unsplash with descriptive alt text and attribution/caption where the selected image requires it. Original diagrams use Uncoil's monochrome and acid-yellow visual language. Image selection must support the specific article rather than act as generic decoration.
 
 ## SEO and internal-linking system
 

@@ -88,7 +88,7 @@ export function BudgetForm({ projectId, defaultEmail, onClose }: { projectId: st
             </div>
             {useEmail ? <input aria-label="Email addresses" value={emails} onChange={(event) => setEmails(event.target.value)} placeholder="you@company.com, teammate@company.com" className={wide} /> : null}
             {useSlack ? <input aria-label="Slack webhook link" type="password" autoComplete="off" value={slackUrl} onChange={(event) => setSlackUrl(event.target.value)} placeholder="https://hooks.slack.com/services/…" className={wide} /> : null}
-            {useWebhook ? <input aria-label="Webhook link" type="password" autoComplete="off" value={webhookUrl} onChange={(event) => setWebhookUrl(event.target.value)} placeholder="https://example.com/tracify-budgets" className={wide} /> : null}
+            {useWebhook ? <input aria-label="Webhook link" type="password" autoComplete="off" value={webhookUrl} onChange={(event) => setWebhookUrl(event.target.value)} placeholder="https://example.com/uncoil-budgets" className={wide} /> : null}
           </div>
           <div className="flex flex-wrap items-center gap-3 px-4 py-3">
             <input aria-label="Budget name" value={name} onChange={(event) => setName(event.target.value)} placeholder={autoName} className="h-8 min-w-[180px] flex-1 border border-[#262C35] bg-[#111418] px-2.5 outline-none focus:border-[#4A5260]" />

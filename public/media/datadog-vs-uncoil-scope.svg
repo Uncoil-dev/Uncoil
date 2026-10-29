@@ -1,0 +1,64 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="700" fill="#000000"/>
+
+  <!-- Title -->
+  <text x="600" y="40" font-size="32" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Platform Scope Comparison
+  </text>
+
+  <!-- Left circle: Datadog -->
+  <circle cx="380" cy="380" r="180" fill="none" stroke="#FF6B6B" stroke-width="3" opacity="0.7"/>
+  <text x="280" y="300" font-size="18" fill="#FF6B6B" font-weight="bold" font-family="'Geist Mono', monospace">
+    Datadog
+  </text>
+
+  <!-- Datadog features -->
+  <text x="250" y="330" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Infrastructure</text>
+  <text x="250" y="355" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Logs & Metrics</text>
+  <text x="250" y="380" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">APM</text>
+  <text x="250" y="405" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Tracing</text>
+  <text x="250" y="430" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Incident Mgmt</text>
+
+  <!-- Right circle: Uncoil -->
+  <circle cx="820" cy="380" r="180" fill="none" stroke="#44FF44" stroke-width="3" opacity="0.7"/>
+  <text x="780" y="300" font-size="18" fill="#44FF44" font-weight="bold" font-family="'Geist Mono', monospace">
+    Uncoil
+  </text>
+
+  <!-- Uncoil features -->
+  <text x="690" y="330" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Agent Traces</text>
+  <text x="690" y="355" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Cost Tracking</text>
+  <text x="690" y="380" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Evaluation</text>
+  <text x="690" y="405" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Experiments</text>
+  <text x="690" y="430" font-size="13" fill="#FFFFFF" font-family="'Geist Mono', monospace">Sessions</text>
+
+  <!-- Overlap area -->
+  <ellipse cx="600" cy="380" rx="60" ry="160" fill="#FFFF00" opacity="0.15" stroke="none"/>
+  <text x="600" y="385" font-size="13" fill="#FFFF00" font-weight="bold" text-anchor="middle" font-family="'Geist Mono', monospace">
+    Tracing
+  </text>
+
+  <!-- Key insight boxes -->
+  <rect x="80" y="580" width="450" height="80" fill="#1a1a1a" stroke="#FF6B6B" stroke-width="2" rx="5"/>
+  <text x="100" y="605" font-size="14" fill="#FF6B6B" font-weight="bold" font-family="'Geist Mono', monospace">
+    Datadog Strength:
+  </text>
+  <text x="100" y="630" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace">
+    Full-stack observability. Best for infrastructure + app + LLM
+  </text>
+  <text x="100" y="650" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace">
+    monitoring. 3-5x more expensive for agents.
+  </text>
+
+  <rect x="670" y="580" width="450" height="80" fill="#1a1a1a" stroke="#44FF44" stroke-width="2" rx="5"/>
+  <text x="690" y="605" font-size="14" fill="#44FF44" font-weight="bold" font-family="'Geist Mono', monospace">
+    Uncoil Strength:
+  </text>
+  <text x="690" y="630" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace">
+    Agent-specific observability. Built for multi-turn, tool use,
+  </text>
+  <text x="690" y="650" font-size="12" fill="#FFFFFF" font-family="'Geist Mono', monospace">
+    cost tracking, and evaluation. Lower TCO for agents.
+  </text>
+</svg>

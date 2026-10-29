@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { buildSpanTree, type SpanTreeNode } from "@/lib/tracify-ports/treeBuilding";
+import { buildSpanTree, type SpanTreeNode } from "@/lib/uncoil-ports/treeBuilding";
 import { chatMessages, compactNumber, downloadFile, formatCost, formatDuration, formatTime, parsePayload } from "./format";
 import { AskAiPanel } from "./ask-ai-panel";
 import { ScoreRunButton } from "../scores/score-run-button";

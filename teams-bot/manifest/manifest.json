@@ -4,17 +4,17 @@
   "version": "1.0.1",
   "id": "d4069b7c-c706-4888-a205-d8c621c3c2fd",
   "name": {
-    "short": "Team Tracify",
-    "full": "Team Tracify"
+    "short": "Team Uncoil",
+    "full": "Team Uncoil"
   },
   "developer": {
-    "name": "Tracify",
-    "websiteUrl": "https://tracify.tech",
-    "privacyUrl": "https://tracify.tech",
-    "termsOfUseUrl": "https://tracify.tech"
+    "name": "Uncoil",
+    "websiteUrl": "https://uncoil.dev",
+    "privacyUrl": "https://uncoil.dev",
+    "termsOfUseUrl": "https://uncoil.dev"
   },
   "description": {
-    "short": "Chat with Tracify's AI agent",
+    "short": "Chat with Uncoil's AI agent",
     "full": "Ask questions about the codebase, deploy status, to-dos, and more."
   },
   "icons": {

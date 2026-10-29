@@ -16,10 +16,10 @@ export async function POST(request: Request) {
   catch { return new NextResponse("Invalid signature", { status: 400 }); }
 
   const eventRegion = "metadata" in event.data.object
-    ? (event.data.object.metadata as Record<string, string> | null)?.tracifyRegion
+    ? (event.data.object.metadata as Record<string, string> | null)?.uncoilRegion
     : undefined;
   if (eventRegion && eventRegion !== getDeploymentRegion()) {
-    return new NextResponse("Event belongs to another Tracify region", { status: 409 });
+    return new NextResponse("Event belongs to another Uncoil region", { status: 409 });
   }
 
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;

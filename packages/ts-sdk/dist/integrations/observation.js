@@ -8,7 +8,7 @@ function observation(provider, model, input, options, scope) {
     const implicit = !scope && inheritedRun === "unknown";
     const runId = scope?.runId ?? (implicit ? (0, node_crypto_1.randomUUID)() : inheritedRun);
     const id = scope?.spanId ?? (0, node_crypto_1.randomUUID)(), rootId = implicit ? (0, node_crypto_1.randomUUID)() : undefined;
-    const client = options.client ?? context?.client ?? new index_1.TracifyClient();
+    const client = options.client ?? context?.client ?? new index_1.UncoilClient();
     const start = Date.now();
     let ended = false;
     const data = {

@@ -16,7 +16,7 @@ const metricValidator = v.union(
   v.literal("minutes_without_runs"),
 );
 
-const SITE = process.env.SITE_URL || "https://www.tracify.tech";
+const SITE = process.env.SITE_URL || "https://www.uncoil.dev";
 const MAX_DELIVERIES_PER_RULE = 20;
 const MAX_RULES_PER_PROJECT = 25;
 const MAX_RUNS_SCANNED = 2000;
@@ -349,9 +349,9 @@ export const checkAll = internalAction({
         if (result.emailTo.length > 0) {
           sends.push(sendEmail({
             to: result.emailTo,
-            subject: `Tracify alert: ${result.name}`,
-            text: `${result.message}\n\nOpen your Tracify dashboard to see what happened.`,
-            html: `<p>${escapeHtml(result.message)}</p><p>Open your Tracify dashboard to see what happened.</p>`,
+            subject: `Uncoil alert: ${result.name}`,
+            text: `${result.message}\n\nOpen your Uncoil dashboard to see what happened.`,
+            html: `<p>${escapeHtml(result.message)}</p><p>Open your Uncoil dashboard to see what happened.</p>`,
             idempotencyKey: `alert-${ruleId}-${Date.now()}`,
           }));
         }
@@ -394,7 +394,7 @@ export const sendTest = action({
     const rule: { name: string; metric: string; threshold: number; projectId: string; slackUrl?: string; webhookUrl?: string; justTested: boolean } = await ctx.runQuery(internal.alertRules.loadForTest, { ruleId });
     if (!rule.slackUrl && !rule.webhookUrl) throw new Error("This rule has no Slack or webhook link to test");
     if (rule.justTested) throw new Error("A test was just sent. Wait a few seconds and try again.");
-    return await sendToDestinations(ctx, ruleId, "test", rule, `This is a test from Tracify for "${rule.name}". Real alerts will look like this.`, undefined, { slack: rule.slackUrl, webhook: rule.webhookUrl });
+    return await sendToDestinations(ctx, ruleId, "test", rule, `This is a test from Uncoil for "${rule.name}". Real alerts will look like this.`, undefined, { slack: rule.slackUrl, webhook: rule.webhookUrl });
   },
 });
 
@@ -406,7 +406,7 @@ export const testLink = action({
     const slack = cleanSlackUrl(args.slackUrl);
     const webhook = cleanWebhookUrl(args.webhookUrl);
     if (!slack && !webhook) throw new Error("Paste a link first");
-    const info = { event: "alert.test" as const, ruleName: "Test", metric: "failed_runs", threshold: 0, message: "This is a test from Tracify. Real alerts will look like this.", projectId: args.projectId as string, dashboardUrl: dashboardUrl(args.projectId), at: new Date().toISOString() };
+    const info = { event: "alert.test" as const, ruleName: "Test", metric: "failed_runs", threshold: 0, message: "This is a test from Uncoil. Real alerts will look like this.", projectId: args.projectId as string, dashboardUrl: dashboardUrl(args.projectId), at: new Date().toISOString() };
     const [slackResult, webhookResult] = await Promise.all([slack ? postJson("slack", slack, slackPayload(info)) : undefined, webhook ? postJson("webhook", webhook, webhookPayload(info)) : undefined]);
     return { slack: slackResult, webhook: webhookResult };
   },

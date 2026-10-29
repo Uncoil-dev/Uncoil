@@ -1,21 +1,21 @@
-# @tracify/playwright
+# @uncoil/playwright
 
-The Tracify Playwright adapter captures browser-agent execution as ordinary Tracify spans. It is an instrumentation source, not a replacement for Playwright's runner or Trace Viewer.
+The Uncoil Playwright adapter captures browser-agent execution as ordinary Uncoil spans. It is an instrumentation source, not a replacement for Playwright's runner or Trace Viewer.
 
 ## Install
 
 ```bash
-npm install @tracify/playwright @playwright/test
+npm install @uncoil/playwright @playwright/test
 ```
 
-Set `TRACIFY_API_KEY`, then add the reporter to `playwright.config.ts`:
+Set `UNCOIL_API_KEY`, then add the reporter to `playwright.config.ts`:
 
 ```ts
 import { defineConfig } from "@playwright/test";
-import TracifyReporter from "@tracify/playwright";
+import UncoilReporter from "@uncoil/playwright";
 
 export default defineConfig({
-  reporter: [[TracifyReporter, { environment: "ci", release: process.env.GITHUB_SHA }]],
+  reporter: [[UncoilReporter, { environment: "ci", release: process.env.GITHUB_SHA }]],
 });
 ```
 
@@ -23,4 +23,4 @@ The reporter emits test lifecycle and step spans automatically. Browser actions,
 
 Configure `traceArtifactUrl` when CI uploads `trace.zip`; the adapter preserves the artifact link as metadata and does not reimplement Playwright's artifact viewer.
 
-The first release intentionally sends metadata and artifact references, not raw screenshots, request bodies, or test secrets. Use the existing Tracify redaction and retention settings before sending sensitive values.
+The first release intentionally sends metadata and artifact references, not raw screenshots, request bodies, or test secrets. Use the existing Uncoil redaction and retention settings before sending sensitive values.

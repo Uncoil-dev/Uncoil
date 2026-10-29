@@ -1,0 +1,4 @@
+interface:
+  display_name: "Uncoil Blog Tool"
+  short_description: "Build and validate production Uncoil blogs"
+  default_prompt: "Use $uncoil-blog-tool to create a visually composed, source-grounded Uncoil blog post from the canonical scaffold and pass its targeted quality gate."

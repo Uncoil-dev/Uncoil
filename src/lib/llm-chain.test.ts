@@ -69,8 +69,8 @@ test("the alternate provider gets a user agent and a session id header", async (
   try {
     const result = await completeWithFallback("Ask AI", { alt: "k" }, { alt: "m1" }, prompt);
     assert.equal(result.text, "hi");
-    assert.match(seen!.get("x-opencode-session") ?? "", /^tracify-ask-ai-[0-9a-f-]{36}$/);
-    assert.match(seen!.get("user-agent") ?? "", /^Tracify\//);
+    assert.match(seen!.get("x-opencode-session") ?? "", /^uncoil-ask-ai-[0-9a-f-]{36}$/);
+    assert.match(seen!.get("user-agent") ?? "", /^Uncoil\//);
   } finally { globalThis.fetch = original; }
 });
 

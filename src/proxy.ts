@@ -4,7 +4,7 @@ import { TRACIFY_REGIONS } from "@/lib/regions";
 
 const DEMO_PREFIX = "/demo";
 
-const MARKETING_HOSTS = new Set(["www.tracify.tech", "tracify.tech"]);
+const MARKETING_HOSTS = new Set(["www.tracify.tech", "tracify.tech", "www.uncoil.dev", "uncoil.dev"]);
 
 function isDemoPath(pathname: string) {
   return pathname === DEMO_PREFIX || pathname.startsWith(`${DEMO_PREFIX}/`);

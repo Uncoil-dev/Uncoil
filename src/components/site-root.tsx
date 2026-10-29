@@ -25,7 +25,7 @@ const GeistPixelSquare = localFont({
   adjustFontFallback: false,
 });
 
-const isCloudDeployment = process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND === "cloud";
+const isCloudDeployment = (process.env.NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND ?? process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND) === "cloud";
 
 export const rootMetadata: Metadata = {
   metadataBase: new URL("https://www.tracify.tech"),

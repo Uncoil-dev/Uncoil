@@ -8,9 +8,9 @@ export function generateApiKey() {
 }
 
 export function hashApiKey(apiKey: string) {
-  const secret = process.env.TRACIFY_API_KEY_HASH_SECRET;
+  const secret = process.env.UNCOIL_API_KEY_HASH_SECRET ?? process.env.TRACIFY_API_KEY_HASH_SECRET;
   if (!secret) {
-    throw new Error("TRACIFY_API_KEY_HASH_SECRET is not set");
+    throw new Error("UNCOIL_API_KEY_HASH_SECRET is not set");
   }
 
   return createHmac("sha256", secret).update(apiKey).digest("hex");

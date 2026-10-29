@@ -61,7 +61,7 @@ function publicHostname(host: string) {
 }
 
 export function proxy(request: NextRequest) {
-  const deploymentKind = process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND ?? "marketing";
+  const deploymentKind = (process.env.NEXT_PUBLIC_UNCOIL_DEPLOYMENT_KIND ?? process.env.NEXT_PUBLIC_TRACIFY_DEPLOYMENT_KIND) ?? "marketing";
   const { pathname, search } = request.nextUrl;
   const publicHost = publicRequestHost(request);
   const hostname = publicHostname(publicHost);

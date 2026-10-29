@@ -65,8 +65,8 @@ export function parseTracifyRegion(value: string | null | undefined): TracifyReg
 
 export function getDeploymentRegion(): TracifyRegionId {
   return (
-    parseTracifyRegion(process.env.NEXT_PUBLIC_TRACIFY_REGION) ??
-    parseTracifyRegion(process.env.TRACIFY_REGION) ??
+    parseTracifyRegion(process.env.NEXT_PUBLIC_UNCOIL_REGION ?? process.env.NEXT_PUBLIC_TRACIFY_REGION) ??
+    parseTracifyRegion(process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION) ??
     DEFAULT_TRACIFY_REGION
   );
 }

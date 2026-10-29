@@ -3,7 +3,7 @@ import { runRetention } from "@/lib/retention-job";
 
 /** Runs the daily clean-up by hand or from an outside scheduler; the built-in daily schedule is in inngest-functions.ts. */
 export async function POST(request: NextRequest) {
-  const configured = process.env.TRACIFY_RETENTION_SECRET;
+  const configured = process.env.UNCOIL_RETENTION_SECRET ?? process.env.TRACIFY_RETENTION_SECRET;
   const provided = request.headers.get("x-retention-secret") ?? request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!configured || !provided || provided !== configured) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -215,8 +215,8 @@ export const processAlert = inngest.createFunction(
 export const dailyRetention = inngest.createFunction(
   { id: "daily-retention", name: "Remove data past plan retention", retries: 2, triggers: [{ cron: "17 3 * * *" }] },
   async ({ step }) => {
-    const secret = process.env.TRACIFY_RETENTION_SECRET;
-    if (!secret) return { skipped: true, reason: "TRACIFY_RETENTION_SECRET is not set" };
+    const secret = process.env.UNCOIL_RETENTION_SECRET ?? process.env.TRACIFY_RETENTION_SECRET;
+    if (!secret) return { skipped: true, reason: "UNCOIL_RETENTION_SECRET is not set" };
     return step.run("purge", () => runRetention(secret));
   },
 );

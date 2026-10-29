@@ -48,7 +48,7 @@ export async function reportCrash(input: CrashReport) {
     if (!overall.allowed) return { emailed: false as const, reason: "throttled" as const };
 
     const to = process.env.CRASH_ALERT_EMAIL || process.env.EMAIL_REPLY_TO || "kb@tracify.tech";
-    const env = process.env.TRACIFY_ENVIRONMENT || process.env.NODE_ENV || "production";
+    const env = process.env.UNCOIL_ENVIRONMENT || process.env.TRACIFY_ENVIRONMENT || process.env.NODE_ENV || "production";
     const lines = [
       `Where: ${report.source}${report.route ? ` ${report.route}` : ""}`,
       `Environment: ${env}`,

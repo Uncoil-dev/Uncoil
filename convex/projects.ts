@@ -9,7 +9,7 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 type DeploymentRegion = "eu" | "us";
 
 function deploymentRegion(): DeploymentRegion {
-  const value = process.env.TRACIFY_REGION?.trim().toLowerCase();
+  const value = (process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)?.trim().toLowerCase();
   if (value === "us") return "us";
   return "eu";
 }
@@ -19,10 +19,10 @@ function apiKeyPrefix() {
 }
 
 function getHmacSecret() {
-  const secret = process.env.TRACIFY_API_KEY_HASH_SECRET;
+  const secret = process.env.UNCOIL_API_KEY_HASH_SECRET ?? process.env.TRACIFY_API_KEY_HASH_SECRET;
   if (!secret) {
     throw new Error(
-      "TRACIFY_API_KEY_HASH_SECRET is not set. Set it in Convex before creating API keys.",
+      "UNCOIL_API_KEY_HASH_SECRET is not set. Set it in Convex before creating API keys.",
     );
   }
   return secret;

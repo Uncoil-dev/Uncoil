@@ -78,6 +78,7 @@ export function getTracifyRegion(id: TracifyRegionId = getDeploymentRegion()) {
 export function getRegionForHostname(hostname: string | null | undefined): TracifyRegionId | null {
   const normalized = hostname?.split(":")[0].toLowerCase();
   if (!normalized) return null;
+  if (normalized === "eu.cloud.uncoil.dev") return "eu";
   return (Object.values(TRACIFY_REGIONS).find((region) => region.hostname === normalized)?.id ?? null);
 }
 

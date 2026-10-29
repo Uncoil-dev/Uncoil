@@ -49,7 +49,10 @@ export function register() {
   const isStagingOrigin =
     process.env.TRACIFY_ENVIRONMENT === "staging" &&
     /^https:\/\/(staging|pr-\d+\.preview)\.eu\.cloud\.tracify\.tech$/.test(siteUrl ?? "");
-  if (siteUrl !== expectedOrigin && !isLocalOrigin && !isStagingOrigin) {
+  // The EU cloud app is moving to uncoil.dev; accept the new origin until the
+  // regional config switches over.
+  const isUncoilOrigin = publicRegion === "eu" && siteUrl === "https://eu.cloud.uncoil.dev";
+  if (siteUrl !== expectedOrigin && !isLocalOrigin && !isStagingOrigin && !isUncoilOrigin) {
     throw new Error(`NEXT_PUBLIC_SITE_URL must be ${expectedOrigin} for the ${publicRegion.toUpperCase()} deployment`);
   }
 }

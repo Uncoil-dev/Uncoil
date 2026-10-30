@@ -5,7 +5,7 @@
 #                               building something new live with an agent (branch live-work)
 # The PR is checked out in a separate folder next to this repo (<repo>-preview),
 # so whatever branch or unsaved work you have here is never touched.
-# The backend is always forced to staging and traces to the uncoil_preview database; it refuses to run if live is mentioned.
+# The backend is always forced to staging and traces to the tracify_preview database; it refuses to run if live is mentioned.
 param(
   [Parameter(Mandatory = $true, Position = 0)][string]$Pr,
   [Parameter(Position = 1)][ValidateSet("cloud", "marketing")][string]$Target = "cloud"
@@ -27,7 +27,7 @@ $stagingEnv = (Get-Content $envFile) |
 $stagingEnv += "NEXT_PUBLIC_CONVEX_URL=https://$StagingConvex.eu-west-1.convex.cloud"
 $stagingEnv += "NEXT_PUBLIC_CONVEX_SITE_URL=https://$StagingConvex.eu-west-1.convex.site"
 # Previews read and write a separate sample database, never the live traces.
-$stagingEnv += "CLICKHOUSE_DATABASE=uncoil_preview"
+$stagingEnv += "CLICKHOUSE_DATABASE=tracify_preview"
 if (($stagingEnv -join "`n") -match $LiveConvex) { throw "Stopped: settings mention the live backend ($LiveConvex)." }
 
 # 2. Fetch the PR (or the latest main for a fresh live-work branch).

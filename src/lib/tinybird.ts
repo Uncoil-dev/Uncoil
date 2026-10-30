@@ -13,8 +13,8 @@ const TINYBIRD_TOKEN = process.env.TINYBIRD_TOKEN;
 const CLICKHOUSE_URL = process.env.CLICKHOUSE_URL?.replace(/\/$/, "");
 // Anything that is not the live site (local dev, PR previews) reads the sample database,
 // whatever CLICKHOUSE_DATABASE says, so a preview can never touch live traces.
-const IS_PREVIEW_RUNTIME = process.env.NODE_ENV !== "production" || (process.env.UNCOIL_PREVIEW ?? process.env.TRACIFY_PREVIEW) === "1" || /\.preview\.uncoil\.tech/.test(process.env.COOLIFY_FQDN ?? "");
-const CLICKHOUSE_DATABASE = IS_PREVIEW_RUNTIME ? "uncoil_preview" : (process.env.CLICKHOUSE_DATABASE ?? "uncoil");
+const IS_PREVIEW_RUNTIME = process.env.NODE_ENV !== "production" || (process.env.UNCOIL_PREVIEW ?? process.env.TRACIFY_PREVIEW) === "1" || /\.preview\.uncoil\.dev/.test(process.env.COOLIFY_FQDN ?? "");
+const CLICKHOUSE_DATABASE = IS_PREVIEW_RUNTIME ? "tracify_preview" : (process.env.CLICKHOUSE_DATABASE ?? "tracify");
 
 export function analyticsBackend() {
   return CLICKHOUSE_URL ? "clickhouse" : "tinybird";

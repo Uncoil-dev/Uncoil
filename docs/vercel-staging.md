@@ -40,7 +40,7 @@ Both public Convex endpoints are required during the Next.js build. A missing `N
 
 ## Preview sample traces
 
-Local previews (`preview <PR>`) read a separate ClickHouse database, `uncoil_preview`, never the live `uncoil` one. Fill it for the staging test account once:
+Local previews (`preview <PR>`) read a separate ClickHouse database, `tracify_preview`, never the live `uncoil` one. Fill it for the staging test account once:
 
 ```powershell
 $env:PREVIEW_PROJECT_ID="<id from the dashboard URL /dashboard/<id>>"; node scripts/seed-preview-db.mjs

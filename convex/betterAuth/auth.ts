@@ -52,6 +52,8 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
       "tracify.tech",
       "*.preview.tracify.tech",
       "eu.cloud.uncoil.dev",
+      "staging.eu.cloud.uncoil.dev",
+      "staging.uncoil.dev",
       "www.uncoil.dev",
       "uncoil.dev",
       "*.preview.uncoil.dev",
@@ -107,6 +109,8 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
     // Coolify per-PR previews: <pr number>.preview.tracify.tech
     "https://*.preview.tracify.tech",
     "https://eu.cloud.uncoil.dev",
+    "https://staging.eu.cloud.uncoil.dev",
+    "https://staging.uncoil.dev",
     "https://www.uncoil.dev",
     "https://uncoil.dev",
     "https://*.preview.uncoil.dev",

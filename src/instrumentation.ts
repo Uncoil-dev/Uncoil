@@ -48,7 +48,7 @@ export function register() {
   // UNCOIL_ENVIRONMENT=staging; production never sets it.
   const isStagingOrigin =
     (process.env.UNCOIL_ENVIRONMENT ?? process.env.TRACIFY_ENVIRONMENT) === "staging" &&
-    /^https:\/\/(staging|pr-\d+\.preview)\.eu\.cloud\.tracify\.tech$/.test(siteUrl ?? "");
+    /^https:\/\/(staging|pr-\d+\.preview)\.eu\.cloud\.(uncoil\.dev|tracify\.tech)$/.test(siteUrl ?? "");
   // The EU cloud app is moving to uncoil.dev; accept the new origin until the
   // regional config switches over.
   const isUncoilOrigin = publicRegion === "eu" && siteUrl === "https://eu.cloud.uncoil.dev";

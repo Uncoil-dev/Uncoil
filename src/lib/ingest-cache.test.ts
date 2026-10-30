@@ -10,13 +10,13 @@ test("entries expire after the time limit", () => {
 });
 
 test("a valid key is looked up once per window, an unknown key is never cached", async () => {
-  const cache = new TtlCache<{ id: string }>(30_000);
+  const cache = new TtlCache<{ id: string }>(300_000);
   let loads = 0;
   const load = async () => { loads++; return { id: "p" }; };
   await cachedProjectForKey(cache, "h", load, 0);
-  await cachedProjectForKey(cache, "h", load, 29_000);
+  await cachedProjectForKey(cache, "h", load, 299_000);
   assert.equal(loads, 1);
-  await cachedProjectForKey(cache, "h", load, 30_000);
+  await cachedProjectForKey(cache, "h", load, 300_000);
   assert.equal(loads, 2);
 
   let misses = 0;

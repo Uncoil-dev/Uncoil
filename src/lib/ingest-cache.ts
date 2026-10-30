@@ -3,7 +3,7 @@
  * They live per server process, so a restart simply starts them empty.
  */
 
-export const API_KEY_CACHE_MS = 30_000;
+export const API_KEY_CACHE_MS = 300_000;
 export const NO_EVALUATORS_CACHE_MS = 60_000;
 const MAX_ENTRIES = 5_000;
 
@@ -39,7 +39,7 @@ export class TtlCache<V> {
   }
 }
 
-/** Only valid keys are cached: a brand-new key works at once, a deleted key keeps working for up to 30 seconds. */
+/** Only valid keys are cached: a brand-new key works at once, a deleted key keeps working for up to 5 minutes. */
 export async function cachedProjectForKey<P>(
   cache: TtlCache<unknown>,
   keyHash: string,

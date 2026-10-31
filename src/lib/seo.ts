@@ -142,32 +142,19 @@ export function articleJsonLd({ headline, description, path, image, datePublishe
   };
 }
 
-/** Real plans only: Pro $19 and Team $39 per month, plus the free tier. No ratings or reviews. */
-const PLAN_OFFERS = [
-  { name: "Free", price: "0" },
-  { name: "Pro", price: "19" },
-  { name: "Team", price: "39" },
-] as const;
-
+/**
+ * Product pages use plain WebPage data. A Product or SoftwareApplication type makes Google ask for
+ * review and aggregateRating fields. Uncoil has no real reviews, and fake ones can get the site penalised.
+ */
 export function productJsonLd({ name, description, path }: { name: string; description: string; path: string }) {
   return {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "WebPage",
     name,
     description,
     url: `${SITE_URL}${path}`,
-    image: `${SITE_URL}/logo.png`,
-    brand: { "@type": "Brand", name: SITE_NAME },
-    category: "AI agent observability software",
-    offers: PLAN_OFFERS.map((plan) => ({
-      "@type": "Offer",
-      name: `Uncoil ${plan.name}`,
-      url: `${SITE_URL}/pricing`,
-      price: plan.price,
-      priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
-      priceSpecification: { "@type": "UnitPriceSpecification", price: plan.price, priceCurrency: "USD", billingDuration: "P1M", unitCode: "MON" },
-    })),
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
+    publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
   };
 }
 

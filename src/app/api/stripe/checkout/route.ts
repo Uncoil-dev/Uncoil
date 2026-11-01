@@ -36,6 +36,8 @@ export async function POST(request: Request) {
         mode: "subscription",
         managed_payments: { enabled: true },
         customer,
+        // Skip the card step only when the total is $0 (for example a 100% test coupon). Paid plans still collect a card.
+        payment_method_collection: "if_required",
         line_items: [{ price, quantity: 1 }],
         ...(discounts ? { discounts } : {}),
         client_reference_id: projectId,

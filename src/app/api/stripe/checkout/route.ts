@@ -4,6 +4,7 @@ import type { Id } from "convex/_generated/dataModel";
 import { getAuthedConvexClient } from "@/lib/convex-server";
 import { getStripe, stripePriceIds } from "@/lib/stripe";
 import { getDeploymentRegion } from "@/lib/regions";
+import { getPublicOrigin } from "@/lib/public-origin";
 
 export async function POST(request: Request) {
   try {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     customer = created.id;
     await client.mutation(api.billing.attachCustomer, { projectId, stripeCustomerId: customer });
   }
-  const origin = new URL(request.url).origin;
+  const origin = getPublicOrigin(request);
   const plan = body.plan;
   const createSession = (discounts?: { coupon: string }[]) =>
     stripe.checkout.sessions.create(
@@ -37,7 +38,8 @@ export async function POST(request: Request) {
         managed_payments: { enabled: true },
         customer,
         line_items: [{ price, quantity: 1 }],
-        ...(discounts ? { discounts } : {}),
+        // Stripe does not allow preset discounts and the promo code box together.
+        ...(discounts ? { discounts } : { allow_promotion_codes: true }),
         client_reference_id: projectId,
         metadata: { projectId, plan, uncoilRegion: region },
         subscription_data: { metadata: { projectId, plan, uncoilRegion: region }, billing_mode: { type: "flexible" } },

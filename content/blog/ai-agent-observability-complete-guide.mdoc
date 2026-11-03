@@ -12,7 +12,7 @@ tags:
   - AI agents
   - observability
   - production AI
-relatedPosts: [agentic-ai-observability, llm-tracing-explained, ai-agent-monitoring]
+relatedPosts: [llm-tracing-explained, ai-agent-monitoring, mcp-observability-guide]
 heroImage:
   src: /media/organic-series/ai-agent-observability-complete-guide.jpg
   alt: A rack of servers in a dark server room
@@ -65,8 +65,8 @@ Observability comes from systems engineering. A system is observable when you ca
 That definition draws a few useful boundaries.
 
 - **It is not only monitoring.** Monitoring watches known signals and alerts on them. Observability lets you ask a question you did not plan for, such as which retrieved document led to this answer. The [monitoring guide](/blog/ai-agent-monitoring) covers the alerting half in depth.
-- **It is not only LLM logging.** Logging prompts and completions covers a single model call. Agents loop, branch, call tools and hand work to other agents. The [overview of AI observability](/blog/what-is-ai-observability) explains how the definition grew past model calls.
-- **It is not APM with a new name.** Latency and error rate still matter, but they do not detect a wrong answer. See [agent observability versus traditional APM](/blog/ai-agent-observability-vs-apm) for what carries over and what does not.
+- **It is not only LLM logging.** Logging prompts and completions covers a single model call. Agents loop, branch, call tools and hand work to other agents. The trace model below covers each step.
+- **It is not APM with a new name.** Latency and error rate still matter, but they do not detect a wrong answer. The [APM comparison](#agent-observability-apm-and-monitoring-what-each-one-covers) shows what carries over and what does not.
 - **It is not evaluation alone.** Evals score quality on known cases. Observability tells you what real traffic did, and gives evals their test cases.
 
 ### Why agents are harder to see than services
@@ -77,7 +77,7 @@ First, agents are **non-deterministic**. The same input can take a different pat
 
 Second, agents **fail quietly**. A tool that returns stale data does not throw. A model that ignores an instruction does not log an error. The failure is in the meaning, not the status code.
 
-Third, agents **spend money as they think**. Every loop iteration is a model call with a price. A retry storm or an unbounded loop is a cost incident before it is an outage. The [agentic observability article](/blog/agentic-ai-observability) goes deeper on reasoning chains and autonomy failures.
+Third, agents **spend money as they think**. Every loop iteration is a model call with a price. A retry storm or an unbounded loop is a cost incident before it is an outage. Reasoning chains and autonomy failures are covered in the multi-agent notes below.
 
 ## Rung 1 and 2: logs and traces
 
@@ -234,15 +234,59 @@ Some agents need extra care. Each has its own article, so here is only the point
 
 | Agent type | One idea to take away | Deep dive |
 | --- | --- | --- |
-| Multi-agent systems | Trace the handoff, not only each agent | [Agentic AI observability](/blog/agentic-ai-observability) |
+| Multi-agent systems | Trace the handoff, not only each agent | Use one parent span per agent and link them at the handoff |
 | Tool servers over MCP | Record the tool contract and the result | [MCP observability guide](/blog/mcp-observability-guide) |
 | Browser agents | Keep the screenshot or action beside the span | [Browser agent observability](/blog/browser-agent-observability) |
+
+## Agent observability, APM and monitoring: what each one covers
+
+Traditional APM and monitoring are still needed. They just cover half of the picture. APM answers questions you can compute from status codes and timers. Agent observability answers questions that need the content of the run.
+
+| Signal | APM and monitoring | Agent observability |
+| --- | --- | --- |
+| Latency, error rate, uptime, CPU and memory | Covered | Surfaced for model calls only |
+| Token cost per run and per task | Not covered | Covered |
+| Output correctness | Not covered | Covered |
+| Tool choice and arguments | Not covered | Covered |
+| Retrieval relevance | Not covered | Covered |
+| Prompt and output content | Not covered | Covered |
+| Deploy correlation | Covered for infrastructure | Partial, when traces carry a release tag |
+
+> **Diagnostic shortcut:** If a metric can be computed from status codes and timers alone, APM already has it. If you must read what the agent said or decided, you need traces.
+
+Keep both layers. A run can show status 200, normal latency and a wrong answer. Monitoring stays green. Only the retrieval and model spans show that the agent used an outdated policy. See the [refund example](#worked-example-the-refund-that-should-not-have-happened) above. Monitoring tells you something is wrong. Observability tells you why.
+
+## What to put on an agent dashboard
+
+A dashboard that shows everything shows nothing. Use three tiers, each with one job.
+
+| Tier | Question | What belongs here |
+| --- | --- | --- |
+| Summary | Is anything wrong now? | Four to six tiles you can read in five seconds |
+| Trend | Is it getting better or worse? | The same metrics over time, against a fixed baseline |
+| Drill-down | What exactly went wrong? | A table of flagged runs that link to the full trace |
+
+![Three stacked dashboard tiers labeled summary, trend, and drill-down, each answering a different reader question](/media/ai-observability-dashboard-tier-model.svg)
+
+For the summary row, pick p95 latency, cost per run, error rate and one quality signal such as an eval score or groundedness. Put per-tool breakdowns and token distributions in the trend or drill-down tier. Avoid one composite health score. It hides which signal moved. Write alerts that carry evidence: the run link, the release and the first thing to check.
+
+## Platform or assembled stack?
+
+Start with open standards, then decide how much glue code your team can own. An assembled stack (OpenTelemetry, an eval library and a self-hosted dashboard) is a good choice for one workflow and one engineer who understands the pipeline. It also fits strict self-hosting rules. It is not free. Someone must keep the schemas, upgrades and run identifiers consistent across tools.
+
+A platform pays off when:
+
+- More than one production workflow needs coverage.
+- An incident lost evidence at the seam between two tools.
+- Your engineers should spend time on the product, not on observability plumbing.
+
+Ask one question: who owns the glue code, and do they have time to keep owning it when the second workflow ships?
 
 ## Choosing tools without buying a platform too early
 
 You can start with open standards and a small amount of code. OpenTelemetry gives you a vendor-neutral way to emit spans, and many frameworks already instrument themselves. Move to a dedicated tool when you need the things a generic backend does not do well: reading model inputs and outputs as a conversation, grouping failures, scoring runs and comparing releases.
 
-The [guide to choosing AI observability tools](/blog/ai-observability-tools) lists the real categories and the criteria that separate them. The short version: pick on the rung you need next, not the one you hope to reach someday.
+Choose on the rung you need next, not the one you hope to reach someday. Match each tool to a rung in the ladder above: logs and traces first, then outcomes, evals and control.
 
 ## A rollout plan that does not stall
 

@@ -115,7 +115,7 @@ For high-impact tools, do not repair by guessing missing fields. Ask the user or
 
 The schema is only one part of the model interface. Version the system instruction, tool descriptions, output schema, model settings, and policy together or record each revision separately. A prompt that changes the meaning of `finish.status` is a breaking API change even if the JSON shape is identical.
 
-Carry the revision into traces and evaluations. Compare a candidate against the prior contract on the same examples, then inspect changed tool sequences and terminal statuses. [Prompt versioning in production](/blog/prompt-versioning-production) describes the release practice; [AI agent regression testing](/blog/ai-agent-regression-testing) shows how rejected decisions become test cases.
+Carry the revision into traces and evaluations. Compare a candidate against the prior contract on the same examples, then inspect changed tool sequences and terminal statuses. [Prompt versioning in production](/blog/prompt-versioning-and-prompt-management) describes the release practice; [AI agent regression testing](/blog/ai-agent-regression-testing) shows how rejected decisions become test cases.
 
 ## Test invalid but plausible outputs
 

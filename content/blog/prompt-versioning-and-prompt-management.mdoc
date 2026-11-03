@@ -77,7 +77,7 @@ Prompt changes are production changes when they alter behavior, so they need rev
 
 ## A working definition of prompt versioning
 
-A prompt revision becomes trustworthy when [AI agent testing](/blog/ai-agent-testing-unit-tests-production-evals) compares it against known scenarios and cost changes are evaluated using a disciplined [LLM cost optimization process](/blog/reduce-llm-costs-without-hurting-quality).
+A prompt revision becomes trustworthy when [AI agent testing](/blog/ai-agent-evaluation-practical-guide) compares it against known scenarios and cost changes are evaluated using a disciplined [LLM cost optimization process](/blog/reduce-llm-costs-without-hurting-quality).
 
 prompt versioning is the discipline of recording and interpreting enough execution evidence to understand how an AI-enabled workflow behaved, whether it met its intended outcome, and what should happen next. It includes technical telemetry, but it is broader than logging model requests. The unit that people care about is usually an end-to-end task: a user request, a retrieval step, one or more model calls, a tool action, a retry or approval, and a final result. The evidence must keep those events connected without pretending that one metric can stand in for the whole task.
 
@@ -233,6 +233,22 @@ Leaders should ask for decision-quality artifacts rather than a larger dashboard
 ## Explore in Uncoil
 
 [Explore the relevant Uncoil workflow](/product/llm-calls)
+
+## Version the whole prompt interface
+
+A prompt is more than the visible system message. The interface also includes user templates, tool descriptions, the output schema, model settings, retrieval policy, safety rules, and runtime examples. If any of these change, record a new revision. A trace that says only "prompt v12" can otherwise compare two very different systems.
+
+- Use immutable revisions. Give each one an owner, a change note, a source location, and an effective environment.
+- Keep the active pointer separate from the revision record. Then rollback is a pointer change, not a code change.
+- Resolve the pointer at startup and attach the resolved revision to every parent run.
+
+## Write a change note a reviewer can use
+
+State the user problem, the intended behavior, the affected workflows, the expected trade-offs, and the rollback pointer. Add representative cases and known non-goals. "Improve answers" is not a reviewable note. "Ask for the missing invoice date instead of guessing when the tool result holds several records" is.
+
+## Compare in the right dimension, then roll out in stages
+
+Run the old and new revision on the same evidence set. Look for regressions in the dimension that matters to the user, not only in an average score. Release to a small share of traffic first and watch outcome, cost, and latency by revision. Treat prompt changes like code changes: review, test, stage, and keep the rollback one step away. Avoid prompt sprawl by retiring revisions nobody uses.
 
 ## Frequently asked questions
 

@@ -7,7 +7,7 @@ author: Uncoil Team
 draft: false
 categories: [evaluations]
 tags: [RAG evaluation, retrieval augmented generation, AI testing]
-relatedPosts: [ai-agent-evaluation-practical-guide, ai-agent-testing-unit-tests-production-evals]
+relatedPosts: [ai-agent-evaluation-practical-guide]
 heroImage:
   src: /media/ai-agent-evaluation-hero.png
   alt: Evaluation matrix comparing AI agent runs with evidence links and release signals
@@ -70,7 +70,7 @@ Retrieval quality asks whether the evidence needed for the task was present and 
 | Freshness | Was the evidence current for the task? | Ingestion delay, versioning, or cache policy |
 | Diversity and conflict | Did results cover the needed perspectives? | Duplicates, contradictory sources, or poor boundaries |
 
-Do not optimize retrieval metrics in isolation. A source can be relevant yet unusable for the requested action, and a high recall set can overload the context window. The [AI agent testing guide](/blog/ai-agent-testing-unit-tests-production-evals) shows how to keep retrieval checks alongside deterministic and end-to-end layers.
+Do not optimize retrieval metrics in isolation. A source can be relevant yet unusable for the requested action, and a high recall set can overload the context window. The [AI agent testing guide](/blog/ai-agent-evaluation-practical-guide) shows how to keep retrieval checks alongside deterministic and end-to-end layers.
 
 ## 3. Evaluate groundedness claim by claim
 

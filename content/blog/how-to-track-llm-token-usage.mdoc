@@ -206,7 +206,7 @@ const openai = wrapOpenAI(new OpenAI(), {
 });
 ```
 
-Uncoil does not guess prices. If you do not provide a calculation, cost stays at zero and the span is marked as having unknown cost, so a zero never passes for a real number. For cached tokens, use the usage object the provider returned, because cached input is priced differently from fresh input. If you want to plan before you have traces, the [free cost estimator](/tools/ai-cost-estimator) turns token assumptions into a monthly range, and the [cost per task guide](/blog/ai-agent-cost-per-task) shows how to include retries and failures.
+Uncoil does not guess prices. If you do not provide a calculation, cost stays at zero and the span is marked as having unknown cost, so a zero never passes for a real number. For cached tokens, use the usage object the provider returned, because cached input is priced differently from fresh input. If you want to plan before you have traces, the [free cost estimator](/tools/ai-cost-estimator) turns token assumptions into a monthly range, and the [cost per task guide](/blog/reduce-llm-costs-without-hurting-quality) shows how to include retries and failures.
 
 ## Protect privacy while you measure
 

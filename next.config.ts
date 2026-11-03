@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
       // Old blog URLs from before the rename.
       { source: "/blog/:name(.+)-vs-tracify", destination: "/blog/:name-vs-uncoil", permanent: true },
       { source: "/blog/how-to-write-tracify-blog-posts", destination: "/blog/how-to-write-uncoil-blog-posts", permanent: true },
+      // Old post URLs that still get Google impressions. Each goes to the closest live post.
+      { source: "/blog/what-is-agent-tracing-llm-observability", destination: "/blog/llm-tracing-explained", permanent: true },
+      { source: "/blog/ai-observability-complete-guide-ml-engineers", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/cost-latency-monitoring-ai-agents", destination: "/blog/ai-agent-monitoring", permanent: true },
+      { source: "/blog/multi-agent-observability-tracing-handoffs", destination: "/blog/multi-agent-orchestration-patterns", permanent: true },
+      { source: "/blog/debugging-ai-agent-failures-with-traces", destination: "/blog/debug-ai-agents-in-production", permanent: true },
       // The old /playground sandbox is gone; the demo project is the one demo.
       { source: "/playground/:view(dashboards|explore|prompts|scores|evaluators|human-annotation|datasets|experiments|settings|alerts|costs|playground|sessions|tracing|users)", destination: "/demo/project/:view", permanent: false },
       { source: "/playground/:path*", destination: "/demo/project", permanent: false },

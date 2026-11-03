@@ -14,10 +14,7 @@ tags:
   - AI agents
   - production
 relatedPosts:
-  - what-is-ai-observability
-  - ai-agent-observability-vs-apm
   - ai-agent-drift-detection
-  - ai-observability-platform
 heroImage:
   src: /media/ai-observability-vs-mlops-hero.svg
   alt: "A black canvas showing a horizontal lifecycle spine running from data through training, deployment, and production, with a lower band labeled MLOPS covering data through deployment and an upper band labeled AI OBSERVABILITY covering production and overlapping deployment"
@@ -32,7 +29,7 @@ seo:
 
 MLOps and AI observability are often talked about as if they were competing categories, or worse, as if one had simply been renamed. They aren't, and treating them as interchangeable is exactly how a team ends up with a fraud model that sails through every pre-deploy gate and still quietly degrades three weeks into production. MLOps is the discipline of getting a model from data to a reliably deployed artifact: versioned data, reproducible training, a model registry, automated deployment, and rollback. AI observability is the discipline of understanding what a deployed model or agent actually does once real traffic hits it: traces of individual decisions, evaluation scores on live outputs, drift detection against the training distribution, and the evidence a team needs to say whether the system is still behaving the way it did when it was approved. One discipline ships the model. The other tells you what shipping it actually caused. This article works through where each one's responsibility starts and stops, where they share real ground, and how to assign ownership so neither gap goes unowned.
 
-This is a category-level comparison — [what AI observability is](/blog/what-is-ai-observability) covers the definition in depth and is not repeated here, and [AI agent observability vs APM](/blog/ai-agent-observability-vs-apm) covers a related but different boundary, between infrastructure monitoring and AI-specific observability, that this article assumes as background rather than re-deriving.
+This is a category-level comparison — [what AI observability is](/blog/ai-agent-observability-complete-guide) covers the definition in depth and is not repeated here, and [AI agent observability vs APM](/blog/ai-agent-observability-complete-guide) covers a related but different boundary, between infrastructure monitoring and AI-specific observability, that this article assumes as background rather than re-deriving.
 
 ### The operating model: the Lifecycle Ownership Model
 
@@ -212,7 +209,7 @@ Two places deserve explicit ownership rather than being left to whichever team h
 
 **Promotion decisions.** Deciding whether a new model version should replace the one currently serving production traffic is, in a mature setup, informed by both disciplines: MLOps supplies the offline evaluation and canary deployment mechanics, and AI observability supplies live shadow evaluation or extended canary monitoring segmented by the dimensions that matter, not just aggregate accuracy. Treating promotion as a pure MLOps gate — pass the offline threshold, clear a short canary window, ship — is exactly the gap the worked fraud example exploited.
 
-**Rollback triggers.** {% highlight %}A rollback can be triggered by either discipline's signal{% /highlight %} — a classic MLOps-stage signal (a failed health check, a resource spike) or an AI-observability-stage signal (a correctness score dropping on live traffic, a drift alert on a specific segment). A rollback process that only listens to deployment-stage health checks will miss a rollback-worthy production regression that never touches latency or error rate — the same category of failure the [AI agent observability vs APM](/blog/ai-agent-observability-vs-apm) comparison covers from the infrastructure-monitoring side of a closely related boundary.
+**Rollback triggers.** {% highlight %}A rollback can be triggered by either discipline's signal{% /highlight %} — a classic MLOps-stage signal (a failed health check, a resource spike) or an AI-observability-stage signal (a correctness score dropping on live traffic, a drift alert on a specific segment). A rollback process that only listens to deployment-stage health checks will miss a rollback-worthy production regression that never touches latency or error rate — the same category of failure the [AI agent observability vs APM](/blog/ai-agent-observability-complete-guide) comparison covers from the infrastructure-monitoring side of a closely related boundary.
 
 Assign a clear owner for both of these shared decisions rather than assuming either discipline's tooling will surface the other's evidence automatically.
 
@@ -220,7 +217,7 @@ Assign a clear owner for both of these shared decisions rather than assuming eit
 
 {% editorial-panel eyebrow="Decision room" title="Run MLOps and AI observability as sequential lifecycle stages, not competing categories." body="MLOps stays exactly as valuable as it always was for reproducible training, registry discipline, and safe deployment mechanics. AI observability is the layer that answers the question MLOps was never built to answer on an ongoing basis: is this model or agent still behaving correctly, right now, against the traffic it's actually seeing? Propagate a shared model-version identifier through both stages so a production finding never requires guessing which training run caused it." tone="paper" /%}
 
-If you're building the case for adding production-stage observability without discarding your existing MLOps investment, [what AI observability is](/blog/what-is-ai-observability) lays the definitional groundwork this article intentionally didn't repeat, and [AI agent drift detection](/blog/ai-agent-drift-detection) goes deeper on the specific mechanics of detecting the kind of slice-level and behavioral drift the fraud example above illustrates. If you're evaluating platforms to close this gap, [AI observability platform](/blog/ai-observability-platform) covers the build-versus-buy decision for the production-monitoring layer directly.
+If you're building the case for adding production-stage observability without discarding your existing MLOps investment, [what AI observability is](/blog/ai-agent-observability-complete-guide) lays the definitional groundwork this article intentionally didn't repeat, and [AI agent drift detection](/blog/ai-agent-drift-detection) goes deeper on the specific mechanics of detecting the kind of slice-level and behavioral drift the fraud example above illustrates. If you're evaluating platforms to close this gap, [AI observability platform](/blog/ai-agent-observability-complete-guide) covers the build-versus-buy decision for the production-monitoring layer directly.
 
 ## Leave the reader with the next move
 

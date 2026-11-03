@@ -56,7 +56,7 @@ export default function GlossaryPage() {
       <ClosingBand
         title="Definitions are the start."
         body="Open a real trace and watch these terms move."
-        actions={[{ href: appHref("/demo/project"), label: "Open the demo", primary: true }, { href: "/blog/what-is-ai-observability", label: "What is AI observability?" }]}
+        actions={[{ href: appHref("/demo/project"), label: "Open the demo", primary: true }, { href: "/blog/ai-agent-observability-complete-guide", label: "What is AI observability?" }]}
       />
     </div>
   );

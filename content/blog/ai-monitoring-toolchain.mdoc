@@ -12,7 +12,6 @@ tags:
   - observability
   - tooling
 relatedPosts:
-  - ai-observability-tools
   - llm-tracing-explained
   - ai-agent-slos-error-budgets
 heroImage:
@@ -33,7 +32,7 @@ Most teams don't fail at AI monitoring because they picked the wrong product. Th
 | --- | --- | --- |
 | Engineer or platform owner assembling AI monitoring tooling | Decide what to build, what to buy, and how the pieces connect | Explains the monitoring layers, the wiring between them, and a build-versus-buy read for each; does not rank named vendors or repeat a general observability-versus-APM primer |
 
-This guide assumes your team already ships an LLM or agent feature to production and is past the "do we need this" question. If you're still deciding what counts as a real AI observability purchase versus a feature checklist, [AI observability tools](/blog/ai-observability-tools) covers that buying decision directly. This article picks up one step later: once you know the categories exist, how do you actually assemble them into something that pages the right person with the right evidence attached?
+This guide assumes your team already ships an LLM or agent feature to production and is past the "do we need this" question. If you're still deciding what counts as a real AI observability purchase versus a feature checklist, [AI observability tools](/blog/ai-agent-observability-complete-guide) covers that buying decision directly. This article picks up one step later: once you know the categories exist, how do you actually assemble them into something that pages the right person with the right evidence attached?
 
 The core idea is {% highlight %}a monitoring toolchain is judged by its weakest connection, not its strongest tool{% /highlight %}. A best-in-class tracer wired to a cost tool with no shared identifier is worse in practice than two mediocre tools that share one.
 
@@ -192,7 +191,7 @@ There's no single right answer to "should we build or buy our AI monitoring stac
 
 {% editorial-panel eyebrow="Operating principle" title="Team size predicts toolchain fit better than company size." body="A five-person startup and a five-person AI platform team inside a large enterprise face the same constraint: limited capacity to maintain glue code between separately chosen tools. A larger org with a small dedicated team should weigh assembly overhead the same way a startup does; a smaller org with a large, well-resourced infra team can absorb more of it." tone="paper" /%}
 
-[AI observability platform](/blog/ai-observability-platform) covers the specific trade-off between an assembled, best-of-breed toolchain and a single integrated platform in more depth — including the identifier-consistency argument that shows up throughout this guide as the recurring failure point.
+[AI observability platform](/blog/ai-agent-observability-complete-guide) covers the specific trade-off between an assembled, best-of-breed toolchain and a single integrated platform in more depth — including the identifier-consistency argument that shows up throughout this guide as the recurring failure point.
 
 ### The seam cost nobody puts on the vendor comparison sheet
 

@@ -28,6 +28,16 @@ const nextConfig: NextConfig = {
       // Old blog URLs from before the rename.
       { source: "/blog/:name(.+)-vs-tracify", destination: "/blog/:name-vs-uncoil", permanent: true },
       { source: "/blog/how-to-write-tracify-blog-posts", destination: "/blog/how-to-write-uncoil-blog-posts", permanent: true },
+      // Merged into the complete AI agent observability guide.
+      { source: "/blog/agentic-ai-observability", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/what-is-ai-observability", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/ai-observability-best-practices", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/ai-observability-platform", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/ai-observability-tools", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/ai-observability-dashboard", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/generative-ai-observability", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/ai-agent-observability-vs-apm", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/monitoring-vs-observability", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
       // The old /playground sandbox is gone; the demo project is the one demo.
       { source: "/playground/:view(dashboards|explore|prompts|scores|evaluators|human-annotation|datasets|experiments|settings|alerts|costs|playground|sessions|tracing|users)", destination: "/demo/project/:view", permanent: false },
       { source: "/playground/:path*", destination: "/demo/project", permanent: false },

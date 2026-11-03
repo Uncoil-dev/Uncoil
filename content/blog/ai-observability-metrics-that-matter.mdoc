@@ -12,7 +12,6 @@ tags:
   - metrics
   - KPIs
 relatedPosts:
-  - ai-observability-dashboard
   - ai-evaluation-metrics
   - reduce-llm-costs-without-hurting-quality
 heroImage:
@@ -27,11 +26,11 @@ seo:
 
 ## At a glance
 
-The **metrics that matter for AI observability** are latency, cost, reliability, groundedness or quality, and tool-call success — and the value of each comes less from its raw number and more from what it is compared against: a percentile instead of an average, a per-workflow baseline instead of a global one, and, critically, another metric it commonly trades off against. This article is a deep dive on the metrics themselves and how to interpret them correctly; for how to lay them out on a screen, see [the AI observability dashboard guide](/blog/ai-observability-dashboard).
+The **metrics that matter for AI observability** are latency, cost, reliability, groundedness or quality, and tool-call success — and the value of each comes less from its raw number and more from what it is compared against: a percentile instead of an average, a per-workflow baseline instead of a global one, and, critically, another metric it commonly trades off against. This article is a deep dive on the metrics themselves and how to interpret them correctly; for how to lay them out on a screen, see [the AI observability dashboard guide](/blog/ai-agent-observability-complete-guide).
 
 | Reader | Job | Boundary |
 | --- | --- | --- |
-| Engineer or team lead deciding what to measure and how to read it | Choose the right metrics and avoid the common misreadings that turn a real trade-off into an apparent free win | Focused on metric selection and interpretation, not dashboard layout (see [AI observability dashboard](/blog/ai-observability-dashboard)) or rollout process (see [AI observability best practices](/blog/ai-observability-best-practices)) |
+| Engineer or team lead deciding what to measure and how to read it | Choose the right metrics and avoid the common misreadings that turn a real trade-off into an apparent free win | Focused on metric selection and interpretation, not dashboard layout (see [AI observability dashboard](/blog/ai-agent-observability-complete-guide)) or rollout process (see [AI observability best practices](/blog/ai-agent-observability-complete-guide)) |
 
 ## The operating model: one run record, five connected metrics
 
@@ -131,7 +130,7 @@ A tool call can succeed at the infrastructure level — no error, a response ret
 | Invocation | Did the tool respond successfully, without error or timeout | The infrastructure-level signal, necessary but not sufficient |
 | Interpretation | Did the calling system correctly use the tool's result in its next step | The layer that actually determines whether the tool call helped or hurt the outcome |
 
-{% highlight %}A tool with a 99% invocation success rate can still be the root cause of a real quality problem if its results are frequently misinterpreted by the calling system{% /highlight %}, and a metrics setup that only tracks invocation success will never surface that gap. See [agentic AI observability](/blog/agentic-ai-observability) for a deeper treatment of tracking tool-call interpretation specifically.
+{% highlight %}A tool with a 99% invocation success rate can still be the root cause of a real quality problem if its results are frequently misinterpreted by the calling system{% /highlight %}, and a metrics setup that only tracks invocation success will never surface that gap. See [agentic AI observability](/blog/ai-agent-observability-complete-guide) for a deeper treatment of tracking tool-call interpretation specifically.
 
 ## Set alert thresholds against each metric's own shape, not a generic rule
 
@@ -174,7 +173,7 @@ When a metric moves unexpectedly, the fastest diagnostic path is checking its kn
 
 ## Protect the security boundary
 
-Cost and latency metrics are usually safe to expose broadly, but per-run quality and groundedness scores are frequently computed from, or stored alongside, the actual prompt and output content — which can include customer data. Keep the aggregate metric broadly visible while restricting access to the underlying per-run content that produced it, the same access pattern covered in more depth in [the dashboard guide](/blog/ai-observability-dashboard). A metrics pipeline is still a data pipeline, and it deserves the same access discipline as the trace data it summarizes.
+Cost and latency metrics are usually safe to expose broadly, but per-run quality and groundedness scores are frequently computed from, or stored alongside, the actual prompt and output content — which can include customer data. Keep the aggregate metric broadly visible while restricting access to the underlying per-run content that produced it, the same access pattern covered in more depth in [the dashboard guide](/blog/ai-agent-observability-complete-guide). A metrics pipeline is still a data pipeline, and it deserves the same access discipline as the trace data it summarizes.
 
 ## Read the lower half visually: pick a target, not just a direction
 

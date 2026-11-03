@@ -81,34 +81,8 @@ export const opsTerms: readonly Term[] = [
       "Fallbacks improve availability but change behavior: a different model may follow instructions differently or cost more. Record which model actually answered on every run, and test the fallback path on purpose, since it is the code that runs least often.",
     example:
       "Your primary model returns 429. The agent retries once, then calls a second provider's model. The trace shows both attempts and the model that finally answered.",
-    related: ["rate-limit", "retry-with-backoff", "foundation-model", "cost-per-run"],
+    related: ["rate-limit", "retry-with-backoff", "foundation-model"],
     link: { href: "/docs/resilience-testing", label: "Read about resilience testing" },
-  },
-  {
-    slug: "cost-per-run",
-    term: "Cost per run",
-    group: perfGroup,
-    definition:
-      "Cost per run is the total money spent on one agent run, found by adding up the cost of every model call and paid tool call inside it. It is the number that tells you whether a feature is affordable at scale.",
-    expansion:
-      "Averages mislead because cost is uneven: most runs are cheap and a few looping runs are expensive. Look at the median, the 95th percentile and the most expensive runs, and break cost down by model and step. Pair it with a quality score, since the cheapest run is not the best one.",
-    example:
-      "A run makes four model calls for $0.012 total and one search call for $0.004. Cost per run is $0.016, or $160 for 10,000 runs.",
-    related: ["llm-cost-tracking", "token-usage", "cost-budget", "input-tokens"],
-    link: { href: "/product/cost-dashboard", label: "See the cost dashboard" },
-  },
-  {
-    slug: "cost-budget",
-    term: "Cost budget",
-    group: perfGroup,
-    definition:
-      "A cost budget is a limit on spend, per run, per user or per time period, with a defined action when it is reached, such as stopping the run, switching to a cheaper model or sending an alert.",
-    expansion:
-      "Agents can loop, so a per-run cap protects you from one bad request becoming a large bill. Account-level budgets catch slower leaks, like a prompt change that doubled input size. Decide in advance whether hitting a budget should stop, degrade or only notify.",
-    example:
-      "Each run is capped at $0.50. At $0.45 the agent stops calling tools and returns the best answer it has so far, and the run is flagged.",
-    related: ["cost-per-run", "alert-rule", "agent-loop", "llm-cost-tracking"],
-    link: { href: "/docs/costs", label: "Track model cost and latency" },
   },
   {
     slug: "streaming",
@@ -280,7 +254,7 @@ export const opsTerms: readonly Term[] = [
       "Good rules are tied to something you will act on and use a window long enough to ignore single blips. Too many noisy alerts get ignored, so start with a few that matter: failure rate, cost spikes and latency. Each alert should link to the runs that caused it.",
     example:
       "A rule fires when more than 5% of runs fail over 15 minutes. The message links to the failing runs, grouped by the tool that errored.",
-    related: ["anomaly-detection", "error-rate", "cost-budget", "p95-latency"],
+    related: ["anomaly-detection", "error-rate", "p95-latency"],
     link: { href: "/product/failures", label: "See how failures are surfaced" },
   },
   {

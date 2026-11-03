@@ -85,7 +85,7 @@ Alerting turns a detected regression into a notification with an owner and a nex
 
 ### Prompt and version registries
 
-A registry tracks what changed and when: prompt template versions, model versions, retrieval index versions, and the release each production run used. Without this, a quality regression is visible but not attributable — you know something got worse on Tuesday, but not which of the four changes deployed that day caused it. {% highlight %}Attribution, not just detection, is what turns a regression into a fixable bug{% /highlight %} instead of a mystery someone eventually gives up investigating. [Prompt versioning in production](/blog/prompt-versioning-production) covers this category specifically, including how to keep a rollback path available when a prompt change ships alongside a model or retrieval change in the same release window.
+A registry tracks what changed and when: prompt template versions, model versions, retrieval index versions, and the release each production run used. Without this, a quality regression is visible but not attributable — you know something got worse on Tuesday, but not which of the four changes deployed that day caused it. {% highlight %}Attribution, not just detection, is what turns a regression into a fixable bug{% /highlight %} instead of a mystery someone eventually gives up investigating. [Prompt versioning in production](/blog/prompt-versioning-and-prompt-management) covers this category specifically, including how to keep a rollback path available when a prompt change ships alongside a model or retrieval change in the same release window.
 
 ## Who owns each category
 

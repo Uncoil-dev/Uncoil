@@ -70,7 +70,7 @@ Start by writing the decision in one sentence: “Promote this change to _which_
 | Promote a release | Matched baseline, regression slices, high-risk failures | Promote a cohort, hold, or roll back |
 | Change the workflow | Repeated mechanism across representative traces | Add a test, contract, control, or owner |
 
-The [AI agent testing strategy](/blog/ai-agent-testing-unit-tests-production-evals) provides the test layers; evaluation connects those layers to a decision. Keep the boundary explicit: this guide covers evidence and release judgment, not every implementation detail of an evaluator.
+The test layers above feed this guide; evaluation connects those layers to a decision. Keep the boundary explicit: this guide covers evidence and release judgment, not every implementation detail of an evaluator.
 
 ## 2. Represent the work, not the demo
 
@@ -283,6 +283,32 @@ Finally, define completion precisely. A workflow is not complete because the dem
 Use a representative input and a deliberately difficult input. Confirm that the system identifies the workflow and version, applies the right scope and permissions, records the evidence used, and returns a state a user can understand. If it calls a tool, verify the arguments after normalization and confirm that the tool result is associated with the same run. If it retries, verify that the retry is bounded and cannot duplicate a consequential side effect.
 
 Review one success, one corrected result, and one failure after every material release. Compare the first meaningful divergence, not only the final text. Update the regression case, runbook, policy, or state transition that would have prevented the failure or made it safe. Then record the owner and date for the next review. This small discipline keeps the implementation connected to production reality and gives the team evidence for deciding whether to expand, simplify, or pause the workflow.
+## Evaluate in production, not only before release
+
+Production evaluation differs from a test set: inputs are messy, the cost of a miss is real, and the cause of a bad answer is usually spread over many steps. Use five checks in order:
+
+| Stage | Question | Minimum evidence |
+| --- | --- | --- |
+| Target | What does success mean for this task? | User outcome and hard constraints |
+| Record | What actually happened? | Trace, inputs, outputs, tools, timing, cost |
+| Assess | How good, safe, and complete was it? | Rubric, automated checks, or a human label |
+| Classify | Where was the first meaningful divergence? | Span-level diagnosis |
+| Evolve | What change should we test and release? | Regression case, owner, threshold, rollback |
+
+Read the trace before you classify. A diagnosis made first is a guess. Do not ship a change without a regression case; that is an uncontrolled experiment. Rank quality dimensions before you score: a fabricated policy citation blocks release even if the prose is fluent, while one extra second of latency may be fine.
+
+## Layer your tests
+
+Evaluation is one layer of a test stack. Use the cheapest layer that can catch each failure:
+
+1. **Unit tests** for stable logic: schema parsing, redaction, routing, retry classification, permission checks, idempotency keys, and timeout or cost calculations. They are fast and run on every change.
+2. **Simulated dependencies** for unhappy paths: tool timeouts, malformed results, and rate limits.
+3. **Realistic task evals** scored against your criteria.
+4. **Production observation** as a test surface: sampled traces, user feedback, and drift checks.
+5. **Layered release gates** that need evidence from more than one layer.
+
+A validation error should be terminal and a timeout should be retryable. Pin that with a unit test and you never need a model call to check it.
+
 ## Frequently asked questions
 
 {% faq-item question="How large should an evaluation set be?" answer="Large enough to cover the release decision and its important edge cases. A small consequential cohort can justify a hold when its mechanism is clear, while a large easy sample cannot prove safety for an unrepresented workflow." /%}

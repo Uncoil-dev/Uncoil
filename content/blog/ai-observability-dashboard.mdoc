@@ -13,7 +13,7 @@ tags:
   - alerting
 relatedPosts:
   - ai-observability-platform
-  - ai-observability-metrics-that-matter
+  - llm-observability-metrics-that-matter
   - what-is-ai-observability
 heroImage:
   src: /media/ai-observability-dashboard-hero.svg
@@ -31,9 +31,9 @@ An **AI observability dashboard** is the day-to-day surface a team uses to judge
 
 | Reader | Job | Boundary |
 | --- | --- | --- |
-| Engineer, team lead, or platform owner designing or evaluating an AI observability dashboard | Design a dashboard that supports real decisions, not just a status report | Focused on dashboard and alerting design; see [AI observability metrics that matter](/blog/ai-observability-metrics-that-matter) for how to interpret the underlying metrics themselves |
+| Engineer, team lead, or platform owner designing or evaluating an AI observability dashboard | Design a dashboard that supports real decisions, not just a status report | Focused on dashboard and alerting design; see [AI observability metrics that matter](/blog/llm-observability-metrics-that-matter) for how to interpret the underlying metrics themselves |
 
-This article assumes you already know which metrics matter for your system; if you need that foundation first, [AI observability metrics that matter](/blog/ai-observability-metrics-that-matter) covers the metrics themselves in depth. Here, the focus is purely on how to lay them out, alert on them, and avoid the composite-score trap.
+This article assumes you already know which metrics matter for your system; if you need that foundation first, [AI observability metrics that matter](/blog/llm-observability-metrics-that-matter) covers the metrics themselves in depth. Here, the focus is purely on how to lay them out, alert on them, and avoid the composite-score trap.
 
 ## Design around the three-tier decision model
 
@@ -187,7 +187,7 @@ For a small team running a single low-stakes workflow, a simpler two-tier dashbo
 
 {% editorial-panel eyebrow="Decision room" title="Design for the reader's next action, not for completeness." body="Before adding a metric or a chart, ask what decision it should change and for whom. A dashboard element that does not map to a specific reader action is decoration, and decoration is exactly what crowds out the signal a five-second scan needs to surface." tone="paper" /%}
 
-Start by auditing your current dashboard against the three-tier model: does the summary row stay under six tiles, do trend charts compare against a fixed baseline, and does every alert carry a representative run and a named owner? [AI observability metrics that matter](/blog/ai-observability-metrics-that-matter) goes deeper on selecting the underlying metrics this layout should surface, and [AI observability platform](/blog/ai-observability-platform) covers how dashboard capability fits into a broader platform evaluation.
+Start by auditing your current dashboard against the three-tier model: does the summary row stay under six tiles, do trend charts compare against a fixed baseline, and does every alert carry a representative run and a named owner? [AI observability metrics that matter](/blog/llm-observability-metrics-that-matter) goes deeper on selecting the underlying metrics this layout should surface, and [AI observability platform](/blog/ai-observability-platform) covers how dashboard capability fits into a broader platform evaluation.
 
 ## Leave the reader with the next move
 

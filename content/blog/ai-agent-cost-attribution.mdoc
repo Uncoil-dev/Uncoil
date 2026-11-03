@@ -14,8 +14,6 @@ tags:
   - chargeback
   - FinOps
 relatedPosts:
-  - ai-agent-cost-per-task
-  - ai-agent-cost-optimization
   - reduce-llm-costs-without-hurting-quality
 heroImage:
   src: /media/ai-agent-cost-attribution-hero.svg
@@ -29,7 +27,7 @@ seo:
 
 A platform team that resells or exposes AI agent functionality to multiple customers eventually asks a question its aggregate dashboard cannot answer: **who is spending this money, and are we charging them enough to cover it?** Total monthly LLM spend is a useful number for a finance review. It is close to useless for deciding whether Tenant A's usage-based plan is profitable, whether Tenant B is abusing a free tier, or whether a shared background feature is quietly subsidized by every other customer.
 
-This article is about attribution, not reduction. It does not repeat how to measure [cost per successful task](/blog/ai-agent-cost-per-task) — that article defines the unit-economics denominator this one assumes — and it does not re-explain the tactics in [reducing LLM costs without hurting quality](/blog/reduce-llm-costs-without-hurting-quality) or the [interactive cost calculator](/blog/ai-agent-cost-optimization) built for finding and cutting cost drivers. Attribution is a different job: taking the total your provider bills you and correctly assigning every dollar of it to the tenant, team, or feature that actually caused it, then reconciling that number against what you bill the customer back.
+This article is about attribution, not reduction. It does not repeat how to measure [cost per successful task](/blog/reduce-llm-costs-without-hurting-quality) — that article defines the unit-economics denominator this one assumes — and it does not re-explain the tactics in [reducing LLM costs without hurting quality](/blog/reduce-llm-costs-without-hurting-quality) or the [interactive cost calculator](/blog/reduce-llm-costs-without-hurting-quality) built for finding and cutting cost drivers. Attribution is a different job: taking the total your provider bills you and correctly assigning every dollar of it to the tenant, team, or feature that actually caused it, then reconciling that number against what you bill the customer back.
 
 The boundary is deliberate. This article does not cover how to lower total spend, how to price a plan, or how to build a general FinOps practice for cloud infrastructure. It covers the mechanics of turning one pooled AI provider invoice into a set of tenant-level ledgers you can trust enough to bill from, alert on, and defend in a support ticket.
 
@@ -199,7 +197,7 @@ Every stage above assumes you can record a cost event per span. That is the most
 | Granularity | Overhead | Detection latency | Best fit |
 | --- | --- | --- | --- |
 | Span-level | Highest — one event per model or tool call | Near-immediate, if aggregation runs continuously | Usage-based billing, per-tenant budget enforcement, dispute resolution |
-| Run-level | Moderate — one event per completed parent run | Minutes to hours, depending on aggregation cadence | Most chargeback and showback needs; matches how [cost per successful task](/blog/ai-agent-cost-per-task) is already measured |
+| Run-level | Moderate — one event per completed parent run | Minutes to hours, depending on aggregation cadence | Most chargeback and showback needs; matches how [cost per successful task](/blog/reduce-llm-costs-without-hurting-quality) is already measured |
 | Daily rollup | Low — one aggregated row per tenant per day | A day or more | Internal showback, trend reporting, low-stakes plans |
 
 {% highlight %}Granularity you cannot afford to compute is not a real option{% /highlight %}. Span-level attribution sounds strictly better than run-level, but if the pipeline that computes it cannot keep up with production volume, it degrades into a backlog that nobody trusts — at which point a slower, cheaper run-level ledger that is actually current is more useful than a precise one that is three days behind. A practical default is run-level aggregation for every tenant, with span-level detail retained for a shorter window specifically to support dispute resolution and enforcement decisions, rather than trying to keep full span-level history forever for every tenant.

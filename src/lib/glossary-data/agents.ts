@@ -187,7 +187,7 @@ export const agentTerms: readonly Term[] = [
       "Every pass adds tokens and time, and a loop with no stopping rule can run until it hits a budget. Good agents have a maximum number of steps, a spend limit and a way to notice repeated identical calls. In a trace, one pass of the loop appears as a model span followed by its tool spans.",
     example:
       "Pass 1: the model asks to search. Pass 2: it reads a result. Pass 3: it writes the answer. The trace shows three model spans and two tool spans under one run.",
-    related: ["ai-agent", "react-pattern", "agent-run", "cost-budget"],
+    related: ["ai-agent", "react-pattern", "agent-run"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
   },
   {

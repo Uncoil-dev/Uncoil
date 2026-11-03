@@ -32,7 +32,7 @@ export default function CostEstimatorPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(schema) }} />
       <PageHeader eyebrow="Free tool / cost" title="What will your agent cost?" lede="Type in your traffic and token counts. See the cost per run, per finished task and per month, and which change saves the most.">
         <HeaderAction href="#estimator">Open the estimator</HeaderAction>
-        <HeaderAction href="/blog/how-to-estimate-ai-agent-costs" kind="secondary">How the maths works</HeaderAction>
+        <HeaderAction href="/blog/reduce-llm-costs-without-hurting-quality" kind="secondary">How the maths works</HeaderAction>
       </PageHeader>
       <CreamBand id="estimator">
         <Eyebrow dark={false}>No sign-up / runs in your browser</Eyebrow>
@@ -45,9 +45,8 @@ export default function CostEstimatorPage() {
             <Eyebrow dark={false}>Read next</Eyebrow>
             <h2 className="mt-5 font-pixel text-[clamp(2rem,4vw,3.4rem)] leading-[0.95] tracking-[-0.06em]">Questions people ask.</h2>
             <ul className="mt-8 space-y-3 text-sm leading-6">
-              <li><Link className="underline decoration-[#f4d44d] decoration-2 underline-offset-4 hover:bg-[#f4d44d]" href="/blog/how-to-estimate-ai-agent-costs">How to estimate AI agent costs before launch</Link></li>
+              <li><Link className="underline decoration-[#f4d44d] decoration-2 underline-offset-4 hover:bg-[#f4d44d]" href="/blog/reduce-llm-costs-without-hurting-quality">How to estimate AI agent costs before launch</Link></li>
               <li><Link className="underline decoration-[#f4d44d] decoration-2 underline-offset-4 hover:bg-[#f4d44d]" href="/blog/how-to-track-llm-token-usage">How to track LLM token usage per request</Link></li>
-              <li><Link className="underline decoration-[#f4d44d] decoration-2 underline-offset-4 hover:bg-[#f4d44d]" href="/blog/ai-agent-cost-per-task">AI agent cost per task</Link></li>
             </ul>
           </div>
           <div className="divide-y divide-black/15 border-y border-black/15">

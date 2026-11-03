@@ -15,7 +15,6 @@ tags:
   - cost-optimization
 relatedPosts:
   - reduce-llm-costs-without-hurting-quality
-  - ai-agent-cost-optimization
   - ai-agent-observability-complete-guide
 heroImage:
   src: /media/langsmith-vs-uncoil-growth-trajectory.svg
@@ -76,7 +75,7 @@ Before evaluating platforms, you need a grip on what actually drives trace volum
 
 Example: 100 requests/hour × 24 × 30 × 8 traces/request = 576,000 traces/month for a modest single-agent deployment. Multiply agents, and this number stops being modest fast — a team running 10 agents at similar request volume is already past 5M/month before anyone budgeted for it.
 
-If you're already on LangSmith, check Settings → Usage for actual historical volume rather than estimating. That number, not a back-of-envelope guess, is the input that matters. If you want a more general walkthrough of attributing spend to specific workflows and calls rather than just totals, see [Uncoil's guide to trace-based cost optimization](/blog/ai-agent-cost-optimization) — the same instrumentation discipline that helps you cut token spend also gives you an accurate trace-volume baseline for this comparison.
+If you're already on LangSmith, check Settings → Usage for actual historical volume rather than estimating. That number, not a back-of-envelope guess, is the input that matters. If you want a more general walkthrough of attributing spend to specific workflows and calls rather than just totals, see [Uncoil's guide to attributing agent spend](/blog/ai-agent-cost-attribution) — the same instrumentation discipline that helps you cut token spend also gives you an accurate trace-volume baseline for this comparison.
 
 **Spans per request by agent shape:**
 

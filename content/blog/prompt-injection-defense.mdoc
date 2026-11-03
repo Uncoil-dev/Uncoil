@@ -118,7 +118,7 @@ Direct attacks arrive in the user’s request. Indirect attacks arrive through c
 
 For browser and retrieval workflows, restrict navigation, downloads, network destinations, and file access. Treat page text as untrusted. Do not let a document create a new tool, change the system prompt, reveal hidden context, or override a stop condition. If the task genuinely requires executing instructions found in a document, use a separate, explicit interpreter with its own policy and sandbox.
 
-The [browser agent observability guide](/blog/browser-agent-observability) shows how to connect model decisions to browser actions and network failures. [Prompt versioning in production](/blog/prompt-versioning-production) explains why the policy and prompt revision must travel with the trace when a security behavior changes.
+The [browser agent observability guide](/blog/browser-agent-observability) shows how to connect model decisions to browser actions and network failures. [Prompt versioning in production](/blog/prompt-versioning-and-prompt-management) explains why the policy and prompt revision must travel with the trace when a security behavior changes.
 
 ## Add output and destination controls
 

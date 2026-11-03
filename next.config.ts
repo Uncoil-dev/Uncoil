@@ -28,6 +28,16 @@ const nextConfig: NextConfig = {
       // Old blog URLs from before the rename.
       { source: "/blog/:name(.+)-vs-tracify", destination: "/blog/:name-vs-uncoil", permanent: true },
       { source: "/blog/how-to-write-tracify-blog-posts", destination: "/blog/how-to-write-uncoil-blog-posts", permanent: true },
+      // Merged near-duplicate posts: 301 to the one canonical page.
+      { source: "/blog/ai-observability-metrics-that-matter", destination: "/blog/llm-observability-metrics-that-matter", permanent: true },
+      { source: "/blog/prompt-versioning-production", destination: "/blog/prompt-versioning-and-prompt-management", permanent: true },
+      { source: "/blog/ai-agent-cost-optimization", destination: "/blog/reduce-llm-costs-without-hurting-quality", permanent: true },
+      { source: "/blog/ai-agent-cost-per-task", destination: "/blog/reduce-llm-costs-without-hurting-quality", permanent: true },
+      { source: "/blog/how-to-estimate-ai-agent-costs", destination: "/blog/reduce-llm-costs-without-hurting-quality", permanent: true },
+      { source: "/blog/ai-agent-evaluation-in-production", destination: "/blog/ai-agent-evaluation-practical-guide", permanent: true },
+      { source: "/blog/ai-agent-testing-unit-tests-production-evals", destination: "/blog/ai-agent-evaluation-practical-guide", permanent: true },
+      { source: "/glossary/cost-per-run", destination: "/blog/reduce-llm-costs-without-hurting-quality", permanent: true },
+      { source: "/glossary/cost-budget", destination: "/blog/reduce-llm-costs-without-hurting-quality", permanent: true },
       // Old post URLs that still get Google impressions. Each goes to the closest live post.
       { source: "/blog/what-is-agent-tracing-llm-observability", destination: "/blog/llm-tracing-explained", permanent: true },
       { source: "/blog/ai-observability-complete-guide-ml-engineers", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },

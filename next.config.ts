@@ -38,6 +38,12 @@ const nextConfig: NextConfig = {
       { source: "/blog/ai-agent-testing-unit-tests-production-evals", destination: "/blog/ai-agent-evaluation-practical-guide", permanent: true },
       { source: "/glossary/cost-per-run", destination: "/blog/reduce-llm-costs-without-hurting-quality", permanent: true },
       { source: "/glossary/cost-budget", destination: "/blog/reduce-llm-costs-without-hurting-quality", permanent: true },
+      // Old post URLs that still get Google impressions. Each goes to the closest live post.
+      { source: "/blog/what-is-agent-tracing-llm-observability", destination: "/blog/llm-tracing-explained", permanent: true },
+      { source: "/blog/ai-observability-complete-guide-ml-engineers", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/blog/cost-latency-monitoring-ai-agents", destination: "/blog/ai-agent-monitoring", permanent: true },
+      { source: "/blog/multi-agent-observability-tracing-handoffs", destination: "/blog/multi-agent-orchestration-patterns", permanent: true },
+      { source: "/blog/debugging-ai-agent-failures-with-traces", destination: "/blog/debug-ai-agents-in-production", permanent: true },
       // The old /playground sandbox is gone; the demo project is the one demo.
       { source: "/playground/:view(dashboards|explore|prompts|scores|evaluators|human-annotation|datasets|experiments|settings|alerts|costs|playground|sessions|tracing|users)", destination: "/demo/project/:view", permanent: false },
       { source: "/playground/:path*", destination: "/demo/project", permanent: false },

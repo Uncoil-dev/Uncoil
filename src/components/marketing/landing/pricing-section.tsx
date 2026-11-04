@@ -20,12 +20,12 @@ export function PricingSection() {
   const interval = annual ? "annual" : "monthly";
 
   return (
-    <section id="pricing" className="bg-[#eceae3] px-5 py-24 text-black md:px-10 md:py-32">
+    <section id="pricing" className="bg-[#eceae3] mk-section px-5 text-black md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Pricing</p>
-            <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Free to start. Fair as you grow.</h2>
+            <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Free to start. Fair as you grow.</h2>
           </div>
           <div className="relative flex w-fit border-2 border-black p-1 font-mono text-[10px] uppercase tracking-[0.12em]">
             {(["Monthly", "Annual −20%"] as const).map((label, i) => {
@@ -40,7 +40,7 @@ export function PricingSection() {
           </div>
         </div>
 
-        <div className="mt-14 grid gap-[2px] border-2 border-black bg-black md:grid-cols-2 lg:grid-cols-4">
+        <div className="mk-gap grid gap-[2px] border-2 border-black bg-black md:grid-cols-2 lg:grid-cols-4">
           {plans.map((plan) => {
             const price = annual ? plan.monthly * 0.8 : plan.monthly;
             const label = `$${price % 1 ? price.toFixed(2) : price}`;

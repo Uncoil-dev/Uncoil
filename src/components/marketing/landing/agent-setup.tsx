@@ -178,7 +178,7 @@ export function AgentSetup() {
   }
 
   return (
-    <section id="agent-setup" className="relative overflow-hidden bg-[#f4d44d] px-5 py-24 text-black md:px-10 md:py-32" aria-labelledby="agent-setup-title">
+    <section id="agent-setup" className="relative overflow-hidden bg-[#f4d44d] mk-section px-5 text-black md:px-10" aria-labelledby="agent-setup-title">
       <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-72 w-2/3 rotate-180 [mask-image:linear-gradient(to_top,black,transparent)]">
         <DitherEmber rgb={[9, 9, 9]} className="!opacity-25" />
       </div>
@@ -213,7 +213,7 @@ export function AgentSetup() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.1} className="mt-14 grid border-2 border-black bg-[#090909] text-[#eceae3] shadow-[12px_12px_0_0_#090909] lg:grid-cols-[1fr_1.05fr]">
+        <Reveal delay={0.1} className="mk-gap grid border-2 border-black bg-[#090909] text-[#eceae3] shadow-[12px_12px_0_0_#090909] lg:grid-cols-[1fr_1.05fr]">
           <div className="flex flex-col p-6 md:p-10">
             <ol className="space-y-8">
               <li>
@@ -284,7 +284,7 @@ export function AgentSetup() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.15} className="mt-14 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
+        <Reveal delay={0.15} className="mk-gap grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
           <div className="max-w-xl">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-black/65">Prefer doing it yourself?</p>
             <div className="mt-3 flex flex-wrap border-2 border-black bg-[#090909] text-[#eceae3]">

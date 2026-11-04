@@ -69,7 +69,7 @@ If you call OpenAI or Anthropic directly, the least work is to wrap the client o
 ```ts
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import { wrapOpenAI, wrapAnthropic } from "uncoil-sdk";
+import { wrapOpenAI, wrapAnthropic } from "uncoil";
 
 const openai = wrapOpenAI(new OpenAI());
 const anthropic = wrapAnthropic(new Anthropic());
@@ -88,7 +88,7 @@ The setup is described in the [provider integrations guide](/docs/provider-integ
 If you use a different provider, a gateway or your own model server, record the numbers on a span where you make the call.
 
 ```ts
-import { span } from "uncoil-sdk";
+import { span } from "uncoil";
 
 const text = await span(
   "chat",

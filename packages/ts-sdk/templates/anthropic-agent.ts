@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { UncoilClient, wrapAnthropic, traceTools, span } from "uncoil-sdk";
+import { UncoilClient, wrapAnthropic, traceTools, span } from "uncoil";
 
 const uncoil = new UncoilClient({ environment: "development" });
 const anthropic = wrapAnthropic(new Anthropic(), { client: uncoil });

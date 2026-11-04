@@ -30,8 +30,8 @@ async def research_agent(query):
   },
   typescript: {
     label: "TypeScript",
-    install: "npm install uncoil-sdk",
-    code: `import { traceAgent } from "uncoil-sdk"
+    install: "npm install uncoil",
+    code: `import { traceAgent } from "uncoil"
 
 const researchAgent = traceAgent(async (query: string) => {
   return await run(query)
@@ -56,11 +56,11 @@ Steps:
 1. Detect whether this project is Python or TypeScript.
 2. Install the Uncoil SDK with the correct command:
    - Python: pip install uncoil-sdk
-   - TypeScript / Node.js: npm install uncoil-sdk
+   - TypeScript / Node.js: npm install uncoil
 3. Add UNCOIL_API_KEY to .env.example.
 4. Find the main agent function.
 5. If Python, import trace_agent from uncoil and add @trace_agent().
-6. If TypeScript, import traceAgent from uncoil-sdk and wrap the async agent function.
+6. If TypeScript, import traceAgent from uncoil and wrap the async agent function.
 7. Run the agent once.
 8. Confirm that a span was sent to Uncoil.
 

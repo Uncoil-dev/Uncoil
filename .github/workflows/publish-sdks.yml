@@ -21,7 +21,7 @@ on:
 
 jobs:
   npm:
-    name: "npm: uncoil-sdk"
+    name: "npm: uncoil"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,7 +45,7 @@ jobs:
         run: npm pack --dry-run
       - name: Confirm which npm account will own the package
         run: |
-          # Publishing is first-come: whoever runs this owns `uncoil-sdk`
+          # Publishing is first-come: whoever runs this owns `uncoil` (npm) and `uncoil-sdk` (PyPI)
           # permanently. Fail loudly if NPM_TOKEN belongs to the wrong account.
           who=$(npm whoami)
           echo "Publishing as npm user: $who"

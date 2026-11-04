@@ -111,7 +111,7 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
     const data = response.ok ? await response.json() as { projectId?: string; projectName?: string } : null;
     if (data?.projectId) {
       if (expectedProject && expectedProject !== data.projectId) {
-        add({ id: "project", title: "Project", status: "fail", message: `UNCOIL_PROJECT_ID points at a different project than this key ("${data.projectName ?? data.projectId}").`, hint: "Run `npx uncoil-sdk login` in this folder again so the key and project are saved together." });
+        add({ id: "project", title: "Project", status: "fail", message: `UNCOIL_PROJECT_ID points at a different project than this key ("${data.projectName ?? data.projectId}").`, hint: "Run `npx uncoil login` in this folder again so the key and project are saved together." });
         return report();
       }
       add({ id: "project", title: "Project", status: "ok", message: `Traces will land in: ${data.projectName ?? data.projectId}` });
@@ -133,10 +133,10 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
     modelId: "uncoil-doctor",
     createdAt: new Date(started).toISOString(),
     latencyMs: 1,
-    input: "Setup check from uncoil-sdk doctor",
+    input: "Setup check from uncoil doctor",
     output: "If you can see this trace in your dashboard, the SDK is set up correctly.",
     tags: ["uncoil-doctor"],
-    metadata: { source: "uncoil-sdk doctor", sdk: "ts" },
+    metadata: { source: "uncoil doctor", sdk: "ts" },
   };
   try {
     const response = await fetch(`${host}/api/ingest`, {
@@ -158,7 +158,7 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
     } else if (status >= 500) {
       add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil had a problem on its side (${status}).`, hint: "Your app is not affected. Check the status page and try again in a minute." });
     } else {
-      add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil did not accept the test trace (${status}).`, hint: "Update uncoil-sdk to the latest version; if it still happens, contact support." });
+      add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil did not accept the test trace (${status}).`, hint: "Update uncoil to the latest version; if it still happens, contact support." });
     }
   } catch (error) {
     add({ id: "trace", title: "Test trace", status: "fail", message: `The test trace could not be sent (${errorText(error)}).`, hint: `Check your connection and try again.${proxyNote}` });

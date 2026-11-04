@@ -7,7 +7,7 @@ import { Reveal } from "@/components/marketing/landing/reveal";
 export type Snippet = { title: string; lede: string; ts: string; py?: string };
 
 const imp = {
-  ts: "npm install uncoil-sdk",
+  ts: "npm install uncoil",
   py: "pip install uncoil-sdk",
 };
 
@@ -68,7 +68,7 @@ export const snippets: Record<string, Snippet> = {
   "trace-viewer": {
     title: "Wrap the agent once. Get the whole run.",
     lede: "Every span you open inside traceAgent is linked to the step it ran in, so loops, retries and handoffs show up as a tree you can read.",
-    ts: `import { traceAgent, span } from "uncoil-sdk";
+    ts: `import { traceAgent, span } from "uncoil";
 
 export const answer = traceAgent(async (question: string) => {
   const plan = await span("plan", () => callModel(question), { type: "llm", input: question });
@@ -89,7 +89,7 @@ def answer(question):
   "cost-dashboard": {
     title: "Put a price on every call.",
     lede: "Record cost where the call happens. Spend then rolls up by day, run, model and tool, with retries counted on their own.",
-    ts: `import { traceAgent, llmCall } from "uncoil-sdk";
+    ts: `import { traceAgent, llmCall } from "uncoil";
 
 export const answer = traceAgent(async (question: string) => {
   const reply = await callModel(question);
@@ -119,7 +119,7 @@ def answer(question):
   "tool-calls": {
     title: "Mark a function as a tool. Done.",
     lede: "observe records the arguments, the result, the timing and any error, and keeps the call attached to the step that chose it.",
-    ts: `import { observe, traceAgent } from "uncoil-sdk";
+    ts: `import { observe, traceAgent } from "uncoil";
 
 const searchDocs = observe(async function searchDocs(query: string) {
   return search(query);
@@ -143,7 +143,7 @@ def answer(question):
   "llm-calls": {
     title: "Tag the model. Keep the tokens.",
     lede: "Set the model and token counts on the span and they roll up into the run total, next to latency and cost.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const answer = traceAgent(async (question: string) => {
   return span("chat", async (step) => {
@@ -165,7 +165,7 @@ def answer(question):
   failures: {
     title: "Errors are captured for you.",
     lede: "Throw inside a span and Uncoil records the error type and message on that step, inside the full run, so the first crack is easy to find.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const answer = traceAgent(async (question: string) => {
   const docs = await span("search", async () => {
@@ -188,7 +188,7 @@ def answer(question):
   research: {
     title: "Make every source a step.",
     lede: "Record retrievals as their own spans and the trace shows which sources each claim rests on, and which it does not.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const research = traceAgent(async (question: string) => {
   const sources = await span("retrieve", () => searchWeb(question), { type: "retrieval", input: question });
@@ -206,7 +206,7 @@ def research(question):
   support: {
     title: "Tie every trace to a conversation.",
     lede: "Add a session and an end user and every ticket's runs line up in one place, so an escalation has its whole history.",
-    ts: `import { traceAgent } from "uncoil-sdk";
+    ts: `import { traceAgent } from "uncoil";
 
 export const handleTicket = traceAgent(async (ticket: Ticket) => {
   const account = await loadAccount(ticket.customerId);
@@ -222,7 +222,7 @@ def handle_ticket(ticket):
   automation: {
     title: "Trace the chain, not just the end.",
     lede: "Wrap each step of the workflow and retries show up as their own spans, so a duplicated side effect is visible instead of silent.",
-    ts: `import { observe, traceAgent } from "uncoil-sdk";
+    ts: `import { observe, traceAgent } from "uncoil";
 
 const chargeCard = observe(async function chargeCard(order: Order) {
   return billing.charge(order.id, { idempotencyKey: order.id });
@@ -246,7 +246,7 @@ def run_order(order):
   "evaluation-engine": {
     title: "Score a trace in one line.",
     lede: "Attach a typed score or end-user feedback to any run. The same score shows up in suites, monitors and the review queue.",
-    ts: `import { UncoilClient } from "uncoil-sdk";
+    ts: `import { UncoilClient } from "uncoil";
 
 const client = new UncoilClient({ apiKey: process.env.UNCOIL_API_KEY, projectId: "your-project-id" });
 
@@ -276,7 +276,7 @@ client.feedback(run_id, True, kind="thumb", comment="Helpful answer")`,
   coding: {
     title: "Record every edit and every test run.",
     lede: "Wrap the plan, each edit and the test run in spans, and a failing change points straight back to the step that caused it.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const fixBug = traceAgent(async (task: string) => {
   const patch = await span("write-patch", () => writePatch(task), { type: "llm", input: task });
@@ -299,7 +299,7 @@ def fix_bug(task):
   rag: {
     title: "Make retrieval a step you can read.",
     lede: "Record the retrieval as its own span and the trace shows which chunks the model was given, next to the answer it wrote.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const answer = traceAgent(async (question: string) => {
   const chunks = await span("retrieve", () => vectorSearch(question, 8), { type: "retrieval", input: question });
@@ -317,7 +317,7 @@ def answer(question):
   voice: {
     title: "Time every turn of the call.",
     lede: "Put speech recognition, the model and speech output in separate spans and the slow part of a turn is obvious.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const handleTurn = traceAgent(async (audio: Buffer) => {
   const text = await span("transcribe", () => speechToText(audio), { type: "tool" });
@@ -338,7 +338,7 @@ def handle_turn(audio):
   browser: {
     title: "Turn every click into a span.",
     lede: "Wrap the actions your browser agent takes and a stuck or repeated step shows up in the trace with its timing.",
-    ts: `import { observe, traceAgent } from "uncoil-sdk";
+    ts: `import { observe, traceAgent } from "uncoil";
 
 const click = observe(async function click(selector: string) {
   return page.click(selector);
@@ -363,7 +363,7 @@ def book_table(request):
   "multi-agent": {
     title: "Keep every agent in one trace.",
     lede: "Run each agent inside the same traced run and a handoff is just another span, so a dropped one is easy to spot.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const run = traceAgent(async (goal: string) => {
   const plan = await span("planner", () => planner(goal), { type: "llm", input: goal });
@@ -386,7 +386,7 @@ def run(goal):
   mcp: {
     title: "Record every server call.",
     lede: "Wrap the call to an MCP tool and its arguments, result and timing are recorded, so a slow server stands out.",
-    ts: `import { observe, traceAgent } from "uncoil-sdk";
+    ts: `import { observe, traceAgent } from "uncoil";
 
 const callMcpTool = observe(async function callMcpTool(server: string, tool: string, args: object) {
   return mcpClient.callTool({ server, name: tool, arguments: args });
@@ -410,7 +410,7 @@ def agent(request):
   chatbot: {
     title: "Trace every turn, not just the chat.",
     lede: "Open one trace per conversation and one span per turn, and the history each reply used is stored next to it.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const reply = traceAgent(async (history: string[], message: string) => {
   const context = await span("load-history", () => trimHistory(history), { type: "tool", input: message });
@@ -428,7 +428,7 @@ def reply(history, message):
   sales: {
     title: "Put the lead and the draft in one trace.",
     lede: "Record the record lookup, the draft and the send check as spans, and every message has the data behind it.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const outreach = traceAgent(async (leadId: string) => {
   const lead = await span("load-lead", () => crm.get(leadId), { type: "tool", input: leadId });
@@ -449,7 +449,7 @@ def outreach(lead_id):
   sql: {
     title: "Store the SQL exactly as it ran.",
     lede: "Wrap the schema read, the query and the explanation, and a wrong number points to the query that made it.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const ask = traceAgent(async (question: string) => {
   const sql = await span("write-sql", () => writeSql(question), { type: "llm", input: question });
@@ -470,7 +470,7 @@ def ask(question):
   documents: {
     title: "Make every field traceable to its page.",
     lede: "Record the read and the extraction as separate spans, and a wrong field shows the text the model saw.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const extract = traceAgent(async (fileId: string) => {
   const pages = await span("read-pages", () => readPages(fileId), { type: "tool", input: fileId });
@@ -491,7 +491,7 @@ def extract(file_id):
   "cost-control": {
     title: "Price every step as it runs.",
     lede: "Model calls already carry their token cost. Wrap the steps around them and the trace adds up where the money went.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const work = traceAgent(async (task: string) => {
   const plan = await span("plan", () => callModel(task), { type: "llm", input: task });
@@ -509,7 +509,7 @@ def work(task):
   release: {
     title: "Label the release once.",
     lede: "Pass a release to the SDK and every run is tagged, so two versions can be compared on the same screen.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const answer = traceAgent(async (question: string) => {
   return span("answer", () => callModel(question), { type: "llm", input: question });
@@ -524,7 +524,7 @@ def answer(question):
   copilot: {
     title: "Record what the assistant reached for.",
     lede: "Wrap the tool choice and each access check, and a refused read is a step with a reason.",
-    ts: `import { span, traceAgent } from "uncoil-sdk";
+    ts: `import { span, traceAgent } from "uncoil";
 
 export const assist = traceAgent(async (userId: string, question: string) => {
   const tools = await span("choose-tools", () => pickTools(question), { type: "llm", input: question });
@@ -545,7 +545,7 @@ def assist(user_id, question):
   "tool-calling": {
     title: "See the arguments the model chose.",
     lede: "Wrap each tool and the exact payload, the result and every retry are recorded, so loops and rejected schemas stand out.",
-    ts: `import { observe, traceAgent } from "uncoil-sdk";
+    ts: `import { observe, traceAgent } from "uncoil";
 
 const issueRefund = observe(async function issueRefund(args: { amount: number; currency: string }) {
   return payments.refund(args);

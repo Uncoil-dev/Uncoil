@@ -43,7 +43,7 @@ async def run_my_agent():
     )
     return "Success"`;
 
-  const tsCode = `import { traceAgent, llmCall } from 'uncoil-sdk';
+  const tsCode = `import { traceAgent, llmCall } from 'uncoil';
 
 const runAgent = traceAgent(async () => {
   await llmCall({
@@ -60,7 +60,7 @@ const runAgent = traceAgent(async () => {
   const scoreTs = scoreSnippet("typescript", projectId);
 
   const installPy = "pip install uncoil-sdk";
-  const installTs = "npm install uncoil-sdk";
+  const installTs = "npm install uncoil";
 
   return (
     <div className="space-y-8 max-w-4xl">

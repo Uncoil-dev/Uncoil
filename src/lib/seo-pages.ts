@@ -170,7 +170,7 @@ const coreIntegrationPages: readonly IntegrationPage[] = [
     captures: ["Model name and parameters", "Input, cached and output tokens", "Latency and errors", "Cost per call, rolled up to the run"],
     language: "typescript",
     code: `import OpenAI from "openai";
-import { wrapOpenAI } from "uncoil-sdk";
+import { wrapOpenAI } from "uncoil";
 
 const openai = wrapOpenAI(new OpenAI());
 
@@ -210,7 +210,7 @@ reply = anthropic.messages.create(
     answer: "To trace a LangGraph agent with Uncoil, add the Uncoil integration to your graph. Each node run, model call and tool call becomes a span inside a single trace for the run.",
     captures: ["One trace per graph run", "Spans for nodes, model calls and tools", "Loops and retries visible in order", "Cost and latency per node"],
     language: "typescript",
-    code: `import { UncoilLangGraphHandler } from "uncoil-sdk";
+    code: `import { UncoilLangGraphHandler } from "uncoil";
 
 await graph.invoke(input, { callbacks: [new UncoilLangGraphHandler()] });`,
     doc: "provider-integrations",
@@ -256,7 +256,7 @@ openai = uncoil.wrap_openai(OpenAI())`,
     answer: "To trace the Vercel AI SDK with Uncoil, use the TypeScript SDK or OpenTelemetry telemetry. Streaming calls, tool use and each step of a multi-step generation are recorded as spans.",
     captures: ["Streaming generations", "Tool calls per step", "Tokens and cost", "Route handler timing in Next.js"],
     language: "typescript",
-    code: `import { traceAgent } from "uncoil-sdk";
+    code: `import { traceAgent } from "uncoil";
 
 // Wrap your route handler's work in a run; model calls inside it join the trace.
 // See the TypeScript docs for the full traceAgent signature.`,
@@ -307,7 +307,7 @@ async def run_team(task: str):
     answer: "To trace Mastra with Uncoil, wrap an agent call with traceAgent in the TypeScript SDK, or export Mastra's OpenTelemetry traces to Uncoil over OTLP.",
     captures: ["One trace per agent or workflow run", "Tool calls and results", "Model calls with tokens and cost", "Errors and retries"],
     language: "typescript",
-    code: `import { traceAgent } from "uncoil-sdk";
+    code: `import { traceAgent } from "uncoil";
 
 const run = traceAgent(async (input: string) => {
   const result = await mastraAgent.generate(input);

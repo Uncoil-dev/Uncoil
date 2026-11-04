@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Reveal } from "@/components/marketing/landing/reveal";
+import { SECTION_Y } from "./page-kit";
 
 export type Snippet = { title: string; lede: string; ts: string; py?: string };
 
@@ -25,8 +26,8 @@ export function CodeSection({ snippet }: { snippet: Snippet }) {
     }
   };
   return (
-    <section className="bg-[#eceae3] px-5 py-24 text-[#090909] md:px-8 md:py-32">
-      <div className="mx-auto grid max-w-[1440px] gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+    <section className={`bg-[#eceae3] px-5 ${SECTION_Y} text-[#090909] md:px-8`}>
+      <div className="mx-auto grid max-w-[1440px] gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
         <Reveal>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Instrument it</p>
           <h2 className="mt-4 font-pixel text-[clamp(2.2rem,4.6vw,4.4rem)] leading-[0.9] tracking-[-0.06em]">{snippet.title}</h2>

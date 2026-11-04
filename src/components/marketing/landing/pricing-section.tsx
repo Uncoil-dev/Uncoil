@@ -25,7 +25,7 @@ export function PricingSection() {
         <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Pricing</p>
-            <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Free to start. Fair as you grow.</h2>
+            <h2 className="mt-4 max-w-4xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Free to start. Fair as you grow.</h2>
           </div>
           <div className="relative flex w-fit border-2 border-black p-1 font-mono text-[10px] uppercase tracking-[0.12em]">
             {(["Monthly", "Annual −20%"] as const).map((label, i) => {
@@ -40,19 +40,20 @@ export function PricingSection() {
           </div>
         </div>
 
-        <div className="mk-gap grid gap-[2px] border-2 border-black bg-black md:grid-cols-2 lg:grid-cols-4">
+        <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.12em] text-black/55 md:hidden">Swipe to compare plans →</p>
+        <div className="-mx-5 mt-3 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:mt-[var(--mk-gap)] md:grid md:grid-cols-2 md:gap-[2px] md:overflow-visible md:border-2 md:border-black md:bg-black md:p-0 lg:grid-cols-4">
           {plans.map((plan) => {
             const price = annual ? plan.monthly * 0.8 : plan.monthly;
             const label = `$${price % 1 ? price.toFixed(2) : price}`;
             const featured = plan.name === "Pro";
             return (
-              <div key={plan.name} className={`flex flex-col p-7 transition-colors ${featured ? "bg-black text-[#eceae3]" : "bg-[#eceae3] hover:bg-[#f4d44d]"}`}>
+              <div key={plan.name} className={`flex w-[80vw] shrink-0 snap-start flex-col border-2 border-black p-6 transition-colors md:w-auto md:border-0 md:p-7 ${featured ? "bg-black text-[#eceae3]" : "bg-[#eceae3] hover:bg-[#f4d44d]"}`}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-pixel text-4xl tracking-[-0.06em]">{plan.name}</h3>
                   {featured && <span className="bg-[#f4d44d] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-black">Popular</span>}
                 </div>
                 <p className={`mt-2 text-sm ${featured ? "text-white/60" : "text-black/60"}`}>{plan.line}</p>
-                <div className="mt-8 flex h-20 items-end gap-2 overflow-hidden">
+                <div className="mt-5 flex h-20 items-end gap-2 overflow-hidden">
                   <AnimatePresence mode="popLayout" initial={false}>
                     <motion.span
                       key={label}
@@ -67,7 +68,7 @@ export function PricingSection() {
                   <span className={`pb-2 font-mono text-[10px] uppercase ${featured ? "text-white/50" : "text-black/50"}`}>/ mo</span>
                 </div>
                 <p className={`mt-1 h-4 font-mono text-[9px] uppercase ${featured ? "text-white/50" : "text-black/50"}`}>{annual && plan.monthly ? "billed annually" : ""}</p>
-                <ul className="mt-6 grid gap-2.5 text-sm">
+                <ul className="mt-5 grid gap-2 text-sm">
                   {[`${plan.spans} spans / month`, `${plan.retention} retention`, `${plan.members} member${plan.members === "1" ? "" : "s"} · ${plan.projects} projects`, ...plan.features].map((f) => (
                     <li key={f} className="flex gap-2.5">
                       <span className={`mt-1.5 size-1.5 shrink-0 ${featured ? "bg-[#f4d44d]" : "bg-black"}`} />
@@ -75,9 +76,10 @@ export function PricingSection() {
                     </li>
                   ))}
                 </ul>
+                <span className="block h-7 shrink-0" aria-hidden="true" />
                 <Link
                   href={plan.name === "Free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.name.toLowerCase() as "pro" | "team", interval))}
-                  className={`mt-10 flex min-h-12 items-center justify-between px-4 font-mono text-[10px] uppercase tracking-[0.13em] ${featured ? "bg-[#f4d44d] text-black hover:bg-white" : "border-2 border-black hover:bg-black hover:text-white"}`}
+                  className={`mt-auto flex min-h-12 items-center justify-between px-4 font-mono text-[10px] uppercase tracking-[0.13em] ${featured ? "bg-[#f4d44d] text-black hover:bg-white" : "border-2 border-black hover:bg-black hover:text-white"}`}
                 >
                   {plan.name === "Free" ? "Start free" : `Get ${plan.name}`}
                   <ArrowRight className="size-4" aria-hidden="true" />
@@ -85,14 +87,14 @@ export function PricingSection() {
               </div>
             );
           })}
-          <div className="flex flex-col bg-[#eceae3] p-7 transition-colors hover:bg-[#f4d44d]">
+          <div className="flex w-[80vw] shrink-0 snap-start flex-col border-2 border-black bg-[#eceae3] p-6 md:border-0 transition-colors hover:bg-[#f4d44d] md:w-auto md:p-7">
             <h3 className="font-pixel text-4xl tracking-[-0.06em]">Enterprise</h3>
             <p className="mt-2 text-sm text-black/60">For larger rollouts.</p>
-            <div className="mt-8 flex h-20 items-end">
+            <div className="mt-5 flex h-20 items-end">
               <span className="font-pixel text-6xl leading-none tracking-[-0.07em]">Custom</span>
             </div>
             <p className="mt-1 h-4" />
-            <ul className="mt-6 grid gap-2.5 text-sm">
+            <ul className="mt-5 grid gap-2 text-sm">
               {["Unlimited spans, custom retention", "SSO (SAML / OIDC)", "On-prem deployment", "Rollout support"].map((f) => (
                 <li key={f} className="flex gap-2.5">
                   <span className="mt-1.5 size-1.5 shrink-0 bg-black" />
@@ -100,7 +102,8 @@ export function PricingSection() {
                 </li>
               ))}
             </ul>
-            <Link href="/contact" className="mt-auto flex min-h-12 items-center justify-between border-2 border-black px-4 font-mono text-[10px] uppercase tracking-[0.13em] hover:bg-black hover:text-white" style={{ marginTop: "2.5rem" }}>
+            <span className="block h-7 shrink-0" aria-hidden="true" />
+            <Link href="/contact" className="mt-auto flex min-h-12 items-center justify-between border-2 border-black px-4 font-mono text-[10px] uppercase tracking-[0.13em] hover:bg-black hover:text-white">
               Talk to us <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </div>

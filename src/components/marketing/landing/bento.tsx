@@ -26,9 +26,9 @@ function TypedCode() {
     return () => window.clearInterval(id);
   }, [inView, reduce]);
   return (
-    <pre ref={ref} className="min-h-[190px] overflow-x-auto font-mono text-[12px] leading-6 text-white/85" aria-label={code}>
+    <pre ref={ref} className="min-h-[160px] overflow-x-auto font-mono text-[12px] leading-5 text-white/85" aria-label={code}>
       <code aria-hidden="true">
-        {code.slice(0, n)}
+        {code.slice(0, reduce ? code.length : n)}
         <span className="inline-block h-4 w-2 translate-y-0.5 animate-pulse bg-[#f4d44d]" />
       </code>
     </pre>
@@ -72,14 +72,14 @@ export function Bento() {
     <section className="bg-[#090909] mk-section px-5 text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">The toolkit</p>
-        <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Built for the 2am incident.</h2>
+        <h2 className="mt-4 max-w-5xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Built for the 2am incident.</h2>
 
-        <div className="mk-gap grid auto-rows-[minmax(clamp(180px,24svh,260px),auto)] gap-4 md:grid-cols-6">
+        <div className="mk-gap grid auto-rows-[minmax(120px,auto)] gap-4 md:grid-cols-6">
           {/* Globe: integrations */}
           <div className={`${tile} md:col-span-3 md:row-span-2`}>
             <Image src="/images/landing/globe-orbits.png" alt="" fill unoptimized sizes="50vw" className="object-cover opacity-90 [image-rendering:pixelated]" />
             <div className="absolute inset-0 bg-[linear-gradient(to_top,#090909_0%,#090909_28%,rgba(9,9,9,0.6)_50%,rgba(9,9,9,0)_75%)]" />
-            <div className="relative flex h-full min-h-[clamp(380px,50svh,520px)] flex-col justify-end p-7">
+            <div className="relative flex h-full min-h-[340px] flex-col justify-end p-6 md:min-h-[400px] md:p-7">
               <h3 className="font-pixel text-4xl leading-none tracking-[-0.06em]">Plugs into your stack.</h3>
               <p className="mt-3 max-w-md text-sm leading-6 text-white/65">TypeScript and Python SDKs, OpenTelemetry, or plain HTTP. Works next to OpenAI, Anthropic, the Vercel AI SDK, LangChain and LlamaIndex.</p>
               <Link href="/integrations" className="mt-5 inline-flex w-fit items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#f4d44d] hover:text-white">
@@ -89,8 +89,8 @@ export function Bento() {
           </div>
 
           {/* Code */}
-          <div className={`${tile} bg-[#111] p-7 md:col-span-3`}>
-            <div className="mb-5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">
+          <div className={`${tile} bg-[#111] p-6 md:col-span-3`}>
+            <div className="mb-4 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">
               <span>agent.ts</span>
               <span className="text-[#f4d44d]">About ten lines</span>
             </div>
@@ -98,9 +98,9 @@ export function Bento() {
           </div>
 
           {/* Search */}
-          <div className={`${tile} border-[#f4d44d] bg-[#f4d44d] p-7 text-black md:col-span-3`}>
+          <div className={`${tile} border-[#f4d44d] bg-[#f4d44d] p-6 text-black md:col-span-3`}>
             <h3 className="font-pixel text-3xl leading-none tracking-[-0.06em]">Search like you think.</h3>
-            <p className="mt-2 mb-5 text-sm text-black/70">Filter by status, cost, latency or tokens. Exclude with a minus.</p>
+            <p className="mt-2 mb-4 text-sm text-black/70">Filter by status, cost, latency or tokens. Exclude with a minus.</p>
             <QueryChips />
           </div>
 
@@ -115,13 +115,13 @@ export function Bento() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ delay: i * 0.08 }}
-              className={`${tile} flex flex-col justify-between p-7 md:col-span-2`}
+              className={`${tile} p-6 md:col-span-2`}
             >
-              <span className="font-pixel text-6xl leading-none text-[#f4d44d]">0{i + 1}</span>
-              <div>
-                <h3 className="font-pixel text-2xl leading-none tracking-[-0.05em]">{t}</h3>
-                <p className="mt-3 text-sm leading-6 text-white/60">{b}</p>
-              </div>
+              <h3 className="flex items-baseline gap-3 font-pixel text-2xl leading-none tracking-[-0.05em]">
+                <span className="text-3xl text-[#f4d44d]">0{i + 1}</span>
+                {t}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-white/60">{b}</p>
             </motion.div>
           ))}
         </div>

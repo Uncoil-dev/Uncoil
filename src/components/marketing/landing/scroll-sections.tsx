@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useInView, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
 
 /* ---------- Statement: words light up as you scroll ---------- */
 
@@ -39,12 +39,13 @@ export function Statement() {
   return (
     <section className="bg-[#eceae3] mk-section px-5 md:px-10">
       <div ref={ref} className="mx-auto max-w-[1200px]">
-        <p className="mb-10 font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Why it matters</p>
+        <p className="mb-8 font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Why it matters</p>
         <p className="relative isolate font-pixel text-[clamp(2.2rem,5.6vw,5.2rem)] leading-[1.02] tracking-[-0.06em] text-black">
           {reduce
             ? words.map((w, i) => (
-                <span key={i} className={w.startsWith("*") ? "bg-black px-[0.11em] text-[#f4d44d]" : "mr-[0.22em]"}>
-                  {w.replace("*", "")}
+                // The trailing space lets the line wrap; without it the sentence runs off screen.
+                <span key={i}>
+                  <span className={w.startsWith("*") ? "bg-black px-[0.11em] text-[#f4d44d]" : ""}>{w.replace("*", "")}</span>{" "}
                 </span>
               ))
             : words.map((w, i) => (
@@ -84,33 +85,57 @@ const chapters = [
 
 export function Story() {
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const inView = useInView(box, { amount: 0.4 });
   const reduce = useReducedMotion();
+  // All three chapters stay readable at once. The picture steps through them on
+  // its own while the section is on screen; hover or click picks one and stops it.
+  useEffect(() => {
+    if (reduce || paused || !inView) return;
+    const id = window.setInterval(() => setActive((v) => (v + 1) % chapters.length), 4500);
+    return () => window.clearInterval(id);
+  }, [reduce, paused, inView]);
+  const pick = (i: number) => {
+    setActive(i);
+    setPaused(true);
+  };
   return (
-    <section className="bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32">
-      <div className="mx-auto max-w-[1320px]">
+    <section className="bg-[#090909] mk-section px-5 text-[#eceae3] md:px-10">
+      <div ref={box} className="mx-auto max-w-[1320px]">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">How it works</p>
-        <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">From black box to blueprint.</h2>
+        <h2 className="mt-4 max-w-5xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">From black box to blueprint.</h2>
 
-        <div className="mt-16 grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-          <div>
-            {chapters.map((c, i) => (
-              <motion.div
-                key={c.n}
-                onViewportEnter={() => setActive(i)}
-                viewport={{ amount: 0.6 }}
-                className="flex flex-col justify-center border-t border-white/15 py-12 lg:min-h-[80vh]"
-              >
-                <span className={`font-mono text-sm transition-colors ${active === i ? "text-[#f4d44d]" : "text-white/35"}`}>{c.n} / 03</span>
-                <h3 className="mt-5 font-pixel text-[clamp(2rem,4vw,3.4rem)] leading-none tracking-[-0.06em]">{c.title}</h3>
-                <p className="mt-5 max-w-md text-base leading-7 text-white/65">{c.body}</p>
-                <div className="relative mt-8 aspect-[7/5] w-full overflow-hidden border border-white/15 lg:hidden">
-                  <Image src={c.img} alt={c.tag} fill unoptimized sizes="100vw" className="object-cover [image-rendering:pixelated]" />
-                </div>
-              </motion.div>
-            ))}
-          </div>
+        <div className="mk-gap grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <ol>
+            {chapters.map((c, i) => {
+              const on = active === i;
+              return (
+                <li key={c.n} className="border-t border-white/15 last:border-b">
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => pick(i)}
+                    onMouseEnter={() => pick(i)}
+                    onFocus={() => pick(i)}
+                    className="group relative block w-full py-6 text-left lg:py-7"
+                  >
+                    <span aria-hidden="true" className={`absolute left-0 top-0 h-0.5 bg-[#f4d44d] transition-[width] duration-500 ${on ? "w-full" : "w-0"}`} />
+                    <span className="flex items-baseline gap-4">
+                      <span className={`font-mono text-sm transition-colors ${on ? "text-[#f4d44d]" : "text-white/35"}`}>{c.n}</span>
+                      <span className={`font-pixel text-[clamp(1.7rem,2.8vw,2.6rem)] leading-none tracking-[-0.06em] transition-colors ${on ? "text-white" : "text-white/55 group-hover:text-white/80"}`}>{c.title}</span>
+                    </span>
+                    <span className={`mt-3 block max-w-md pl-9 text-[15px] leading-7 transition-colors ${on ? "text-white/75" : "text-white/45"}`}>{c.body}</span>
+                  </button>
+                  <div className="relative mb-6 aspect-[16/9] w-full overflow-hidden border border-white/15 lg:hidden">
+                    <Image src={c.img} alt={c.tag} fill unoptimized sizes="100vw" className="object-cover [image-rendering:pixelated]" />
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
           <div className="hidden lg:block">
-            <div className="sticky top-[calc(64px+10vh)] aspect-[7/5] w-full overflow-hidden border border-white/20">
+            <div className="relative aspect-[7/5] max-h-[calc(100svh-260px)] w-full overflow-hidden border border-white/20">
               <AnimatePresence mode="popLayout">
                 <motion.div
                   key={active}
@@ -216,7 +241,7 @@ export function ProductWindow() {
     <section className="overflow-hidden bg-[#f4d44d] mk-section px-5 md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <h2 className="max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em] text-black">Every run, drawn as a map.</h2>
+          <h2 className="max-w-4xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em] text-black">Every run, drawn as a map.</h2>
           <p className="max-w-sm text-base leading-7 text-black/70">Pick a run and Uncoil draws it: who called whom, what came back, how long it took and what it cost. The red flag is where you start.</p>
         </div>
 
@@ -230,7 +255,7 @@ export function ProductWindow() {
               </span>
               <span className="flex-1 truncate border border-white/15 px-3 py-1 font-mono text-[10px] text-white/50">uncoil.dev / support-bot / tracing / run_9f3a</span>
             </div>
-            <div className="grid min-h-[460px] md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr_260px]">
+            <div className="grid md:min-h-[380px] md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr_260px]">
               <div className="hidden border-r border-white/15 md:block">
                 <p className="border-b border-white/15 px-4 py-3 font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">Runs · last hour</p>
                 {runs.map(([name, st, lat, cost], i) => (
@@ -246,7 +271,7 @@ export function ProductWindow() {
                   </div>
                 ))}
               </div>
-              <div className="relative min-h-[360px] p-2">
+              <div className="relative min-h-[280px] p-2 md:min-h-[340px]">
                 <MiniGraph animate={!reduce} />
               </div>
               <div className="hidden border-l border-white/15 p-4 font-mono text-[11px] lg:block">

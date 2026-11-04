@@ -98,7 +98,7 @@ function AgentReplay({ agent }: { agent: Agent }) {
   const showTrace = at > lines.length;
 
   return (
-    <div ref={ref} className="flex h-full min-h-[420px] flex-col border border-white/20 bg-black font-mono text-[12px] text-[#eceae3]" aria-label="Example of what your agent does with the prompt">
+    <div ref={ref} className="flex h-full min-h-[340px] flex-col border border-white/20 bg-black font-mono text-[12px] text-[#eceae3]" aria-label="Example of what your agent does with the prompt">
       <div className="flex items-center justify-between border-b border-white/15 px-4 py-3 text-[9px] uppercase tracking-[0.16em] text-white/50">
         <span className="flex items-center gap-2">
           <span className="size-2 bg-[#f4d44d]" />
@@ -187,12 +187,12 @@ export function AgentSetup() {
       </div>
 
       <div className="relative mx-auto max-w-[1320px]">
-        <Reveal className="grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-end">
+        <Reveal className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-end">
           <div>
             <p className="inline-flex items-center gap-2 bg-black px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#f4d44d]">
               <span className="size-1.5 animate-pulse bg-[#f4d44d]" /> New · let your agent do it
             </p>
-            <h2 id="agent-setup-title" className="mt-6 font-pixel text-[clamp(3.75rem,10vw,9rem)] leading-[0.84] tracking-[-0.08em]">
+            <h2 id="agent-setup-title" className="mt-5 font-pixel text-[clamp(3.25rem,min(7vw,11svh),5.5rem)] leading-[0.84] tracking-[-0.08em]">
               One paste.
               <br />
               First trace.
@@ -202,9 +202,9 @@ export function AgentSetup() {
             <p className="max-w-md text-lg leading-8 text-black/75">
               Copy one prompt into your coding agent. It installs Uncoil, signs you in, connects this project and sends your first trace while you watch.
             </p>
-            <dl className="mt-6 grid grid-cols-3 border-y-2 border-black">
+            <dl className="mt-5 grid grid-cols-3 border-y-2 border-black">
               {WHY.map(([n, label], i) => (
-                <div key={label} className={`py-4 ${i ? "border-l-2 border-black pl-4" : ""}`}>
+                <div key={label} className={`py-3 ${i ? "border-l-2 border-black pl-4" : ""}`}>
                   <dt className="font-pixel text-4xl tracking-[-0.06em]">{n}</dt>
                   <dd className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-black/65">{label}</dd>
                 </div>
@@ -214,8 +214,8 @@ export function AgentSetup() {
         </Reveal>
 
         <Reveal delay={0.1} className="mk-gap grid border-2 border-black bg-[#090909] text-[#eceae3] shadow-[12px_12px_0_0_#090909] lg:grid-cols-[1fr_1.05fr]">
-          <div className="flex flex-col p-6 md:p-10">
-            <ol className="space-y-8">
+          <div className="flex flex-col p-6 md:px-8 md:py-6">
+            <ol className="space-y-5">
               <li>
                 <StepLabel n={1} active={!copied} done={copied}>Pick your agent</StepLabel>
                 <div role="tablist" aria-label="Coding agent" className="mt-4 grid grid-cols-3 border border-white/25 font-mono text-[10px] uppercase tracking-[0.12em] sm:text-[11px]">
@@ -249,7 +249,7 @@ export function AgentSetup() {
                   <button
                     type="button"
                     onClick={copyPrompt}
-                    className="group relative flex w-full items-center justify-between gap-4 bg-[#f4d44d] px-6 py-6 text-left font-mono text-black transition-colors hover:bg-white md:px-8 md:py-7"
+                    className="group relative flex w-full items-center justify-between gap-4 bg-[#f4d44d] px-6 py-5 text-left font-mono text-black transition-colors hover:bg-white md:px-8 md:py-4"
                   >
                     <span>
                       <span className="block text-[13px] uppercase tracking-[0.14em] md:text-[15px]">{done === "prompt" ? "Copied" : "Copy setup prompt"}</span>
@@ -272,7 +272,7 @@ export function AgentSetup() {
 
               <li>
                 <StepLabel n={3} active={copied} done={false}>Paste it in {agent}</StepLabel>
-                <p className={`mt-3 max-w-sm text-sm leading-6 transition-colors ${copied ? "text-white" : "text-white/55"}`}>
+                <p className={`mt-3 max-w-lg text-sm leading-6 transition-colors ${copied ? "text-white" : "text-white/55"}`}>
                   {copied ? "Now paste it and press enter. Sign in when the browser opens, and your first trace lands in the dashboard." : "Sign in when the browser opens. No account yet? You make one right there, free."}
                 </p>
               </li>

@@ -75,7 +75,7 @@ export function LandingFooter() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            <UncoilMark solid className="block h-[0.65em]" />
+            <UncoilMark className="block h-[0.65em]" />
           </motion.span>
           {word.map((ch, i) => (
             <motion.span

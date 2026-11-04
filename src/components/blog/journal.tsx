@@ -52,12 +52,12 @@ export function JournalHero({ posts, total }: { posts: JournalPost[]; total: num
         <Image src="/images/reading/blog.png" alt="" fill priority unoptimized sizes="100vw" className="object-cover opacity-55 [image-rendering:pixelated]" />
       </motion.div>
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#090909_8%,rgba(9,9,9,0.6)_55%,rgba(9,9,9,0.2)_100%)]" />
-      <div className="mx-auto grid min-h-[min(82svh,760px)] max-w-[1320px] items-center gap-12 px-5 py-20 md:px-8 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="mx-auto grid min-h-[min(72svh,640px)] max-w-[1320px] items-center gap-10 px-5 py-12 md:px-8 lg:grid-cols-[1.15fr_0.85fr]">
         <div>
           <motion.p initial={reduce ? false : { y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 border border-white/20 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70">
             <span className="bg-[#f4d44d] px-1.5 text-black">{total}</span> field notes on running agents
           </motion.p>
-          <motion.h1 initial={reduce ? false : { y: 30 }} animate={{ y: 0 }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }} className="mt-8 font-pixel text-[clamp(3.2rem,9vw,8.4rem)] leading-[0.88] tracking-[-0.07em]">
+          <motion.h1 initial={reduce ? false : { y: 30 }} animate={{ y: 0 }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }} className="mt-6 font-pixel text-[clamp(3rem,7vw,6.25rem)] leading-[0.88] tracking-[-0.07em]">
             Notes from inside the <span className="text-[#f4d44d]">agent loop.</span>
           </motion.h1>
           <motion.p initial={reduce ? false : { y: 8 }} animate={{ y: 0 }} transition={{ delay: 0.7 }} className="mt-7 max-w-[540px] text-base leading-7 text-white/70 md:text-lg md:leading-8">
@@ -104,45 +104,56 @@ export function TopicStory({ topics }: { topics: JournalTopic[] }) {
   if (!current) return null;
 
   return (
-    <section className="bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32">
+    <section className="bg-[#090909] px-5 mk-section text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Start with a question</p>
-        <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Pick the problem you have today.</h2>
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Start with a question / pick a topic</p>
+        <h2 className="mt-4 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Pick the problem you have today.</h2>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div>
-            {topics.map((t, i) => (
-              <motion.div key={t.name} onViewportEnter={() => setActive(i)} viewport={{ amount: 0.6 }} className="flex flex-col justify-center border-t border-white/15 py-8 lg:min-h-[46vh]">
-                <span className={`font-mono text-sm transition-colors ${active === i ? "text-[#f4d44d]" : "text-white/35"}`}>{String(i + 1).padStart(2, "0")} / {String(topics.length).padStart(2, "0")} · {t.count} articles</span>
-                <h3 className="mt-5 font-pixel text-[clamp(2rem,4vw,3.4rem)] capitalize leading-none tracking-[-0.06em]">{pretty(t.name)}</h3>
-                <ul className="mt-8 space-y-1">
-                  {t.posts.map((p) => (
-                    <li key={p.slug}>
-                      <Link href={`/blog/${p.slug}`} className="group flex items-baseline justify-between gap-4 border-b border-white/10 py-3 transition-colors hover:text-[#f4d44d]">
-                        <span className="text-base leading-6 text-white/80 group-hover:text-[#f4d44d]">{p.title}</span>
-                        <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-white/40">{p.minutes} min →</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <div className="relative mt-8 aspect-[7/5] w-full overflow-hidden border border-white/15 lg:hidden">
-                  <PostArt seed={t.name} className="size-full" />
-                </div>
-              </motion.div>
-            ))}
+        <div className="mk-gap grid items-start gap-8 lg:grid-cols-[0.75fr_1.25fr]">
+          <div role="tablist" aria-label="Topics" className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-0 lg:overflow-visible lg:border-b lg:border-white/15 lg:pb-0">
+            {topics.map((t, i) => {
+              const on = active === i;
+              return (
+                <button
+                  key={t.name}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setActive(i)}
+                  onMouseEnter={() => setActive(i)}
+                  className={`flex shrink-0 items-baseline justify-between gap-4 border px-4 py-3 text-left transition-colors lg:border-x-0 lg:border-b-0 lg:border-t lg:px-3 lg:py-5 ${on ? "border-[#f4d44d] text-[#f4d44d] lg:border-white/15 lg:bg-white/[0.04]" : "border-white/15 hover:text-[#f4d44d]"}`}
+                >
+                  <span className="flex items-baseline gap-4">
+                    <span className={`hidden font-mono text-sm lg:inline ${on ? "text-[#f4d44d]" : "text-white/35"}`}>{String(i + 1).padStart(2, "0")}</span>
+                    <span className="font-pixel text-xl capitalize leading-none tracking-[-0.05em] lg:text-[2rem]">{pretty(t.name)}</span>
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/45">{t.count}</span>
+                </button>
+              );
+            })}
           </div>
-          <div className="hidden lg:block">
-            <div className="sticky top-[calc(64px+10vh)] aspect-[7/5] w-full overflow-hidden border border-white/20">
+          <div role="tabpanel" className="min-w-0 border border-white/20">
+            <div className="relative h-36 overflow-hidden border-b border-white/20 md:h-44">
               <AnimatePresence mode="popLayout">
-                <motion.div key={current.name} className="absolute inset-0" initial={reduce ? false : { opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
+                <motion.div key={current.name} className="absolute inset-0" initial={reduce ? false : { opacity: 0, scale: 1.06 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
                   <PostArt seed={current.name} className="size-full" />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#090909] to-transparent p-6 pt-24">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">Topic</p>
-                    <p className="mt-2 font-pixel text-5xl capitalize leading-none tracking-[-0.06em]">{pretty(current.name)}</p>
-                  </div>
                 </motion.div>
               </AnimatePresence>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#090909] to-transparent px-5 pb-4 pt-12">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">{current.count} articles</p>
+                <p className="mt-1 font-pixel text-4xl capitalize leading-none tracking-[-0.06em]">{pretty(current.name)}</p>
+              </div>
             </div>
+            <ul className="px-5 py-2">
+              {current.posts.map((p) => (
+                <li key={p.slug}>
+                  <Link href={`/blog/${p.slug}`} className="group flex items-baseline justify-between gap-4 border-b border-white/10 py-3 transition-colors last:border-0 hover:text-[#f4d44d]">
+                    <span className="text-base leading-6 text-white/85 group-hover:text-[#f4d44d]">{p.title}</span>
+                    <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-white/45">{p.minutes} min →</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -152,22 +163,27 @@ export function TopicStory({ topics }: { topics: JournalTopic[] }) {
 
 /* ---------- Archive: every article is a span, its length is the read time ---------- */
 
+const ARCHIVE_PREVIEW = 15;
+
 export function TraceArchive({ posts, categories }: { posts: JournalPost[]; categories: string[] }) {
   const [query, setQuery] = useState("");
   const [topic, setTopic] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const [shortest, longest] = useMemo(() => [Math.min(...posts.map((p) => p.minutes)), Math.max(...posts.map((p) => p.minutes), 1)], [posts]);
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return posts.filter((p) => (!topic || p.categories.includes(topic)) && (!q || `${p.title} ${p.categories.join(" ")}`.toLowerCase().includes(q)));
   }, [posts, query, topic]);
+  // Show the newest posts first; every link stays in the page for crawlers.
+  const collapsed = !showAll && !query.trim() && !topic && shown.length > ARCHIVE_PREVIEW;
 
   return (
-    <section id="archive" className="scroll-mt-24 bg-[#eceae3] px-5 py-24 md:px-10 md:py-32">
+    <section id="archive" className="scroll-mt-24 bg-[#eceae3] px-5 mk-section md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">The full trace</p>
-        <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Every article. Longer bar, longer read.</h2>
+        <h2 className="mt-4 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Every article. Longer bar, longer read.</h2>
 
-        <div className="mt-10 flex flex-col gap-4 border-y-2 border-black py-4 md:flex-row md:items-center md:justify-between">
+        <div className="mt-8 flex flex-col gap-4 border-y-2 border-black py-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by topic">
             <button type="button" aria-pressed={topic === null} onClick={() => setTopic(null)} className={`border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors ${topic === null ? "border-black bg-black text-[#eceae3]" : "border-black/30 hover:border-black"}`}>All</button>
             {categories.map((c) => (
@@ -185,10 +201,10 @@ export function TraceArchive({ posts, categories }: { posts: JournalPost[]; cate
         {shown.length ? (
           <ul>
             {shown.map((p, i) => (
-              <motion.li key={p.slug} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.4, delay: Math.min(i, 6) * 0.03 }} className="border-b border-black/15">
-                <Link href={`/blog/${p.slug}`} className="group grid items-center gap-x-6 gap-y-2 py-4 sm:grid-cols-[110px_minmax(0,1fr)_minmax(120px,240px)] sm:px-2">
+              <motion.li key={p.slug} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.4, delay: Math.min(i, 6) * 0.03 }} className={`border-b border-black/15 ${collapsed && i >= ARCHIVE_PREVIEW ? "hidden" : ""}`}>
+                <Link href={`/blog/${p.slug}`} className="group grid items-center gap-x-6 gap-y-1 py-3 sm:grid-cols-[110px_minmax(0,1fr)_minmax(120px,240px)] sm:px-2">
                   <time dateTime={p.date} className="font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">{p.label}</time>
-                  <span className="font-pixel text-xl leading-tight tracking-[-0.04em] transition-transform group-hover:translate-x-1 md:text-[1.7rem]">{p.title}</span>
+                  <span className="font-pixel text-xl leading-tight tracking-[-0.04em] transition-transform group-hover:translate-x-1 md:text-[1.45rem]">{p.title}</span>
                   <span className="flex items-center gap-3">
                     <span className="h-3 flex-1 bg-black/10">
                       <span className="block h-full bg-[#090909] transition-colors group-hover:bg-[#f4d44d] group-hover:outline group-hover:outline-1 group-hover:outline-black" style={{ width: `${20 + (80 * (p.minutes - shortest)) / Math.max(longest - shortest, 1)}%` }} />
@@ -199,7 +215,13 @@ export function TraceArchive({ posts, categories }: { posts: JournalPost[]; cate
               </motion.li>
             ))}
           </ul>
-        ) : (
+        ) : null}
+        {collapsed ? (
+          <button type="button" onClick={() => setShowAll(true)} className="mt-6 inline-flex min-h-12 items-center gap-3 border-2 border-black px-6 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors hover:bg-[#f4d44d]">
+            Show all {shown.length} articles ↓
+          </button>
+        ) : null}
+        {shown.length ? null : (
           <p className="py-16 font-mono text-xs uppercase tracking-[0.14em] text-black/60">Nothing matches that. Try another topic.</p>
         )}
       </div>

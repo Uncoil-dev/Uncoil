@@ -34,7 +34,7 @@ export default function ToolsIndex() {
       <CreamBand id="tools">
         <Eyebrow dark={false}>{tools.length} free tools / no sign-up</Eyebrow>
         <SectionTitle>Pick up a tool.</SectionTitle>
-        <div className="mt-12"><ToolBench /></div>
+        <div className="mt-8"><ToolBench /></div>
         <div className="mx-auto max-w-[1320px]"><NewsletterPanel source="tools-index" heading="Get new tools and cost guides when they land." /></div>
       </CreamBand>
       <ClosingBand

@@ -42,10 +42,10 @@ export default async function BlogPage() {
       <JournalHero posts={journal} total={journal.length} />
 
       {lead ? (
-        <section className="px-5 py-20 md:px-10 md:py-28" aria-label="Latest">
+        <section className="px-5 mk-section md:px-10" aria-label="Latest">
           <div className="mx-auto max-w-[1320px]">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Latest</p>
-            <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.4rem,5.4vw,4.8rem)] leading-[0.92] tracking-[-0.07em]">Fresh off the loop.</h2>
+            <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Fresh off the loop.</h2>
             <div className="mt-12 grid gap-5 lg:grid-cols-[1.5fr_1fr]">
               <Reveal>
                 <Link href={`/blog/${lead.slug}`} className="group relative flex min-h-[460px] flex-col justify-end overflow-hidden border border-black bg-[#090909] text-[#eceae3] lg:h-full">

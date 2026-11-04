@@ -72,6 +72,11 @@ export function proxy(request: NextRequest) {
   const protocol = local ? forwardedProto || request.nextUrl.protocol.replace(":", "") : "https";
   const publicOrigin = `${protocol}://${publicHost}`;
 
+  // Bare and old domains go straight to www in one hop, so search engines see one canonical host.
+  if (!local && (hostname === "uncoil.dev" || hostname === "tracify.tech" || hostname === "www.tracify.tech")) {
+    return NextResponse.redirect(new URL(`${pathname}${search}`, "https://www.uncoil.dev"), 301);
+  }
+
   // The sample project is a sandbox that lives on the cloud site; "/demo" is just its front door.
   if (pathname === DEMO_PREFIX || pathname === `${DEMO_PREFIX}/`) {
     const target = local || deploymentKind === "cloud" ? publicOrigin : UNCOIL_REGIONS.eu.origin;

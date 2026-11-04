@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useTransform,
+  type AnimationPlaybackControls,
+  type MotionValue,
+} from "framer-motion";
+import { RotateCcw, SkipForward } from "lucide-react";
 import { UncoilMark } from "@/components/brand/uncoil-mark";
 
 /* ---------- Timeline: a trace waterfall drawn in the logo's pixel bars ---------- */
@@ -37,6 +47,8 @@ type Span = {
 };
 
 const T = 3.4;
+/** The 3.4 s run plays back in this many seconds: quick, but slow enough to follow. */
+const PLAY_SECONDS = 2.4;
 const spans: Span[] = [
   { name: "support-agent", kind: "agent", depth: 0, start: 0, end: 3.4, cost: 0 },
   { name: "plan", kind: "llm", depth: 1, start: 0.04, end: 0.8, cost: 0.004 },
@@ -89,15 +101,52 @@ function Bar({ span, t, trackW, cell }: { span: Span; t: MotionValue<number>; tr
 }
 
 export function Timeline() {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
+  const scrub = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion() ?? false;
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  // Most of the scroll plays the run; the end holds the finished map.
-  const played = useTransform(scrollYProgress, [0.04, 0.85], [0, T], { clamp: true });
-  const t = useTransform(played, (v) => (reduce ? T : v));
+  const t = useMotionValue(0);
   const playhead = useTransform(t, (v) => `${(v / T) * 100}%`);
-  const finale = useTransform(scrollYProgress, [0.86, 0.95], [reduce ? 1 : 0, 1]);
+  const finale = useTransform(t, [T * 0.94, T], [0, 1]);
+  const controls = useRef<AnimationPlaybackControls | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const stop = useCallback(() => {
+    controls.current?.stop();
+    controls.current = null;
+    setPlaying(false);
+  }, []);
+  const play = useCallback(() => {
+    stop();
+    t.set(0);
+    setPlaying(true);
+    controls.current = animate(t, T, { duration: PLAY_SECONDS, ease: "linear", onComplete: () => setPlaying(false) });
+  }, [stop, t]);
+  const skip = useCallback(() => {
+    stop();
+    t.set(T);
+  }, [stop, t]);
+
+  // Reduced motion shows the finished map. Otherwise it plays once on view (see onViewportEnter).
+  useEffect(() => {
+    if (reduce) t.set(T);
+    return () => controls.current?.stop();
+  }, [reduce, t]);
+
+  // Drag across the waterfall to scrub to any moment of the run.
+  const seek = (e: PointerEvent<HTMLDivElement>) => {
+    const r = scrub.current?.getBoundingClientRect();
+    if (!r || r.width === 0) return;
+    t.set(Math.min(T, Math.max(0, ((e.clientX - r.left) / r.width) * T)));
+  };
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    stop();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    seek(e);
+  };
+  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) seek(e);
+  };
 
   const [trackW, setTrackW] = useState(900);
   const [readout, setReadout] = useState({ t: 0, cost: 0 });
@@ -113,22 +162,32 @@ export function Timeline() {
     setReadout({ t: v, cost });
   });
   const shown = reduce ? { t: T, cost: totalCost } : readout;
+  const done = shown.t >= T - 0.001;
   const cell = trackW < 500 ? 4 : 6;
 
   return (
-    <section ref={ref} className="relative h-[320vh] bg-[#090909] text-[#eceae3] motion-reduce:h-auto">
-      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden px-5 pb-6 pt-24 md:px-10 motion-reduce:static motion-reduce:h-auto motion-reduce:py-24">
+    <motion.section
+      ref={ref}
+      className="relative bg-[#090909] text-[#eceae3]"
+      aria-label="Run replay"
+      viewport={{ once: true, amount: 0.45 }}
+      onViewportEnter={() => {
+        if (!reduce) play();
+      }}
+    >
+      <div className="overflow-hidden px-5 py-16 md:px-10 md:py-20">
         <div className="mx-auto w-full max-w-[1320px]">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/60">
-                <span className="size-2 bg-[#f4d44d] motion-safe:animate-pulse" />
-                Replaying run · scroll to play
+                <span className={`size-2 bg-[#f4d44d] ${playing ? "motion-safe:animate-pulse" : ""}`} />
+                {playing ? "Replaying run" : done ? "Run replayed · drag the bars to scrub" : "Run paused · drag the bars to scrub"}
               </p>
               <h2 className="mt-4 max-w-3xl font-pixel text-[clamp(2.2rem,5.4vw,5rem)] leading-[0.92] tracking-[-0.07em]">
                 3.4 seconds. <span className="text-[#f4d44d]">One wrong guess.</span>
               </h2>
             </div>
+            <div className="flex items-stretch gap-3">
             <div className="flex items-end gap-5 border border-[#f4d44d]/60 bg-[#f4d44d]/[0.06] px-5 py-3 font-mono uppercase tracking-[0.12em]">
               <span>
                 <span className="block text-[10px] text-white/50">Time</span>
@@ -139,10 +198,25 @@ export function Timeline() {
                 <span className="tabular-nums">${shown.cost.toFixed(3)}</span>
               </span>
             </div>
+            {!reduce && (
+              <button
+                type="button"
+                onClick={playing ? skip : play}
+                className="flex min-w-[112px] flex-col items-center justify-center gap-2 border border-white/25 px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#eceae3] transition-colors hover:border-[#f4d44d] hover:text-[#f4d44d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f4d44d]"
+              >
+                {playing ? <SkipForward className="size-4" aria-hidden="true" /> : <RotateCcw className="size-4" aria-hidden="true" />}
+                {playing ? "Skip to end" : "Replay"}
+              </button>
+            )}
+            </div>
           </div>
 
           {/* The waterfall: names on the left, one track of pixel bars on the right */}
-          <div className="relative mt-5 md:mt-8">
+          <div
+            className={`relative mt-5 touch-pan-y select-none md:mt-8 ${reduce ? "" : "cursor-ew-resize"}`}
+            onPointerDown={reduce ? undefined : onPointerDown}
+            onPointerMove={reduce ? undefined : onPointerMove}
+          >
             <div className="flex md:gap-6">
               <div className="hidden w-[200px] shrink-0 md:block" />
               <div className="relative h-5 flex-1 border-b border-white/15 font-mono text-[10px] text-white/40">
@@ -159,7 +233,7 @@ export function Timeline() {
             </div>
 
             {/* Second lines + dithered wake trailing the playhead */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 md:left-[224px]" aria-hidden="true">
+            <div ref={scrub} className="pointer-events-none absolute inset-y-0 left-0 right-0 md:left-[224px]" aria-hidden="true">
               {[0, 1, 2, 3].map((n) => (
                 <span key={n} className="absolute inset-y-0 w-px bg-white/[0.07]" style={{ left: `${(n / T) * 100}%` }} />
               ))}
@@ -213,8 +287,8 @@ export function Timeline() {
             </span>
             <span className="font-pixel text-xl tracking-[-0.04em] md:text-2xl">Every run, read like this.</span>
           </motion.div>
-          </div>
+        </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

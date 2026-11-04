@@ -1,6 +1,6 @@
 # SDK compatibility matrix
 
-The TypeScript and Python SDKs expose equivalent concepts with language-native naming. The package name is `uncoil-sdk` in both registries.
+The TypeScript and Python SDKs expose equivalent concepts with language-native naming. The package is `@uncoil.dev/sdk` on npm and `uncoil-sdk` on PyPI.
 
 | Capability | TypeScript | Python | Wire field |
 | --- | --- | --- | --- |

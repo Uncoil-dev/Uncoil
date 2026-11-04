@@ -617,7 +617,7 @@ function DocsExplorations() {
               <pre className="overflow-x-auto p-7 font-mono text-[13px] leading-8 text-zinc-300">
                 <code>
                   <span className="text-[#8b7cff]">import</span>
-                  {" { UncoilClient } from 'uncoil-sdk'\n\n"}
+                  {" { UncoilClient } from '@uncoil.dev/sdk'\n\n"}
                   <span className="text-[#f4d44d]">const</span>
                   {" uncoil = new UncoilClient()\n\n"}
                   <span className="text-zinc-600">
@@ -659,7 +659,7 @@ function DocsExplorations() {
             </h2>
             <div className="mt-12 grid border-l border-t border-black/20 lg:grid-cols-3">
               {[
-                ["01", "Install", "npm install uncoil-sdk", "< 1 min"],
+                ["01", "Install", "npm install @uncoil.dev/sdk", "< 1 min"],
                 ["02", "Trace", "wrap(agent.run)", "one function"],
                 ["03", "Inspect", "open run_0182", "full evidence"],
               ].map(([number, title, code, time]) => (

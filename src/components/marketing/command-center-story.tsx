@@ -11,7 +11,7 @@ const products = [
 ] as const;
 
 const runtimes = {
-  TypeScript: ["npm install uncoil-sdk", "import { traceAgent } from 'uncoil-sdk'", "", "const tracedRun = traceAgent(", "  () => agent.run(input)", ")"],
+  TypeScript: ["npm install @uncoil.dev/sdk", "import { traceAgent } from '@uncoil.dev/sdk'", "", "const tracedRun = traceAgent(", "  () => agent.run(input)", ")"],
   Python: ["pip install uncoil-sdk", "from uncoil import trace_agent", "", "@trace_agent()", "def run_agent(input):", "    return agent.run(input)"],
   OTLP: ["POST /v1/traces", "x-uncoil-key: $UNCOIL_API_KEY", "", "service.name=research-agent", "span.type=tool_call"],
 } as const;

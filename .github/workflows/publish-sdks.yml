@@ -21,7 +21,7 @@ on:
 
 jobs:
   npm:
-    name: "npm: uncoil-sdk"
+    name: "npm: @uncoil.dev/sdk"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,7 +45,7 @@ jobs:
         run: npm pack --dry-run
       - name: Confirm which npm account will own the package
         run: |
-          # Publishing is first-come: whoever runs this owns `uncoil-sdk`
+          # Publishing is first-come: whoever runs this owns `@uncoil.dev/sdk` (npm) and `uncoil-sdk` (PyPI)
           # permanently. Fail loudly if NPM_TOKEN belongs to the wrong account.
           who=$(npm whoami)
           echo "Publishing as npm user: $who"
@@ -88,7 +88,7 @@ jobs:
       - name: Publish
         if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
         working-directory: packages/python-sdk
-        run: python -m twine upload dist/*
+        run: python -m twine upload --skip-existing dist/*
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}

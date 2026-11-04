@@ -13,12 +13,12 @@ capture → diagnose → assign → fix → verify → prevent recurrence
 ### TypeScript / Node.js
 
 ```bash
-npm install uncoil-sdk
+npm install @uncoil.dev/sdk
 export UNCOIL_API_KEY=uncoil_sk_live_...
 ```
 
 ```typescript
-import { traceAgent, llmCall, toolCall } from "uncoil-sdk";
+import { traceAgent, llmCall, toolCall } from "@uncoil.dev/sdk";
 
 const run = traceAgent(async (question: string) => {
   await llmCall({ input: question, output: "I will look that up.", modelId: "gpt-4o-mini", costUsd: 0.001 });
@@ -62,8 +62,8 @@ Run the example once, then open the [Uncoil dashboard](https://uncoil.dev/dashbo
 | Surface | Location | Status |
 | --- | --- | --- |
 | Web app and API | `src/`, `convex/` | Active |
-| TypeScript SDK | `packages/ts-sdk/` | Active; package `uncoil-sdk` |
-| Python SDK | `packages/python-sdk/` | Active; package `uncoil-sdk` |
+| TypeScript SDK | `packages/ts-sdk/` | Active; package `@uncoil.dev/sdk` on npm |
+| Python SDK | `packages/python-sdk/` | Active; package `uncoil-sdk` on PyPI |
 | Playwright package | `packages/playwright/` | Active |
 | Documentation | `content/docs/`, `docs/` | Active |
 | Tinybird analytics | `tinybird/` | Active |

@@ -8,7 +8,7 @@ const tabs = [
     id: "ts",
     label: "TypeScript",
     file: "agent.ts",
-    code: `import { traceAgent, span } from "uncoil-sdk";
+    code: `import { traceAgent, span } from "@uncoil.dev/sdk";
 
 export const answer = traceAgent(async (q: string) => {
   const docs = await span("docs.search", () => search(q), { type: "tool" });

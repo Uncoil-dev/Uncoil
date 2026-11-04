@@ -7,7 +7,7 @@ author: Uncoil Team
 draft: false
 categories: [engineering]
 tags: [prompt engineering, prompt design, LLM prompts]
-relatedPosts: [prompt-versioning-production, structured-outputs-ai-agents]
+relatedPosts: [prompt-versioning-and-prompt-management, structured-outputs-ai-agents]
 heroImage:
   src: /media/ai-agent-observability-hero.png
   alt: Structured prompt contract connected to an evaluation and production trace
@@ -49,7 +49,7 @@ This is an illustrative contract, not a guaranteed model behavior. Test malforme
 
 ## Version every meaningful change
 
-Store prompt version, model, relevant configuration, evaluator version, and task cohort with each run. The [prompt versioning guide](/blog/prompt-versioning-production) explains why a prompt diff without outcome evidence is not a release record.
+Store prompt version, model, relevant configuration, evaluator version, and task cohort with each run. The [prompt versioning guide](/blog/prompt-versioning-and-prompt-management) explains why a prompt diff without outcome evidence is not a release record.
 
 ## Evaluate before rollout
 
@@ -66,7 +66,7 @@ Use a fixed regression set plus fresh production examples. Compare quality, refu
 After launch, inspect the result from the user’s point of view. Did the workflow produce the promised outcome? Did it create correction work? Was the latency and cost acceptable? Could an operator reconstruct the decision without guessing? If the answer is no, classify the gap and improve the contract, test, policy, trace, or recovery path that owns it. A production guide is successful when it changes what the team can safely explain and operate, not when it merely adds another page of plausible advice.
 ## Recommended next reads
 
-Continue with [prompt versioning in production](/blog/prompt-versioning-production), [AI agent regression testing](/blog/ai-agent-regression-testing), and [structured outputs](/blog/structured-outputs-ai-agents).
+Continue with [prompt versioning in production](/blog/prompt-versioning-and-prompt-management), [AI agent regression testing](/blog/ai-agent-regression-testing), and [structured outputs](/blog/structured-outputs-ai-agents).
 
 ## Review prompts like interfaces
 

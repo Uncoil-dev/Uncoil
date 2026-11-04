@@ -1,4 +1,4 @@
-import { UncoilClient } from "uncoil-sdk";
+import { UncoilClient } from "@uncoil.dev/sdk";
 
 // Record about one run in ten, hide personal details, and add your own rules.
 export const uncoil = new UncoilClient({

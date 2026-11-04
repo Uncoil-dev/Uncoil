@@ -71,7 +71,7 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
 
   return (
     <section
-      className="relative isolate min-h-[100svh] overflow-hidden bg-[#090909] text-[#eceae3]"
+      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[#090909] text-[#eceae3]"
       onPointerMove={(e) => {
         if (reduce) return;
         const r = e.currentTarget.getBoundingClientRect();
@@ -96,9 +96,9 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           className="object-cover object-bottom [image-rendering:pixelated]"
         />
       </motion.div>
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,#090909_0%,#090909_38%,rgba(9,9,9,0.75)_58%,rgba(9,9,9,0)_80%)]" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,#090909_0%,#090909_56%,rgba(9,9,9,0.7)_70%,rgba(9,9,9,0)_88%)]" />
 
-      <div className="mx-auto flex max-w-[1320px] flex-col items-center px-5 pt-32 text-center md:pt-40">
+      <div className="mx-auto flex w-full max-w-[1320px] flex-col items-center px-5 pt-28 text-center md:pt-[clamp(5rem,10svh,9rem)]">
         <motion.p
           initial={reduce ? false : { y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -111,7 +111,7 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           initial={reduce ? false : { y: 30 }}
           animate={{ y: 0 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-8 max-w-[1100px] font-pixel text-[clamp(3.2rem,10vw,9.5rem)] leading-[0.9] tracking-[-0.07em]"
+          className="mt-[clamp(1.25rem,3svh,2rem)] max-w-[1100px] font-pixel text-[clamp(3.2rem,min(10vw,13svh),9.5rem)] leading-[0.9] tracking-[-0.07em]"
         >
           {t.heroA} <span className="text-[#f4d44d]">{t.heroB}</span>
         </motion.h1>
@@ -119,7 +119,7 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           initial={reduce ? false : { y: 8 }}
           animate={{ y: 0 }}
           transition={{ delay: 0.7 }}
-          className="mt-7 max-w-[620px] text-base leading-7 text-white/70 md:text-lg md:leading-8"
+          className="mt-[clamp(1.25rem,3.5svh,2.25rem)] max-w-[640px] text-base leading-7 text-white/70 md:text-lg md:leading-7"
         >
           {t.lede}
         </motion.p>
@@ -127,7 +127,7 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           initial={reduce ? false : { y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85 }}
-          className="mt-9 flex flex-wrap justify-center gap-3"
+          className="mt-[clamp(1.25rem,3.5svh,2.25rem)] flex flex-wrap justify-center gap-3"
         >
           <Link href={appHref("/sign-up")} className="group inline-flex min-h-13 items-center gap-3 bg-[#f4d44d] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
             {t.ctaPrimary} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
@@ -138,30 +138,32 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
         </motion.div>
       </div>
 
-      <motion.div
-        style={{ x: cardX, y: cardY }}
-        initial={reduce ? false : { opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.1, duration: 0.8 }}
-        className="absolute bottom-10 left-8 hidden lg:block"
-      >
-        <LiveFeed />
-      </motion.div>
-      <motion.div
-        style={{ x: cardX, y: cardY }}
-        initial={reduce ? false : { opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.3, duration: 0.8 }}
-        className="absolute bottom-14 right-8 hidden w-[280px] border border-[#f4d44d] bg-[#090909]/90 p-4 text-left font-mono backdrop-blur-sm lg:block"
-      >
-        <p className="flex items-center justify-between text-[9px] uppercase tracking-[0.14em] text-[#f4d44d]">
-          <span>Root cause found</span>
-          <span className="size-2 animate-ping bg-[#f4d44d]" />
-        </p>
-        <p className="mt-3 text-sm text-white">docs.search returned 0 results</p>
-        <p className="mt-1 text-[11px] leading-5 text-white/55">→ fallback model guessed the policy → refund.issue timed out</p>
-      </motion.div>
-      <div className="h-[34vh] min-h-[220px] lg:h-[38vh]" aria-hidden="true" />
+      {/* Cards sit in the flow at the bottom of the screen, so they never push the hero past one viewport. */}
+      <div className="mx-auto mt-auto hidden w-full max-w-[1440px] items-end justify-between gap-6 px-8 pb-[clamp(1.5rem,4svh,3rem)] pt-6 lg:flex">
+        <motion.div
+          style={{ x: cardX, y: cardY }}
+          initial={reduce ? false : { opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 0.8 }}
+        >
+          <LiveFeed />
+        </motion.div>
+        <motion.div
+          style={{ x: cardX, y: cardY }}
+          initial={reduce ? false : { opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.3, duration: 0.8 }}
+          className="mb-4 w-[280px] border border-[#f4d44d] bg-[#090909]/90 p-4 text-left font-mono backdrop-blur-sm"
+        >
+          <p className="flex items-center justify-between text-[9px] uppercase tracking-[0.14em] text-[#f4d44d]">
+            <span>Root cause found</span>
+            <span className="size-2 animate-ping bg-[#f4d44d]" />
+          </p>
+          <p className="mt-3 text-sm text-white">docs.search returned 0 results</p>
+          <p className="mt-1 text-[11px] leading-5 text-white/55">→ fallback model guessed the policy → refund.issue timed out</p>
+        </motion.div>
+      </div>
+      <div className="h-[30svh] min-h-[200px] lg:hidden" aria-hidden="true" />
     </section>
   );
 }

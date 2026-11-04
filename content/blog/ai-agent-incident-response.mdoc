@@ -236,7 +236,7 @@ Rollback is where agent incidents diverge most sharply from service incidents. I
 
 The uncomfortable row is model version. If you call a floating alias rather than a pinned version, agent behavior can change with no deploy, no commit, and no entry in your change log — which means the first triage question ("what changed?") returns nothing and sends you looking in the wrong place. Pin versions and upgrade deliberately; it {% highlight %}converts an entire class of unattributable incidents into scheduled work{% /highlight %}.
 
-The correlate for prompts is version control with a deployment history you can query during an incident. If your on-call engineer cannot answer "what was the prompt at 02:10?" in under a minute, prompt changes will remain the hardest incidents you run. The practices in [prompt versioning in production](/blog/prompt-versioning-production) exist substantially for this moment.
+The correlate for prompts is version control with a deployment history you can query during an incident. If your on-call engineer cannot answer "what was the prompt at 02:10?" in under a minute, prompt changes will remain the hardest incidents you run. The practices in [prompt versioning in production](/blog/prompt-versioning-and-prompt-management) exist substantially for this moment.
 
 ### When rollback is the wrong move
 

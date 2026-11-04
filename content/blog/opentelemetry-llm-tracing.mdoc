@@ -101,7 +101,7 @@ For tools, distinguish client time, network time, server time, and result proces
 
 Quality signals belong on the run that produced the answer. Record evaluator name, version, dataset case, score type, value, status, explanation, and review state. Feedback from a user should link to the same trace or task ID. Do not treat a thumbs-up as a complete quality definition; combine it with deterministic checks and sampled review.
 
-Attaching evaluation to the trace enables release comparisons. A prompt revision can change latency and tool behavior even when the final text looks similar. [Prompt versioning in production](/blog/prompt-versioning-production) and [AI agent regression testing](/blog/ai-agent-regression-testing) show how to make those changes visible before and after rollout.
+Attaching evaluation to the trace enables release comparisons. A prompt revision can change latency and tool behavior even when the final text looks similar. [Prompt versioning in production](/blog/prompt-versioning-and-prompt-management) and [AI agent regression testing](/blog/ai-agent-regression-testing) show how to make those changes visible before and after rollout.
 
 ## Define retention and sampling
 

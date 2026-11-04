@@ -66,7 +66,7 @@ export default defineSchema({
     .index("by_stripeSubscriptionId", ["stripeSubscriptionId"])
     .index("by_apiKeyHash", ["apiKeyHash"]),
 
-  // Terminal sign-in (`uncoil-sdk login`). The key is encrypted to the CLI's own public key, so the server never keeps a usable key.
+  // Terminal sign-in (`npx @uncoil.dev/sdk login`). The key is encrypted to the CLI's own public key, so the server never keeps a usable key.
   deviceLogins: defineTable({
     deviceCodeHash: v.string(),
     userCode: v.string(),

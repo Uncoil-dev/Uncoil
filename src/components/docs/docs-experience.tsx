@@ -8,7 +8,7 @@ import { Check, Copy } from "lucide-react";
 /* ---------- Terminal: a first trace, typed out ---------- */
 
 const script = [
-  { text: "npm install uncoil-sdk", kind: "cmd" },
+  { text: "npm install @uncoil.dev/sdk", kind: "cmd" },
   { text: "added 1 package in 2s", kind: "dim" },
   { text: "node agent.js", kind: "cmd" },
   { text: "▸ run_9f3a  support-agent", kind: "ok" },
@@ -52,7 +52,7 @@ export function DocsTerminal() {
 
 /* ---------- Journey: install, instrument, inspect, improve ---------- */
 
-const wrap = `import { traceAgent } from "uncoil-sdk";
+const wrap = `import { traceAgent } from "@uncoil.dev/sdk";
 
 const runAgent = traceAgent(
   async (question: string) => callModel(question),
@@ -108,7 +108,7 @@ function Panel({ index }: { index: number }) {
     return (
       <Screen title="1 · install">
         <div className="space-y-3">
-          <CopyLine text="npm install uncoil-sdk" />
+          <CopyLine text="npm install @uncoil.dev/sdk" />
           <CopyLine text="pip install uncoil-sdk" />
           <p className="pt-2 font-mono text-[11px] uppercase tracking-[0.12em] text-white/45">.env</p>
           <pre className="font-mono text-[13px] text-white/80">UNCOIL_API_KEY=uncoil_sk_live_…</pre>
@@ -166,30 +166,37 @@ export function DocsJourney() {
   const [active, setActive] = useState(0);
   const reduce = useReducedMotion();
   return (
-    <section className="bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32">
+    <section className="bg-[#090909] px-5 mk-section text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">The path</p>
-        <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">From npm install to release gate.</h2>
-        <div className="mt-12 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="min-w-0">
-            {chapters.map((c, i) => (
-              <motion.div key={c.n} onViewportEnter={() => setActive(i)} viewport={{ amount: 0.6 }} className="flex flex-col justify-center border-t border-white/15 py-8 lg:min-h-[44vh]">
-                <span className={`font-mono text-sm transition-colors ${active === i ? "text-[#f4d44d]" : "text-white/35"}`}>{c.n} / 04</span>
-                <h3 className="mt-5 font-pixel text-[clamp(2rem,4vw,3.4rem)] leading-none tracking-[-0.06em]">{c.title}</h3>
-                <p className="mt-5 max-w-md text-base leading-7 text-white/65">{c.body}</p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {c.links.map(([label, slug]) => (
-                    <Link key={slug} href={`/docs/${slug}`} className="border border-white/25 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors hover:border-[#f4d44d] hover:bg-[#f4d44d] hover:text-black">{label} →</Link>
-                  ))}
-                </div>
-                <div className="mt-8 h-[300px] lg:hidden"><Panel index={i} /></div>
-              </motion.div>
-            ))}
-          </div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">The path / pick a step</p>
+        <h2 className="mt-4 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">From npm install to release gate.</h2>
+        <div className="mk-gap grid items-start gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <ol className="min-w-0 border-b border-white/15">
+            {chapters.map((c, i) => {
+              const on = active === i;
+              return (
+                <li key={c.n} className={`border-t border-white/15 transition-colors ${on ? "bg-white/[0.04]" : ""}`} onMouseEnter={() => setActive(i)}>
+                  <button type="button" aria-expanded={on} onClick={() => setActive(i)} onFocus={() => setActive(i)} className="flex w-full items-baseline gap-5 px-3 pt-5 text-left">
+                    <span className={`font-mono text-sm transition-colors ${on ? "text-[#f4d44d]" : "text-white/35"}`}>{c.n}</span>
+                    <span className={`font-pixel text-[clamp(1.6rem,2.6vw,2.2rem)] leading-none tracking-[-0.06em] transition-colors ${on ? "text-[#f4d44d]" : ""}`}>{c.title}</span>
+                  </button>
+                  <div className="px-3 pb-5 pl-[3.25rem]">
+                    <p className="mt-2 max-w-md text-sm leading-6 text-white/70">{c.body}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {c.links.map(([label, slug]) => (
+                        <Link key={slug} href={`/docs/${slug}`} className="border border-white/25 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors hover:border-[#f4d44d] hover:bg-[#f4d44d] hover:text-black">{label} →</Link>
+                      ))}
+                    </div>
+                    {on && <div className="mt-5 h-[280px] lg:hidden"><Panel index={i} /></div>}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
           <div className="hidden lg:block">
-            <div className="sticky top-[calc(64px+10vh)] h-[440px]">
+            <div className="relative h-[440px]">
               <AnimatePresence mode="popLayout">
-                <motion.div key={active} className="absolute inset-0" initial={reduce ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+                <motion.div key={active} className="absolute inset-0" initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
                   <Panel index={active} />
                 </motion.div>
               </AnimatePresence>

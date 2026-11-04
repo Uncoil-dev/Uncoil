@@ -45,7 +45,7 @@ export function FinalCTA() {
               </div>
               <div className="flex gap-2">
                 <span className="text-[#666666] shrink-0">$</span>
-                <span className="text-[#999999]">npm install uncoil-sdk</span>
+                <span className="text-[#999999]">npm install @uncoil.dev/sdk</span>
               </div>
               <div className="flex gap-2">
                 <span className="text-[#666666] shrink-0">$</span>

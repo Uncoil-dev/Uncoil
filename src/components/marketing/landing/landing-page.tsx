@@ -18,6 +18,8 @@ const faqs = [
   ["Do I have to rewrite my agent?", "No. Wrap the entry point once and mark the steps you care about. Everything else keeps working the way it does today."],
   ["What can I send traces from?", "The TypeScript and Python SDKs, OpenTelemetry, or plain HTTP."],
   ["Can I try it without paying?", "Yes. The Free plan includes the trace viewer and cost visibility, no card needed."],
+  ["How long are traces kept?", "7 days on Free, 30 days on Pro and 90 days on Team. Enterprise sets its own retention."],
+  ["Can my team look at the same runs?", "Yes. Pro has room for 5 members and Team for 20, all looking at the same projects and traces."],
 ] as const;
 
 export function LandingPage() {
@@ -43,32 +45,45 @@ export function LandingPage() {
       <UseCases />
       <PricingSection />
 
-      <section className="border-t-2 border-black bg-[#eceae3] px-5 pb-24 text-black md:px-10">
-        <div className="mx-auto grid max-w-[1320px] gap-x-12 pt-16 md:grid-cols-2">
-          {faqs.map(([q, a], i) => (
-            <Reveal key={q} delay={(i % 2) * 0.08} className="border-b border-black/20 py-7">
-              <h3 className="font-pixel text-2xl tracking-[-0.05em]">{q}</h3>
-              <p className="mt-2 text-sm leading-6 text-black/65">{a}</p>
-            </Reveal>
-          ))}
+      <section className="border-t-2 border-black bg-[#eceae3] mk-section px-5 text-black md:px-10" aria-labelledby="landing-faq-title">
+        <div className="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[280px_1fr] lg:gap-16">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">FAQ</p>
+            <h2 id="landing-faq-title" className="mt-4 font-pixel text-[clamp(2rem,3.4vw,3rem)] leading-[0.95] tracking-[-0.06em]">Quick answers.</h2>
+            <Link href="/docs" className="mt-5 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] underline underline-offset-4 hover:text-black/60">
+              More in the docs <ArrowRight className="size-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="grid gap-x-12 md:grid-cols-2">
+            {faqs.map(([q, a], i) => (
+              <Reveal key={q} delay={(i % 2) * 0.08} className="border-t border-black/20 py-5">
+                <h3 className="font-pixel text-xl tracking-[-0.05em] md:text-2xl">{q}</h3>
+                <p className="mt-2 text-sm leading-6 text-black/65">{a}</p>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="overflow-hidden bg-[#090909] px-5 pt-28 text-center text-[#eceae3] md:px-10 md:pt-36">
+      <section className="overflow-hidden bg-[#090909] px-5 pt-20 text-center text-[#eceae3] md:px-10 md:pt-24">
         <Reveal className="relative z-10">
           <h2 className="mx-auto max-w-5xl font-pixel text-[clamp(3rem,9vw,8rem)] leading-[0.88] tracking-[-0.08em]">Stop guessing. Start seeing.</h2>
-          <p className="mx-auto mt-6 max-w-md text-base leading-7 text-white/70">Wrap your agent, run it, open the map. The free plan needs no card.</p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Link href={appHref("/sign-up")} className="group inline-flex items-center gap-3 bg-[#f4d44d] px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
-              Start tracing free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-            </Link>
-            <Link href="/docs" className="inline-flex items-center border border-white/40 bg-[#090909] px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] hover:bg-white hover:text-black">
-              Read the docs
-            </Link>
+          <div className="relative mx-auto mt-6 max-w-2xl pb-4">
+            {/* Dark halo keeps the copy and buttons clear of the dot pattern behind them. */}
+            <div aria-hidden="true" className="pointer-events-none absolute -inset-x-24 -inset-y-10 -z-10 bg-[radial-gradient(ellipse_closest-side,#090909_62%,rgba(9,9,9,0.85)_80%,transparent)]" />
+            <p className="mx-auto max-w-xl text-balance text-lg leading-8 text-[#eceae3]">Wrap your agent, run it, open the map. The free plan needs no card.</p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Link href={appHref("/sign-up")} className="group inline-flex items-center gap-3 bg-[#f4d44d] px-8 py-5 font-mono text-xs font-medium uppercase tracking-[0.14em] text-black hover:bg-white">
+                Start tracing free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </Link>
+              <Link href="/docs" className="inline-flex items-center border border-[#eceae3]/70 bg-[#090909] px-8 py-5 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#eceae3] hover:bg-white hover:text-black">
+                Read the docs
+              </Link>
+            </div>
           </div>
         </Reveal>
-        <Reveal className="relative -mx-5 -mt-[28vw] aspect-square md:-mx-10 md:-mt-[16vw] md:aspect-[2/1]" delay={0.15}>
-          <Image src="/images/landing/horizon-sun.png" alt="" fill unoptimized sizes="100vw" className="object-cover [image-rendering:pixelated]" />
+        <Reveal className="relative -mx-5 -mt-[24vw] aspect-square md:-mx-10 md:-mt-[13vw] md:aspect-[12/5]" delay={0.15}>
+          <Image src="/images/landing/horizon-sun.png" alt="" fill unoptimized sizes="100vw" className="object-cover object-top [image-rendering:pixelated]" />
         </Reveal>
       </section>
     </div>

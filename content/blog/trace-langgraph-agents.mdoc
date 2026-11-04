@@ -69,7 +69,7 @@ You need the SDK, an API key, and one handler.
 Install the SDK and set `UNCOIL_API_KEY` in your environment. Then pass a handler in the invocation configuration of your compiled graph.
 
 ```ts
-import { UncoilLangGraphHandler, traceAgent } from "uncoil-sdk";
+import { UncoilLangGraphHandler, traceAgent } from "@uncoil.dev/sdk";
 
 // One reusable handler. `graph` is your compiled LangGraph graph.
 const handler = new UncoilLangGraphHandler();
@@ -112,7 +112,7 @@ The same rules apply: the callback records the graph, nodes, tools and model cal
 The handler sees what the framework reports through callbacks. Anything your nodes do outside the framework, such as a direct HTTP request or a plain function that never touches a LangChain tool or model, produces no span by itself. If a node does important work that way, wrap that work in a span so it appears in the tree.
 
 ```ts
-import { span } from "uncoil-sdk";
+import { span } from "@uncoil.dev/sdk";
 
 async function loadCustomer(id: string) {
   return span("load_customer", () => crm.fetch(id), { type: "retrieval", input: id });

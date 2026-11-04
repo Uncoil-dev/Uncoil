@@ -6,14 +6,33 @@ import { ArrowUp, ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
 import { UncoilMark } from "@/components/brand/uncoil-mark";
-import { LocaleSwitcher } from "@/components/marketing/locale/locale-switcher";
 
-const groups = [
-  ["Product", [["Trace viewer", "/product/trace-viewer"], ["Cost dashboard", "/product/cost-dashboard"], ["Tool calls", "/product/tool-calls"], ["LLM calls", "/product/llm-calls"], ["Failures", "/product/failures"], ["Reports", "/product/reports"], ["Runtime control", "/product/runtime-control"], ["Evaluation engine", "/product/evaluation-engine"], ["Lifecycle", "/product/lifecycle"], ["Pricing", "/pricing"], ["Integrations", "/integrations"], ["Compare tools", "/compare"], ["Alternatives", "/alternative"]]],
-  ["Use cases", [["Support", "/use-cases/support"], ["Research", "/use-cases/research"], ["Automation", "/use-cases/automation"], ["Tool calling", "/use-cases/tool-calling"], ["Coding agents", "/use-cases/coding"], ["RAG apps", "/use-cases/rag"], ["Voice agents", "/use-cases/voice"], ["Browser agents", "/use-cases/browser"], ["Multi-agent", "/use-cases/multi-agent"], ["MCP servers", "/use-cases/mcp"], ["Chatbots", "/use-cases/chatbot"], ["Data and SQL agents", "/use-cases/sql"], ["Cost control", "/use-cases/cost-control"], ["Sales agents", "/use-cases/sales"], ["Document agents", "/use-cases/documents"], ["Release checks", "/use-cases/release"], ["Copilots", "/use-cases/copilot"]]],
-  ["Developers", [["Docs", "/docs"], ["TypeScript SDK", "/docs/typescript"], ["Python SDK", "/docs/python"], ["API reference", "/docs/api"], ["Glossary", "/glossary"], ["Questions answered", "/answers"], ["Observability guide", "/blog/ai-agent-observability-complete-guide"], ["Tracing explained", "/blog/llm-tracing-explained"], ["Free tools", "/tools"], ["Token counter", "/tools/token-counter"], ["Agent log checker", "/tools/agent-log-checker"], ["AI API status", "/tools/ai-api-status"]]],
-  ["Company", [["About", "/about"], ["Blog", "/blog"], ["Roadmap", "/roadmap"], ["Changelog", "/changelog"], ["Security", "/security"], ["Status", "/status"], ["Contact", "/contact"]]],
-] as const;
+type LinkList = readonly (readonly [string, string])[];
+
+const productLinks: LinkList = [["Trace viewer", "/product/trace-viewer"], ["Cost dashboard", "/product/cost-dashboard"], ["Tool calls", "/product/tool-calls"], ["LLM calls", "/product/llm-calls"], ["Failures", "/product/failures"], ["Reports", "/product/reports"], ["Runtime control", "/product/runtime-control"], ["Evaluation engine", "/product/evaluation-engine"], ["Lifecycle", "/product/lifecycle"]];
+const useCaseLinks: LinkList = [["Support", "/use-cases/support"], ["Research", "/use-cases/research"], ["Automation", "/use-cases/automation"], ["Tool calling", "/use-cases/tool-calling"], ["Coding agents", "/use-cases/coding"], ["RAG apps", "/use-cases/rag"], ["Voice agents", "/use-cases/voice"], ["Browser agents", "/use-cases/browser"], ["Multi-agent", "/use-cases/multi-agent"], ["MCP servers", "/use-cases/mcp"], ["Chatbots", "/use-cases/chatbot"], ["Data and SQL agents", "/use-cases/sql"], ["Cost control", "/use-cases/cost-control"], ["Sales agents", "/use-cases/sales"], ["Document agents", "/use-cases/documents"], ["Release checks", "/use-cases/release"], ["Copilots", "/use-cases/copilot"]];
+const developerLinks: LinkList = [["Docs", "/docs"], ["TypeScript SDK", "/docs/typescript"], ["Python SDK", "/docs/python"], ["API reference", "/docs/api"], ["Glossary", "/glossary"], ["Questions answered", "/answers"], ["Observability guide", "/blog/ai-agent-observability-complete-guide"], ["Tracing explained", "/blog/llm-tracing-explained"]];
+const compareLinks: LinkList = [["Pricing", "/pricing"], ["Integrations", "/integrations"], ["Compare tools", "/compare"], ["Alternatives", "/alternative"]];
+const toolLinks: LinkList = [["All free tools", "/tools"], ["Token counter", "/tools/token-counter"], ["Agent log checker", "/tools/agent-log-checker"], ["AI API status", "/tools/ai-api-status"]];
+const companyLinks: LinkList = [["About", "/about"], ["Blog", "/blog"], ["Roadmap", "/roadmap"], ["Changelog", "/changelog"], ["Security", "/security"], ["Status", "/status"], ["Contact", "/contact"]];
+
+function LinkGroup({ title, links, split = false, className = "" }: { title: string; links: LinkList; split?: boolean; className?: string }) {
+  return (
+    <div className={className}>
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">{title}</p>
+      <ul className={`mt-4 grid gap-x-8 gap-y-2.5 ${split ? "grid-cols-2" : ""}`}>
+        {links.map(([label, href]) => (
+          <li key={href}>
+            <Link href={href} className="group inline-flex items-center gap-1 text-sm text-white/70 hover:text-white">
+              <span className="h-px w-0 bg-[#f4d44d] transition-all group-hover:w-3" />
+              {label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const word = "uncoil".split("");
 
@@ -27,34 +46,28 @@ export function LandingFooter() {
       </div>
 
       <div className="mx-auto max-w-[1440px] px-5 md:px-8">
-        <div className="grid gap-12 border-t border-white/15 pt-14 lg:grid-cols-[1.1fr_2fr]">
-          <div>
-            <p className="font-pixel text-4xl leading-none tracking-[-0.06em]">One map per run.</p>
-            <p className="mt-4 max-w-sm text-sm leading-6 text-white/60">Notes on debugging agents, plus what shipped. One email a month.</p>
-            <div className="mt-6">
-              <NewsletterCapture />
-            </div>
+        <div className="flex flex-col gap-6 border-y border-white/15 py-8 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-6">
+            <p className="font-pixel text-3xl leading-none tracking-[-0.06em] md:text-4xl">One map per run.</p>
+            <p className="max-w-md text-sm leading-6 text-white/60">Notes on debugging agents, plus what shipped. One email a month.</p>
           </div>
-          <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
-            {groups.map(([title, links]) => (
-              <div key={title}>
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">{title}</p>
-                <ul className="mt-4 grid gap-2.5">
-                  {links.map(([label, href]) => (
-                    <li key={href}>
-                      <Link href={href} className="group inline-flex items-center gap-1 text-sm text-white/70 hover:text-white">
-                        <span className="h-px w-0 bg-[#f4d44d] transition-all group-hover:w-3" />
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div className="w-full lg:w-[420px]">
+            <NewsletterCapture />
           </div>
         </div>
 
-        <div className="mt-16 flex select-none items-baseline justify-between pb-[0.2em] font-pixel text-[16vw] leading-[0.78] tracking-[-0.08em] lg:text-[18vw]" aria-hidden="true">
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-10 pt-12 md:grid-cols-4 lg:grid-cols-6">
+          <LinkGroup title="Product" links={productLinks} />
+          <LinkGroup title="Use cases" links={useCaseLinks} split className="col-span-2" />
+          <LinkGroup title="Developers" links={developerLinks} />
+          <div className="grid content-start gap-10">
+            <LinkGroup title="Compare" links={compareLinks} />
+            <LinkGroup title="Free tools" links={toolLinks} />
+          </div>
+          <LinkGroup title="Company" links={companyLinks} />
+        </nav>
+
+        <div className="mt-14 flex select-none items-baseline justify-between pb-[0.2em] font-pixel text-[16vw] leading-[0.78] tracking-[-0.08em] lg:text-[18vw]" aria-hidden="true">
           <motion.span
             className="inline-block"
             initial={reduce ? false : { x: "-30%", opacity: 0 }}
@@ -95,7 +108,6 @@ export function LandingFooter() {
               Status <ArrowUpRight className="size-3" aria-hidden="true" />
             </Link>
           </div>
-          <LocaleSwitcher />
           <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" })} className="inline-flex w-fit items-center gap-2 border border-white/25 px-3 py-2 hover:bg-[#f4d44d] hover:text-black">
             Back to top <ArrowUp className="size-3.5" aria-hidden="true" />
           </button>

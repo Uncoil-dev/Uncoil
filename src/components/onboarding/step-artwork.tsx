@@ -90,7 +90,7 @@ export function StepArtwork({ step }: { step: OnboardingStepId }) {
             <p className="text-white/40">{draft.runtime === "typescript" ? "// agent.ts" : "# agent.py"}</p>
             {draft.runtime === "typescript" ? (
               <>
-                <p className="text-white/50">import &#123; traceAgent &#125; from &quot;uncoil-sdk&quot;</p>
+                <p className="text-white/50">import &#123; traceAgent &#125; from &quot;uncoil&quot;</p>
                 <p className="text-[#f4d44d]">const agent = traceAgent(run)</p>
               </>
             ) : (

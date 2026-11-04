@@ -15,7 +15,7 @@ async def run_my_agent(question: str):
     client.score(current_run_id(), "followed_policy", True, data_type="boolean")
     return answer`;
   }
-  return `import { UncoilClient, traceAgent, currentRunId } from 'uncoil-sdk';
+  return `import { UncoilClient, traceAgent, currentRunId } from '@uncoil.dev/sdk';
 
 const client = new UncoilClient({ projectId: '${projectId}' }); // API key comes from UNCOIL_API_KEY
 

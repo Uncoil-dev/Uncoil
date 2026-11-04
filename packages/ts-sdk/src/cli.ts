@@ -2,8 +2,8 @@
 import { formatReport, runDoctor, type DoctorOptions } from "./doctor";
 import { loadUncoilEnv, runLogin, type LoginOptions } from "./login";
 
-const HELP = `Usage: uncoil-sdk login [options]
-       uncoil-sdk doctor [options]
+const HELP = `Usage: uncoil login [options]
+       uncoil doctor [options]
 
 login   Sign in through your browser and save the API key for this folder.
 doctor  Check your API key, region and network, then send one test trace.

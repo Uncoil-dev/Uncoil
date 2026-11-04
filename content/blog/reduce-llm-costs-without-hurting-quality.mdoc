@@ -234,6 +234,42 @@ Leaders should ask for decision-quality artifacts rather than a larger dashboard
 
 [Explore the relevant Uncoil workflow](/product/cost-dashboard)
 
+## Estimate cost before you launch
+
+Start from one finished task, not one token. Count the model calls, the tokens in and out, and the paid tool calls for a clean run. Then price them.
+
+```text
+monthly spend = runs x model calls per run x average tokens x price per token
+```
+
+This formula is for planning, not accounting. Real systems mix models, use cached tokens, and have contract prices, so split the estimate into cohorts and check it against trace-linked spend in the first week. Three multipliers move the number most:
+
+- **Retries.** A run that retries pays twice. A 5% retry rate adds 5% to the bill; a 30% rate adds nearly a third.
+- **Failed runs.** A failed run spends tokens and delivers nothing. If 92% of runs finish, the cost of a finished task is total spend divided by 0.92, about 8.5% above the cost of a run. At 70% the gap is over 40%.
+- **Growth.** A feature that works gets used more. Plan a high case.
+
+Build a low, expected, and high case, then see which lever saves the most. To run the numbers, use the [AI cost estimator](/tools/ai-cost-estimator). It stays free and live.
+
+## Measure cost per successful task
+
+Average cost per token hides waste. Use this instead:
+
+```text
+cost_per_successful_task = (model_cost + tool_cost + retry_cost + escalation_cost) / successful_task_count
+```
+
+Divide by successful tasks, not by all runs. Failed runs add cost and no output, so dividing by all runs makes the average look better than it is. Include every cost source in the numerator, even when the call that caused it failed.
+
+Segment the number by workflow, model, customer, and failure type. One retry-heavy workflow can drive most of the spend while the average looks fine. Compare cost per task with cost per run and cost per token, and set budgets from the measured median and 95th percentile, not from a guess.
+
+## Put a budget in the control loop
+
+Add a cost budget to the parent run. Stop or escalate when the next action cannot return enough value within the remaining budget. Cap each run, and set account-level alerts for slow leaks such as a prompt change that doubled input size. Decide in advance whether hitting a budget should stop, degrade to a cheaper model, or only notify. Keep the budget visible in the trace.
+
+## Cost terms in short
+
+A **cost budget** is a limit on spend, per run, per user, or per period, with a defined action when it is hit. **Cost per run** is the total spend on one agent run: every model call and every paid tool call inside it. Look at the median, the 95th percentile, and the most expensive runs, not only the mean. To split spend by tenant or team, read [AI agent cost attribution](/blog/ai-agent-cost-attribution).
+
 ## Frequently asked questions
 
 {% faq-item question="What is the safest first cost change?" answer="Remove unnecessary repeated context only after confirming it is not needed for the task outcome." /%}

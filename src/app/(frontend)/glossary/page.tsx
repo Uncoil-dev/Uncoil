@@ -44,11 +44,11 @@ export default function GlossaryPage() {
 
       <DarkBand className="!py-12 md:!py-16"><TermFlipper terms={terms} /></DarkBand>
 
-      <section className="bg-[#eceae3] px-5 pb-24 pt-20 text-black md:px-10">
+      <section className="bg-[#eceae3] px-5 pb-16 pt-14 text-black md:px-10 md:pt-20">
         <div className="mx-auto max-w-[1320px]">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Start with the picture</p>
-          <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.4rem,5.5vw,4.5rem)] leading-[0.92] tracking-[-0.07em]">Most of these words are one trace.</h2>
-          <div className="mb-20 mt-10"><SpanAnatomy /></div>
+          <h2 className="mt-4 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Most of these words are one trace.</h2>
+          <div className="mb-12 mt-8"><SpanAnatomy /></div>
           <GlossaryExplorer terms={terms} />
         </div>
       </section>

@@ -29,10 +29,10 @@ export default function RoadmapPage() {
       <DarkBand>
         <Eyebrow>Four stages</Eyebrow>
         <SectionTitle>Now, next, later, at scale.</SectionTitle>
-        <div className="mt-14"><RoadmapTrack stages={sections} /></div>
+        <div className="mk-gap"><RoadmapTrack stages={sections} /></div>
       </DarkBand>
 
-      <section className="border-t-2 border-black bg-[#eceae3] px-5 py-20 text-black md:px-10 md:py-28">
+      <section className="border-t-2 border-black bg-[#eceae3] px-5 mk-section text-black md:px-10">
         <div className="mx-auto max-w-[1320px]">
           <Eyebrow dark={false}>How we decide</Eyebrow>
           <SectionTitle>Three rules for what moves up.</SectionTitle>

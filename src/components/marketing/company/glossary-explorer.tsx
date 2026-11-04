@@ -14,6 +14,7 @@ export function GlossaryExplorer({ terms }: { terms: readonly GlossaryTerm[] }) 
   const shown = q ? sorted.filter((t) => `${t.term} ${t.definition} ${t.expansion}`.toLowerCase().includes(q)) : sorted;
   const letters = [...new Set(sorted.map((t) => t.term[0].toUpperCase()))];
   const lettersShown = new Set(shown.map((t) => t.term[0].toUpperCase()));
+  const groups = letters.filter((l) => lettersShown.has(l)).map((l) => [l, shown.filter((t) => t.term[0].toUpperCase() === l)] as const);
   const nameOf = (slug: string) => terms.find((t) => t.slug === slug)?.term ?? slug;
 
   return (
@@ -44,41 +45,35 @@ export function GlossaryExplorer({ terms }: { terms: readonly GlossaryTerm[] }) 
         </div>
       </div>
 
-      <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.16em] text-black/50" role="status">
+      <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.16em] text-black/50" role="status">
         {shown.length} {shown.length === 1 ? "term" : "terms"}{q ? ` matching “${query.trim()}”` : ""}
       </p>
 
-      <div className="mt-4">
-        {shown.length === 0 && <p className="border-y border-black py-16 font-pixel text-4xl tracking-[-0.05em]">No term matches that. Try a shorter word.</p>}
-        {shown.map((t, i) => {
-          const letter = t.term[0].toUpperCase();
-          const firstOfLetter = i === 0 || shown[i - 1].term[0].toUpperCase() !== letter;
-          return (
-            <div key={t.slug} id={firstOfLetter ? `letter-${letter}` : undefined} className="scroll-mt-40">
-              <article id={t.slug} className="grid scroll-mt-40 gap-4 border-b border-black py-8 md:grid-cols-[80px_1fr] md:gap-8">
-                <span className={`font-pixel text-6xl leading-none ${firstOfLetter ? "text-black" : "text-black/0"}`} aria-hidden="true">{letter}</span>
-                <div>
-                  <h2 className="font-pixel text-3xl leading-none tracking-[-0.05em] md:text-4xl"><Link href={`/glossary/${t.slug}`} className="underline decoration-[#f4d44d] decoration-4 underline-offset-8 hover:bg-[#f4d44d]">{t.term}</Link></h2>
-                  <p className="mt-4 max-w-3xl text-base leading-7 text-black/80">{t.definition}</p>
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-black/55">{t.expansion}</p>
-                  <Link href={`/glossary/${t.slug}`} className="mt-5 inline-flex items-center gap-2 border border-black bg-[#f4d44d] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] hover:bg-black hover:text-[#f4d44d]">
-                    What is {t.term}? <ArrowRight className="size-3" aria-hidden="true" />
-                  </Link>
-                  {t.related.length > 0 && (
-                    <div className="mt-5 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em]">
-                      <span className="text-black/45">Related</span>
-                      {t.related.map((slug) => (
-                        <Link key={slug} href={`/glossary/${slug}`} className="border border-black px-2 py-1 hover:bg-[#f4d44d]">
-                          {nameOf(slug)}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </article>
+      <div className="mt-4 border-t-2 border-black">
+        {shown.length === 0 && <p className="border-b border-black py-16 font-pixel text-4xl tracking-[-0.05em]">No term matches that. Try a shorter word.</p>}
+        {groups.map(([letter, group]) => (
+          <section key={letter} id={`letter-${letter}`} aria-label={letter} className="grid scroll-mt-40 gap-x-8 border-b-2 border-black md:grid-cols-[64px_1fr]">
+            <span className="pt-5 font-pixel text-5xl leading-none" aria-hidden="true">{letter}</span>
+            <div className="grid md:grid-cols-2 md:gap-x-10 xl:grid-cols-3">
+              {group.map((t) => (
+                <article key={t.slug} id={t.slug} className="scroll-mt-40 border-b border-black/20 py-5">
+                  <h2 className="font-pixel text-2xl leading-none tracking-[-0.05em] md:text-[1.75rem]"><Link href={`/glossary/${t.slug}`} className="underline decoration-[#f4d44d] decoration-4 underline-offset-[6px] hover:bg-[#f4d44d]">{t.term}</Link></h2>
+                  <p className="mt-3 text-[15px] leading-6 text-black/80">{t.definition}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em]">
+                    <Link href={`/glossary/${t.slug}`} className="inline-flex items-center gap-1.5 bg-[#f4d44d] px-2 py-1 hover:bg-black hover:text-[#f4d44d]">
+                      What is {t.term}? <ArrowRight className="size-3" aria-hidden="true" />
+                    </Link>
+                    {t.related.map((slug) => (
+                      <Link key={slug} href={`/glossary/${slug}`} className="border border-black/40 px-2 py-1 hover:border-black hover:bg-[#f4d44d]">
+                        {nameOf(slug)}
+                      </Link>
+                    ))}
+                  </div>
+                </article>
+              ))}
             </div>
-          );
-        })}
+          </section>
+        ))}
       </div>
     </div>
   );

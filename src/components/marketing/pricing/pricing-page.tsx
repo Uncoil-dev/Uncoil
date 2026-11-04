@@ -49,13 +49,13 @@ function PlanCard({ plan, interval, featured, recommended, t }: { plan: Plan; in
   const label = formatPrice(monthlyPrice(plan, interval));
   const muted = featured ? "text-white/55" : "text-black/55";
   return (
-    <div className={`relative flex flex-col p-7 transition-colors ${featured ? "bg-black text-[#eceae3]" : "bg-[#eceae3] hover:bg-[#f4d44d]"} ${recommended ? "outline outline-4 -outline-offset-4 outline-[#f4d44d]" : ""}`}>
+    <div className={`relative flex flex-col p-6 transition-colors ${featured ? "bg-black text-[#eceae3]" : "bg-[#eceae3] hover:bg-[#f4d44d]"} ${recommended ? "outline outline-4 -outline-offset-4 outline-[#f4d44d]" : ""}`}>
       <div className="flex items-center justify-between">
         <h3 className="font-pixel text-4xl tracking-[-0.06em]">{plan.name}</h3>
         {featured && <span className="bg-[#f4d44d] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-black">{t.popular}</span>}
       </div>
       <p className={`mt-2 text-sm ${featured ? "text-white/65" : "text-black/65"}`}>{t.plans[plan.id].line}</p>
-      <div className="mt-8 flex h-20 items-end gap-2 overflow-hidden">
+      <div className="mt-5 flex h-20 items-end gap-2 overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span key={label} initial={reduce ? false : { y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -40, opacity: 0 }} className={`font-pixel text-7xl leading-none tracking-[-0.07em] ${featured ? "text-[#f4d44d]" : ""}`}>
             {label}
@@ -66,7 +66,7 @@ function PlanCard({ plan, interval, featured, recommended, t }: { plan: Plan; in
       <p className={`mt-1 h-4 font-mono text-[9px] uppercase ${muted}`}>{interval === "annual" && plan.monthly ? t.perYearSave(formatPrice(monthlyPrice(plan, interval) * 12), formatPrice(plan.monthly * 12 - monthlyPrice(plan, interval) * 12)) : ""}</p>
       <CapacityMeter limit={plan.spanLimit} dark={featured} />
       <p className={`mt-2 font-mono text-[10px] uppercase tracking-[0.1em] ${muted}`}>{plan.spans} {t.spansPerMonth}</p>
-      <ul className="mt-6 grid gap-2.5 text-sm">
+      <ul className="mt-5 grid gap-2 text-sm">
         {[`${t.rows[1][plan.id === "free" ? 1 : plan.id === "pro" ? 2 : 3]} ${t.retention}`, `${t.members(plan.members)} · ${t.projects(plan.projects)}`, ...t.plans[plan.id].features].map((f) => (
           <li key={f} className="flex gap-2.5">
             <span className={`mt-1.5 size-1.5 shrink-0 ${featured ? "bg-[#f4d44d]" : "bg-black"}`} />
@@ -78,7 +78,7 @@ function PlanCard({ plan, interval, featured, recommended, t }: { plan: Plan; in
       <Link
         href={plan.id === "free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.id, interval))}
         className={`mt-auto flex min-h-12 items-center justify-between px-4 font-mono text-[10px] uppercase tracking-[0.13em] ${featured ? "bg-[#f4d44d] text-black hover:bg-white" : "border-2 border-black hover:bg-black hover:text-white"}`}
-        style={{ marginTop: "2.5rem" }}
+        style={{ marginTop: "1.75rem" }}
       >
         {plan.id === "free" ? t.startFree : t.getPlan(plan.name)}
         <ArrowRight className="size-4" aria-hidden="true" />
@@ -122,11 +122,11 @@ function Calculator({ value, onChange, interval, locale, t }: { value: EstimateS
   const priceLabel = over ? c.custom : match.id === "free" ? c.free : formatPrice(monthlyPrice(match, interval));
 
   return (
-    <section className="relative overflow-hidden bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32" aria-labelledby="calc-title">
-      <div className="mx-auto grid max-w-[1320px] gap-14 lg:grid-cols-[0.9fr_1.1fr]">
+    <section className="relative overflow-hidden bg-[#090909] px-5 mk-section text-[#eceae3] md:px-10" aria-labelledby="calc-title">
+      <div className="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[0.9fr_1.1fr]">
         <Reveal>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">{c.eyebrow}</p>
-          <h2 id="calc-title" className="mt-5 font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">{c.title}</h2>
+          <h2 id="calc-title" className="mt-5 font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">{c.title}</h2>
           <p className="mt-6 max-w-md text-base leading-7 text-white/70">{c.body}</p>
         </Reveal>
 
@@ -232,11 +232,11 @@ function SpanCounter({ t }: { t: PricingCopy }) {
     return () => window.clearInterval(id);
   }, [inView, reduce]);
   return (
-    <section className="border-y-2 border-black bg-[#eceae3] px-5 py-24 text-black md:px-10 md:py-32" aria-labelledby="span-title">
-      <div className="mx-auto grid max-w-[1320px] items-center gap-14 lg:grid-cols-2">
+    <section className="border-y-2 border-black bg-[#eceae3] px-5 mk-section text-black md:px-10" aria-labelledby="span-title">
+      <div className="mx-auto grid max-w-[1320px] items-center gap-10 lg:grid-cols-2">
         <Reveal>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">{t.spanEyebrow}</p>
-          <h2 id="span-title" className="mt-5 font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">{t.spanTitle}</h2>
+          <h2 id="span-title" className="mt-5 font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">{t.spanTitle}</h2>
           <p className="mt-6 max-w-md text-base leading-7 text-black/70">{t.spanBody}</p>
         </Reveal>
         <div ref={ref} className="border-2 border-black bg-[#090909] font-mono text-[11px] text-[#eceae3]">
@@ -264,20 +264,20 @@ function SpanCounter({ t }: { t: PricingCopy }) {
 
 function Compare({ interval, t }: { interval: BillingInterval; t: PricingCopy }) {
   return (
-    <section className="bg-[#eceae3] px-5 py-24 text-black md:px-10 md:py-32" aria-labelledby="compare-title">
+    <section className="bg-[#eceae3] px-5 mk-section text-black md:px-10" aria-labelledby="compare-title">
       <div className="mx-auto max-w-[1320px]">
         <Reveal>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">{t.compareEyebrow}</p>
-          <h2 id="compare-title" className="mt-5 font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">{t.compareTitle}</h2>
+          <h2 id="compare-title" className="mt-5 font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">{t.compareTitle}</h2>
         </Reveal>
-        <div className="mt-12 overflow-x-auto border-2 border-black">
+        <div className="mk-gap overflow-x-auto border-2 border-black">
           <table className="w-full border-collapse text-left md:min-w-[720px]">
             <caption className="sr-only">{t.compareCaption}</caption>
             <thead>
               <tr className="bg-black text-[#eceae3]">
-                <th scope="col" className="p-2.5 font-mono text-[8px] font-normal uppercase tracking-[0.1em] text-white/55 md:p-5 md:text-[10px] md:tracking-[0.14em]">{t.capability}</th>
+                <th scope="col" className="p-2.5 font-mono text-[8px] font-normal uppercase tracking-[0.1em] text-white/55 md:px-5 md:py-3.5 md:text-[10px] md:tracking-[0.14em]">{t.capability}</th>
                 {plans.map((plan) => (
-                  <th key={plan.id} scope="col" className={`border-l border-white/20 p-2 md:p-5 ${plan.id === "pro" ? "bg-[#f4d44d] text-black" : ""}`}>
+                  <th key={plan.id} scope="col" className={`border-l border-white/20 p-2 md:px-5 md:py-3.5 ${plan.id === "pro" ? "bg-[#f4d44d] text-black" : ""}`}>
                     <span className="block font-pixel text-base tracking-[-0.05em] md:text-3xl">{plan.name}</span>
                     <span className="mt-1 block font-mono text-[8px] font-normal uppercase tracking-[0.04em] opacity-60 md:text-[10px] md:tracking-[0.1em]">{formatPrice(monthlyPrice(plan, interval))}<span className="hidden md:inline"> {t.perMonth}</span></span>
                   </th>
@@ -287,9 +287,9 @@ function Compare({ interval, t }: { interval: BillingInterval; t: PricingCopy })
             <tbody>
               {t.rows.map((row) => (
                 <tr key={row[0]} className="group border-t border-black/25 hover:bg-[#f4d44d]/40">
-                  <th scope="row" className="p-2.5 text-xs font-medium leading-4 md:p-5 md:text-sm md:leading-normal">{row[0]}</th>
+                  <th scope="row" className="p-2.5 text-xs font-medium leading-4 md:px-5 md:py-3.5 md:text-sm md:leading-normal">{row[0]}</th>
                   {row.slice(1).map((cell, i) => (
-                    <td key={i} className={`border-l border-black/25 p-2 font-mono text-[9px] uppercase tracking-[0.02em] md:p-5 md:text-[11px] md:tracking-[0.06em] ${cell === "—" ? "text-black/30" : ""}`}>
+                    <td key={i} className={`border-l border-black/25 p-2 font-mono text-[9px] uppercase tracking-[0.02em] md:px-5 md:py-3.5 md:text-[11px] md:tracking-[0.06em] ${cell === "—" ? "text-black/30" : ""}`}>
                       {cell === t.included ? <span className="flex items-center gap-2"><span className="size-2 bg-black" /><span className="sr-only md:not-sr-only">{t.included}</span></span> : cell}
                     </td>
                   ))}
@@ -305,16 +305,16 @@ function Compare({ interval, t }: { interval: BillingInterval; t: PricingCopy })
 
 function Faq({ t }: { t: PricingCopy }) {
   return (
-    <section className="border-t-2 border-black bg-[#eceae3] px-5 pb-24 text-black md:px-10 md:pb-32" aria-labelledby="faq-title">
-      <div className="mx-auto grid max-w-[1320px] gap-12 pt-20 lg:grid-cols-[0.8fr_1.2fr]">
+    <section className="border-t-2 border-black bg-[#eceae3] px-5 pb-16 text-black md:px-10 md:pb-20" aria-labelledby="faq-title">
+      <div className="mx-auto grid max-w-[1320px] gap-10 pt-14 md:pt-16 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">{t.faqEyebrow}</p>
-          <h2 id="faq-title" className="mt-5 font-pixel text-[clamp(2.6rem,5vw,4.5rem)] leading-[0.92] tracking-[-0.07em]">{t.faqTitle}</h2>
+          <h2 id="faq-title" className="mt-5 font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">{t.faqTitle}</h2>
         </Reveal>
         <div className="border-t border-black/25">
           {t.faqs.map(([q, a]) => (
             <details key={q} className="group border-b border-black/25">
-              <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-6 py-5 font-pixel text-2xl tracking-[-0.05em] [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-6 py-4 font-pixel text-[1.4rem] tracking-[-0.05em] [&::-webkit-details-marker]:hidden">
                 {q}
                 <Plus className="size-5 shrink-0 transition-transform group-open:rotate-45" aria-hidden="true" />
               </summary>
@@ -362,10 +362,10 @@ export function PricingPage({ locale = "en", founding = false }: { locale?: Loca
         <BillingToggle interval={interval} onChange={setInterval} dark t={t} />
       </PageHeader>
 
-      <section id="plans" className="bg-[#eceae3] px-5 py-20 text-black md:px-10 md:py-28">
+      <section id="plans" className="bg-[#eceae3] px-5 py-10 text-black md:px-10 md:py-14">
         <div className="mx-auto max-w-[1320px]">
           {founding && <FoundingStrip locale={locale} />}
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">{interval === "annual" ? t.annualOn : t.annualOff}</p>
             <BillingToggle interval={interval} onChange={setInterval} t={t} />
           </div>
@@ -373,19 +373,19 @@ export function PricingPage({ locale = "en", founding = false }: { locale?: Loca
             {plans.map((plan) => (
               <PlanCard key={plan.id} plan={plan} interval={interval} featured={plan.id === "pro"} recommended={recommended === plan.id} t={t} />
             ))}
-            <div className="flex flex-col bg-[#eceae3] p-7 transition-colors hover:bg-[#f4d44d]">
+            <div className="flex flex-col bg-[#eceae3] p-6 transition-colors hover:bg-[#f4d44d]">
               <h3 className="font-pixel text-4xl tracking-[-0.06em]">{t.enterprise.name}</h3>
               <p className="mt-2 text-sm text-black/65">{t.enterprise.line}</p>
-              <div className="mt-8 flex h-20 items-end"><span className="font-pixel text-6xl leading-none tracking-[-0.07em]">{t.enterprise.price}</span></div>
+              <div className="mt-5 flex h-20 items-end"><span className="font-pixel text-6xl leading-none tracking-[-0.07em]">{t.enterprise.price}</span></div>
               <p className="mt-1 h-4" />
               <div className="mt-6 flex gap-[2px]" aria-hidden="true">{Array.from({ length: CELLS }, (_, i) => <span key={i} className="h-3 flex-1 bg-black" />)}</div>
               <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.1em] text-black/55">{t.enterprise.spans}</p>
-              <ul className="mt-6 grid gap-2.5 text-sm">
+              <ul className="mt-5 grid gap-2 text-sm">
                 {t.enterprise.features.map((f) => (
                   <li key={f} className="flex gap-2.5"><span className="mt-1.5 size-1.5 shrink-0 bg-black" />{f}</li>
                 ))}
               </ul>
-              <Link href={contact} className="mt-auto flex min-h-12 items-center justify-between border-2 border-black px-4 font-mono text-[10px] uppercase tracking-[0.13em] hover:bg-black hover:text-white" style={{ marginTop: "2.5rem" }}>
+              <Link href={contact} className="mt-auto flex min-h-12 items-center justify-between border-2 border-black px-4 font-mono text-[10px] uppercase tracking-[0.13em] hover:bg-black hover:text-white" style={{ marginTop: "1.75rem" }}>
                 {t.enterprise.cta} <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
             </div>
@@ -399,18 +399,18 @@ export function PricingPage({ locale = "en", founding = false }: { locale?: Loca
       <Compare interval={interval} t={t} />
       <Faq t={t} />
 
-      <section className="overflow-hidden bg-[#090909] px-5 pt-28 text-center text-[#eceae3] md:px-10 md:pt-36">
+      <section className="overflow-hidden bg-[#090909] px-5 pt-16 text-center text-[#eceae3] md:px-10 md:pt-20">
         <Reveal>
-          <h2 className="mx-auto max-w-5xl font-pixel text-[clamp(3rem,9vw,8rem)] leading-[0.88] tracking-[-0.08em]">{t.closeTitle}</h2>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
+          <h2 className="mx-auto max-w-5xl font-pixel text-[clamp(2.6rem,6.5vw,5.5rem)] leading-[0.88] tracking-[-0.08em]">{t.closeTitle}</h2>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href={appHref("/sign-up")} className="group inline-flex items-center gap-3 bg-[#f4d44d] px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
               {t.closeCta} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
-            <Link href={contact} className="inline-flex items-center border border-white/40 px-8 py-5 font-mono text-[11px] uppercase tracking-[0.14em] hover:bg-white hover:text-black">{t.closeTalk}</Link>
+            <Link href={contact} className="inline-flex items-center border border-white/60 bg-black/70 px-8 py-5 text-white font-mono text-[11px] uppercase tracking-[0.14em] hover:bg-white hover:text-black">{t.closeTalk}</Link>
           </div>
         </Reveal>
-        <Reveal className="relative -mx-5 mt-4 aspect-[2/1] md:-mx-10" delay={0.15}>
-          <Image src="/images/landing/horizon-sun.png" alt="" fill unoptimized sizes="100vw" className="object-cover [image-rendering:pixelated]" />
+        <Reveal className="relative -mx-5 mt-2 h-[clamp(140px,18vw,260px)] md:-mx-10" delay={0.15}>
+          <Image src="/images/landing/horizon-sun.png" alt="" fill unoptimized sizes="100vw" className="object-cover object-top [image-rendering:pixelated]" />
         </Reveal>
       </section>
     </div>

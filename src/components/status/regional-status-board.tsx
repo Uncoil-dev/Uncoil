@@ -54,7 +54,7 @@ export function RegionalStatusBoard() {
   }, []);
 
   return (
-    <section className="bg-[#090909] px-5 py-20 text-[#eceae3] md:px-10 md:py-28">
+    <section className="bg-[#090909] px-5 mk-section text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Regional cloud probes / checked live from your browser</p>
         <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.4rem,5.5vw,5rem)] leading-[0.92] tracking-[-0.07em]">Is each region answering right now?</h2>

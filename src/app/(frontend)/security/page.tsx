@@ -50,7 +50,7 @@ export default function SecurityPage() {
       <DarkBand>
         <Eyebrow>Control families / {controls.length}</Eyebrow>
         <SectionTitle>Seven boundaries. Pick one.</SectionTitle>
-        <div className="mt-14"><ControlExplorer controls={controls} /></div>
+        <div className="mk-gap"><ControlExplorer controls={controls} /></div>
       </DarkBand>
 
       <DarkBand className="border-t border-white/15">
@@ -72,7 +72,7 @@ export default function SecurityPage() {
           </div>
           <p className="max-w-sm text-base leading-7 text-black/65">Four hops, each with a named job. The US queue hop is real, so it is on the diagram.</p>
         </div>
-        <ol className="mt-14 grid gap-0 border-y-2 border-black md:grid-cols-4">
+        <ol className="mk-gap grid gap-0 border-y-2 border-black md:grid-cols-4">
           {path.map(([title, body], i) => (
             <Reveal key={title} delay={i * 0.1}>
               <li className={`relative flex h-full min-h-[300px] flex-col justify-between p-6 md:border-r-2 md:border-black md:last:border-r-0 ${i === 2 ? "bg-[#f4d44d]" : i === 3 ? "bg-black text-[#eceae3]" : ""}`}>

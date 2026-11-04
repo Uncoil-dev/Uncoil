@@ -44,7 +44,7 @@ export default function StatusPage() {
           </div>
           <p className="max-w-sm text-base leading-7 text-black/65">Monitor links are still being connected. Until then each card says so instead of showing a green light we have not earned.</p>
         </div>
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mk-gap grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((service, i) => {
             const Icon = service.icon;
             return (
@@ -66,11 +66,11 @@ export default function StatusPage() {
         </div>
       </CreamBand>
 
-      <section className="bg-[#090909] px-5 py-20 text-[#eceae3] md:px-10 md:py-28">
+      <section className="bg-[#090909] px-5 mk-section text-[#eceae3] md:px-10">
         <div className="mx-auto max-w-[1320px]">
           <Eyebrow>Incident protocol</Eyebrow>
           <SectionTitle>See a problem before the board does?</SectionTitle>
-          <ol className="mt-14 grid gap-4 md:grid-cols-3">
+          <ol className="mk-gap grid gap-4 md:grid-cols-3">
             {protocol.map(([title, body], i) => (
               <Reveal key={title} delay={i * 0.08}>
                 <li className="h-full min-h-[240px] border border-white/15 bg-[#111] p-7">

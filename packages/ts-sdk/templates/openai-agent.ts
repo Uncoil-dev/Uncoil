@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { UncoilClient, wrapOpenAI, traceTools, span } from "uncoil-sdk";
+import { UncoilClient, wrapOpenAI, traceTools, span } from "uncoil";
 
 // UNCOIL_API_KEY is read from the environment.
 const uncoil = new UncoilClient({ environment: "development" });

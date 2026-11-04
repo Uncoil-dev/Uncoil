@@ -12,7 +12,7 @@ export const metadata = pageMetadata({
 
 const profileLabels: Record<string, string> = {
   "https://github.com/Uncoil-dev/Uncoil": "GitHub: source code",
-  "https://www.npmjs.com/package/uncoil-sdk": "npm: TypeScript SDK",
+  "https://www.npmjs.com/package/uncoil": "npm: TypeScript SDK",
   "https://pypi.org/project/uncoil-sdk/": "PyPI: Python SDK",
 };
 

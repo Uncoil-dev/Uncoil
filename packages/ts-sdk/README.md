@@ -7,9 +7,9 @@ Uncoil records each agent run as one trace: every model call, tool call, retry, 
 ## Installation
 
 ```bash
-npm install uncoil-sdk
+npm install uncoil
 # or
-yarn add uncoil-sdk
+yarn add uncoil
 ```
 
 ## Quickstart
@@ -24,7 +24,7 @@ export UNCOIL_API_KEY=your_sk_live_...
 3. Instrument your agent:
 
 ```typescript
-import { traceAgent, llmCall, toolCall } from 'uncoil-sdk';
+import { traceAgent, llmCall, toolCall } from 'uncoil';
 
 const agent = traceAgent(async (query: string) => {
   // LLM Call
@@ -54,7 +54,7 @@ Inside a `traceAgent` function, every step you record is linked to the step it r
 shows which step called which and how loops repeat. Use `span` for a block and `observe` for a function:
 
 ```ts
-import { observe, span, traceAgent } from "uncoil-sdk";
+import { observe, span, traceAgent } from "uncoil";
 
 const searchDocs = observe(async function searchDocs(query: string) {
   return search(query);
@@ -123,7 +123,7 @@ Provider packages are optional; install the providers you use. Node.js is requir
 ```ts
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import { wrapOpenAI, wrapAnthropic, UncoilLangGraphHandler, traceAgent } from "uncoil-sdk";
+import { wrapOpenAI, wrapAnthropic, UncoilLangGraphHandler, traceAgent } from "uncoil";
 
 const openai = wrapOpenAI(new OpenAI());
 const anthropic = wrapAnthropic(new Anthropic());
@@ -168,7 +168,7 @@ usage breakdown remains in metadata for rate-card calculations. See the [provide
 Quickest start: call `init()` once at startup and every OpenAI and Anthropic call is traced, with no client wrapping (`UNCOIL_API_KEY` is read from the environment).
 
 ```ts
-import { init } from "uncoil-sdk";
+import { init } from "uncoil";
 init();
 ```
 
@@ -176,7 +176,7 @@ init();
 
 ```ts
 import { wrapLanguageModel } from "ai";
-import { uncoilMiddleware, traceTools } from "uncoil-sdk";
+import { uncoilMiddleware, traceTools } from "uncoil";
 
 const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: uncoilMiddleware() }); // Vercel AI SDK
 const tools = traceTools({ searchDocs, sendEmail });   // any functions or { execute } tool objects
@@ -199,19 +199,19 @@ Spans that report an error are kept even when their run was not sampled (`keepEr
 ### Sign in from the terminal
 
 ```bash
-npx uncoil-sdk login
+npx uncoil login
 ```
 
 Opens your browser so you can sign in (or create a free account), pick or create a project, and confirm the code shown in your terminal. The key is then saved to `.env.local` as `UNCOIL_API_KEY`, with `UNCOIL_PROJECT_ID` next to it (and `UNCOIL_REGION` for the US region). In a git repo the file is added to `.gitignore` if it is not already ignored. The key travels encrypted to your machine and is never printed. Options: `--region eu|us`, `--new <name>` (create a project with this name), `--no-browser` (only print the address and code), `--env-file <path>` and `--json`. Picking a project that already sends data replaces its key, and the browser asks you to confirm that first. Plain Node does not read `.env.local` by itself; run `node --env-file=.env.local app.js` or load it with dotenv.
 
-`npx uncoil-sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
+`npx uncoil doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
 
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:
 
 ```bash
-npx uncoil-sdk doctor
+npx uncoil doctor
 ```
 
 It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.

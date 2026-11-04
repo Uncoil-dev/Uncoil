@@ -18,7 +18,7 @@ Provider packages are optional. Install the ones you use, then wrap the client:
 ```ts
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import { wrapOpenAI, wrapAnthropic, UncoilLangGraphHandler, traceAgent } from "uncoil-sdk";
+import { wrapOpenAI, wrapAnthropic, UncoilLangGraphHandler, traceAgent } from "uncoil";
 
 const openai = wrapOpenAI(new OpenAI());
 const anthropic = wrapAnthropic(new Anthropic());

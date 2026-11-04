@@ -16,7 +16,7 @@ You need an Uncoil project and its API key. The key belongs to one region, EU or
 ## 1. Install the SDK
 
 ```bash
-npm install uncoil-sdk
+npm install uncoil
 ```
 
 Using Python? Install `uncoil-sdk` with pip instead and follow the [Python SDK guide](/docs/python) for the matching calls.
@@ -40,7 +40,7 @@ export UNCOIL_API_KEY=uncoil_sk_live_...
 `traceAgent` turns every call of your function into one trace. Each call gets a new run, and everything you record inside it hangs from that run.
 
 ```ts
-import { traceAgent, span } from "uncoil-sdk";
+import { traceAgent, span } from "uncoil";
 
 export const answer = traceAgent(
   async (question: string) => {

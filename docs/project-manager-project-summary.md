@@ -11,7 +11,7 @@ The current MVP supports a real end-to-end flow:
 1. A user signs in with Clerk.
 2. The user creates or opens a Convex-backed project.
 3. The user gets an API key.
-4. A customer app installs `npm install uncoil-sdk` or `pip install uncoil-sdk`.
+4. A customer app installs `npm install uncoil` or `pip install uncoil-sdk`.
 5. The SDK sends spans to `POST /api/ingest`.
 6. The API validates the key, sends a span event to Inngest, writes raw span data to Tinybird, and updates Convex run summaries.
 7. The dashboard updates with runs, trace detail, costs, model breakdowns, alerts, saved stats, and project management data.
@@ -646,7 +646,7 @@ Package:
 Install:
 
 ```bash
-npm install uncoil-sdk
+npm install uncoil
 ```
 
 Implemented exports:
@@ -841,7 +841,7 @@ Problem:
 Fix:
 
 - Standardized installs:
-  - `npm install uncoil-sdk`
+  - `npm install uncoil`
   - `pip install uncoil-sdk`
 
 ### 22. Known Limitations and Open Work

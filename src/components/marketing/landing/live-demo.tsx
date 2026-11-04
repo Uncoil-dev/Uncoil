@@ -119,17 +119,17 @@ export function LiveDemo() {
   const failed = t >= steps[ROOT].end;
 
   return (
-    <section className="overflow-hidden bg-[#eceae3] px-5 py-16 text-black md:px-10 md:py-24">
+    <section className="overflow-hidden bg-[#eceae3] px-5 py-24 text-black md:px-10 md:py-32">
       <div className="mx-auto max-w-[1320px]">
-        <Reveal className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+        <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-black/55">Watch one run</p>
-            <h2 className="mt-4 max-w-3xl font-pixel text-[clamp(2.4rem,5vw,4.5rem)] leading-[0.92] tracking-[-0.07em]">See it happen, as it happens.</h2>
+            <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">See it happen, as it happens.</h2>
           </div>
           <p className="max-w-sm text-base leading-7 text-black/65">A support agent answers a refund request. Each step lands in Uncoil the moment it finishes, with its time and cost, so the bad step is plain to see.</p>
         </Reveal>
 
-        <Reveal delay={0.1} className="mt-10">
+        <Reveal delay={0.1} className="mt-14">
           <div ref={ref} className="border-2 border-black bg-[#090909] text-[#eceae3] shadow-[16px_16px_0_#f4d44d] max-md:shadow-[8px_8px_0_#f4d44d]">
             <div className="flex items-center justify-between gap-3 border-b border-white/15 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em]">
               <span className="flex items-center gap-2 text-white/60">

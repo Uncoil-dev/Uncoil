@@ -29,19 +29,19 @@ export function BeforeAfter() {
   }
 
   return (
-    <section className="bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32">
+    <section className="bg-[#090909] mk-section px-5 text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Before / after</p>
-            <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Same run. Two ways to read it.</h2>
+            <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Same run. Two ways to read it.</h2>
           </div>
           <p className="max-w-sm text-base leading-7 text-white/65">Scroll, or drag the handle. On the left, the run as a wall of logs. On the right, the same run as Uncoil draws it, with the failing step lit up.</p>
         </div>
 
         <div
           ref={box}
-          className="relative mt-14 aspect-[16/10] w-full cursor-ew-resize touch-none select-none overflow-hidden border border-white/20"
+          className="relative mk-gap mk-fit aspect-[16/10] w-full cursor-ew-resize touch-none select-none overflow-hidden border border-white/20"
           onPointerDown={(e) => {
             dragging.current = true;
             e.currentTarget.setPointerCapture(e.pointerId);
@@ -89,12 +89,12 @@ const parts = [
 export function Anatomy() {
   const reduce = useReducedMotion();
   return (
-    <section className="relative overflow-hidden bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32">
+    <section className="relative overflow-hidden bg-[#090909] mk-section px-5 text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <p className="text-center font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Anatomy of a step</p>
-        <h2 className="mx-auto mt-5 max-w-4xl text-center font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Every step, taken apart.</h2>
+        <h2 className="mx-auto mt-5 max-w-4xl text-center font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Every step, taken apart.</h2>
 
-        <div className="mt-16 grid items-center gap-10 lg:grid-cols-[1fr_1.1fr_1fr]">
+        <div className="mk-gap grid items-center gap-10 lg:grid-cols-[1fr_1.1fr_1fr]">
           <ul className="grid gap-8 lg:text-right">
             {parts.slice(0, 3).map(([t, b], i) => (
               <motion.li key={t} initial={reduce ? false : { opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: i * 0.12 }}>
@@ -178,7 +178,7 @@ export function UseCases() {
   const heading = (
     <div className="px-5 md:px-10">
       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Use cases</p>
-      <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Whatever your agent does.</h2>
+      <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Whatever your agent does.</h2>
     </div>
   );
 

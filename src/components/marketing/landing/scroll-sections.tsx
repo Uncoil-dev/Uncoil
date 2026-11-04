@@ -37,7 +37,7 @@ export function Statement() {
       " ",
     );
   return (
-    <section className="bg-[#eceae3] px-5 py-28 md:px-10 md:py-40">
+    <section className="bg-[#eceae3] mk-section px-5 md:px-10">
       <div ref={ref} className="mx-auto max-w-[1200px]">
         <p className="mb-10 font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Why it matters</p>
         <p className="relative isolate font-pixel text-[clamp(2.2rem,5.6vw,5.2rem)] leading-[1.02] tracking-[-0.06em] text-black">
@@ -89,7 +89,7 @@ export function Story() {
     <section className="bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32">
       <div className="mx-auto max-w-[1320px]">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">How it works</p>
-        <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">From black box to blueprint.</h2>
+        <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">From black box to blueprint.</h2>
 
         <div className="mt-16 grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
@@ -213,14 +213,14 @@ export function ProductWindow() {
   const y = useTransform(scrollYProgress, [0, 1], [reduce ? 0 : 80, 0]);
 
   return (
-    <section className="overflow-hidden bg-[#f4d44d] px-5 py-24 md:px-10 md:py-32">
+    <section className="overflow-hidden bg-[#f4d44d] mk-section px-5 md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <h2 className="max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em] text-black">Every run, drawn as a map.</h2>
+          <h2 className="max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em] text-black">Every run, drawn as a map.</h2>
           <p className="max-w-sm text-base leading-7 text-black/70">Pick a run and Uncoil draws it: who called whom, what came back, how long it took and what it cost. The red flag is where you start.</p>
         </div>
 
-        <div ref={ref} className="mt-14 [perspective:1600px]">
+        <div ref={ref} className="mk-gap [perspective:1600px]">
           <motion.div style={{ rotateX, scale, y, transformOrigin: "50% 0%" }} className="border-2 border-black bg-[#090909] text-white shadow-[16px_16px_0_#090909]">
             <div className="flex items-center gap-3 border-b border-white/15 px-4 py-3">
               <span className="flex gap-1.5">

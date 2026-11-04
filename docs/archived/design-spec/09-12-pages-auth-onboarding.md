@@ -100,7 +100,7 @@ without blocking your agent's execution.
 ```
 01 INSTALL
 pip install uncoil-sdk
-or: npm install uncoil
+or: npm install @uncoil.dev/sdk
 
 02 INSTRUMENT
 @trace_agent(api_key="uncoil_sk_live_sk_...")
@@ -145,7 +145,7 @@ async def research_agent(query: str) -> str:
 
 **TypeScript:**
 ```typescript
-import { traceAgent } from "uncoil"
+import { traceAgent } from "@uncoil.dev/sdk"
 
 const researchAgent = traceAgent(
   async (query: string) => {
@@ -586,12 +586,12 @@ async def my_agent(query: str) -> str:
 ─────────────────────────────────────────────────
 TYPESCRIPT
 
-npm install uncoil
-# or: yarn add uncoil
+npm install @uncoil.dev/sdk
+# or: yarn add @uncoil.dev/sdk
 
 ─────────────────────────────────────────────────
 
-import { traceAgent } from "uncoil"
+import { traceAgent } from "@uncoil.dev/sdk"
 
 const myAgent = traceAgent(
   async (query: string) => {

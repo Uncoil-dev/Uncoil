@@ -98,7 +98,7 @@ A span is useful when another person can read it without asking you anything. At
 Deep detail on the schema lives in [instrumenting AI agents for observability](/blog/instrumenting-ai-agents-for-observability), and the propagation rules in [LLM tracing explained](/blog/llm-tracing-explained). Here is what the minimum looks like with the Uncoil TypeScript SDK. The names come from the [TypeScript SDK reference](/docs/typescript).
 
 ```ts
-import { observe, span, traceAgent } from "uncoil";
+import { observe, span, traceAgent } from "@uncoil.dev/sdk";
 
 const searchDocs = observe(
   async function searchDocs(query: string) {

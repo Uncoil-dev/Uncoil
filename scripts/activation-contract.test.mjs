@@ -22,7 +22,7 @@ const source = files
 assert.doesNotMatch(source, /pip install uncoil(?:\s|\n|$)/, "legacy pip install command remains");
 assert.doesNotMatch(source, /import\s*\{\s*Uncoil\s*\}/, "removed Uncoil class remains in public examples");
 assert.doesNotMatch(source, /from\s+uncoil\s+import\s+Uncoil/, "removed Python Uncoil class remains in public examples");
-assert.match(source, /npm install uncoil(?!-)/, "canonical npm package is missing");
+assert.match(source, /npm install @uncoil\.dev\/sdk/, "canonical npm package is missing");
 assert.match(source, /pip install uncoil-sdk/, "canonical Python package is missing");
 assert.match(source, /traceAgent/, "canonical TypeScript wrapper is missing");
 assert.match(source, /trace_agent/, "canonical Python wrapper is missing");

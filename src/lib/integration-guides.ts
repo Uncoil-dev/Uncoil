@@ -59,7 +59,7 @@ result = agent_executor.invoke(
     {"input": "Summarize today's failed runs"},
     config={"callbacks": [handler]},
 )` },
-      { title: "Or in TypeScript", body: "The TypeScript SDK ships a matching handler. It needs no extra LangChain package of its own.", language: "typescript", code: `import { UncoilLangGraphHandler } from "uncoil";
+      { title: "Or in TypeScript", body: "The TypeScript SDK ships a matching handler. It needs no extra LangChain package of its own.", language: "typescript", code: `import { UncoilLangGraphHandler } from "@uncoil.dev/sdk";
 
 const result = await chain.invoke(
   { question: "What changed in the last release?" },
@@ -184,7 +184,7 @@ reply = azure.chat.completions.create(
     messages=[{"role": "user", "content": "Hello"}],
 )` },
       { title: "Or in TypeScript", body: "Same idea with the AzureOpenAI class from the openai package.", language: "typescript", code: `import { AzureOpenAI } from "openai";
-import { wrapOpenAI } from "uncoil";
+import { wrapOpenAI } from "@uncoil.dev/sdk";
 
 const azure = wrapOpenAI(
   new AzureOpenAI({
@@ -256,7 +256,7 @@ def converse(model_id: str, prompt: str) -> str:
         step.set_output(text)
         return text` },
       { title: "Or in TypeScript", body: "The same pattern with the AWS SDK for JavaScript.", language: "typescript", code: `import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
-import { span } from "uncoil";
+import { span } from "@uncoil.dev/sdk";
 
 const bedrock = new BedrockRuntimeClient({});
 
@@ -328,7 +328,7 @@ reply = groq.chat.completions.create(
     messages=[{"role": "user", "content": "Hello"}],
 )` },
       { title: "Or use the OpenAI client", body: "Point the OpenAI library at Groq's compatible endpoint. In TypeScript this is the simplest route.", language: "typescript", code: `import OpenAI from "openai";
-import { wrapOpenAI } from "uncoil";
+import { wrapOpenAI } from "@uncoil.dev/sdk";
 
 const groq = wrapOpenAI(
   new OpenAI({
@@ -392,7 +392,7 @@ reply = ollama.chat.completions.create(
     messages=[{"role": "user", "content": "Hello"}],
 )` },
       { title: "Or in TypeScript", body: "Same endpoint, same wrapper.", language: "typescript", code: `import OpenAI from "openai";
-import { wrapOpenAI } from "uncoil";
+import { wrapOpenAI } from "@uncoil.dev/sdk";
 
 const ollama = wrapOpenAI(
   new OpenAI({ baseURL: "http://localhost:11434/v1", apiKey: "ollama" }),
@@ -489,7 +489,7 @@ def ask(model: str, prompt: str) -> str:
     captures: ["The model slug you requested", "Token usage and latency", "Provider errors and rate limits", "Calls grouped into the agent run"],
     language: "typescript",
     code: `import OpenAI from "openai";
-import { wrapOpenAI } from "uncoil";
+import { wrapOpenAI } from "@uncoil.dev/sdk";
 
 const openrouter = wrapOpenAI(
   new OpenAI({
@@ -503,10 +503,10 @@ const reply = await openrouter.chat.completions.create({
   messages: [{ role: "user", content: "Hello" }],
 });`,
     steps: [
-      { title: "Install", body: "OpenRouter uses the OpenAI library.", language: "bash", code: `npm install uncoil openai` },
+      { title: "Install", body: "OpenRouter uses the OpenAI library.", language: "bash", code: `npm install @uncoil.dev/sdk openai` },
       KEY_STEP,
       { title: "Wrap the client", body: "Set OpenRouter's base URL and your OpenRouter key, then wrap the client.", language: "typescript", code: `import OpenAI from "openai";
-import { wrapOpenAI } from "uncoil";
+import { wrapOpenAI } from "@uncoil.dev/sdk";
 
 const openrouter = wrapOpenAI(
   new OpenAI({
@@ -845,7 +845,7 @@ def get_weather(city: str) -> str:
     code: `// app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai";
 import { streamText, wrapLanguageModel } from "ai";
-import { traceAgent, uncoilMiddleware } from "uncoil";
+import { traceAgent, uncoilMiddleware } from "@uncoil.dev/sdk";
 
 export const runtime = "nodejs";
 
@@ -861,13 +861,13 @@ export async function POST(request: Request) {
   return handle(prompt);
 }`,
     steps: [
-      { title: "Install", body: "The Uncoil SDK plus the Vercel AI SDK and a provider.", language: "bash", code: `npm install uncoil ai @ai-sdk/openai` },
+      { title: "Install", body: "The Uncoil SDK plus the Vercel AI SDK and a provider.", language: "bash", code: `npm install @uncoil.dev/sdk ai @ai-sdk/openai` },
       { title: "Add your key", body: "Put the key in .env.local for development and in your Vercel project settings for production.", language: "bash", code: `UNCOIL_API_KEY=uncoil_sk_live_...` },
       { title: "Use the Node.js runtime", body: "The SDK needs Node.js to keep concurrent requests in separate traces, so set the route to the Node.js runtime. It will not run on the edge runtime.", language: "typescript", code: `export const runtime = "nodejs";` },
       { title: "Wrap the model and the handler", body: "uncoilMiddleware records every generateText and streamText call made with the wrapped model. traceAgent turns each request into one run.", language: "typescript", code: `// app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai";
 import { streamText, wrapLanguageModel } from "ai";
-import { traceAgent, uncoilMiddleware } from "uncoil";
+import { traceAgent, uncoilMiddleware } from "@uncoil.dev/sdk";
 
 export const runtime = "nodejs";
 
@@ -887,7 +887,7 @@ export async function POST(request: Request) {
 }` },
       { title: "Add tool calls", body: "traceTools wraps each tool's execute function, so every tool call is its own step with input, output and time.", language: "typescript", code: `import { tool } from "ai";
 import { z } from "zod";
-import { traceTools } from "uncoil";
+import { traceTools } from "@uncoil.dev/sdk";
 
 const tools = traceTools({
   getOrder: tool({

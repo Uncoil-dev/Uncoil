@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 
-const code = `import { traceAgent, span } from "uncoil";
+const code = `import { traceAgent, span } from "@uncoil.dev/sdk";
 
 export const answer = traceAgent(async (q) => {
   const docs = await span("docs.search",

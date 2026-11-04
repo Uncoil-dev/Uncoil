@@ -23,7 +23,7 @@ Depending on your environment, run one of the following commands:
 pip install uncoil-sdk
 
 # TypeScript / Node.js
-npm install uncoil
+npm install @uncoil.dev/sdk
 \`\`\`
 
 ## 2. Instrument your Agent
@@ -81,12 +81,12 @@ High-performance observability for Node.js and Browser-based agents.
 
 ## Installation
 \`\`\`bash
-npm install uncoil
+npm install @uncoil.dev/sdk
 \`\`\`
 
 ## Usage
 \`\`\`typescript
-import { traceAgent } from "uncoil";
+import { traceAgent } from "@uncoil.dev/sdk";
 
 const runAgent = traceAgent(
   async (task: string) => runTask(task),

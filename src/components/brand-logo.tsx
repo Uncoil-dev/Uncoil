@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export function BrandLogo({ className }: { className?: string }) {
   return (
     <span aria-label="Uncoil" className={cn("inline-flex items-baseline gap-[0.12em] font-pixel text-2xl leading-none", className)}>
-      <UncoilMark className="block translate-y-[0.03em]" />
+      <UncoilMark solid className="block translate-y-[0.03em]" />
       <span className="tracking-[-0.06em]">uncoil</span>
     </span>
   );

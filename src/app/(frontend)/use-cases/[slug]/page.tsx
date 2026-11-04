@@ -24,9 +24,11 @@ const useCases = {
 } as const;
 
 type Slug = keyof typeof useCases;
+// These use cases share a head term with a long blog guide. The guide keeps "X observability"; the use case page takes the product angle so the two do not compete.
+const guideTwins: Partial<Record<string, string>> = { voice: "Uncoil for voice agents", browser: "Uncoil for browser agents", mcp: "Uncoil for MCP servers", "multi-agent": "Uncoil for multi-agent systems", "tool-calling": "Uncoil for tool-calling agents" };
 
 export function generateStaticParams() { return Object.keys(useCases).map((slug) => ({ slug })); }
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { const { slug } = await params; const page = useCases[slug as Slug]; return page ? pageMetadata({ title: `${page.title} observability`, description: page.description, path: `/use-cases/${slug}` }) : {}; }
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { const { slug } = await params; const page = useCases[slug as Slug]; return page ? pageMetadata({ title: guideTwins[slug] ?? `${page.title} observability`, description: page.description, path: `/use-cases/${slug}` }) : {}; }
 
 export default async function UseCasePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

@@ -217,7 +217,7 @@ export function StickyStory({
   return (
     <section ref={ref} className={`${yellow ? "bg-[#f4d44d] text-[#090909]" : "bg-[#090909] text-[#eceae3]"} px-5 ${SECTION_Y} md:px-8`}>
       <div
-        className={`mx-auto grid w-full max-w-[1440px] gap-8 lg:gap-14 ${stack ? "" : side === "left" ? "lg:grid-cols-[1.2fr_0.8fr]" : "lg:grid-cols-[0.8fr_1.2fr]"}`}
+        className={`mx-auto grid w-full max-w-[1440px] ${stack ? "gap-6" : side === "left" ? "gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-14" : "gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14"}`}
         onPointerEnter={() => setHold(true)}
         onPointerLeave={() => setHold(false)}
       >
@@ -249,6 +249,7 @@ export function StickyStory({
               })}
             </ol>
             <div className="mt-4 flex items-center gap-4">
+              <span className={`hidden font-mono text-[9px] uppercase tracking-[0.14em] sm:inline ${muted}`}>Click a step to jump</span>
               <div className={`h-px flex-1 ${yellow ? "bg-black/20" : "bg-white/15"}`} aria-hidden="true">
                 <div className={`h-full origin-left ${yellow ? "bg-black" : "bg-[#f4d44d]"}`} style={{ transform: `scaleX(${eff})` }} />
               </div>
@@ -259,10 +260,9 @@ export function StickyStory({
                 </button>
               )}
             </div>
-            <p className={`mt-2 font-mono text-[9px] uppercase tracking-[0.14em] ${muted}`}>Plays on its own. Click a step to jump to it.</p>
           </div>
         </div>
-        <div className={`border bg-[#eceae3] p-4 text-[#090909] md:p-7 ${frame} ${stack ? "min-h-[260px] lg:min-h-[320px]" : "min-h-[300px] lg:min-h-[440px]"}`}>{stage({ p: eff, active, count: n })}</div>
+        <div className={`border bg-[#eceae3] p-4 text-[#090909] ${frame} ${stack ? "min-h-[260px] md:p-5 lg:min-h-[300px]" : "min-h-[300px] md:p-7 lg:min-h-[440px]"}`}>{stage({ p: eff, active, count: n })}</div>
       </div>
     </section>
   );

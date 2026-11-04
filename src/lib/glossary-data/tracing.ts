@@ -104,7 +104,7 @@ export const tracingTerms: readonly Term[] = [
       "A chat agent often fails because of something said three turns earlier. Tagging every run with a session ID lets you open the whole conversation in order, see how context grew, and find the turn where the agent went wrong. It also lets you measure things per conversation, such as total cost or number of turns to resolve.",
     example:
       "A user asks four questions in one chat. Four runs share session ID s_8841. The third answer is wrong because the second turn's tool result was truncated, which you only see by reading both runs together.",
-    related: ["agent-run", "context-window", "agent-memory", "ai-agent-tracking"],
+    related: ["agent-run", "context-window", "agent-memory", "ai-agent-observability"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
   },
   {

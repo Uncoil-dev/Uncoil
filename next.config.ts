@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // Old blog URLs from before the rename.
+      // Old comparison posts that now live on /compare: one hop, no chain through /blog.
+      { source: "/blog/langfuse-vs-tracify", destination: "/compare/langfuse", permanent: true },
+      { source: "/blog/langsmith-vs-tracify", destination: "/compare/langsmith", permanent: true },
+      { source: "/blog/arize-vs-tracify", destination: "/compare/arize-phoenix", permanent: true },
+      { source: "/blog/braintrust-vs-tracify", destination: "/compare/braintrust", permanent: true },
+      { source: "/blog/datadog-vs-tracify", destination: "/compare/datadog", permanent: true },
       { source: "/blog/:name(.+)-vs-tracify", destination: "/blog/:name-vs-uncoil", permanent: true },
       { source: "/blog/how-to-write-tracify-blog-posts", destination: "/blog/how-to-write-uncoil-blog-posts", permanent: true },
       // Merged into the complete AI agent observability guide.
@@ -54,6 +60,13 @@ const nextConfig: NextConfig = {
       { source: "/blog/cost-latency-monitoring-ai-agents", destination: "/blog/ai-agent-monitoring", permanent: true },
       { source: "/blog/multi-agent-observability-tracing-handoffs", destination: "/blog/multi-agent-orchestration-patterns", permanent: true },
       { source: "/blog/debugging-ai-agent-failures-with-traces", destination: "/blog/debug-ai-agents-in-production", permanent: true },
+      // Pages that competed for the same search as a stronger page: 301 to the one that should rank.
+      { source: "/blog/instrumenting-ai-agents-for-observability", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/answers/ai-agent-observability-best-practices", destination: "/blog/ai-agent-observability-complete-guide", permanent: true },
+      { source: "/answers/what-is-a-trace-viewer", destination: "/glossary/trace-viewer", permanent: true },
+      { source: "/answers/arize-alternative-for-agents", destination: "/compare/arize-phoenix", permanent: true },
+      { source: "/answers/opentelemetry-ingestion-for-ai-agents", destination: "/integrations/opentelemetry", permanent: true },
+      { source: "/glossary/ai-agent-tracking", destination: "/glossary/ai-agent-observability", permanent: true },
       // The Norwegian and German pages are off for now. Send them to the English pages.
       { source: "/:locale(no|de)", destination: "/", permanent: false },
       { source: "/:locale(no|de)/:path*", destination: "/:path*", permanent: false },

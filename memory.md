@@ -2429,3 +2429,7 @@ Merged into canonical posts with 301s (next.config.ts): ai-observability-metrics
 
 ## 2026-11-04 — Pages that competed in search (branch `claude/project-thread-rmfcnz`)
 301s in next.config.ts: blog instrumenting-ai-agents-for-observability→ai-agent-observability-complete-guide (post + 3 media deleted); answers ai-agent-observability-best-practices→guide, what-is-a-trace-viewer→/glossary/trace-viewer, arize-alternative-for-agents→/compare/arize-phoenix, opentelemetry-ingestion-for-ai-agents→/integrations/opentelemetry; glossary ai-agent-tracking→ai-agent-observability; old `<tool>-vs-tracify` posts with a /compare page now go to /compare in one hop. Use cases voice/browser/mcp/multi-agent/tool-calling take "Uncoil for X" titles so the blog guides own "X observability". ai-agent-security title no longer says "production checklist". Rule: one URL per search intent; glossary = definition, blog = guide, product/use case = product angle, /compare = vs-queries.
+
+## Footer cleanup + no/de pages off (2026-11-04)
+- Site footer (`landing-footer.tsx`): newsletter is one row above the links; links in 6 even columns (Product, Use cases in 2 sub-columns, Developers, Compare + Free tools, Company). All links kept. Language switcher removed.
+- Norwegian and German pages are off: `src/app/(locale-site)` and `src/components/marketing/locale/` deleted, hreflang removed from home and pricing. `/no`, `/de` and `/no|de/*` redirect (307, temporary) to the English page. The `src/lib/i18n` dictionaries stay, so the pages can come back from git history.

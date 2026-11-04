@@ -67,6 +67,9 @@ const nextConfig: NextConfig = {
       { source: "/answers/arize-alternative-for-agents", destination: "/compare/arize-phoenix", permanent: true },
       { source: "/answers/opentelemetry-ingestion-for-ai-agents", destination: "/integrations/opentelemetry", permanent: true },
       { source: "/glossary/ai-agent-tracking", destination: "/glossary/ai-agent-observability", permanent: true },
+      // The Norwegian and German pages are off for now. Send them to the English pages.
+      { source: "/:locale(no|de)", destination: "/", permanent: false },
+      { source: "/:locale(no|de)/:path*", destination: "/:path*", permanent: false },
       // The old /playground sandbox is gone; the demo project is the one demo.
       { source: "/playground/:view(dashboards|explore|prompts|scores|evaluators|human-annotation|datasets|experiments|settings|alerts|costs|playground|sessions|tracing|users)", destination: "/demo/project/:view", permanent: false },
       { source: "/playground/:path*", destination: "/demo/project", permanent: false },

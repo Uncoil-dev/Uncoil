@@ -15,7 +15,7 @@ export const en: Copy = {
     metaTitle: "Uncoil | AI agent observability and evaluation",
     metaDescription: "Trace every decision, tool call, cost, quality signal, and deployment change in one debugging timeline. Start free with 25,000 spans a month.",
     badgeNew: "New",
-    badge: "TypeScript SDK v0.4.0 · OpenAI, Anthropic and LangGraph",
+    badge: "SDK v0.6.0 · TypeScript and Python",
     heroA: "Watch your agent",
     heroB: "think.",
     lede: "Uncoil turns every agent run into a map you can read. Each model call, tool call, retry and dollar, wired together so you see exactly where it went sideways.",

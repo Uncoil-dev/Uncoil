@@ -232,7 +232,7 @@ export function ArtBand({ img, label, statement, aside, points, flip, dark }: { 
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
   return (
-    <section ref={ref} className={`px-5 py-24 md:px-8 md:py-32 ${dark ? "bg-[#090909] text-[#eceae3]" : "bg-[#eceae3] text-[#090909]"}`}>
+    <section ref={ref} className={`mk-section px-5 md:px-8 ${dark ? "bg-[#090909] text-[#eceae3]" : "bg-[#eceae3] text-[#090909]"}`}>
       <div className="mx-auto grid max-w-[1440px] items-center gap-10 lg:grid-cols-2 lg:gap-20">
         <div className={`relative aspect-[4/3] overflow-hidden ${dark ? "border border-white/15 bg-[#090909]" : "bg-[#090909]"} ${flip ? "lg:order-2" : ""}`}>
           <motion.div style={{ y }} className="absolute -inset-[10%]">
@@ -266,7 +266,7 @@ export type CapsVariant = "cards" | "rows" | "sticky";
 export function CapabilityGrid({ heading, items, variant = "cards" }: { heading: string; items: readonly { title: string; body: string }[]; variant?: CapsVariant }) {
   if (variant === "sticky") {
     return (
-      <section className="bg-[#eceae3] px-5 py-24 text-[#090909] md:px-8 md:py-32">
+      <section className="bg-[#eceae3] mk-section px-5 text-[#090909] md:px-8">
         <div className="mx-auto grid max-w-[1440px] gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
           <div className="lg:sticky lg:top-28 lg:self-start">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">What you get</p>
@@ -289,12 +289,12 @@ export function CapabilityGrid({ heading, items, variant = "cards" }: { heading:
   }
   if (variant === "rows") {
     return (
-      <section className="bg-[#090909] px-5 py-24 text-[#eceae3] md:px-8 md:py-32">
+      <section className="bg-[#090909] mk-section px-5 text-[#eceae3] md:px-8">
         <div className="mx-auto max-w-[1440px]">
           <Reveal>
             <h2 className="max-w-3xl font-pixel text-[clamp(2.4rem,5vw,4.6rem)] leading-[0.9] tracking-[-0.06em]">{heading}</h2>
           </Reveal>
-          <div className="mt-14 border-t border-white/20">
+          <div className="mk-gap border-t border-white/20">
             {items.map((d, i) => (
               <Reveal key={d.title} delay={i * 0.05} className="group grid gap-4 border-b border-white/20 px-2 py-8 transition-colors duration-300 hover:bg-[#f4d44d] hover:text-[#090909] md:grid-cols-[90px_1fr_1.2fr] md:items-baseline md:px-6">
                 <span className="font-pixel text-4xl tracking-[-0.06em] text-white/25 transition-colors group-hover:text-black/40">0{i + 1}</span>
@@ -308,12 +308,12 @@ export function CapabilityGrid({ heading, items, variant = "cards" }: { heading:
     );
   }
   return (
-    <section className="bg-[#090909] px-5 py-24 text-[#eceae3] md:px-8 md:py-32">
+    <section className="bg-[#090909] mk-section px-5 text-[#eceae3] md:px-8">
       <div className="mx-auto max-w-[1440px]">
         <Reveal>
           <h2 className="max-w-3xl font-pixel text-[clamp(2.4rem,5vw,4.6rem)] leading-[0.9] tracking-[-0.06em]">{heading}</h2>
         </Reveal>
-        <div className="mt-14 grid gap-px bg-white/15 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mk-gap grid gap-px bg-white/15 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((d, i) => (
             <Reveal key={d.title} delay={i * 0.08} className="group relative bg-[#090909] p-7 transition-colors duration-300 hover:bg-[#f4d44d] hover:text-[#090909] md:p-8">
               <span className="font-pixel text-5xl tracking-[-0.06em] text-white/20 transition-colors group-hover:text-black/30">0{i + 1}</span>
@@ -329,7 +329,7 @@ export function CapabilityGrid({ heading, items, variant = "cards" }: { heading:
 
 export function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   return (
-    <section className="bg-[#eceae3] px-5 py-24 text-[#090909] md:px-8 md:py-32">
+    <section className="bg-[#eceae3] mk-section px-5 text-[#090909] md:px-8">
       <div className="mx-auto grid max-w-[1440px] gap-12 lg:grid-cols-[0.7fr_1.3fr]">
         <h2 className="font-pixel text-[clamp(2.4rem,5vw,4.6rem)] leading-[0.9] tracking-[-0.06em]">Questions people ask.</h2>
         <div className="divide-y divide-black border-y border-black">
@@ -350,7 +350,7 @@ export function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
 
 export function EndCta({ heading, links }: { heading: string; links: readonly (readonly [string, string])[] }) {
   return (
-    <section className="relative isolate overflow-hidden bg-[#090909] px-5 py-24 text-[#eceae3] md:px-8 md:py-36">
+    <section className="relative isolate overflow-hidden bg-[#090909] mk-section px-5 text-[#eceae3] md:px-8">
       <Image src="/images/landing/nav-tunnel.png" alt="" fill unoptimized sizes="100vw" className="-z-10 object-cover object-center opacity-40 [image-rendering:pixelated]" />
       <div className="mx-auto max-w-[1440px]">
         <Reveal>

@@ -2,37 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUp, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUp, ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
 import { UncoilMark } from "@/components/brand/uncoil-mark";
+import { appHref } from "@/lib/app-links";
 
-type LinkList = readonly (readonly [string, string])[];
-
-const productLinks: LinkList = [["Trace viewer", "/product/trace-viewer"], ["Cost dashboard", "/product/cost-dashboard"], ["Tool calls", "/product/tool-calls"], ["LLM calls", "/product/llm-calls"], ["Failures", "/product/failures"], ["Reports", "/product/reports"], ["Runtime control", "/product/runtime-control"], ["Evaluation engine", "/product/evaluation-engine"], ["Lifecycle", "/product/lifecycle"]];
-const useCaseLinks: LinkList = [["Support", "/use-cases/support"], ["Research", "/use-cases/research"], ["Automation", "/use-cases/automation"], ["Tool calling", "/use-cases/tool-calling"], ["Coding agents", "/use-cases/coding"], ["RAG apps", "/use-cases/rag"], ["Voice agents", "/use-cases/voice"], ["Browser agents", "/use-cases/browser"], ["Multi-agent", "/use-cases/multi-agent"], ["MCP servers", "/use-cases/mcp"], ["Chatbots", "/use-cases/chatbot"], ["Data and SQL agents", "/use-cases/sql"], ["Cost control", "/use-cases/cost-control"], ["Sales agents", "/use-cases/sales"], ["Document agents", "/use-cases/documents"], ["Release checks", "/use-cases/release"], ["Copilots", "/use-cases/copilot"]];
-const developerLinks: LinkList = [["Docs", "/docs"], ["TypeScript SDK", "/docs/typescript"], ["Python SDK", "/docs/python"], ["API reference", "/docs/api"], ["Glossary", "/glossary"], ["Questions answered", "/answers"], ["Observability guide", "/blog/ai-agent-observability-complete-guide"], ["Tracing explained", "/blog/llm-tracing-explained"]];
-const compareLinks: LinkList = [["Pricing", "/pricing"], ["Integrations", "/integrations"], ["Compare tools", "/compare"], ["Alternatives", "/alternative"]];
-const toolLinks: LinkList = [["All free tools", "/tools"], ["Token counter", "/tools/token-counter"], ["Agent log checker", "/tools/agent-log-checker"], ["AI API status", "/tools/ai-api-status"]];
-const companyLinks: LinkList = [["About", "/about"], ["Blog", "/blog"], ["Roadmap", "/roadmap"], ["Changelog", "/changelog"], ["Security", "/security"], ["Status", "/status"], ["Contact", "/contact"]];
-
-function LinkGroup({ title, links, split = false, className = "" }: { title: string; links: LinkList; split?: boolean; className?: string }) {
-  return (
-    <div className={className}>
-      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">{title}</p>
-      <ul className={`mt-4 grid gap-x-8 gap-y-2.5 ${split ? "grid-cols-2" : ""}`}>
-        {links.map(([label, href]) => (
-          <li key={href}>
-            <Link href={href} className="group inline-flex items-center gap-1 text-sm text-white/70 hover:text-white">
-              <span className="h-px w-0 bg-[#f4d44d] transition-all group-hover:w-3" />
-              {label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+const groups = [
+  ["Product", [["Trace viewer", "/product/trace-viewer"], ["Cost dashboard", "/product/cost-dashboard"], ["Evaluation engine", "/product/evaluation-engine"], ["Integrations", "/integrations"], ["Compare tools", "/compare"], ["Pricing", "/pricing"]]],
+  ["Use cases", [["Support agents", "/use-cases/support"], ["Coding agents", "/use-cases/coding"], ["RAG apps", "/use-cases/rag"], ["Multi-agent", "/use-cases/multi-agent"], ["MCP servers", "/use-cases/mcp"], ["Voice agents", "/use-cases/voice"]]],
+  ["Developers", [["Docs", "/docs"], ["TypeScript SDK", "/docs/typescript"], ["Python SDK", "/docs/python"], ["API reference", "/docs/api"], ["Free tools", "/tools"], ["Glossary", "/glossary"]]],
+  ["Company", [["About", "/about"], ["Blog", "/blog"], ["Changelog", "/changelog"], ["Roadmap", "/roadmap"], ["Security", "/security"], ["Contact", "/contact"]]],
+] as const;
 
 const word = "uncoil".split("");
 
@@ -46,28 +27,52 @@ export function LandingFooter() {
       </div>
 
       <div className="mx-auto max-w-[1440px] px-5 md:px-8">
-        <div className="flex flex-col gap-6 border-y border-white/15 py-8 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-6">
-            <p className="font-pixel text-3xl leading-none tracking-[-0.06em] md:text-4xl">One map per run.</p>
-            <p className="max-w-md text-sm leading-6 text-white/60">Notes on debugging agents, plus what shipped. One email a month.</p>
+        <div className="grid border border-white/15 lg:grid-cols-[1.15fr_1fr]">
+          <div className="flex flex-col justify-between gap-8 p-7 md:p-10">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">First trace in five minutes</p>
+            <p className="font-pixel text-[clamp(2.75rem,5.5vw,5rem)] leading-[0.88] tracking-[-0.06em]">One map<br />per run.</p>
+            <div className="flex flex-wrap gap-3">
+              <Link href={appHref("/sign-up")} className="group inline-flex h-12 items-center gap-3 bg-[#f4d44d] px-6 font-mono text-[10px] uppercase tracking-[0.14em] text-black hover:bg-[#fff4b5]">
+                Start free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </Link>
+              <Link href="/docs" className="inline-flex h-12 items-center gap-3 border border-white/25 px-6 font-mono text-[10px] uppercase tracking-[0.14em] hover:bg-white hover:text-black">
+                Read the docs
+              </Link>
+            </div>
           </div>
-          <div className="w-full lg:w-[420px]">
-            <NewsletterCapture />
+          <div className="flex flex-col justify-between gap-6 bg-[#eceae3] p-7 text-[#090909] md:p-10">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-black/55">The dispatch · monthly</p>
+              <p className="mt-4 max-w-sm text-xl leading-7">Notes on debugging agents, plus what shipped. One email a month.</p>
+            </div>
+            <div>
+              <NewsletterCapture inverse />
+              <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.14em] text-black/50">No spam. Unsubscribe anytime.</p>
+            </div>
           </div>
         </div>
 
-        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-10 pt-12 md:grid-cols-4 lg:grid-cols-6">
-          <LinkGroup title="Product" links={productLinks} />
-          <LinkGroup title="Use cases" links={useCaseLinks} split className="col-span-2" />
-          <LinkGroup title="Developers" links={developerLinks} />
-          <div className="grid content-start gap-10">
-            <LinkGroup title="Compare" links={compareLinks} />
-            <LinkGroup title="Free tools" links={toolLinks} />
-          </div>
-          <LinkGroup title="Company" links={companyLinks} />
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-px border-x border-b border-white/15 bg-white/15 lg:grid-cols-4">
+          {groups.map(([title, links], i) => (
+            <div key={title} className="bg-[#090909] px-4 py-6 sm:p-6 md:p-8">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">
+                <span className="text-[#f4d44d]">0{i + 1}</span> / {title}
+              </p>
+              <ul className="mt-5 grid gap-3">
+                {links.map(([label, href]) => (
+                  <li key={href}>
+                    <Link href={href} className="group inline-flex items-center gap-1.5 text-sm text-white/75 md:text-[15px] hover:text-white">
+                      {label}
+                      <ArrowUpRight className="size-3.5 text-[#f4d44d] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
 
-        <div className="mt-14 flex select-none items-baseline justify-between pb-[0.2em] font-pixel text-[16vw] leading-[0.78] tracking-[-0.08em] lg:text-[18vw]" aria-hidden="true">
+        <div className="mt-12 flex select-none items-baseline justify-between pb-[0.2em] font-pixel text-[16vw] leading-[0.78] tracking-[-0.08em] lg:text-[18vw]" aria-hidden="true">
           <motion.span
             className="inline-block"
             initial={reduce ? false : { x: "-30%", opacity: 0 }}

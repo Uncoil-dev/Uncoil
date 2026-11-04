@@ -69,7 +69,7 @@ const names = Object.keys(menus) as MenuName[];
 function Logo() {
   return (
     <Link href="/" aria-label="Uncoil home" className="flex items-baseline gap-[0.12em] font-pixel text-2xl">
-      <UncoilMark className="block translate-y-[0.03em]" />
+      <UncoilMark solid className="block translate-y-[0.03em]" />
       <span className="tracking-[-0.06em] text-[#eceae3]">uncoil</span>
     </Link>
   );

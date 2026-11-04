@@ -442,7 +442,7 @@ export function NavigationSystemExplorations({
               <pre className="mt-7 overflow-x-auto">
                 <code>
                   <span className="text-white/62">01</span>
-                  {"  import { traceAgent } from 'uncoil'\n"}
+                  {"  import { traceAgent } from '@uncoil.dev/sdk'\n"}
                   <span className="text-white/62">02</span>
                   {"\n"}
                   <span className="text-white/62">03</span>

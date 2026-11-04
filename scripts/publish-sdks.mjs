@@ -30,7 +30,7 @@ if (missing.length) {
 }
 if (!process.env.TWINE_USERNAME) process.env.TWINE_USERNAME = "__token__";
 
-console.log("\n=== npm: uncoil ===");
+console.log("\n=== npm: @uncoil.dev/sdk ===");
 const who = spawnSync(win ? "npm.cmd" : "npm", ["whoami"], { encoding: "utf8", shell: win });
 if (who.status !== 0) {
   console.error("npm authentication failed. The token is invalid or lacks publish rights.");

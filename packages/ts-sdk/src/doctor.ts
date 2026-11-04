@@ -111,7 +111,7 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
     const data = response.ok ? await response.json() as { projectId?: string; projectName?: string } : null;
     if (data?.projectId) {
       if (expectedProject && expectedProject !== data.projectId) {
-        add({ id: "project", title: "Project", status: "fail", message: `UNCOIL_PROJECT_ID points at a different project than this key ("${data.projectName ?? data.projectId}").`, hint: "Run `npx uncoil login` in this folder again so the key and project are saved together." });
+        add({ id: "project", title: "Project", status: "fail", message: `UNCOIL_PROJECT_ID points at a different project than this key ("${data.projectName ?? data.projectId}").`, hint: "Run `npx @uncoil.dev/sdk login` in this folder again so the key and project are saved together." });
         return report();
       }
       add({ id: "project", title: "Project", status: "ok", message: `Traces will land in: ${data.projectName ?? data.projectId}` });

@@ -1,5 +1,5 @@
 {
-  "name": "uncoil",
+  "name": "@uncoil.dev/sdk",
   "version": "0.6.0",
   "description": "Observability, runtime enforcement, and tracing for AI agents.",
   "homepage": "https://www.uncoil.dev",

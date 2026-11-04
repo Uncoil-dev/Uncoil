@@ -88,7 +88,7 @@ jobs:
       - name: Publish
         if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
         working-directory: packages/python-sdk
-        run: python -m twine upload dist/*
+        run: python -m twine upload --skip-existing dist/*
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}

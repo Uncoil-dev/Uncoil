@@ -43,10 +43,10 @@ export function LandingPage() {
       <UseCases />
       <PricingSection />
 
-      <section className="border-t-2 border-black bg-[#eceae3] px-5 pb-24 text-black md:px-10">
-        <div className="mx-auto grid max-w-[1320px] gap-x-12 pt-16 md:grid-cols-2">
+      <section className="border-t-2 border-black bg-[#eceae3] mk-section px-5 text-black md:px-10">
+        <div className="mx-auto grid max-w-[1320px] gap-x-12 md:grid-cols-2">
           {faqs.map(([q, a], i) => (
-            <Reveal key={q} delay={(i % 2) * 0.08} className="border-b border-black/20 py-7">
+            <Reveal key={q} delay={(i % 2) * 0.08} className="border-b border-black/20 py-[clamp(1rem,3svh,1.75rem)]">
               <h3 className="font-pixel text-2xl tracking-[-0.05em]">{q}</h3>
               <p className="mt-2 text-sm leading-6 text-black/65">{a}</p>
             </Reveal>

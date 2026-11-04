@@ -146,7 +146,7 @@ const cases = [
 
 function CaseCard({ c, i }: { c: (typeof cases)[number]; i: number }) {
   return (
-    <Link href={`/use-cases/${c.slug}`} className="group relative block aspect-[4/5] w-[78vw] shrink-0 overflow-hidden border-2 border-black bg-[#090909] text-[#eceae3] sm:w-[420px]">
+    <Link href={`/use-cases/${c.slug}`} className="group relative block aspect-[4/5] w-[min(74vw,420px,calc((100svh-300px)*0.8))] sm:w-[min(420px,calc((100svh-300px)*0.8))] min-w-[240px] shrink-0 overflow-hidden border-2 border-black bg-[#090909] text-[#eceae3]">
       <Image src={c.img} alt="" fill unoptimized sizes="420px" className={`object-cover transition-transform duration-700 group-hover:scale-110 ${art}`} />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,#090909_0%,#090909_22%,rgba(9,9,9,0)_55%)]" />
       <span className="absolute left-5 top-5 font-mono text-[10px] text-[#f4d44d]">0{i + 1} / 04</span>
@@ -167,11 +167,23 @@ export function UseCases() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const track = useRef<HTMLDivElement>(null);
   const dist = useMotionValue(0);
+  // Scroll length follows the real track width, so the cards move about as
+  // fast as the page scrolls instead of stretching over a fixed 260vh.
+  const [travel, setTravel] = useState(0);
   useEffect(() => {
-    const measure = () => dist.set(Math.max(0, (track.current?.scrollWidth ?? 0) - window.innerWidth));
+    const measure = () => {
+      const d = Math.max(0, (track.current?.scrollWidth ?? 0) - window.innerWidth);
+      dist.set(d);
+      setTravel(d);
+    };
     measure();
+    const ro = new ResizeObserver(measure);
+    if (track.current) ro.observe(track.current);
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, [dist]);
   const x = useTransform(() => -scrollYProgress.get() * dist.get());
 
@@ -196,16 +208,16 @@ export function UseCases() {
   }
 
   return (
-    <section ref={ref} className="relative h-[260vh] bg-[#f4d44d] text-black">
-      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden pt-[64px]">
+    <section ref={ref} className="relative bg-[#f4d44d] text-black" style={{ height: `calc(100svh + ${Math.round(travel * 0.8)}px)` }}>
+      <div className="sticky top-0 flex h-svh flex-col justify-center overflow-hidden pt-[64px]">
         {heading}
-        <motion.div ref={track} style={{ x }} className="mt-10 flex w-max gap-5 px-5 md:px-10">
+        <motion.div ref={track} style={{ x }} className="mt-6 flex w-max gap-4 px-5 sm:mt-8 sm:gap-5 md:px-10">
           {cases.map((c, i) => (
             <CaseCard key={c.slug} c={c} i={i} />
           ))}
-          <Link href={appHref("/demo/project")} className="flex aspect-[4/5] w-[78vw] shrink-0 flex-col justify-between border-2 border-black p-8 hover:bg-black hover:text-[#f4d44d] sm:w-[420px]">
+          <Link href={appHref("/demo/project")} className="flex aspect-[4/5] w-[min(74vw,420px,calc((100svh-300px)*0.8))] sm:w-[min(420px,calc((100svh-300px)*0.8))] min-w-[240px] shrink-0 flex-col justify-between border-2 border-black p-6 hover:bg-black hover:text-[#f4d44d] sm:p-8">
             <span className="font-mono text-[10px] uppercase tracking-[0.14em]">Not sure yet?</span>
-            <span className="font-pixel text-6xl leading-[0.9] tracking-[-0.07em]">Try the live demo →</span>
+            <span className="font-pixel text-5xl leading-[0.9] tracking-[-0.07em] sm:text-6xl">Try the live demo →</span>
           </Link>
         </motion.div>
       </div>

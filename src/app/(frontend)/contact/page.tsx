@@ -79,7 +79,7 @@ export default function ContactPage() {
           </div>
           <p className="max-w-sm text-base leading-7 text-white/65">No form maze. Each button opens a plain email with the right subject already filled in.</p>
         </div>
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
+        <div className="mk-gap grid gap-4 md:grid-cols-3">
           {routes.map((route, i) => {
             const Icon = route.icon;
             return (
@@ -152,7 +152,7 @@ export default function ContactPage() {
         </div>
       </CreamBand>
 
-      <section className="border-t-2 border-black bg-[#d9d5ca] px-5 py-16 text-black md:px-10 md:py-24">
+      <section className="border-t-2 border-black bg-[#d9d5ca] px-5 py-12 text-black md:px-10 md:py-16">
         <div className="mx-auto max-w-3xl">
           <Eyebrow dark={false}>Rather write it down?</Eyebrow>
           <h2 className="mt-4 font-pixel text-4xl leading-none tracking-[-0.06em] md:text-5xl">Leave a note and we will reply.</h2>

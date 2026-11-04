@@ -18,6 +18,8 @@ const faqs = [
   ["Do I have to rewrite my agent?", "No. Wrap the entry point once and mark the steps you care about. Everything else keeps working the way it does today."],
   ["What can I send traces from?", "The TypeScript and Python SDKs, OpenTelemetry, or plain HTTP."],
   ["Can I try it without paying?", "Yes. The Free plan includes the trace viewer and cost visibility, no card needed."],
+  ["How long are traces kept?", "7 days on Free, 30 days on Pro and 90 days on Team. Enterprise sets its own retention."],
+  ["Can my team look at the same runs?", "Yes. Pro has room for 5 members and Team for 20, all looking at the same projects and traces."],
 ] as const;
 
 export function LandingPage() {
@@ -43,14 +45,23 @@ export function LandingPage() {
       <UseCases />
       <PricingSection />
 
-      <section className="border-t-2 border-black bg-[#eceae3] mk-section px-5 text-black md:px-10">
-        <div className="mx-auto grid max-w-[1320px] gap-x-12 md:grid-cols-2">
-          {faqs.map(([q, a], i) => (
-            <Reveal key={q} delay={(i % 2) * 0.08} className="border-b border-black/20 py-[clamp(1rem,3svh,1.75rem)]">
-              <h3 className="font-pixel text-2xl tracking-[-0.05em]">{q}</h3>
-              <p className="mt-2 text-sm leading-6 text-black/65">{a}</p>
-            </Reveal>
-          ))}
+      <section className="border-t-2 border-black bg-[#eceae3] mk-section px-5 text-black md:px-10" aria-labelledby="landing-faq-title">
+        <div className="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[280px_1fr] lg:gap-16">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">FAQ</p>
+            <h2 id="landing-faq-title" className="mt-4 font-pixel text-[clamp(2rem,3.4vw,3rem)] leading-[0.95] tracking-[-0.06em]">Quick answers.</h2>
+            <Link href="/docs" className="mt-5 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] underline underline-offset-4 hover:text-black/60">
+              More in the docs <ArrowRight className="size-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="grid gap-x-12 md:grid-cols-2">
+            {faqs.map(([q, a], i) => (
+              <Reveal key={q} delay={(i % 2) * 0.08} className="border-t border-black/20 py-5">
+                <h3 className="font-pixel text-xl tracking-[-0.05em] md:text-2xl">{q}</h3>
+                <p className="mt-2 text-sm leading-6 text-black/65">{a}</p>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 

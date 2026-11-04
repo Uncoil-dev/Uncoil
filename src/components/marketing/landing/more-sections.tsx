@@ -34,7 +34,7 @@ export function BeforeAfter() {
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Before / after</p>
-            <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Same run. Two ways to read it.</h2>
+            <h2 className="mt-4 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Same run. Two ways to read it.</h2>
           </div>
           <p className="max-w-sm text-base leading-7 text-white/65">Scroll, or drag the handle. On the left, the run as a wall of logs. On the right, the same run as Uncoil draws it, with the failing step lit up.</p>
         </div>
@@ -92,10 +92,10 @@ export function Anatomy() {
     <section className="relative overflow-hidden bg-[#090909] mk-section px-5 text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <p className="text-center font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Anatomy of a step</p>
-        <h2 className="mx-auto mt-5 max-w-4xl text-center font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Every step, taken apart.</h2>
+        <h2 className="mx-auto mt-4 max-w-4xl text-center font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Every step, taken apart.</h2>
 
-        <div className="mk-gap grid items-center gap-10 lg:grid-cols-[1fr_1.1fr_1fr]">
-          <ul className="grid gap-8 lg:text-right">
+        <div className="mk-gap grid items-center gap-8 lg:grid-cols-[1fr_1.1fr_1fr]">
+          <ul className="grid gap-6 lg:text-right">
             {parts.slice(0, 3).map(([t, b], i) => (
               <motion.li key={t} initial={reduce ? false : { opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: i * 0.12 }}>
                 <span className="font-mono text-[10px] text-[#f4d44d]">0{i + 1}</span>
@@ -105,7 +105,7 @@ export function Anatomy() {
             ))}
           </ul>
           <motion.div
-            className="relative mx-auto aspect-[12/13] w-full max-w-[520px]"
+            className="relative mx-auto aspect-[12/13] w-full max-w-[300px] sm:max-w-[420px] lg:max-w-[min(420px,calc((100svh-300px)*0.92))]"
             initial={reduce ? false : { opacity: 0, scale: 0.9, rotate: -4 }}
             whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -115,7 +115,7 @@ export function Anatomy() {
               <Image src="/images/landing/span-anatomy.png" alt="One step exploded into stacked layers, with the cost layer highlighted" fill unoptimized sizes="40vw" className={`object-contain ${art}`} />
             </motion.div>
           </motion.div>
-          <ul className="grid gap-8">
+          <ul className="grid gap-6">
             {parts.slice(3).map(([t, b], i) => (
               <motion.li key={t} initial={reduce ? false : { opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: 0.2 + i * 0.12 }}>
                 <span className="font-mono text-[10px] text-[#f4d44d]">0{i + 4}</span>

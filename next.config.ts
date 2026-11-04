@@ -54,6 +54,9 @@ const nextConfig: NextConfig = {
       { source: "/blog/cost-latency-monitoring-ai-agents", destination: "/blog/ai-agent-monitoring", permanent: true },
       { source: "/blog/multi-agent-observability-tracing-handoffs", destination: "/blog/multi-agent-orchestration-patterns", permanent: true },
       { source: "/blog/debugging-ai-agent-failures-with-traces", destination: "/blog/debug-ai-agents-in-production", permanent: true },
+      // The Norwegian and German pages are off for now. Send them to the English pages.
+      { source: "/:locale(no|de)", destination: "/", permanent: false },
+      { source: "/:locale(no|de)/:path*", destination: "/:path*", permanent: false },
       // The old /playground sandbox is gone; the demo project is the one demo.
       { source: "/playground/:view(dashboards|explore|prompts|scores|evaluators|human-annotation|datasets|experiments|settings|alerts|costs|playground|sessions|tracing|users)", destination: "/demo/project/:view", permanent: false },
       { source: "/playground/:path*", destination: "/demo/project", permanent: false },

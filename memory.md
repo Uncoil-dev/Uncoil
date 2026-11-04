@@ -2426,3 +2426,7 @@ Automations page is a list of "when X then Y" rules drawn as trigger node -> arr
 
 ## 2026-11-03 — Merged near-duplicate blog posts
 Merged into canonical posts with 301s (next.config.ts): ai-observability-metrics-that-matter→llm-observability-metrics-that-matter; prompt-versioning-production→prompt-versioning-and-prompt-management; ai-agent-cost-optimization, ai-agent-cost-per-task, how-to-estimate-ai-agent-costs→reduce-llm-costs-without-hurting-quality; ai-agent-evaluation-in-production, ai-agent-testing-unit-tests-production-evals→ai-agent-evaluation-practical-guide. Glossary cost-per-run and cost-budget removed and 301 to the cost post. /tools/ai-cost-estimator stays live. Canonical posts still fail some validate:blog presentation checks (panels, 5 FAQ) that predate this change.
+
+## Footer cleanup + no/de pages off (2026-11-04)
+- Site footer (`landing-footer.tsx`): newsletter is one row above the links; links in 6 even columns (Product, Use cases in 2 sub-columns, Developers, Compare + Free tools, Company). All links kept. Language switcher removed.
+- Norwegian and German pages are off: `src/app/(locale-site)` and `src/components/marketing/locale/` deleted, hreflang removed from home and pricing. `/no`, `/de` and `/no|de/*` redirect (307, temporary) to the English page. The `src/lib/i18n` dictionaries stay, so the pages can come back from git history.

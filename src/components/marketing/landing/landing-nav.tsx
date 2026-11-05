@@ -68,9 +68,9 @@ const names = Object.keys(menus) as MenuName[];
 function Logo() {
   return (
     <Link href="/" aria-label="Uncoil home" className="flex items-center">
-      {/* Official lockup, smooth-scaling copy (crisp edges break the dither when small) */}
+      {/* The official logo file, used as-is */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logos/uncoil/uncoil-sidebar-on-dark.svg" alt="Uncoil" width={128} height={33} className="block h-[33px] w-[128px] max-w-none" />
+      <img src="/logos/uncoil/uncoil-logo-on-dark.svg" alt="Uncoil" width={155} height={40} className="block h-10 w-auto max-w-none" />
     </Link>
   );
 }

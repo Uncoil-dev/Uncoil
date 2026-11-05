@@ -107,28 +107,28 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         onMouseLeave={() => setActive(null)}
       >
-        <div className={`border-b transition-colors duration-300 ${solidAlways || solid || active ? "border-white/15 bg-[#090909]/85 backdrop-blur-md" : "border-transparent bg-transparent"}`}>
+        <div className={`border-b transition-colors duration-300 ${solidAlways || solid || active ? "border-white/15 bg-[#090909]/90 backdrop-blur-md" : "border-transparent bg-transparent"}`}>
           <nav className="mx-auto flex h-[64px] max-w-[1440px] items-center justify-between px-5 md:px-8" aria-label="Main">
             <Logo />
-            <ul className="hidden items-center gap-1 lg:flex">
-              {names.map((name) => (
-                <li key={name}>
+            <ul className="hidden h-full items-stretch border-x border-white/15 lg:flex">
+              {names.map((name, i) => (
+                <li key={name} className="relative border-r border-white/15 last:border-r-0">
                   <button
                     type="button"
                     onMouseEnter={() => setActive(name)}
                     onFocus={() => setActive(name)}
                     onClick={() => setActive(active === name ? null : name)}
                     aria-expanded={active === name}
-                    className={`relative px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${active === name ? "text-[#f4d44d]" : "text-white/75 hover:text-white"}`}
+                    className={`relative flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${active === name ? "bg-white/[0.04] text-white" : "text-white/65 hover:text-white"}`}
                   >
-                    {name}
-                    {active === name && <motion.span layoutId="nav-underline" className="absolute inset-x-3 -bottom-0.5 h-0.5 bg-[#f4d44d]" />}
+                    <span className="text-[#f4d44d]">0{i + 1}</span> / {name}
+                    {active === name && <motion.span layoutId="nav-underline" className="absolute inset-x-0 bottom-0 h-0.5 bg-[#f4d44d]" />}
                   </button>
                 </li>
               ))}
-              <li>
-                <Link href="/pricing" onMouseEnter={() => setActive(null)} className="px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-white/75 hover:text-white">
-                  Pricing
+              <li className="relative">
+                <Link href="/pricing" onMouseEnter={() => setActive(null)} className="flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-white/65 hover:text-white">
+                  <span className="text-[#f4d44d]">05</span> / Pricing
                 </Link>
               </li>
             </ul>
@@ -167,24 +167,43 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="relative hidden overflow-hidden border-b border-white/15 bg-[#090909] text-[#eceae3] lg:block"
             >
-              <DitherEmber className="!opacity-50" />
-              <div className="relative mx-auto grid max-w-[1440px] grid-cols-[1.2fr_1fr] gap-8 px-8 py-8">
-                <motion.ul key={active} className="grid grid-cols-2 gap-px bg-white/10" initial="hide" animate="show" variants={{ show: { transition: { staggerChildren: 0.05 } } }}>
-                  {menu.links.map(([t, b, href], i) => (
-                    <motion.li key={href} variants={{ hide: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }} className="bg-[#090909]/95">
-                      <Link href={href} onClick={() => setActive(null)} className="group flex h-full flex-col justify-between gap-6 p-5 transition-colors hover:bg-[#f4d44d] hover:text-black">
-                        <span className="flex items-center justify-between font-mono text-[10px] text-white/40 group-hover:text-black/60">
-                          0{i + 1}
-                          <ArrowUpRight className="size-4 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
-                        </span>
-                        <span>
-                          <span className="block font-pixel text-2xl tracking-[-0.05em]">{t}</span>
-                          <span className="mt-1 block text-sm text-white/55 group-hover:text-black/70">{b}</span>
-                        </span>
-                      </Link>
-                    </motion.li>
-                  ))}
-                </motion.ul>
+              <DitherEmber className="!opacity-40" />
+              <div className="relative mx-auto grid max-w-[1440px] grid-cols-[1.2fr_1fr] gap-6 px-8 py-8">
+                <div className="border border-white/15 bg-[#090909]/90">
+                  <div className="flex items-center justify-between border-b border-white/15 px-5 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+                    <span className="flex items-center gap-2">
+                      <span className="size-1.5 animate-pulse bg-[#f4d44d]" aria-hidden="true" />
+                      trace · uncoil.dev/{active.toLowerCase()}
+                    </span>
+                    <span>{menu.links.length} steps</span>
+                  </div>
+                  <motion.div key={active} className="relative grid grid-cols-2 gap-x-6 px-5 pb-5 pt-8" initial="hide" animate="show" variants={{ show: { transition: { staggerChildren: 0.05 } } }}>
+                    <div className="pointer-events-none absolute left-5 right-5 top-8 h-px bg-white/20" aria-hidden="true" />
+                    {[menu.links.slice(0, 3), menu.links.slice(3)].map((col, c) => (
+                      <div key={c} className="relative pl-5">
+                        <span className="absolute -left-[3.5px] -top-[3.5px] size-2 bg-white/60" aria-hidden="true" />
+                        <span className="absolute bottom-1 left-0 top-0 w-px bg-white/15" aria-hidden="true" />
+                        <ul className="grid gap-1 pt-3">
+                          {col.map(([t, b, href], j) => (
+                            <motion.li key={href} variants={{ hide: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}>
+                              <Link href={href} onClick={() => setActive(null)} className="group flex items-start py-2.5">
+                                <span className="-ml-5 mr-3 mt-3 h-px w-2.5 shrink-0 bg-white/20 transition-all group-hover:w-4 group-hover:bg-[#f4d44d]" aria-hidden="true" />
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex items-baseline gap-2">
+                                    <span className="font-mono text-[10px] text-[#f4d44d]">0{c * 3 + j + 1}</span>
+                                    <span className="font-pixel text-2xl tracking-[-0.05em] transition-colors group-hover:text-[#f4d44d]">{t}</span>
+                                  </span>
+                                  <span className="mt-0.5 block text-sm text-white/50 group-hover:text-white/75">{b}</span>
+                                </span>
+                                <ArrowUpRight className="mt-2 size-4 shrink-0 text-[#f4d44d] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
+                              </Link>
+                            </motion.li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
                 <Link href={menu.feature.href} onClick={() => setActive(null)} className="group relative min-h-[260px] overflow-hidden border border-white/15">
                   <AnimatePresence mode="popLayout">
                     <motion.div key={active} className="absolute inset-0" initial={reduce ? false : { opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
@@ -229,13 +248,18 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                 </button>
               </div>
               <motion.div className="mt-8 grid gap-10" initial="hide" animate="show" variants={{ show: { transition: { staggerChildren: 0.06, delayChildren: 0.2 } } }}>
-                {names.map((name) => (
-                  <motion.div key={name} variants={{ hide: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } }}>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">{name}</p>
+                {names.map((name, i) => (
+                  <motion.div key={name} variants={{ hide: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } }} className="relative pl-5">
+                    <span className="absolute -left-[3.5px] -top-[3.5px] size-2 bg-white/60" aria-hidden="true" />
+                    <span className="absolute bottom-1 left-0 top-0 w-px bg-white/15" aria-hidden="true" />
+                    <p className="pt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">
+                      <span className="text-[#f4d44d]">0{i + 1}</span> / {name}
+                    </p>
                     <ul className="mt-3 grid gap-1">
                       {menus[name].links.map(([t, , href]) => (
                         <li key={href}>
-                          <Link href={href} onClick={() => setMobile(false)} className="font-pixel text-4xl tracking-[-0.06em] hover:text-[#f4d44d]">
+                          <Link href={href} onClick={() => setMobile(false)} className="group flex items-center font-pixel text-4xl tracking-[-0.06em] hover:text-[#f4d44d]">
+                            <span className="-ml-5 mr-3 h-px w-3 shrink-0 bg-white/25 group-hover:bg-[#f4d44d]" aria-hidden="true" />
                             {t}
                           </Link>
                         </li>
@@ -245,7 +269,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                 ))}
                 <motion.div variants={{ hide: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } }} className="grid gap-3 border-t border-white/20 pt-8">
                   <Link href="/pricing" onClick={() => setMobile(false)} className="font-pixel text-4xl tracking-[-0.06em]">
-                    Pricing
+                    <span className="mr-3 font-mono text-[10px] tracking-[0.16em] text-[#f4d44d]">05 /</span>Pricing
                   </Link>
                   <Link href={session ? appHref("/dashboard") : appHref("/sign-up")} onClick={() => setMobile(false)} className="mt-4 flex items-center justify-between bg-[#f4d44d] px-5 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black">
                     {session ? "Dashboard" : "Start free"} <ArrowRight className="size-4" aria-hidden="true" />

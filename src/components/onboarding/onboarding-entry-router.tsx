@@ -55,7 +55,7 @@ export function OnboardingEntryRouter() {
   return (
     <main className="min-h-svh bg-[#f3f2ed] px-4 py-8 font-mono text-black/70">
       <div className="mx-auto flex min-h-[calc(100svh-64px)] w-full max-w-[720px] flex-col justify-center">
-        <div className="mb-4 text-black"><BrandLogo className="text-lg" /></div>
+        <div className="mb-4 text-black"><BrandLogo tone="light" className="text-lg" /></div>
         <section className="border border-black/15 bg-white p-6 md:p-8">
           <div className="text-[11px] uppercase tracking-wide text-black/55">
             onboarding.route

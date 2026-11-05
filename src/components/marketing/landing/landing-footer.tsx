@@ -3,9 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUp, ArrowUpRight } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
-import { UncoilMark } from "@/components/brand/uncoil-mark";
 
 type LinkList = readonly (readonly [string, string])[];
 
@@ -34,7 +33,6 @@ function LinkGroup({ title, links, split = false, className = "" }: { title: str
   );
 }
 
-const word = "uncoil".split("");
 
 export function LandingFooter() {
   const reduce = useReducedMotion();
@@ -67,29 +65,10 @@ export function LandingFooter() {
           <LinkGroup title="Company" links={companyLinks} />
         </nav>
 
-        <div className="mt-14 flex select-none items-baseline justify-between pb-[0.2em] font-pixel text-[16vw] leading-[0.78] tracking-[-0.08em] lg:text-[18vw]" aria-hidden="true">
-          <motion.span
-            className="inline-block"
-            initial={reduce ? false : { x: "-30%", opacity: 0 }}
-            whileInView={{ x: "0%", opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <UncoilMark solid className="block h-[0.65em]" />
-          </motion.span>
-          {word.map((ch, i) => (
-            <motion.span
-              key={i}
-              className="inline-block cursor-default hover:text-[#f4d44d]"
-              initial={reduce ? false : { y: "60%", opacity: 0 }}
-              whileInView={{ y: "0%", opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.06, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={reduce ? undefined : { y: "-12%" }}
-            >
-              {ch}
-            </motion.span>
-          ))}
+        <div className="mt-14 select-none pb-[0.2em]" aria-hidden="true">
+          {/* The official Dissolve lockup (public/logos/uncoil), untouched */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logos/uncoil/uncoil-logo-on-dark.svg" alt="" className="block h-auto w-full" />
         </div>
 
         <div className="relative z-10 flex flex-col gap-4 border-t border-white/15 py-6 font-mono text-[10px] uppercase tracking-[0.14em] text-white/50 md:flex-row md:items-center md:justify-between">

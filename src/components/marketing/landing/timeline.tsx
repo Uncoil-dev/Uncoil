@@ -282,7 +282,7 @@ export function Timeline() {
             className="mt-5 flex flex-col gap-3 bg-[#f4d44d] px-5 py-4 text-[#090909] md:flex-row md:items-center md:justify-between"
           >
             <span className="flex items-center gap-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em]">
-              <UncoilMark solid className="h-4" />
+              <UncoilMark className="h-4" />
               Found it: the policy search came back empty, so the agent guessed.
             </span>
             <span className="font-pixel text-xl tracking-[-0.04em] md:text-2xl">Every run, read like this.</span>

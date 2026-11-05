@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
-import { UncoilMark } from "@/components/brand/uncoil-mark";
 import { authClient } from "@/lib/auth-client";
 import { DitherEmber } from "./dither-ember";
 
@@ -68,9 +67,10 @@ const names = Object.keys(menus) as MenuName[];
 
 function Logo() {
   return (
-    <Link href="/" aria-label="Uncoil home" className="flex items-baseline gap-[0.12em] font-pixel text-2xl">
-      <UncoilMark solid className="block translate-y-[0.03em]" />
-      <span className="tracking-[-0.06em] text-[#eceae3]">uncoil</span>
+    <Link href="/" aria-label="Uncoil home" className="flex items-center">
+      {/* The official logo file, used as-is */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logos/uncoil/uncoil-logo-on-dark.svg" alt="Uncoil" width={155} height={40} className="block h-10 w-auto max-w-none" />
     </Link>
   );
 }

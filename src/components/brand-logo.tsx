@@ -1,12 +1,16 @@
-import { UncoilMark } from "@/components/brand/uncoil-mark";
 import { cn } from "@/lib/utils";
 
-/** Canonical Uncoil logo (icon + name). Keep every product-shell logo on this component. */
-export function BrandLogo({ className }: { className?: string }) {
+/**
+ * Canonical Uncoil logo: the official Dissolve lockup (icon + pixel name).
+ * The original logo files from public/logos/uncoil, used as-is. Size it with font-size (height is 1.4em).
+ */
+export function BrandLogo({ className, tone = "dark" }: { className?: string; tone?: "dark" | "light" }) {
   return (
-    <span aria-label="Uncoil" className={cn("inline-flex items-baseline gap-[0.12em] font-pixel text-2xl leading-none", className)}>
-      <UncoilMark solid className="block translate-y-[0.03em]" />
-      <span className="tracking-[-0.06em]">uncoil</span>
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={tone === "light" ? "/logos/uncoil/uncoil-logo-on-light.svg" : "/logos/uncoil/uncoil-logo-on-dark.svg"}
+      alt="Uncoil"
+      className={cn("block h-[1.4em] w-auto max-w-none text-2xl", className)}
+    />
   );
 }

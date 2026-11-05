@@ -9,11 +9,15 @@ import { UncoilMark } from "@/components/brand/uncoil-mark";
 import { appHref } from "@/lib/app-links";
 
 const groups = [
-  ["Product", [["Trace viewer", "/product/trace-viewer"], ["Cost dashboard", "/product/cost-dashboard"], ["Evaluation engine", "/product/evaluation-engine"], ["Integrations", "/integrations"], ["Compare tools", "/compare"], ["Pricing", "/pricing"]]],
-  ["Use cases", [["Support agents", "/use-cases/support"], ["Coding agents", "/use-cases/coding"], ["RAG apps", "/use-cases/rag"], ["Multi-agent", "/use-cases/multi-agent"], ["MCP servers", "/use-cases/mcp"], ["Voice agents", "/use-cases/voice"]]],
-  ["Developers", [["Docs", "/docs"], ["TypeScript SDK", "/docs/typescript"], ["Python SDK", "/docs/python"], ["API reference", "/docs/api"], ["Free tools", "/tools"], ["Glossary", "/glossary"]]],
-  ["Company", [["About", "/about"], ["Blog", "/blog"], ["Changelog", "/changelog"], ["Roadmap", "/roadmap"], ["Security", "/security"], ["Contact", "/contact"]]],
+  ["Product", [["Trace viewer", "/product/trace-viewer"], ["Cost dashboard", "/product/cost-dashboard"], ["Tool calls", "/product/tool-calls"], ["LLM calls", "/product/llm-calls"], ["Failures", "/product/failures"], ["Reports", "/product/reports"], ["Runtime control", "/product/runtime-control"], ["Evaluation engine", "/product/evaluation-engine"], ["Lifecycle", "/product/lifecycle"], ["Pricing", "/pricing"]]],
+  ["Integrations", [["All integrations", "/integrations"], ["OpenAI", "/integrations/openai"], ["Anthropic", "/integrations/anthropic"], ["LangGraph", "/integrations/langgraph"], ["OpenTelemetry", "/integrations/opentelemetry"], ["CrewAI", "/integrations/crewai"], ["Vercel AI SDK", "/integrations/vercel-ai-sdk"], ["LlamaIndex", "/integrations/llamaindex"], ["Mastra", "/integrations/mastra"], ["OpenAI Agents SDK", "/integrations/openai-agents-sdk"]]],
+  ["Developers", [["Docs", "/docs"], ["Quickstart", "/docs/quickstart"], ["TypeScript SDK", "/docs/typescript"], ["Python SDK", "/docs/python"], ["API reference", "/docs/api"], ["MCP server", "/docs/mcp-server"], ["Self-hosting", "/docs/self-hosting"], ["Glossary", "/glossary"], ["Answers", "/answers"], ["Tracing explained", "/blog/llm-tracing-explained"]]],
+  ["Free tools", [["All free tools", "/tools"], ["Token counter", "/tools/token-counter"], ["Log checker", "/tools/agent-log-checker"], ["AI API status", "/tools/ai-api-status"], ["Cost estimator", "/tools/ai-cost-estimator"], ["LLM prices", "/tools/llm-price-comparison"], ["Prompt cost", "/tools/prompt-cost-checker"], ["Context window", "/tools/context-window-checker"], ["Rate limits", "/tools/rate-limit-calculator"], ["JSON fixer", "/tools/json-fixer"]]],
+  ["Compare", [["All comparisons", "/compare"], ["vs Langfuse", "/compare/langfuse"], ["vs LangSmith", "/compare/langsmith"], ["vs Helicone", "/compare/helicone"], ["vs Arize Phoenix", "/compare/arize-phoenix"], ["vs Braintrust", "/compare/braintrust"], ["vs Datadog", "/compare/datadog"], ["Alternatives", "/alternative"], ["Best tools list", "/best-llm-observability-tools"], ["Observability guide", "/blog/ai-agent-observability-complete-guide"]]],
+  ["Company", [["About", "/about"], ["Blog", "/blog"], ["Changelog", "/changelog"], ["Roadmap", "/roadmap"], ["Security", "/security"], ["Status", "/status"], ["Contact", "/contact"], ["Live demo", appHref("/demo/project")], ["Share Uncoil", "/refer"], ["Start free", appHref("/sign-up")]]],
 ] as const;
+
+const useCases = [["Support", "/use-cases/support"], ["Research", "/use-cases/research"], ["Automation", "/use-cases/automation"], ["Tool calling", "/use-cases/tool-calling"], ["Coding agents", "/use-cases/coding"], ["RAG apps", "/use-cases/rag"], ["Voice agents", "/use-cases/voice"], ["Browser agents", "/use-cases/browser"], ["Multi-agent", "/use-cases/multi-agent"], ["MCP servers", "/use-cases/mcp"], ["Chatbots", "/use-cases/chatbot"], ["Data and SQL agents", "/use-cases/sql"], ["Cost control", "/use-cases/cost-control"], ["Sales agents", "/use-cases/sales"], ["Document agents", "/use-cases/documents"], ["Release checks", "/use-cases/release"], ["Copilots", "/use-cases/copilot"]] as const;
 
 const word = "uncoil".split("");
 
@@ -52,24 +56,42 @@ export function LandingFooter() {
           </div>
         </div>
 
-        <nav aria-label="Footer" className="grid grid-cols-2 gap-px border-x border-b border-white/15 bg-white/15 lg:grid-cols-4">
-          {groups.map(([title, links], i) => (
-            <div key={title} className="bg-[#090909] px-4 py-6 sm:p-6 md:p-8">
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">
-                <span className="text-[#f4d44d]">0{i + 1}</span> / {title}
-              </p>
-              <ul className="mt-5 grid gap-3">
-                {links.map(([label, href]) => (
-                  <li key={href}>
-                    <Link href={href} className="group inline-flex items-center gap-1.5 text-sm text-white/75 md:text-[15px] hover:text-white">
-                      {label}
-                      <ArrowUpRight className="size-3.5 text-[#f4d44d] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <nav aria-label="Footer" className="border-x border-b border-white/15">
+          <div className="grid grid-cols-2 gap-px bg-white/15 md:grid-cols-3 xl:grid-cols-6">
+            {groups.map(([title, links], i) => (
+              <div key={title} className="bg-[#090909] px-4 py-6 sm:p-6">
+                <p className="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-white/45 sm:tracking-[0.16em]">
+                  <span><span className="text-[#f4d44d]">0{i + 1}</span> / {title}</span>
+                  <span className="hidden text-white/25 sm:inline">{links.length}</span>
+                </p>
+                <ul className="mt-5 grid gap-1">
+                  {links.map(([label, href], j) => (
+                    <li key={href}>
+                      <Link href={href} className="group -mx-2 flex items-baseline gap-3 px-2 py-1 text-sm text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white">
+                        <span className="hidden w-4 shrink-0 font-mono text-[9px] sm:inline text-white/25 transition-colors group-hover:text-[#f4d44d]">{String(j + 1).padStart(2, "0")}</span>
+                        <span className="min-w-0 flex-1">{label}</span>
+                        <ArrowUpRight className="size-3 shrink-0 self-center text-[#f4d44d] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col gap-5 border-t border-white/15 bg-[#eceae3] p-5 text-[#090909] sm:p-6 lg:flex-row lg:items-start lg:gap-10">
+            <p className="shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-black/55 lg:w-44 lg:pt-2.5">
+              <span className="text-black">07</span> / Built for
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {useCases.map(([label, href]) => (
+                <li key={href}>
+                  <Link href={href} className="inline-flex items-center border border-black/20 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors hover:border-black hover:bg-black hover:text-[#f4d44d]">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </nav>
 
         <div className="mt-12 flex select-none items-baseline justify-between pb-[0.2em] font-pixel text-[16vw] leading-[0.78] tracking-[-0.08em] lg:text-[18vw]" aria-hidden="true">

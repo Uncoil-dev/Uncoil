@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { api } from "convex/_generated/api";
 import type { BillingInterval, PaidPlan } from "@/lib/billing-links";
+import { BrandLogo } from "@/components/brand-logo";
 import { ConvexAuthState } from "@/components/auth/convex-auth-state";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 import { projectCreateError } from "@/lib/project-errors";
@@ -92,10 +93,14 @@ export default function PricingCheckoutPage() {
 
   return (
     <main className="grid min-h-svh bg-[#090909] text-black lg:grid-cols-[5fr_7fr]">
-      <aside className="relative isolate flex flex-col justify-between overflow-hidden px-5 pb-12 pt-14 text-[#eceae3] md:px-10 lg:pt-20">
+      <aside className="relative isolate flex flex-col justify-between overflow-hidden px-5 pb-12 pt-8 text-[#eceae3] md:px-10 lg:pt-10">
         <Image src="/images/landing/checkout-gate.png" alt="" fill priority unoptimized sizes="(min-width: 1024px) 42vw, 100vw" className="-z-10 object-cover opacity-50 [image-rendering:pixelated] lg:opacity-80" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#090909] via-[#090909]/70 to-[#090909]/20" aria-hidden="true" />
         <div>
+          <div className="mb-10 flex items-center justify-between gap-4 lg:mb-14">
+            <BrandLogo className="text-xl text-[#eceae3]" />
+            <Link href="/pricing" className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/70 underline underline-offset-4 hover:text-[#f4d44d]">← Back to pricing</Link>
+          </div>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#f4d44d]">Your plan</p>
           <h1 className="mt-5 font-pixel text-[clamp(4rem,9vw,7.5rem)] leading-[0.85] tracking-[-0.08em]">{planInfo.name}</h1>
           <p className="mt-4 max-w-xs text-sm leading-6 text-white/70">{planInfo.line}</p>
@@ -172,7 +177,6 @@ export default function PricingCheckoutPage() {
             <li>3. Send your first trace. The docs are one click away.</li>
           </ol>
           <p className="mt-8 text-xs leading-5 text-black/55">{signedIn ? "You will pay on Stripe. Card details never touch Uncoil." : "Payments are handled by Stripe."}</p>
-          <Link href="/pricing" className="mt-6 inline-block font-mono text-[10px] uppercase tracking-[0.12em] text-black/60 underline underline-offset-4 hover:text-black">← Back to pricing</Link>
         </div>
       </section>
     </main>

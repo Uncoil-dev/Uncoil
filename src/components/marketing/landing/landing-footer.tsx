@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRef, useState } from "react";
 import { ArrowRight, ArrowUp, ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
-import { UncoilMark } from "@/components/brand/uncoil-mark";
+import { PixelWordmark } from "@/components/marketing/landing/pixel-wordmark";
 import { appHref } from "@/lib/app-links";
 
 const groups = [
@@ -19,7 +20,102 @@ const groups = [
 
 const useCases = [["Support", "/use-cases/support"], ["Research", "/use-cases/research"], ["Automation", "/use-cases/automation"], ["Tool calling", "/use-cases/tool-calling"], ["Coding agents", "/use-cases/coding"], ["RAG apps", "/use-cases/rag"], ["Voice agents", "/use-cases/voice"], ["Browser agents", "/use-cases/browser"], ["Multi-agent", "/use-cases/multi-agent"], ["MCP servers", "/use-cases/mcp"], ["Chatbots", "/use-cases/chatbot"], ["Data and SQL agents", "/use-cases/sql"], ["Cost control", "/use-cases/cost-control"], ["Sales agents", "/use-cases/sales"], ["Document agents", "/use-cases/documents"], ["Release checks", "/use-cases/release"], ["Copilots", "/use-cases/copilot"]] as const;
 
-const word = "uncoil".split("");
+const totalLinks = groups.reduce((n, [, links]) => n + links.length, 0) + useCases.length;
+const ease = [0.16, 1, 0.3, 1] as const;
+
+/** Links laid out as one trace: a root spine, one span per column, one step per link. */
+function TraceMap() {
+  const reduce = useReducedMotion();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [lit, setLit] = useState<number | null>(null);
+  const [litX, setLitX] = useState(0);
+
+  const light = (i: number | null, el?: HTMLElement | null) => {
+    setLit(i);
+    if (el && mapRef.current) setLitX(el.getBoundingClientRect().left - mapRef.current.getBoundingClientRect().left);
+  };
+
+  return (
+    <nav aria-label="Footer" className="border-x border-b border-white/15">
+      <div className="flex items-center justify-between gap-4 border-b border-white/15 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45 sm:px-6">
+        <span className="flex items-center gap-2">
+          <span className="size-1.5 animate-pulse bg-[#f4d44d]" aria-hidden="true" />
+          trace · uncoil.dev/sitemap
+        </span>
+        <span className="hidden sm:inline">7 spans · {totalLinks} steps · 0 errors</span>
+      </div>
+
+      <div ref={mapRef} className="relative px-4 pb-8 pt-10 sm:px-6">
+        {/* Root spine across the columns, desktop only. */}
+        <div className="pointer-events-none absolute left-4 right-4 top-10 hidden h-px xl:left-6 xl:right-6 xl:block" aria-hidden="true">
+          <motion.div className="h-px origin-left bg-white/20" initial={reduce ? false : { scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 1.1, ease }} />
+          <div className="absolute left-0 top-0 h-px bg-[#f4d44d] transition-[width,opacity] duration-300" style={{ width: lit === null ? 0 : litX, opacity: lit === null ? 0 : 1 }} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 xl:grid-cols-6">
+          {groups.map(([title, links], i) => (
+            <div key={title} className="relative pl-5" onMouseEnter={(e) => light(i, e.currentTarget)} onMouseLeave={() => light(null)} onFocus={(e) => light(i, e.currentTarget)} onBlur={() => light(null)}>
+              <motion.span
+                className={`absolute -left-[3.5px] -top-[3.5px] size-2 transition-colors ${lit === i ? "bg-[#f4d44d] shadow-[0_0_12px_#f4d44d]" : "bg-white/60"}`}
+                initial={reduce ? false : { scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 + i * 0.12, duration: 0.3 }}
+                aria-hidden="true"
+              />
+              <motion.span
+                className={`absolute bottom-1 left-0 top-0 w-px origin-top transition-colors ${lit === i ? "bg-[#f4d44d]" : "bg-white/15"}`}
+                initial={reduce ? false : { scaleY: 0 }}
+                whileInView={{ scaleY: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 + i * 0.12, duration: 0.8, ease }}
+                aria-hidden="true"
+              />
+              <p className="flex items-baseline justify-between gap-2 pt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-white/45 sm:tracking-[0.16em]">
+                <span><span className="text-[#f4d44d]">0{i + 1}</span> / {title}</span>
+                <span className="hidden text-white/25 sm:inline">{links.length}</span>
+              </p>
+              <ul className="mt-4 grid gap-0.5">
+                {links.map(([label, href], j) => (
+                  <motion.li
+                    key={href}
+                    className="relative"
+                    initial={reduce ? false : { opacity: 0, x: -6 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.45 + i * 0.12 + j * 0.03, duration: 0.35 }}
+                  >
+                    <Link href={href} className="group flex items-center py-1 text-sm text-white/65 transition-colors hover:text-white focus-visible:text-white">
+                      <span className="-ml-5 mr-2.5 h-px w-2.5 shrink-0 bg-white/20 transition-all group-hover:w-4 group-hover:bg-[#f4d44d] group-focus-visible:bg-[#f4d44d]" aria-hidden="true" />
+                      <span className="min-w-0 flex-1">{label}</span>
+                      <ArrowUpRight className="size-3 shrink-0 text-[#f4d44d] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="relative mt-10 border-t border-white/15 pt-6 sm:flex sm:gap-8">
+          <p className="mb-4 shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-white/45 sm:mb-0 sm:w-36 sm:pt-0.5">
+            <span className="text-[#f4d44d]">07</span> / Built for
+          </p>
+          <ul className="flex flex-wrap gap-x-1 gap-y-2 text-sm">
+            {useCases.map(([label, href], j) => (
+              <li key={href} className="flex items-center">
+                {j > 0 && <span className="mx-2 size-1 bg-white/20" aria-hidden="true" />}
+                <Link href={href} className="text-white/65 underline-offset-4 transition-colors hover:text-[#f4d44d] hover:underline">
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </nav>
+  );
+}
 
 export function LandingFooter() {
   const reduce = useReducedMotion();
@@ -31,8 +127,8 @@ export function LandingFooter() {
       </div>
 
       <div className="mx-auto max-w-[1440px] px-5 md:px-8">
-        <div className="grid border border-white/15 lg:grid-cols-[1.15fr_1fr]">
-          <div className="flex flex-col justify-between gap-8 p-7 md:p-10">
+        <div className="grid gap-px border border-white/15 bg-white/15 lg:grid-cols-[1.2fr_1fr]">
+          <div className="flex flex-col gap-7 bg-[#090909] p-6 md:p-10">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f4d44d]">First trace in five minutes</p>
             <p className="font-pixel text-[clamp(2.75rem,5.5vw,5rem)] leading-[0.88] tracking-[-0.06em]">One map<br />per run.</p>
             <div className="flex flex-wrap gap-3">
@@ -44,80 +140,17 @@ export function LandingFooter() {
               </Link>
             </div>
           </div>
-          <div className="flex flex-col justify-between gap-6 bg-[#eceae3] p-7 text-[#090909] md:p-10">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-black/55">The dispatch · monthly</p>
-              <p className="mt-4 max-w-sm text-xl leading-7">Notes on debugging agents, plus what shipped. One email a month.</p>
-            </div>
-            <div>
-              <NewsletterCapture inverse />
-              <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.14em] text-black/50">No spam. Unsubscribe anytime.</p>
-            </div>
+          <div className="flex flex-col justify-end gap-5 bg-[#090909] p-6 md:p-10">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">The dispatch · monthly</p>
+            <p className="max-w-sm text-xl leading-7 text-white/85">Notes on debugging agents, plus what shipped. One email a month.</p>
+            <NewsletterCapture />
+            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/40">No spam. Unsubscribe anytime.</p>
           </div>
         </div>
 
-        <nav aria-label="Footer" className="border-x border-b border-white/15">
-          <div className="grid grid-cols-2 gap-px bg-white/15 md:grid-cols-3 xl:grid-cols-6">
-            {groups.map(([title, links], i) => (
-              <div key={title} className="bg-[#090909] px-4 py-6 sm:p-6">
-                <p className="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-white/45 sm:tracking-[0.16em]">
-                  <span><span className="text-[#f4d44d]">0{i + 1}</span> / {title}</span>
-                  <span className="hidden text-white/25 sm:inline">{links.length}</span>
-                </p>
-                <ul className="mt-5 grid gap-1">
-                  {links.map(([label, href], j) => (
-                    <li key={href}>
-                      <Link href={href} className="group -mx-2 flex items-baseline gap-3 px-2 py-1 text-sm text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white">
-                        <span className="hidden w-4 shrink-0 font-mono text-[9px] sm:inline text-white/25 transition-colors group-hover:text-[#f4d44d]">{String(j + 1).padStart(2, "0")}</span>
-                        <span className="min-w-0 flex-1">{label}</span>
-                        <ArrowUpRight className="size-3 shrink-0 self-center text-[#f4d44d] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col gap-5 border-t border-white/15 bg-[#eceae3] p-5 text-[#090909] sm:p-6 lg:flex-row lg:items-start lg:gap-10">
-            <p className="shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-black/55 lg:w-44 lg:pt-2.5">
-              <span className="text-black">07</span> / Built for
-            </p>
-            <ul className="flex flex-wrap gap-2">
-              {useCases.map(([label, href]) => (
-                <li key={href}>
-                  <Link href={href} className="inline-flex items-center border border-black/20 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors hover:border-black hover:bg-black hover:text-[#f4d44d]">
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </nav>
+        <TraceMap />
 
-        <div className="mt-12 flex select-none items-baseline justify-between pb-[0.2em] font-pixel text-[16vw] leading-[0.78] tracking-[-0.08em] lg:text-[18vw]" aria-hidden="true">
-          <motion.span
-            className="inline-block"
-            initial={reduce ? false : { x: "-30%", opacity: 0 }}
-            whileInView={{ x: "0%", opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <UncoilMark solid className="block h-[0.65em]" />
-          </motion.span>
-          {word.map((ch, i) => (
-            <motion.span
-              key={i}
-              className="inline-block cursor-default hover:text-[#f4d44d]"
-              initial={reduce ? false : { y: "60%", opacity: 0 }}
-              whileInView={{ y: "0%", opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.06, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={reduce ? undefined : { y: "-12%" }}
-            >
-              {ch}
-            </motion.span>
-          ))}
-        </div>
+        <PixelWordmark className="mt-12 mb-8" />
 
         <div className="relative z-10 flex flex-col gap-4 border-t border-white/15 py-6 font-mono text-[10px] uppercase tracking-[0.14em] text-white/50 md:flex-row md:items-center md:justify-between">
           <div className="grid gap-1.5">

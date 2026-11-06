@@ -34,6 +34,7 @@ function PricingCheckout() {
   const [projectId, setProjectId] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [hasCode, setHasCode] = useState(false);
   const selectedProjectId = projectId || projects?.[0]?._id || "";
   const returnPath = `/pricing/checkout?plan=${plan}&interval=${interval}`;
 
@@ -41,7 +42,7 @@ function PricingCheckout() {
     const response = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ projectId: targetProjectId, plan, interval }),
+      body: JSON.stringify({ projectId: targetProjectId, plan, interval, promo: hasCode }),
     });
     const responseText = await response.text();
     let data: { url?: string; error?: string } = {};
@@ -153,6 +154,10 @@ function PricingCheckout() {
             <span>{pending ? "Opening Stripe…" : waiting ? "One moment…" : `Pay ${formatPrice(interval === "annual" ? price * 12 : price)} ${interval === "annual" ? "a year" : "a month"}`}</span>
             <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </button>
+          <label className="mt-5 flex cursor-pointer items-start gap-3 text-sm leading-5 text-black/75">
+            <input type="checkbox" checked={hasCode} onChange={(event) => setHasCode(event.target.checked)} className="mt-0.5 size-4 shrink-0 accent-black" />
+            <span>I have a promo code. <span className="text-black/55">You type it on Stripe&apos;s page. This replaces the automatic founding discount.</span></span>
+          </label>
           <TrustRow />
           {!isAuthenticated && !waiting ? (
             <p className="mt-8 border-t border-black/20 pt-5 text-sm text-black/70">

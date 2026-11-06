@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     if (!process.env.STRIPE_SECRET_KEY) return NextResponse.json({ error: "Stripe is not configured" }, { status: 503 });
   const stripe = getStripe();
   const region = getDeploymentRegion();
-  const body = await request.json() as { projectId?: string; plan?: "pro" | "team"; interval?: "monthly" | "annual" };
+  const body = await request.json() as { projectId?: string; plan?: "pro" | "team"; interval?: "monthly" | "annual"; promo?: boolean };
   if (!body.plan || !body.interval || !["pro", "team"].includes(body.plan) || !["monthly", "annual"].includes(body.interval)) return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 });
   // Pay-first: no project yet. The customer pays, then signs up and names the project on the welcome page.
   const guest = !body.projectId;
@@ -55,7 +55,8 @@ export async function POST(request: Request) {
   // When it is used up (or rejected), fall back to the normal price rather than blocking checkout.
   const foundingCoupon = process.env.STRIPE_FOUNDING_COUPON_ID;
   let session;
-  if (foundingCoupon) {
+  // "Have a code?": skip the automatic discount so Stripe shows its promotion code box.
+  if (foundingCoupon && !body.promo) {
     try {
       session = await createSession([{ coupon: foundingCoupon }]);
     } catch (error) {

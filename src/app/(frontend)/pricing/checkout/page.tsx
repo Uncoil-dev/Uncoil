@@ -126,11 +126,11 @@ function PricingCheckout() {
 
       {cancelled ? <p role="status" className="mt-8 border-2 border-black bg-[#fff4b5] p-3 text-sm">No charge was made. Your plan is still here when you are ready.</p> : null}
 
-      <h2 className="mt-10 font-pixel text-5xl leading-[0.92] tracking-[-0.07em] md:text-6xl">{isAuthenticated ? "Ready to pay." : "Pay now. Set up after."}</h2>
+      <h2 className="mt-10 font-pixel text-5xl leading-[0.92] tracking-[-0.07em] md:text-6xl">{isAuthenticated ? "Ready to pay." : `Get ${planInfo.name}.`}</h2>
       <p className="mt-4 max-w-md text-sm leading-6 text-black/70">
         {isAuthenticated
           ? projects && projects.length > 1 ? "Pick the project this plan covers, then pay on Stripe." : "One click to Stripe. Your project is ready when you come back."
-          : "No account needed to pay. You make your login and name your project right after, with your plan already on."}
+          : "Pay on Stripe now. You make your login and name your project right after, with your plan already on."}
       </p>
 
       <div className="mt-6 grid grid-cols-2 gap-[2px] border-2 border-black p-[2px] font-mono text-[11px] uppercase tracking-[0.1em]" role="group" aria-label="Billing period">

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     if (!process.env.STRIPE_SECRET_KEY) return NextResponse.json({ error: "Stripe is not configured" }, { status: 503 });
   const stripe = getStripe();
   const region = getDeploymentRegion();
-  const body = await request.json() as { projectId?: string; plan?: "pro" | "team"; interval?: "monthly" | "annual"; code?: string };
+  const body = await request.json() as { projectId?: string; plan?: "pro" | "team"; interval?: "monthly" | "annual"; code?: string; skipFounding?: boolean };
   if (!body.plan || !body.interval || !["pro", "team"].includes(body.plan) || !["monthly", "annual"].includes(body.interval)) return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 });
   // Pay-first: no project yet. The customer pays, then signs up and names the project on the welcome page.
   const guest = !body.projectId;
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       console.warn("Promotion code rejected", error);
       return NextResponse.json({ error: "That code cannot be used on this plan." }, { status: 400 });
     }
-  } else if (foundingCoupon) {
+  } else if (foundingCoupon && !body.skipFounding) {
     try {
       session = await createSession([{ coupon: foundingCoupon }]);
     } catch (error) {

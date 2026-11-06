@@ -29,6 +29,8 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
+    // Pay-first checkout: no project exists yet. The welcome page claims it after sign-up.
+    if (!session.client_reference_id) return NextResponse.json({ received: true, deferred: "guest" });
     await client.mutation(api.billing.syncSubscription, {
       syncSecret,
       projectId: session.client_reference_id as Id<"projects">,
@@ -39,6 +41,7 @@ export async function POST(request: Request) {
   if (["customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"].includes(event.type)) {
     const subscription = event.data.object as Stripe.Subscription;
     const item = subscription.items.data[0];
+    if (subscription.metadata.guest === "1" && !subscription.metadata.projectId) return NextResponse.json({ received: true, deferred: "guest" });
     await client.mutation(api.billing.syncSubscription, {
       syncSecret,
       projectId: subscription.metadata.projectId as Id<"projects"> | undefined,

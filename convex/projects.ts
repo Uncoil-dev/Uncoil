@@ -558,6 +558,7 @@ export const getProjectByApiKey = query({
       retentionDays: project.retentionDays ?? 365,
       planTier: project.planTier ?? "free",
       apiKeyLastUsedAt: project.apiKeyLastUsedAt ?? null,
+      modelPrices: project.modelPrices ?? [],
     };
   },
 });

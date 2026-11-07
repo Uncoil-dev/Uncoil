@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
+import { checkValue } from "./scoreConfigRules";
 
 function getOrgId(identity: unknown) {
   const value = (identity as { orgId?: unknown; org_id?: unknown }).orgId ?? (identity as { org_id?: unknown }).org_id;
@@ -190,6 +191,11 @@ export const createScore = mutation({
     if (args.dataType === "numeric" && (typeof args.value !== "number" || !Number.isFinite(args.value))) throw new Error("A numeric score needs a number");
     if (args.dataType === "boolean" && typeof args.value !== "boolean") throw new Error("A boolean score is true or false");
     if ((args.dataType === "categorical" || args.dataType === "text") && (typeof args.value !== "string" || !args.value.trim() || args.value.length > 1000)) throw new Error("A text or category score needs a value of up to 1,000 characters");
+    const definition = await ctx.db.query("scoreConfigs").withIndex("by_projectId_and_name", (q) => q.eq("projectId", args.projectId).eq("name", name)).unique();
+    if (definition) {
+      const problem = checkValue(definition, args.dataType, args.value);
+      if (problem) throw new Error(problem);
+    }
     return ctx.db.insert("scores", { ...args, name, traceId, spanId, comment: args.comment?.trim() || undefined, createdBy: identity.subject, createdAt: Date.now() });
   },
 });

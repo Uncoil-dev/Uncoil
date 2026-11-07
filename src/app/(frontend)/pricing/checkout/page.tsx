@@ -156,6 +156,7 @@ function PricingCheckout() {
           </button>
           <label htmlFor="checkout-code" className="mt-5 block font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">Have a code?</label>
           <input id="checkout-code" value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" autoCapitalize="characters" spellCheck={false} placeholder="Enter code" className="mt-2 h-12 w-full border-2 border-black bg-white px-4 font-mono text-sm uppercase placeholder:normal-case focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f4d44d]" />
+          <p className="mt-2 text-xs leading-5 text-black/55">Founding member? Enter <button type="button" onClick={() => setCode("FOUNDING40")} className="font-mono underline underline-offset-4 hover:bg-[#f4d44d]">FOUNDING40</button> for 40% off.</p>
           <TrustRow />
           {!isAuthenticated && !waiting ? (
             <p className="mt-8 border-t border-black/20 pt-5 text-sm text-black/70">

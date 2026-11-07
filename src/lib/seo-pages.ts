@@ -1,4 +1,4 @@
-import { integrationGuides } from "./integration-guides";
+import { integrationGuides, KEY_STEP, verify } from "./integration-guides";
 /**
  * Content for the /compare and /integrations/[slug] landing pages.
  * Competitor statements are deliberately high level and conservative; each page tells readers to check the other
@@ -158,6 +158,8 @@ export type IntegrationStep = {
   body: string;
   language?: "typescript" | "python" | "bash";
   code?: string;
+  /** Rough time this step takes, shown on the framework setup pages. */
+  time?: string;
 };
 
 const coreIntegrationPages: readonly IntegrationPage[] = [
@@ -236,32 +238,135 @@ curl -X POST https://uncoil.dev/api/otel \\
     slug: "crewai",
     name: "CrewAI",
     title: "Monitor CrewAI agents",
-    description: "Trace CrewAI multi-agent workflows in Uncoil with the Python SDK.",
-    answer: "To monitor CrewAI with Uncoil, instrument your crew with the Python SDK. Each agent step, tool call and model call is recorded in one trace for the crew run.",
-    captures: ["Agent and task steps", "Tool calls between agents", "Cost per crew run", "Failures and retries"],
+    description: "Trace CrewAI crews in Uncoil: every agent model call, tool call, token and failure in one run. Five-minute Python setup with copy-paste code.",
+    answer: "To monitor CrewAI with Uncoil, call uncoil.init() once at startup and wrap crew.kickoff() in trace_agent. Every model call your agents make joins one run for the crew, and you can add tool calls with one more line.",
+    captures: ["One run per crew kickoff", "Each agent's model calls with tokens and time", "Tool calls with input and output", "Failures and retries in order"],
     language: "python",
     code: `import uncoil
-from openai import OpenAI
 
-# Wrap the provider client your crew uses; calls join the current run.
-openai = uncoil.wrap_openai(OpenAI())`,
+uncoil.init()  # once, at startup
+
+@uncoil.trace_agent(name="research-crew")
+def run_crew(topic: str):
+    return crew.kickoff(inputs={"topic": topic})`,
+    steps: [
+      { title: "Install", body: "The Uncoil SDK sits next to CrewAI. It needs no other package.", language: "bash", code: `pip install uncoil-sdk crewai`, time: "1 min" },
+      KEY_STEP,
+      { title: "Switch tracing on", body: "Call init() once, before you build your crew. CrewAI talks to its models through the OpenAI and Anthropic libraries, and init() records those calls with tokens, time and errors.", language: "python", code: `import uncoil
+
+uncoil.init()`, time: "1 min" },
+      { title: "Wrap the crew run", body: "trace_agent turns one kickoff into one run. The model calls of every agent in the crew appear inside it, in order.", language: "python", code: `import uncoil
+from crewai import Agent, Task, Crew
+
+uncoil.init()
+
+researcher = Agent(
+    role="Researcher",
+    goal="Find facts about {topic}",
+    backstory="You check sources before you answer.",
+    llm="gpt-4o-mini",
+)
+task = Task(description="Research {topic}", expected_output="One short paragraph", agent=researcher)
+crew = Crew(agents=[researcher], tasks=[task])
+
+@uncoil.trace_agent(name="research-crew")
+def run_crew(topic: str):
+    return crew.kickoff(inputs={"topic": topic})
+
+print(run_crew("agent observability"))`, time: "1 min" },
+      { title: "Trace your tools", body: "Wrap the plain function with trace_tools, then hand the result to CrewAI. Each call becomes its own step with its input, output and time. Keep the docstring: CrewAI needs it.", language: "python", code: `import uncoil
+from crewai.tools import tool
+
+def search(query: str) -> str:
+    """Search the web."""
+    return run_search(query)
+
+traced = uncoil.trace_tools({"web_search": search})
+web_search = tool("web_search")(traced["web_search"])
+
+researcher = Agent(role="Researcher", goal="Find facts", backstory="...", tools=[web_search])`, time: "1 min" },
+      verify("Your crew"),
+    ],
+    notes: [
+      { title: "Which model calls are recorded", body: "Calls that CrewAI sends through the OpenAI or Anthropic libraries are recorded. A model that CrewAI reaches another way, for example through LiteLLM, is not recorded by init(). The crew run and your tools still are." },
+      { title: "Keep the docstring on tools", body: "CrewAI builds the tool description from the function's docstring and fails without one. trace_tools keeps the docstring, so wrapped tools work as before." },
+    ],
     doc: "python",
-    faq: [{ q: "Can I see which agent in a crew caused a failure?", a: "Yes, each agent's steps are separate spans, so you can open the failing span directly." }],
+    faq: [
+      { q: "Can I see which agent in a crew caused a failure?", a: "Yes. Each model call and tool call is its own step in the run, so you open the failing one and see its input, error and time." },
+      { q: "Does tracing change what my crew does?", a: "No. The SDK records a copy of each call and passes your request and the answer through unchanged. If the SDK cannot reach Uncoil, your crew keeps running." },
+      { q: "Do I need to change my agents or tasks?", a: "No. init() and one decorator are enough. Your agents, tasks and prompts stay as they are." },
+      { q: "Is personal data in prompts sent to Uncoil?", a: "The SDK masks emails, phone numbers and card numbers in prompts and answers before it sends anything, unless you switch that off." },
+      { q: "Can I use it with the Uncoil cost view?", a: "Yes. Tokens are recorded for every traced call. Add your own prices with calculate_cost to see dollars per crew run." },
+    ],
   },
   {
     slug: "vercel-ai-sdk",
     name: "Vercel AI SDK",
     title: "Trace the Vercel AI SDK",
-    description: "Trace streaming calls, tools and multi-step generations from the Vercel AI SDK in Uncoil.",
-    answer: "To trace the Vercel AI SDK with Uncoil, use the TypeScript SDK or OpenTelemetry telemetry. Streaming calls, tool use and each step of a multi-step generation are recorded as spans.",
-    captures: ["Streaming generations", "Tool calls per step", "Tokens and cost", "Route handler timing in Next.js"],
+    description: "Trace Vercel AI SDK generateText and streamText calls in Uncoil: model calls, tools, tokens and failures in one run. Five-minute TypeScript setup with copy-paste code.",
+    answer: "To trace the Vercel AI SDK with Uncoil, wrap your model with uncoilMiddleware and your handler with traceAgent. Every generateText and streamText call becomes a step in one run, and traceTools adds your tools.",
+    captures: ["One run per request or agent call", "generateText and streamText calls with tokens and time to first token", "Tool calls per step with input and output", "Errors thrown inside a step"],
     language: "typescript",
-    code: `import { traceAgent } from "@uncoil.dev/sdk";
+    code: `import { wrapLanguageModel } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { traceAgent, uncoilMiddleware } from "@uncoil.dev/sdk";
 
-// Wrap your route handler's work in a run; model calls inside it join the trace.
-// See the TypeScript docs for the full traceAgent signature.`,
+const model = wrapLanguageModel({
+  model: openai("gpt-4o-mini"),
+  middleware: uncoilMiddleware(),
+});`,
+    steps: [
+      { title: "Install", body: "The Uncoil SDK sits next to the AI SDK and the provider you already use.", language: "bash", code: `npm install @uncoil.dev/sdk ai @ai-sdk/openai zod`, time: "1 min" },
+      KEY_STEP,
+      { title: "Wrap the model", body: "wrapLanguageModel is part of the AI SDK. uncoilMiddleware records every generateText, streamText and generateObject call made with the wrapped model: input, output, tokens and errors.", language: "typescript", code: `import { openai } from "@ai-sdk/openai";
+import { wrapLanguageModel } from "ai";
+import { uncoilMiddleware } from "@uncoil.dev/sdk";
+
+export const model = wrapLanguageModel({
+  model: openai("gpt-4o-mini"),
+  middleware: uncoilMiddleware(),
+});`, time: "1 min" },
+      { title: "Wrap the call in a run", body: "traceAgent turns one call into one run, so the model calls of a multi-step generation sit together in the trace.", language: "typescript", code: `import { generateText } from "ai";
+import { traceAgent } from "@uncoil.dev/sdk";
+import { model } from "./model";
+
+export const answer = traceAgent(async (question: string) => {
+  const { text } = await generateText({ model, prompt: question });
+  return text;
+}, { name: "answer" });
+
+console.log(await answer("Where is order A1?"));`, time: "1 min" },
+      { title: "Trace your tools", body: "traceTools wraps each tool's execute function, so every tool call is its own step with input, output and time.", language: "typescript", code: `import { generateText, stepCountIs, tool } from "ai";
+import { z } from "zod";
+import { traceAgent, traceTools } from "@uncoil.dev/sdk";
+
+const tools = traceTools({
+  getOrder: tool({
+    description: "Look up an order",
+    inputSchema: z.object({ id: z.string() }),
+    execute: async ({ id }) => fetchOrder(id),
+  }),
+});
+
+export const answer = traceAgent(async (question: string) => {
+  const { text } = await generateText({ model, tools, stopWhen: stepCountIs(5), prompt: question });
+  return text;
+}, { name: "order-bot" });`, time: "1 min" },
+      verify("Your call"),
+    ],
+    notes: [
+      { title: "Next.js route handlers", body: "The same three pieces work inside a route handler or Server Action. Set the route to the Node.js runtime. The full route example is on the Next.js page." },
+      { title: "Needs Node.js", body: "The SDK keeps concurrent requests in separate runs with Node.js features, so it does not run on the edge runtime." },
+    ],
     doc: "typescript",
-    faq: [{ q: "Does it work with Next.js route handlers?", a: "Yes. The TypeScript SDK traces server-side code including route handlers and Server Actions." }],
+    faq: [
+      { q: "Does it work with Next.js route handlers?", a: "Yes. The TypeScript SDK traces server-side code including route handlers and Server Actions. Use the Node.js runtime." },
+      { q: "Are streamed answers traced?", a: "Yes. streamText calls are recorded as the stream finishes, with the time to first token and the tokens the provider reports." },
+      { q: "Does the middleware change my output?", a: "No. It watches the stream and passes every part through unchanged. If Uncoil is unreachable, your call still works." },
+      { q: "Which provider packages work?", a: "Any provider that works with wrapLanguageModel, such as OpenAI, Anthropic and Google. The provider and model name are read from the model you wrap." },
+      { q: "Can I use OpenTelemetry instead?", a: "Yes. Uncoil accepts OTLP over HTTP, so you can send the AI SDK's telemetry there. The middleware is the shorter route and records tokens and tool inputs without extra setup." },
+    ],
   },
   {
     slug: "llamaindex",
@@ -338,19 +443,64 @@ async def ask(question: str):
     slug: "openai-agents-sdk",
     name: "OpenAI Agents SDK",
     title: "Trace the OpenAI Agents SDK",
-    description: "Trace OpenAI Agents SDK runs, handoffs and tool calls in Uncoil with tokens, latency and cost.",
-    answer: "To trace the OpenAI Agents SDK with Uncoil, wrap the run in trace_agent and wrap the OpenAI client so every model call is recorded with tokens and cost.",
-    captures: ["One trace per agent run", "Handoffs between agents", "Tool calls and results", "Tokens and cost per model call"],
+    description: "Trace OpenAI Agents SDK runs in Uncoil: every model call, tool call, token and failure in one run. Five-minute Python setup with copy-paste code.",
+    answer: "To trace the OpenAI Agents SDK with Uncoil, call uncoil.init() once at startup and wrap your Runner call in trace_agent. Every model call the agent makes joins one run, and one more line adds your function tools.",
+    captures: ["One run per Runner call", "Model calls from every agent, handoffs included", "Function tool calls with input and output", "Tokens, time and errors per call"],
     language: "python",
     code: `import uncoil
 from agents import Runner
+
+uncoil.init()  # once, at startup
 
 @uncoil.trace_agent(name="support-triage")
 async def triage(message: str):
     result = await Runner.run(agent, message)
     return result.final_output`,
+    steps: [
+      { title: "Install", body: "The Uncoil SDK sits next to the Agents SDK and the OpenAI library.", language: "bash", code: `pip install uncoil-sdk openai-agents`, time: "1 min" },
+      KEY_STEP,
+      { title: "Switch tracing on", body: "Call init() once at startup. The Agents SDK calls OpenAI through the official library, so every model call it makes is recorded with tokens, time and errors.", language: "python", code: `import uncoil
+
+uncoil.init()`, time: "1 min" },
+      { title: "Wrap the run", body: "trace_agent turns one Runner call into one run. Every model call the agent makes is a step inside it.", language: "python", code: `import uncoil
+from agents import Agent, Runner
+
+uncoil.init()
+
+agent = Agent(name="Support", instructions="Answer in one sentence.", model="gpt-4o-mini")
+
+@uncoil.trace_agent(name="support-triage")
+async def triage(message: str):
+    result = await Runner.run(agent, message)
+    return result.final_output
+
+# asyncio.run(triage("Can I get a refund?"))`, time: "1 min" },
+      { title: "Trace your function tools", body: "Wrap the plain function with trace_tools, then pass it to function_tool. Each call becomes its own step between the two model calls.", language: "python", code: `import uncoil
+from agents import Agent, function_tool
+
+def lookup_order(order_id: str) -> str:
+    """Look up an order by id."""
+    return fetch_order(order_id)
+
+lookup_order = function_tool(
+    uncoil.trace_tools({"lookup_order": lookup_order})["lookup_order"]
+)
+
+agent = Agent(name="Support", instructions="Use tools.", model="gpt-4o-mini", tools=[lookup_order])`, time: "1 min" },
+      verify("Your agent run"),
+    ],
+    notes: [
+      { title: "Runs next to OpenAI's own traces", body: "The Agents SDK keeps its own tracing. Uncoil records alongside it, so you keep both and do not have to switch anything off." },
+      { title: "Other model providers", body: "If you point the Agents SDK at another provider through an OpenAI-style client, calls go through the OpenAI library and are recorded under the model name you send." },
+    ],
     doc: "python",
-    faq: [{ q: "Do I lose OpenAI's own trace viewer?", a: "No. Uncoil records alongside it, so you keep both." }],
+    faq: [
+      { q: "Do I lose OpenAI's own trace viewer?", a: "No. Uncoil records alongside it, so you keep both." },
+      { q: "Will I see handoffs between agents?", a: "Yes. Each agent's model calls are steps in the same run, in the order they happened, so you can follow the handoff from one agent to the next." },
+      { q: "Does tracing change my agent's answers?", a: "No. The SDK records a copy of each call. Your request and the answer pass through unchanged, and if Uncoil is unreachable your agent keeps running." },
+      { q: "Do I need to rewrite my agents?", a: "No. init() and one decorator are enough. Agents, instructions and tools stay as they are." },
+      { q: "Is personal data in prompts sent to Uncoil?", a: "The SDK masks emails, phone numbers and card numbers in prompts and answers before it sends anything, unless you switch that off." },
+    ],
   },
 ] as const;
 

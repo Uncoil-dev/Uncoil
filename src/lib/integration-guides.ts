@@ -6,16 +6,18 @@ import type { IntegrationPage, IntegrationStep } from "./seo-pages";
  * Where the SDK has no direct wrapper for a library, the guide says so and uses a manual step instead.
  */
 
-const KEY_STEP: IntegrationStep = {
+export const KEY_STEP: IntegrationStep = {
   title: "Set your project key",
   body: "Create a project in Uncoil, copy its API key and put it in the environment where your code runs. The SDK reads it from there, so nothing is hard-coded.",
   language: "bash",
   code: `export UNCOIL_API_KEY="uncoil_sk_live_..."`,
+  time: "1 min",
 };
 
-const verify = (name: string): IntegrationStep => ({
+export const verify = (name: string): IntegrationStep => ({
   title: "Run it once and look",
   body: `Run your code one time, then open the Tracing page of your project. ${name} shows up as a run with its steps in order, plus the tokens, time and any error for each call.`,
+  time: "1 min",
 });
 
 const COST_NOTE = {
@@ -44,27 +46,31 @@ export const integrationGuides: readonly IntegrationPage[] = [
     language: "python",
     code: `import uncoil
 
-chain.invoke(
-    {"question": "What changed in the last release?"},
-    config={"callbacks": [uncoil.langgraph_callback()]},
-)`,
+uncoil.init()  # once, at startup
+
+chain.invoke({"question": "What changed in the last release?"})`,
     steps: [
-      { title: "Install", body: "The callback handler lives in an optional part of the Python SDK, so LangChain stays your only extra dependency.", language: "bash", code: `pip install "uncoil-sdk[langgraph]"` },
+      { title: "Install", body: "The callback handler lives in an optional part of the Python SDK, so LangChain stays your only extra dependency.", language: "bash", code: `pip install "uncoil-sdk[langgraph]" langchain-core`, time: "1 min" },
       KEY_STEP,
-      { title: "Pass the handler to your chain", body: "Add it to the callbacks of any runnable: a chain, a retriever, an agent executor or a LangGraph graph. Child steps inherit it, so you only add it once at the top.", language: "python", code: `import uncoil
+      { title: "Switch tracing on", body: "Call init() once at startup. From then on every LangChain and LangGraph run in the process is traced, with no callbacks to pass around.", language: "python", code: `import uncoil
+
+uncoil.init()  # once, at startup
+
+result = chain.invoke({"question": "What changed in the last release?"})`, time: "1 min" },
+      { title: "Or pass the handler yourself", body: "Prefer to trace one chain only? Add the handler to the callbacks of any runnable: a chain, a retriever, an agent executor or a LangGraph graph. Child steps inherit it, so you add it once at the top. Use init() or the handler for the same run, not both.", language: "python", code: `import uncoil
 
 handler = uncoil.langgraph_callback()
 
 result = agent_executor.invoke(
     {"input": "Summarize today's failed runs"},
     config={"callbacks": [handler]},
-)` },
-      { title: "Or in TypeScript", body: "The TypeScript SDK ships a matching handler. It needs no extra LangChain package of its own.", language: "typescript", code: `import { UncoilLangGraphHandler } from "@uncoil.dev/sdk";
+)`, time: "1 min" },
+      { title: "In TypeScript", body: "The TypeScript SDK ships a matching handler. It needs no extra LangChain package of its own.", language: "typescript", code: `import { UncoilLangGraphHandler } from "@uncoil.dev/sdk";
 
 const result = await chain.invoke(
   { question: "What changed in the last release?" },
   { callbacks: [new UncoilLangGraphHandler()] },
-);` },
+);`, time: "1 min" },
       verify("Your chain"),
     ],
     notes: [

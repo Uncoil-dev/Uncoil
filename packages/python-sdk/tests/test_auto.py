@@ -79,3 +79,26 @@ def test_langchain_model_is_recorded_once_and_stops_after_uninit():
     uncoil.uninit()
     FakeListChatModel(responses=['hi']).invoke('hello')
     assert len(recorder.sent) == 1
+
+
+def test_init_reads_usage_from_raw_responses():
+    # CrewAI and other libraries call `with_raw_response.create`; the body is behind .parse().
+    recorder = Recorder()
+    uncoil.init(client=recorder)
+    raw = OpenAI(api_key='test', http_client=httpx.Client(transport=transport(CHAT)))
+    reply = raw.chat.completions.with_raw_response.create(model='test-model', messages=[])
+    assert reply.parse().choices[0].message.content == 'hello'
+    spans = llms(recorder)
+    assert len(spans) == 1 and spans[0]['inputTokens'] == 8 and spans[0]['outputTokens'] == 3
+
+
+@pytest.mark.asyncio
+async def test_init_reads_usage_from_async_raw_responses():
+    recorder = Recorder()
+    uncoil.init(client=recorder)
+    raw = AsyncOpenAI(api_key='test', http_client=httpx.AsyncClient(transport=transport(CHAT)))
+    reply = await raw.chat.completions.with_raw_response.create(model='test-model', messages=[])
+    assert reply.parse().choices[0].message.content == 'hello'
+    spans = llms(recorder)
+    assert len(spans) == 1 and spans[0]['inputTokens'] == 8 and spans[0]['outputTokens'] == 3
+    await raw.close()

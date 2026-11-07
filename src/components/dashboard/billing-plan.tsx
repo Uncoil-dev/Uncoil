@@ -175,9 +175,9 @@ function PlanCard({
 }) {
   const Icon = plan.icon;
   const displayPrice = interval === "annual" && plan.id === "pro"
-    ? "$15.20"
+    ? "$15"
     : interval === "annual" && plan.id === "team"
-      ? "$31.20"
+      ? "$31"
       : plan.price;
 
   return (

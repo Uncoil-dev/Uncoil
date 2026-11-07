@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     if (!process.env.STRIPE_SECRET_KEY) return NextResponse.json({ error: "Stripe is not configured" }, { status: 503 });
   const stripe = getStripe();
   const region = getDeploymentRegion();
-  const body = await request.json() as { projectId?: string; plan?: "pro" | "team"; interval?: "monthly" | "annual"; code?: string; skipFounding?: boolean };
+  const body = await request.json() as { projectId?: string; plan?: "pro" | "team"; interval?: "monthly" | "annual"; code?: string };
   if (!body.plan || !body.interval || !["pro", "team"].includes(body.plan) || !["monthly", "annual"].includes(body.interval)) return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 });
   // Pay-first: no project yet. The customer pays, then signs up and names the project on the welcome page.
   const guest = !body.projectId;
@@ -51,11 +51,9 @@ export async function POST(request: Request) {
       },
       { apiVersion: "2026-02-25.preview" },
     );
-  // Founding-member coupon: 40% off forever, capped at 20 redemptions inside Stripe itself.
-  // When it is used up (or rejected), fall back to the normal price rather than blocking checkout.
-  const foundingCoupon = process.env.STRIPE_FOUNDING_COUPON_ID;
+  // No discount is applied automatically. Customers type a Stripe promotion code (for example the founding code) on our page,
+  // and we look it up here. Only real promotion codes work, never raw coupon ids.
   let session;
-  // A typed code replaces the automatic founding discount. Only real Stripe promotion codes work here, never raw coupon ids.
   const typedCode = body.code?.trim().slice(0, 64);
   if (typedCode) {
     const found = await stripe.promotionCodes.list({ code: typedCode, active: true, limit: 1 });
@@ -66,12 +64,6 @@ export async function POST(request: Request) {
     } catch (error) {
       console.warn("Promotion code rejected", error);
       return NextResponse.json({ error: "That code cannot be used on this plan." }, { status: 400 });
-    }
-  } else if (foundingCoupon && !body.skipFounding) {
-    try {
-      session = await createSession([{ coupon: foundingCoupon }]);
-    } catch (error) {
-      console.warn("Founding coupon not applied, using the normal price", error);
     }
   }
   session ??= await createSession();

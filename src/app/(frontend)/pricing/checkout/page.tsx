@@ -35,7 +35,6 @@ function PricingCheckout() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [code, setCode] = useState("");
-  const [skipFounding, setSkipFounding] = useState(false);
   const selectedProjectId = projectId || projects?.[0]?._id || "";
   const returnPath = `/pricing/checkout?plan=${plan}&interval=${interval}`;
 
@@ -43,7 +42,7 @@ function PricingCheckout() {
     const response = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ projectId: targetProjectId, plan, interval, code: code.trim() || undefined, skipFounding }),
+      body: JSON.stringify({ projectId: targetProjectId, plan, interval, code: code.trim() || undefined }),
     });
     const responseText = await response.text();
     let data: { url?: string; error?: string } = {};
@@ -155,12 +154,8 @@ function PricingCheckout() {
             <span>{pending ? "Opening Stripe…" : waiting ? "One moment…" : `Pay ${formatPrice(interval === "annual" ? price * 12 : price)} ${interval === "annual" ? "a year" : "a month"}`}</span>
             <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </button>
-          <label htmlFor="checkout-code" className="mt-5 block font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">Promo code (optional)</label>
+          <label htmlFor="checkout-code" className="mt-5 block font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">Have a code?</label>
           <input id="checkout-code" value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" autoCapitalize="characters" spellCheck={false} placeholder="Enter code" className="mt-2 h-12 w-full border-2 border-black bg-white px-4 font-mono text-sm uppercase placeholder:normal-case focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f4d44d]" />
-          <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm leading-5 text-black/75">
-            <input type="checkbox" checked={skipFounding} onChange={(event) => setSkipFounding(event.target.checked)} className="mt-0.5 size-4 shrink-0 accent-black" />
-            <span>Skip the automatic founding discount. <span className="text-black/55">Stripe then shows its own code box.</span></span>
-          </label>
           <TrustRow />
           {!isAuthenticated && !waiting ? (
             <p className="mt-8 border-t border-black/20 pt-5 text-sm text-black/70">

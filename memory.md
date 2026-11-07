@@ -2433,3 +2433,7 @@ Merged into canonical posts with 301s (next.config.ts): ai-observability-metrics
 ## Footer cleanup + no/de pages off (2026-11-04)
 - Site footer (`landing-footer.tsx`): #378 tidy and two rebuilds were rejected (he hated the cream/white bars). Nov 5 he picked "live trace map + touch of dissolving wordmark": all-black, links drawn as a trace (spine, one span per column, tick per link, yellow path on hover), 6 columns x 10 links + "Built for" row of 17 use cases, and a canvas pixel wordmark (`pixel-wordmark.tsx`) that flies in and scatters from the pointer. No cream panels in the footer.
 - Norwegian and German pages are off: `src/app/(locale-site)` and `src/components/marketing/locale/` deleted, hreflang removed from home and pricing. `/no`, `/de` and `/no|de/*` redirect (307, temporary) to the English page. The `src/lib/i18n` dictionaries stay, so the pages can come back from git history.
+
+## 2026-11-07 — Case story draft "The $500 Agent Bug" (branch `claude/project-thread-lth2fq`)
+- New draft post `content/blog/the-500-agent-bug.mdoc` (`draft: true`, 5,200 words). It is openly a **demo**, not a customer story: an invented support agent, a 6,000-run weekend, 90 looping runs. All numbers come from the cost model printed in the post (`node loop-cost.mjs` gives $0.0402 normal run, $5.6063 looping run, $504.56 bad runs, $742.14 weekend).
+- Four generated SVGs in `public/media/the-500-agent-bug-*.svg` (the folder is gitignored, so add with `git add -f`). Do not publish until Kristoffer says so; do not present it as a real customer.

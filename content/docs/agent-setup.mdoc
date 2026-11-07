@@ -41,13 +41,13 @@ Set up Uncoil tracing in this project. Uncoil records every model call and tool 
        init();
    - Vercel AI SDK: wrap the model with uncoilMiddleware() from "@uncoil.dev/sdk".
    - LangChain/LangGraph: pass callbacks: [new UncoilLangGraphHandler()].
-   - Python, or anything else: follow https://uncoil.dev/docs/python or https://uncoil.dev/docs/typescript and wrap the agent entry point with trace_agent / traceAgent.
+   - Python, or anything else: follow https://www.uncoil.dev/docs/python or https://www.uncoil.dev/docs/typescript and wrap the agent entry point with trace_agent / traceAgent.
    Do not add the same call twice. Never put the key in browser/client code.
 
 6. Check the setup. Run: npx @uncoil.dev/sdk doctor
    (Python: uncoil-doctor). It must print the project name under "Traces will land in" and send one test trace. If it fails, read its message, fix the cause and run it again. If it says the key and project do not match, run step 3 again in this folder.
 
-7. Run the agent once for real, then tell me: which files you changed, the project name from step 6, and where to look: https://uncoil.dev/dashboard (open that project, then Tracing). Do not change anything else.
+7. Run the agent once for real, then tell me: which files you changed, the project name from step 6, and where to look: https://eu.cloud.uncoil.dev/dashboard (open that project, then Tracing). Do not change anything else.
 ```
 
 ## What happens when you run it

@@ -225,7 +225,7 @@ await graph.invoke(input, { callbacks: [new UncoilLangGraphHandler()] });`,
     captures: ["Any OTLP-compatible span", "LLM semantic attributes such as model and tokens", "Parent and child relationships", "Errors and timing"],
     language: "bash",
     code: `# Send OTLP HTTP JSON to the /api/otel endpoint, authenticated with a project API key.
-curl -X POST https://uncoil.dev/api/otel \\
+curl -X POST https://eu.cloud.uncoil.dev/api/otel \\
   -H "Authorization: Bearer uncoil_sk_live_..." \\
   -H "Content-Type: application/json" \\
   -d @otlp-traces.json`,

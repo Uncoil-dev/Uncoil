@@ -2433,3 +2433,6 @@ Merged into canonical posts with 301s (next.config.ts): ai-observability-metrics
 ## Footer cleanup + no/de pages off (2026-11-04)
 - Site footer (`landing-footer.tsx`): #378 tidy and two rebuilds were rejected (he hated the cream/white bars). Nov 5 he picked "live trace map + touch of dissolving wordmark": all-black, links drawn as a trace (spine, one span per column, tick per link, yellow path on hover), 6 columns x 10 links + "Built for" row of 17 use cases, and a canvas pixel wordmark (`pixel-wordmark.tsx`) that flies in and scatters from the pointer. No cream panels in the footer.
 - Norwegian and German pages are off: `src/app/(locale-site)` and `src/components/marketing/locale/` deleted, hreflang removed from home and pricing. `/no`, `/de` and `/no|de/*` redirect (307, temporary) to the English page. The `src/lib/i18n` dictionaries stay, so the pages can come back from git history.
+
+## SEO domain-move audit (Nov 7 2026)
+- Sitemap no longer lists /no and /de (they redirect to English). Ingest/OTLP examples in docs, code tabs and README now use eu.cloud.uncoil.dev (bare uncoil.dev 301s to www). Old-domain redirects use 308 for non-GET and old eu.cloud.<old domain> hosts redirect to the new regional host. Contract tests added in `scripts/seo-contract.test.mjs`.

@@ -11,6 +11,7 @@ import { planLimitResponse, recordRateLimitStrike } from "@/lib/plan-limits-serv
 import { FREE_MAX_SPAN_BYTES, ingestLimitPerMinute, trimOversizedSpan } from "@/lib/plan-limits";
 import { consumeRateLimit } from "@/lib/redis-cache";
 import { apiKeyProjectCache, cachedProjectForKey } from "@/lib/ingest-cache";
+import { resolveCostUsd } from "convex/modelPricing";
 import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
 
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -227,6 +228,8 @@ export async function POST(request: NextRequest) {
 
   const projectDocId = project._id as Id<"projects">;
   const now = Date.now();
+  // A cost the SDK sent always wins. Only a step with tokens but no cost is priced from the project's own model prices.
+  payload.costUsd = resolveCostUsd(payload.costUsd, payload.modelId, payload.inputTokens ?? Number(payload.metadata?.inputTokens ?? 0), payload.outputTokens ?? Number(payload.metadata?.outputTokens ?? 0), project.modelPrices);
   const redactionEnabled = project.redactionEnabled !== false;
   const redactionRules = project.redactionRules?.length ? project.redactionRules : [...DEFAULT_REDACTION_RULES];
 

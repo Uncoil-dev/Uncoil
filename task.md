@@ -1,3 +1,9 @@
+## 2026-11-07 — Settings tabs with real jobs
+
+- [pending owner] Review draft PR preview of the five settings tabs (LLM Connections, Model Definitions, MCP & CLI, Scores, Batch Actions).
+- [pending owner] Deploy Convex (schema adds `scoreConfigs`, `llmConnections`, `projects.modelPrices`) before merging to production use.
+- [pending owner] Set `UNCOIL_CONNECTION_KEY` (32 random bytes, base64) in Coolify to switch on stored model keys.
+
 ## 2026-10-16 — Alerts rules (draft PR)
 
 - [pending owner] Run the manual Convex deploy for jovial-owl-711, then set `RESEND_API_KEY` and `EMAIL_FROM` in that Convex deployment's environment so alert emails send.

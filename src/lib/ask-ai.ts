@@ -55,9 +55,14 @@ function usd(value: number) {
   return value < 0.01 ? `$${value.toFixed(5)}` : `$${value.toFixed(value < 1 ? 4 : 2)}`;
 }
 
+/** Trace text is untrusted: stop it from closing or opening our own tags and faking the conversation. */
+export function neutralizeTags(value: string) {
+  return value.replace(/<(\/?)(trace|conversation)\b/gi, "<\u200b$1$2");
+}
+
 function clip(value: string | undefined) {
   if (!value || value === "{}" || value === "[]") return "";
-  const text = redactSecrets(value).replace(/\s+/g, " ").trim();
+  const text = neutralizeTags(redactSecrets(value)).replace(/\s+/g, " ").trim();
   return text.length > PAYLOAD_LIMIT ? `${text.slice(0, PAYLOAD_LIMIT)}… [cut]` : text;
 }
 
@@ -90,7 +95,7 @@ export function buildDigest(spans: AskSpan[]) {
   const parentLabel = new Map(labeled.map((item) => [item.span.spanId, item.label]));
   const lines = kept.map(({ label, span }) => {
     const parts = [
-      `${label} ${span.spanType || "step"} "${stepName(span)}"`,
+      `${label} ${span.spanType || "step"} "${neutralizeTags(stepName(span)).replace(/\s+/g, " ").slice(0, 80)}"`,
       span.parentSpanId && parentLabel.has(span.parentSpanId) ? `parent=${parentLabel.get(span.parentSpanId)}` : "",
       `time=${ms(Number(span.latencyMs ?? 0))}`,
       Number(span.costUsd) ? `cost=${usd(Number(span.costUsd))}` : "",
@@ -127,14 +132,14 @@ export function sanitizeHistory(value: unknown): AskTurn[] {
   for (const item of value) {
     const entry = item as { role?: unknown; text?: unknown } | null;
     if ((entry?.role !== "user" && entry?.role !== "assistant") || typeof entry.text !== "string" || !entry.text.trim()) continue;
-    turns.push({ role: entry.role, text: redactSecrets(entry.text.replace(/\s*\[s\d+\]/g, "").trim()).slice(0, HISTORY_TEXT_LIMIT) });
+    turns.push({ role: entry.role, text: neutralizeTags(redactSecrets(entry.text.replace(/\s*\[s\d+\]/g, "").trim())).slice(0, HISTORY_TEXT_LIMIT) });
   }
   return turns.slice(-MAX_HISTORY_TURNS);
 }
 
 export function buildUserMessage(spans: AskSpan[], question: string, history: AskTurn[] = []) {
   const earlier = history.length ? `<conversation>\n${history.map((turn) => `${turn.role === "user" ? "Developer" : "Assistant"}: ${turn.text}`).join("\n")}\n</conversation>\n\n` : "";
-  return `<trace>\n${buildDigest(spans)}\n</trace>\n\n${earlier}Question: ${redactSecrets(question.trim().slice(0, MAX_QUESTION_LENGTH))}`;
+  return `<trace>\n${buildDigest(spans)}\n</trace>\n\n${earlier}Question: ${neutralizeTags(redactSecrets(question.trim().slice(0, MAX_QUESTION_LENGTH)))}`;
 }
 
 /** Turns "[s3]" style citations into real step ids and strips the brackets from nothing the model invented. */

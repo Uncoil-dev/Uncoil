@@ -1,26 +1,31 @@
 export const onboardingSteps = [
   { id: "project", label: "Create project" },
   { id: "api-key", label: "API key" },
-  { id: "install", label: "Install SDK" },
-  { id: "waiting", label: "Waiting" },
-  { id: "success", label: "First span" },
+  { id: "install", label: "Send first run" },
 ] as const;
 
-export type OnboardingStepId = (typeof onboardingSteps)[number]["id"];
+/** "waiting" and "success" are legacy routes that now fold into the last step. */
+export type OnboardingStepId = (typeof onboardingSteps)[number]["id"] | "waiting" | "success";
+
+export function getOnboardingStepIndex(step: OnboardingStepId) {
+  if (step === "waiting") return onboardingSteps.length - 1;
+  if (step === "success") return onboardingSteps.length;
+  return onboardingSteps.findIndex((candidate) => candidate.id === step);
+}
 
 export function OnboardingProgress({
   currentStep,
 }: {
   currentStep: OnboardingStepId;
 }) {
-  const activeIndex = onboardingSteps.findIndex((step) => step.id === currentStep);
+  const activeIndex = getOnboardingStepIndex(currentStep);
 
   return (
     <div className="border-t border-current/25 pt-5">
       <div className="mb-4 text-[9px] uppercase tracking-[0.14em] opacity-55">
         {activeIndex + 1} / {onboardingSteps.length} {onboardingSteps[activeIndex]?.label}
       </div>
-      <ol className="grid grid-cols-5 gap-2">
+      <ol className="grid grid-cols-3 gap-2">
         {onboardingSteps.map((step, index) => {
           const active = index === activeIndex;
           const complete = index < activeIndex;

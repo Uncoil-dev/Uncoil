@@ -7,7 +7,6 @@ import type { OnboardingStepId } from "./onboarding-progress";
 const BACK_MAPPING: Record<string, string> = {
   "api-key": "/onboarding/project",
   "install": "/onboarding/api-key",
-  "waiting": "/onboarding/install",
 };
 
 export function OnboardingBackButton({ currentStep }: { currentStep: OnboardingStepId }) {

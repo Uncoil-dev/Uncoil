@@ -1,10 +1,6 @@
-import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
-import { WaitingStep } from "@/components/onboarding/waiting-step";
+import { redirect } from "next/navigation";
 
+// The waiting screen is part of "Send your first run" now. Old links still land there.
 export default function OnboardingWaitingPage() {
-  return (
-    <OnboardingShell currentStep="waiting">
-      <WaitingStep />
-    </OnboardingShell>
-  );
+  redirect("/onboarding/install");
 }

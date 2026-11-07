@@ -8,12 +8,15 @@ export function CodeCopyBlock({
   multiline = false,
   copyLabel = "Copy",
   collapsible = false,
+  displayValue,
 }: {
   label: string;
   value: string;
   multiline?: boolean;
   copyLabel?: string;
   collapsible?: boolean;
+  /** Shown instead of `value` (for example a masked key). Copy still uses `value`. */
+  displayValue?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -45,7 +48,7 @@ export function CodeCopyBlock({
           (clamped ? " h-[calc(4*1.5rem+1.5rem)] overflow-y-hidden" : "")
         }
       >
-        <code>{value}</code>
+        <code>{displayValue ?? value}</code>
       </pre>
       {collapsible ? (
         <button

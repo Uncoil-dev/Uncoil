@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { reportHandledError } from "@/lib/crash-report";
 import { denyProjectAccess } from "@/lib/project-route-access";
 import { listTraces, traceErrorGroups, traceFacets, traceHistogram, traceStats } from "@/lib/tinybird";
 import { resolveTraceFlowFilters } from "@/lib/tinybird";
@@ -13,6 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const parsed = parseTraceFilters(request.nextUrl.searchParams);
   const search = request.nextUrl.searchParams;
+  const startedAt = Date.now();
   try {
     const filters = await resolveTraceFlowFilters(projectId, parsed);
     const [list, histogram, stats, facets, errorGroups] = await Promise.all([
@@ -22,9 +24,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       search.get("facets") === "1" ? traceFacets(projectId, filters) : null,
       search.get("errors") === "1" ? traceErrorGroups(projectId, filters) : null,
     ]);
-    return NextResponse.json({ ...list, histogram, stats, facets, errorGroups, range: { from: filters.fromMs, to: filters.toMs } });
+    const tookMs = Date.now() - startedAt;
+    if (tookMs > 3_000) console.warn(`[slow] trace list took ${tookMs} ms (${list.total} traces)`);
+    return NextResponse.json({ ...list, histogram, stats, facets, errorGroups, range: { from: filters.fromMs, to: filters.toMs } }, { headers: { "Server-Timing": `traces;dur=${tookMs}` } });
   } catch (error) {
-    console.error("Trace list failed:", error);
+    await reportHandledError("GET /api/projects/[projectId]/traces", error);
     return NextResponse.json({ error: "Trace data is temporarily unavailable. Try again in a moment." }, { status: 503 });
   }
 }

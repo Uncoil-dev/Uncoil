@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/../convex/_generated/api";
+import { EmptyState } from "./empty/empty-state";
+import { SampleFlow } from "./empty/samples";
 
 const TRIGGERS = [
   { id: "alert.created", label: "An alert fires", hint: "Any rule you set up in Alerts" },
@@ -103,7 +105,7 @@ export function AutomationsWorkspace({ projectId }: { projectId: string }) {
 
   return (
     <div className="mx-auto grid max-w-5xl gap-6 text-[#E8EAED]">
-      <section className="border border-[#262C35] bg-[#0E1115] p-5">
+      <section id="new-automation" className="scroll-mt-24 border border-[#262C35] bg-[#0E1115] p-5">
         <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[#7C8591]">New rule</p>
         <Sentence initial={{ name: "", eventSource: "run.failed", actionType: "webhook", destination: "" }} submitLabel="Turn on" onSubmit={async (v) => { await create({ projectId: pid, ...v }); }} />
       </section>
@@ -117,10 +119,7 @@ export function AutomationsWorkspace({ projectId }: { projectId: string }) {
       {rows === undefined ? (
         <div className="grid gap-3">{[0, 1].map((i) => <div key={i} className="h-24 animate-pulse border border-[#1F242C] bg-[#0E1115]" />)}</div>
       ) : rows.length === 0 ? (
-        <div className="border border-dashed border-[#262C35] px-6 py-12 text-center">
-          <p className="text-sm text-[#E8EAED]">Nothing is wired up yet.</p>
-          <p className="mt-1 text-xs text-[#7C8591]">Pick something that happens above, say where it should go, and turn it on.</p>
-        </div>
+        <EmptyState eyebrow="Automations" title="Let Uncoil act when something happens" why="Pick an event, say where it should go, and it runs on its own: post to Slack, call a webhook, queue a review." sample={<SampleFlow />} action={{ label: "Write your first rule", onClick: () => { const form = document.getElementById("new-automation"); form?.scrollIntoView({ behavior: "smooth", block: "center" }); form?.querySelector<HTMLElement>("input, select")?.focus({ preventScroll: true }); } }} />
       ) : (
         <ul className="grid gap-3">
           {rows.map((row) => {

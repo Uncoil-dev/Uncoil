@@ -32,3 +32,22 @@ test("robots keeps utility routes out of the crawl", () => {
   const robots = read("src/app/robots.ts");
   for (const path of ["/dashboard/", "/onboarding/", "/api/", "/sign-in", "/sign-up"]) assert.ok(robots.includes(path), path);
 });
+
+test("sitemap does not list URLs that redirect", () => {
+  const sitemap = read(`${app}/sitemap.ts`);
+  // /no and /de redirect to the English pages (see next.config.ts), so they must not be listed.
+  assert.doesNotMatch(sitemap, /\["no", "de"\]/);
+  assert.doesNotMatch(sitemap, /\/\$\{locale\}/);
+});
+
+test("copy-paste examples never point at the bare domain, which redirects", () => {
+  for (const file of ["content/docs/api.mdoc", "content/docs/integrations.mdoc", "content/docs/agent-setup.mdoc", "src/components/marketing/company/code-tabs.tsx", "src/lib/seo-pages.ts", "README.md"]) {
+    assert.doesNotMatch(read(file), /https?:\/\/uncoil\.dev/, `${file} uses https://uncoil.dev, which redirects; use www.uncoil.dev or eu.cloud.uncoil.dev`);
+  }
+});
+
+test("old domain redirects keep the method for non-GET requests", () => {
+  const proxy = read("src/proxy.ts");
+  assert.match(proxy, /308/);
+  assert.match(proxy, /cloud\\\.tracify\\\.tech/);
+});

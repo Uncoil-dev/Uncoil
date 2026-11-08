@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -34,7 +34,7 @@ function PricingCheckout() {
   const [projectId, setProjectId] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const [code, setCode] = useState("");
+  const autoStarted = useRef(false);
   const selectedProjectId = projectId || projects?.[0]?._id || "";
   const returnPath = `/pricing/checkout?plan=${plan}&interval=${interval}`;
 
@@ -42,7 +42,7 @@ function PricingCheckout() {
     const response = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ projectId: targetProjectId, plan, interval, code: code.trim() || undefined }),
+      body: JSON.stringify({ projectId: targetProjectId, plan, interval }),
     });
     const responseText = await response.text();
     let data: { url?: string; error?: string } = {};
@@ -78,6 +78,17 @@ function PricingCheckout() {
       setPending(false);
     }
   }
+
+  // Straight to Stripe: pricing buttons land here and we open checkout without another click.
+  // We stay on the page only to pick between several projects, after a cancel, or if checkout failed.
+  const waitingForSignIn = auth.status === "loading" || (isAuthenticated && projects === undefined);
+  const needsProjectChoice = isAuthenticated && (projects?.length ?? 0) > 1;
+  useEffect(() => {
+    if (autoStarted.current || waitingForSignIn || needsProjectChoice || cancelled) return;
+    autoStarted.current = true;
+    void pay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waitingForSignIn, needsProjectChoice, cancelled]);
 
   const planInfo = planById(plan);
   const price = monthlyPrice(planInfo, interval);
@@ -154,9 +165,6 @@ function PricingCheckout() {
             <span>{pending ? "Opening Stripe…" : waiting ? "One moment…" : `Pay ${formatPrice(interval === "annual" ? price * 12 : price)} ${interval === "annual" ? "a year" : "a month"}`}</span>
             <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </button>
-          <label htmlFor="checkout-code" className="mt-5 block font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">Have a code?</label>
-          <input id="checkout-code" value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" autoCapitalize="characters" spellCheck={false} placeholder="Enter code" className="mt-2 h-12 w-full border-2 border-black bg-white px-4 font-mono text-sm uppercase placeholder:normal-case focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f4d44d]" />
-          <p className="mt-2 text-xs leading-5 text-black/55">Founding member? Enter <button type="button" onClick={() => setCode("FOUNDING40")} className="font-mono underline underline-offset-4 hover:bg-[#f4d44d]">FOUNDING40</button> for 40% off.</p>
           <TrustRow />
           {!isAuthenticated && !waiting ? (
             <p className="mt-8 border-t border-black/20 pt-5 text-sm text-black/70">

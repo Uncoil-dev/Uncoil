@@ -85,12 +85,20 @@ export function StepArtwork({ step }: { step: OnboardingStepId }) {
             <p className="text-white/35">OPENAI_API_KEY=sk-••••</p>
           </div>
         ) : null}
-        {step === "install" ? (
-          <div className="space-y-1 text-[12px] leading-6">
+        {(step === "install" || step === "waiting") && draft.arrived ? (
+          <div className="relative space-y-5">
+            <Burst />
+            <p className="relative text-center font-pixel text-3xl tracking-[-0.05em] text-[#f4d44d]">first run received</p>
+            <Waterfall live />
+          </div>
+        ) : null}
+        {(step === "install" || step === "waiting") && !draft.arrived ? (
+          <div className="space-y-5">
+            <div className="space-y-1 text-[12px] leading-6">
             <p className="text-white/40">{draft.runtime === "typescript" ? "// agent.ts" : "# agent.py"}</p>
             {draft.runtime === "typescript" ? (
               <>
-                <p className="text-white/50">import &#123; traceAgent &#125; from &quot;uncoil&quot;</p>
+                <p className="text-white/50">import &#123; traceAgent &#125; from &quot;@uncoil.dev/sdk&quot;</p>
                 <p className="text-[#f4d44d]">const agent = traceAgent(run)</p>
               </>
             ) : (
@@ -100,10 +108,7 @@ export function StepArtwork({ step }: { step: OnboardingStepId }) {
                 <p>async def agent(query): ...</p>
               </>
             )}
-          </div>
-        ) : null}
-        {step === "waiting" ? (
-          <div className="space-y-5">
+            </div>
             <Waterfall live={false} />
             <p className="border-t border-white/10 pt-4 text-[11px] uppercase tracking-[0.16em] text-white/45">Waiting for your first run</p>
           </div>

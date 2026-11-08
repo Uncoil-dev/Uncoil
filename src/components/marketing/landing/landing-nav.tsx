@@ -3,11 +3,12 @@
 import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import { DitherEmber } from "./dither-ember";
+import { traceReachY } from "./trace-reach";
 
 const art = "[image-rendering:pixelated]";
 
@@ -81,6 +82,10 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
   const [mobile, setMobile] = useState(false);
   const [solid, setSolid] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
+  // x of the nav item the trace has reached, and the y of the hovered step inside the open menu.
+  const [litX, setLitX] = useState<number | null>(null);
+  const [reach, setReach] = useState<{ col: number; y: number } | null>(null);
   const { scrollY } = useScroll();
   const { data: session } = authClient.useSession();
 
@@ -99,35 +104,60 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
 
   const menu = active ? menus[active] : null;
 
+  const reachItem = (el: HTMLElement) => {
+    const bar = barRef.current?.getBoundingClientRect();
+    if (!bar) return;
+    const r = el.getBoundingClientRect();
+    setLitX(r.left + r.width / 2 - bar.left);
+  };
+
   return (
     <>
       <motion.header
         className="fixed inset-x-0 top-0 z-50"
         animate={{ y: hidden && !mobile ? -90 : 0 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        onMouseLeave={() => setActive(null)}
+        onMouseLeave={() => {
+          setActive(null);
+          setLitX(null);
+          setReach(null);
+        }}
       >
-        <div className={`border-b transition-colors duration-300 ${solidAlways || solid || active ? "border-white/15 bg-[#090909]/90 backdrop-blur-md" : "border-transparent bg-transparent"}`}>
+        <div ref={barRef} className={`relative border-b transition-colors duration-300 ${solidAlways || solid || active ? "border-white/15 bg-[#090909]/90 backdrop-blur-md" : "border-transparent bg-transparent"}`}>
+          {/* The trace: a spine along the bar that runs in from the left and stops at the hovered item. */}
+          <div className="pointer-events-none absolute inset-x-0 -bottom-px hidden h-px lg:block" aria-hidden="true">
+            <div
+              className="h-px bg-[#f4d44d] shadow-[0_0_10px_#f4d44d] transition-[width,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
+              style={{ width: litX ?? 0, opacity: litX === null ? 0 : 1 }}
+            />
+          </div>
           <nav className="mx-auto flex h-[64px] max-w-[1440px] items-center justify-between px-5 md:px-8" aria-label="Main">
             <Logo />
             <ul className="hidden h-full items-stretch border-x border-white/15 lg:flex">
               {names.map((name, i) => (
                 <li key={name} className="relative border-r border-white/15 last:border-r-0">
+                  <span className={`pointer-events-none absolute -bottom-[3.5px] left-1/2 z-10 size-[7px] -translate-x-1/2 transition-colors duration-300 ${active === name ? "bg-[#f4d44d] shadow-[0_0_12px_#f4d44d]" : "bg-white/50"}`} aria-hidden="true" />
                   <button
                     type="button"
-                    onMouseEnter={() => setActive(name)}
-                    onFocus={() => setActive(name)}
+                    onMouseEnter={(e) => {
+                      setActive(name);
+                      reachItem(e.currentTarget);
+                    }}
+                    onFocus={(e) => {
+                      setActive(name);
+                      reachItem(e.currentTarget);
+                    }}
                     onClick={() => setActive(active === name ? null : name)}
                     aria-expanded={active === name}
                     className={`relative flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${active === name ? "bg-white/[0.04] text-white" : "text-white/65 hover:text-white"}`}
                   >
                     <span className="text-[#f4d44d]">0{i + 1}</span> / {name}
-                    {active === name && <motion.span layoutId="nav-underline" className="absolute inset-x-0 bottom-0 h-0.5 bg-[#f4d44d]" />}
                   </button>
                 </li>
               ))}
               <li className="relative">
-                <Link href="/pricing" onMouseEnter={() => setActive(null)} className="flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-white/65 hover:text-white">
+                <span className={`pointer-events-none absolute -bottom-[3.5px] left-1/2 z-10 size-[7px] -translate-x-1/2 transition-colors duration-300 ${litX !== null && active === null ? "bg-[#f4d44d] shadow-[0_0_12px_#f4d44d]" : "bg-white/50"}`} aria-hidden="true" />
+                <Link href="/pricing" onMouseEnter={(e) => { setActive(null); reachItem(e.currentTarget); }} onFocus={(e) => { setActive(null); reachItem(e.currentTarget); }} className="flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-white/65 hover:text-white">
                   <span className="text-[#f4d44d]">05</span> / Pricing
                 </Link>
               </li>
@@ -180,14 +210,29 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                   <motion.div key={active} className="relative grid grid-cols-2 gap-x-6 px-5 pb-5 pt-8" initial="hide" animate="show" variants={{ show: { transition: { staggerChildren: 0.05 } } }}>
                     <div className="pointer-events-none absolute left-5 right-5 top-8 h-px bg-white/20" aria-hidden="true" />
                     {[menu.links.slice(0, 3), menu.links.slice(3)].map((col, c) => (
-                      <div key={c} className="relative pl-5">
-                        <span className="absolute -left-[3.5px] -top-[3.5px] size-2 bg-white/60" aria-hidden="true" />
+                      <div key={c} data-trace-col className="relative pl-5" onMouseLeave={() => setReach(null)}>
+                        <span className={`absolute -left-[3.5px] -top-[3.5px] size-2 transition-colors ${reach?.col === c ? "bg-[#f4d44d] shadow-[0_0_12px_#f4d44d]" : "bg-white/60"}`} aria-hidden="true" />
                         <span className="absolute bottom-1 left-0 top-0 w-px bg-white/15" aria-hidden="true" />
+                        <span
+                          className="pointer-events-none absolute left-0 top-0 w-px bg-[#f4d44d] shadow-[0_0_8px_#f4d44d] transition-[height,opacity] duration-300 ease-out motion-reduce:transition-none"
+                          style={{ height: reach?.col === c ? reach.y : 0, opacity: reach?.col === c ? 1 : 0 }}
+                          aria-hidden="true"
+                        />
+                        <span
+                          className="pointer-events-none absolute -left-[2px] size-[5px] bg-[#f4d44d] transition-[top,opacity] duration-300 ease-out motion-reduce:transition-none"
+                          style={{ top: (reach?.col === c ? reach.y : 0) - 2.5, opacity: reach?.col === c ? 1 : 0 }}
+                          aria-hidden="true"
+                        />
                         <ul className="grid gap-1 pt-3">
                           {col.map(([t, b, href], j) => (
-                            <motion.li key={href} variants={{ hide: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}>
+                            <motion.li
+                              key={href}
+                              variants={{ hide: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}
+                              onMouseEnter={(e) => setReach({ col: c, y: traceReachY(e.currentTarget) })}
+                              onFocus={(e) => setReach({ col: c, y: traceReachY(e.currentTarget) })}
+                            >
                               <Link href={href} onClick={() => setActive(null)} className="group flex items-start py-2.5">
-                                <span className="-ml-5 mr-3 mt-3 h-px w-2.5 shrink-0 bg-white/20 transition-all group-hover:w-4 group-hover:bg-[#f4d44d]" aria-hidden="true" />
+                                <span data-trace-tick className="-ml-5 mr-3 mt-3 h-px w-2.5 shrink-0 bg-white/20 transition-all group-hover:w-4 group-hover:bg-[#f4d44d]" aria-hidden="true" />
                                 <span className="min-w-0 flex-1">
                                   <span className="flex items-baseline gap-2">
                                     <span className="font-mono text-[10px] text-[#f4d44d]">0{c * 3 + j + 1}</span>

@@ -1,4 +1,6 @@
 import { validTraceSort, TRACE_SORT_FIELDS } from "./trace-sort";
+import { DURATION_EXPR, ERROR_COUNT_EXPR, IS_ERROR, LEAN_AGGREGATE, inPageOrder, isLeanSort, leanCountSql, leanPageSql, pageRowsSql } from "./trace-list-sql";
+export { IS_ERROR };
 import { TYPE_ALIASES } from "@/components/dashboard/tracing/format";
 import { flowGraph, collapseFlowReturns, flowPairId, median, type FlowEdge, type FlowStep } from "./trace-flow";
 /**
@@ -400,8 +402,6 @@ export type TraceListRow = {
   tags: string[]; inputPreview: string; outputPreview: string;
 };
 
-/** A step that failed; the same rule as a trace's errorCount. */
-export const IS_ERROR = `(spanType = 'error' OR errorType != '')`;
 const ERROR_TOOL = `if(toolName != '', toolName, modelId)`;
 // The first 120 characters of the error message with the parts that change between occurrences (urls, emails, ids,
 // paths, quoted values, long tokens, numbers) replaced, so similar failures group together. Regexes avoid backslashes
@@ -463,11 +463,9 @@ function traceListClauses(projectId: string, filters: TraceListFilters) {
 }
 
 // Shared by the full trace row and the lighter run-id filter so HAVING clauses mean the same thing in both.
-const DURATION_EXPR = `if(countIf(parentSpanId = '') > 0, maxIf(latencyMs, parentSpanId = ''), greatest(dateDiff('millisecond', min(createdAt), max(createdAt)), max(latencyMs)))`;
 // A trace whose last span is more than 5 minutes old is finished even without a run_end span, so SDK runs that never send
 // one do not show as "running" forever.
 const FINISHED_EXPR = `(max(createdAt) < now() - INTERVAL 5 MINUTE OR countIf(spanType = 'run_end') > 0 OR countIf(parentSpanId = '' AND ${IS_ERROR}) > 0 OR argMaxIf(lower(JSONExtractString(metadata, 'status')), createdAt, parentSpanId = '' AND JSONExtractString(metadata, 'status') != '') NOT IN ('', 'running', 'pending', 'queued', 'in_progress', 'started'))`;
-const ERROR_COUNT_EXPR = `countIf(${IS_ERROR})`;
 
 /** Run ids of every trace matching the filters, for queries that aggregate steps instead of traces. */
 function matchingRunIds(where: string, having: string) {
@@ -545,6 +543,17 @@ export async function listTraces(projectId: string, filters: TraceListFilters, o
   const expression = extra?.sql ?? (meta ? metadataValueSql(meta) : null);
   const sortColumn = expression ? "sortValue" : TRACE_SORT_FIELDS[sort] ?? "startedAt";
   const direction = filters.direction === "asc" ? "ASC" : "DESC";
+  const dir = direction as "ASC" | "DESC";
+  if (!expression && isLeanSort(sort)) {
+    // Fast path: choose the page from lean rows, then read the heavy text columns for those runs only.
+    const [ids, totals] = await Promise.all([
+      tinybirdRows<{ runId: string }>(leanPageSql({ where, having, sortColumn, direction: dir, pageSize, page })),
+      tinybirdRows<{ total: number }>(leanCountSql({ where, having })),
+    ]);
+    const runIds = ids.map((row) => row.runId);
+    const full = runIds.length ? await tinybirdRows<TraceListRow>(pageRowsSql({ aggregate: TRACE_AGGREGATE, where, runIds, quote: sqlString })) : [];
+    return { rows: await withExtraColumns(projectId, filters, inPageOrder(runIds, full), options), total: Number(totals[0]?.total ?? 0), page, pageSize };
+  }
   const grouped = `SELECT ${TRACE_AGGREGATE}${expression ? `, ${expression} AS sortValue` : ""} FROM spans WHERE ${where} GROUP BY runId ${having}`;
   const [rows, totals] = await Promise.all([
     tinybirdRows<TraceListRow>(`${grouped} ORDER BY ${sortColumn} ${direction}, runId LIMIT ${pageSize} OFFSET ${page * pageSize}`),
@@ -602,7 +611,7 @@ export async function traceHistogram(projectId: string, filters: TraceListFilter
     SELECT toStartOfInterval(startedAt, INTERVAL ${bucketSeconds} SECOND) AS bucket, count() AS traces, countIf(errorCount > 0) AS errors,
       sum(totalCostUsd) AS costUsd, sum(inputTokens + outputTokens) AS tokens, countIf(finished) AS finishedTraces,
       quantileExactIf(0.5)(durationMs, finished) AS p50DurationMs, quantileExactIf(0.95)(durationMs, finished) AS p95DurationMs
-    FROM (SELECT ${TRACE_AGGREGATE}, ${FINISHED_EXPR} AS finished FROM spans WHERE ${where} GROUP BY runId ${having})
+    FROM (SELECT ${LEAN_AGGREGATE}, ${FINISHED_EXPR} AS finished FROM spans WHERE ${where} GROUP BY runId ${having})
     GROUP BY bucket ORDER BY bucket`);
   const finite = (value: number | string | undefined) => { const parsed = Number(value); return Number.isFinite(parsed) ? parsed : 0; };
   return {
@@ -638,7 +647,7 @@ export async function traceActivity(projectId: string, filters: TraceListFilters
   const zone = sqlString(activityTimeZone(timeZone));
   const rows = await tinybirdRows<{ day: string; traces: number; errors: number; costUsd: number }>(`
     SELECT toString(toDate(startedAt, '${zone}')) AS day, count() AS traces, countIf(errorCount > 0) AS errors, sum(totalCostUsd) AS costUsd
-    FROM (SELECT ${TRACE_AGGREGATE} FROM spans WHERE ${where} GROUP BY runId ${having})
+    FROM (SELECT ${LEAN_AGGREGATE} FROM spans WHERE ${where} GROUP BY runId ${having})
     GROUP BY day ORDER BY day`);
   const finite = (value: number | string) => { const parsed = Number(value); return Number.isFinite(parsed) ? parsed : 0; };
   return rows.map((row): ActivityDay => ({ day: String(row.day), traces: finite(row.traces), errors: finite(row.errors), costUsd: finite(row.costUsd) }));
@@ -656,7 +665,7 @@ export async function traceStats(projectId: string, filters: TraceListFilters): 
     SELECT count() AS traces, countIf(errorCount > 0) AS errors,
       quantileExactIf(0.5)(durationMs, finished) AS p50DurationMs, quantileExactIf(0.95)(durationMs, finished) AS p95DurationMs, countIf(NOT finished) AS runningTraces,
       sum(totalCostUsd) AS totalCostUsd, sum(inputTokens) AS inputTokens, sum(outputTokens) AS outputTokens
-    FROM (SELECT ${TRACE_AGGREGATE}, ${FINISHED_EXPR} AS finished FROM spans WHERE ${where} GROUP BY runId ${having})`);
+    FROM (SELECT ${LEAN_AGGREGATE}, ${FINISHED_EXPR} AS finished FROM spans WHERE ${where} GROUP BY runId ${having})`);
   const row = rows[0] ?? {};
   const value = (key: keyof TraceStats) => {
     const parsed = Number(row[key] ?? 0);

@@ -73,3 +73,22 @@ export async function reportCrash(input: CrashReport) {
     return { emailed: false as const, reason: "error" as const };
   }
 }
+
+/**
+ * For errors a route catches and turns into a friendly 503: they never reach Next's error hook, so without this
+ * a broken query or a lost span only shows in the container log. Same scrubbing, dedupe and rate limit as a crash.
+ * Never throws and never blocks the response for long. Quiet outside production.
+ */
+export async function reportHandledError(where: string, error: unknown) {
+  console.error(`[handled] ${where}:`, error instanceof Error ? error.message : error);
+  if (process.env.NODE_ENV !== "production" || process.env.PLAYWRIGHT_LOCAL_SERVER === "1") return;
+  const err = error instanceof Error ? error : new Error(String(error));
+  try {
+    await Promise.race([
+      reportCrash({ source: "server", message: `${where}: ${err.message}`, stack: err.stack, route: where }),
+      new Promise((resolve) => setTimeout(resolve, 2_000)),
+    ]);
+  } catch {
+    // Reporting must never turn a handled error into a failed request.
+  }
+}

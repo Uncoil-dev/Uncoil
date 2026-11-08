@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Lock } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Copy, Lock } from "lucide-react";
 import { formatCurrency, formatDuration } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -52,14 +52,31 @@ export function SharedTraceView({ run, spans, unavailable }: { run: SharedRun; s
   const byId = new Map(spans.map((span) => [span.spanId, span]));
   const duration = run.finishedAt ? new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime() : null;
   const maxLatency = Math.max(1, ...spans.map((span) => span.latencyMs));
-  const [open, setOpen] = useState<string | null>(spans.find((span) => span.errorMessage || span.spanType === "error")?.spanId ?? spans[0]?.spanId ?? null);
+  const firstFailed = spans.find((span) => span.errorMessage || span.spanType === "error");
+  const failedCount = spans.filter((span) => span.errorMessage || span.spanType === "error").length;
+  const [open, setOpen] = useState<string | null>(firstFailed?.spanId ?? spans[0]?.spanId ?? null);
+  const [copied, setCopied] = useState(false);
+  const marketing = process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.uncoil.dev";
+
+  async function copyLink() {
+    try { await navigator.clipboard.writeText(window.location.href); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { /* the address bar still works */ }
+  }
+
+  function jumpToFailure() {
+    if (!firstFailed) return;
+    setOpen(firstFailed.spanId);
+    window.requestAnimationFrame(() => document.getElementById(`shared-step-${firstFailed.spanId}`)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }
 
   return (
     <main className="min-h-screen bg-[#eceae3] text-[#090909]">
       <header className="border-b border-black/15 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4">
           <Link href={process.env.NEXT_PUBLIC_MARKETING_ORIGIN || "https://www.uncoil.dev"} className="font-pixel text-xl tracking-[-0.06em]">uncoil</Link>
-          <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-black/55"><Lock className="size-3" />Shared read-only trace</span>
+          <div className="flex items-center gap-3">
+            <span className="hidden items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-black/55 sm:flex"><Lock className="size-3" />Shared read-only run</span>
+            <button type="button" onClick={() => void copyLink()} className="flex h-8 items-center gap-2 border border-black/15 px-3 font-mono text-[11px] uppercase text-black/70 hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">{copied ? <Check className="size-3" /> : <Copy className="size-3" />}{copied ? "Copied" : "Copy link"}</button>
+          </div>
         </div>
       </header>
       <div className="mx-auto max-w-5xl space-y-6 px-5 py-8">
@@ -73,6 +90,12 @@ export function SharedTraceView({ run, spans, unavailable }: { run: SharedRun; s
             <Stat label="Duration" value={duration === null ? "Running" : formatDuration(duration)} />
           </dl>
           {run.primaryModel ? <p className="mt-4 font-mono text-[11px] text-black/55">Main model: {run.primaryModel}</p> : null}
+          {firstFailed ? (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border border-red-700/30 bg-red-50 px-3 py-2">
+              <p className="min-w-0 truncate font-mono text-[11px] text-red-800">{failedCount} failed step{failedCount === 1 ? "" : "s"}{firstFailed.errorMessage ? `: ${firstFailed.errorMessage.slice(0, 90)}` : ""}</p>
+              <button type="button" onClick={jumpToFailure} className="h-7 shrink-0 border border-red-700/40 bg-white px-2 font-mono text-[10px] uppercase text-red-800 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">Show failing step</button>
+            </div>
+          ) : null}
         </section>
 
         {unavailable ? <p className="border border-black/15 bg-white p-4 font-mono text-[11px] text-black/60">The steps could not be loaded right now. Try again in a minute.</p> : null}
@@ -84,7 +107,7 @@ export function SharedTraceView({ run, spans, unavailable }: { run: SharedRun; s
               const isOpen = open === span.spanId;
               const failed = span.spanType === "error" || Boolean(span.errorMessage);
               return (
-                <li key={span.spanId}>
+                <li key={span.spanId} id={`shared-step-${span.spanId}`}>
                   <button type="button" onClick={() => setOpen(isOpen ? null : span.spanId)} aria-expanded={isOpen}
                     className="flex w-full items-center gap-3 px-5 py-3 text-left hover:bg-black/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
                     style={{ paddingLeft: `${20 + depthOf(span, byId) * 18}px` }}>
@@ -107,6 +130,13 @@ export function SharedTraceView({ run, spans, unavailable }: { run: SharedRun; s
               );
             })}
           </ol>
+        </section>
+        <section className="flex flex-col gap-4 border border-black bg-[#090909] p-6 text-[#eceae3] sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-pixel text-2xl leading-tight">See your own agent runs like this.</p>
+            <p className="mt-1 text-sm text-[#eceae3]/70">Add two lines of code. Every step, cost and failure shows up here.</p>
+          </div>
+          <Link href={`${marketing}/cloud?next=/sign-up`} className="flex h-10 shrink-0 items-center justify-center bg-[#f4d44d] px-5 font-mono text-[11px] uppercase text-[#090909] hover:bg-[#f7dc6b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f4d44d]">Start free</Link>
         </section>
         <p className="text-center font-mono text-[10px] text-black/45">Shared with a private link. The owner can turn it off at any time.</p>
       </div>

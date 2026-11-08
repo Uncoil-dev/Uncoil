@@ -106,4 +106,4 @@ API keys are hashed server-side and shown only once. Redaction is applied before
 
 ## License
 
-The application and SDKs are MIT licensed unless a subdirectory states otherwise.
+The application and SDKs are MIT licensed. See [LICENSE](LICENSE).

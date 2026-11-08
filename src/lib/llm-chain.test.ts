@@ -1,3 +1,4 @@
+import { shouldRetry } from "./llm-chain.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { completeWithFallback } from "./llm-chain.ts";
@@ -85,4 +86,12 @@ test("streaming hands out pieces as they arrive and returns the whole answer", a
     const result = await streamWithFallback("t", { alt: "z" }, { alt: "m1" }, prompt, (piece) => seen.push(piece));
     assert.deepEqual([result.text, result.provider, seen], ["Hello", "alt", ["Hel", "lo"]]);
   } finally { globalThis.fetch = original; }
+});
+
+test("retries only blips", () => {
+  assert.equal(shouldRetry({ text: "" }), true);
+  assert.equal(shouldRetry({ text: "", failure: "error", status: 503 }), true);
+  assert.equal(shouldRetry({ text: "", failure: "rate", status: 429 }), false);
+  assert.equal(shouldRetry({ text: "", failure: "auth", status: 401 }), false);
+  assert.equal(shouldRetry({ text: "ok" }), false);
 });

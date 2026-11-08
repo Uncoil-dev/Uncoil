@@ -6,7 +6,7 @@ import type { Id } from "convex/_generated/dataModel";
 import { getAuthedConvexClient } from "@/lib/convex-server";
 import { consumeRateLimit } from "@/lib/redis-cache";
 import { getSpansForRun } from "@/lib/tinybird";
-import { completeWithFallback } from "@/lib/llm-chain";
+import { completeWithFallback, streamWithFallback } from "@/lib/llm-chain";
 import { providerForKey } from "@/lib/openai-chat";
 import { buildUserMessage, MAX_QUESTION_LENGTH, quickAnswer, resolveCitations, sanitizeHistory, SYSTEM_PROMPT, type AskAnswer, type AskSpan, type AskTurn } from "@/lib/ask-ai";
 
@@ -51,24 +51,46 @@ async function askClaude(apiKey: string, spans: AskSpan[], question: string, his
   }
 }
 
+const MODELS = () => ({ alt: process.env.ASK_AI_ALT_MODEL, openai: (process.env.UNCOIL_ASK_AI_MODEL ?? process.env.TRACIFY_ASK_AI_MODEL) });
+const KEYS = () => ({ alt: altKey() || undefined, openai: altKey() ? undefined : askKey() || undefined });
+const isBusy = (failures: string[]) => failures.some((failure) => failure === "rate" || failure === "quota");
+
 /** Anthropic key first, unless the alternate provider is set (then nothing paid is used); otherwise the alternate provider or OpenAI. */
-async function askModel(spans: AskSpan[], question: string, history: AskTurn[]): Promise<AskResult> {
+async function askModel(spans: AskSpan[], question: string, history: AskTurn[], onText?: (piece: string) => void): Promise<AskResult> {
   const apiKey = askKey();
   if (apiKey && !altKey() && providerForKey(apiKey) === "anthropic") {
     const claude = await askClaude(apiKey, spans, question, history);
     if (claude.text) return { answer: resolveCitations(claude.text, spans) };
     return { answer: null, busy: claude.busy };
   }
-  const result = await completeWithFallback("Ask AI", { alt: altKey() || undefined, openai: altKey() ? undefined : apiKey || undefined }, { alt: process.env.ASK_AI_ALT_MODEL, openai: (process.env.UNCOIL_ASK_AI_MODEL ?? process.env.TRACIFY_ASK_AI_MODEL) }, { system: SYSTEM_PROMPT, user: buildUserMessage(spans, question, history), temperature: 0.2, maxOutputTokens: 1500, timeoutMs: 25_000 });
+  const prompt = { system: SYSTEM_PROMPT, user: buildUserMessage(spans, question, history), temperature: 0.2, maxOutputTokens: 1500, timeoutMs: 25_000 };
+  const result = onText
+    ? await streamWithFallback("Ask AI", KEYS(), MODELS(), prompt, onText)
+    : await completeWithFallback("Ask AI", KEYS(), MODELS(), prompt);
   if (result.text) return { answer: resolveCitations(result.text, spans) };
-  return { answer: null, busy: result.failures.some((failure) => failure === "rate" || failure === "quota") };
+  return { answer: null, busy: isBusy(result.failures) };
+}
+
+function fallbackReply(question: string, spans: AskSpan[], busy: boolean | undefined) {
+  const basic = quickAnswer(question, spans);
+  if (basic) return { ...basic, source: "basic" as const };
+  const configured = Boolean(askKey() || altKey());
+  return {
+    answer: busy
+      ? "The AI service is busy right now. Wait a minute and try again, or ask one of the suggested questions."
+      : configured
+      ? "I couldn't reach the AI service just now. Try again in a moment, or ask one of the suggested questions."
+      : "Free-form questions need AI switched on for this workspace. For now I can answer what went wrong, what was slowest, what cost the most, and a short summary.",
+    stepIds: [] as string[],
+    source: "basic" as const,
+  };
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ projectId: string; runId: string }> }) {
   const { projectId, runId } = await params;
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json().catch(() => null) as { question?: unknown; history?: unknown } | null;
+  const body = await req.json().catch(() => null) as { question?: unknown; history?: unknown; stream?: unknown } | null;
   const question = typeof body?.question === "string" ? body.question.trim() : "";
   if (!question || question.length > MAX_QUESTION_LENGTH) {
     return NextResponse.json({ error: `Questions must be between 1 and ${MAX_QUESTION_LENGTH} characters.` }, { status: 422 });
@@ -101,18 +123,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
     return NextResponse.json({ error: "Step data is temporarily unavailable." }, { status: 503 });
   }
 
-  const { answer: ai, busy } = await askModel(spans, question, sanitizeHistory(body?.history));
+  const history = sanitizeHistory(body?.history);
+
+  // The panel asks for a stream: pieces of the answer arrive as they are written, then one final message with the step links.
+  if (body?.stream === true) {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const send = (line: unknown) => controller.enqueue(encoder.encode(`${JSON.stringify(line)}\n`));
+        try {
+          const { answer: ai, busy } = await askModel(spans, question, history, (piece) => send({ delta: piece }));
+          send({ done: ai ? { ...ai, source: "ai" } : fallbackReply(question, spans, busy) });
+        } catch (error) {
+          console.error("Ask AI stream failed:", error instanceof Error ? error.name : "unknown");
+          send({ done: fallbackReply(question, spans, false) });
+        }
+        controller.close();
+      },
+    });
+    return new Response(stream, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store, no-transform", "x-accel-buffering": "no" } });
+  }
+
+  const { answer: ai, busy } = await askModel(spans, question, history);
   if (ai) return NextResponse.json({ ...ai, source: "ai" });
-  const basic = quickAnswer(question, spans);
-  if (basic) return NextResponse.json({ ...basic, source: "basic" });
-  const configured = Boolean(askKey() || altKey());
-  return NextResponse.json({
-    answer: busy
-      ? "The AI service is busy right now. Wait a minute and try again, or ask one of the suggested questions."
-      : configured
-      ? "I couldn't reach the AI service just now. Try again in a moment, or ask one of the suggested questions."
-      : "Free-form questions need AI switched on for this workspace. For now I can answer what went wrong, what was slowest, what cost the most, and a short summary.",
-    stepIds: [],
-    source: "basic",
-  });
+  return NextResponse.json(fallbackReply(question, spans, busy));
 }

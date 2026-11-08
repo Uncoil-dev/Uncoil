@@ -25,8 +25,9 @@ export const plans: readonly Plan[] = [
 
 export const ANNUAL_DISCOUNT = 0.2;
 
+// Annual prices are the 20% discount rounded down to whole dollars a month ($19 -> $15, $39 -> $31).
 export function monthlyPrice(plan: Plan, interval: BillingInterval) {
-  return interval === "annual" ? plan.monthly * (1 - ANNUAL_DISCOUNT) : plan.monthly;
+  return interval === "annual" ? Math.floor(plan.monthly * (1 - ANNUAL_DISCOUNT) + 1e-9) : plan.monthly;
 }
 
 export function formatPrice(value: number) {

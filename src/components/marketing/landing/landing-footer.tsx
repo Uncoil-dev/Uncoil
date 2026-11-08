@@ -161,6 +161,11 @@ export function LandingFooter() {
             </span>
           </div>
           <div className="flex flex-wrap gap-5">
+            <Link href="/security#data" className="inline-flex items-center gap-2 hover:text-white">
+              <span className="size-1.5 bg-[#f4d44d]" aria-hidden="true" />
+              Where your data lives
+            </Link>
+            <Link href="/security#deletion" className="hover:text-white">Delete anytime</Link>
             <Link href="/privacy" className="hover:text-white">Privacy</Link>
             <Link href="/terms" className="hover:text-white">Terms</Link>
             <Link href="/cookie-policy" className="hover:text-white">Cookies</Link>

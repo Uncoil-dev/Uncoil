@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { reportHandledError } from "@/lib/crash-report";
 import { denyProjectAccess } from "@/lib/project-route-access";
 import { resolveTraceFlowFilters, traceActivity } from "@/lib/tinybird";
 import { parseTraceFilters } from "@/lib/trace-filters";
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const days = await traceActivity(projectId, filters, search.get("tz") ?? "UTC");
     return NextResponse.json({ days });
   } catch (error) {
-    console.error("Trace activity failed:", error);
+    await reportHandledError("GET /api/projects/[projectId]/traces/activity", error);
     return NextResponse.json({ error: "Activity data is temporarily unavailable. Try again in a moment." }, { status: 503 });
   }
 }

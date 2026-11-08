@@ -5,6 +5,8 @@ import { FilterChips, GroupControls, GroupFooter } from "./group-controls";
 import type { GroupView } from "./group-view";
 import { RunCells } from "./pixel";
 import { SessionReader } from "./session-reader";
+import { EmptyState } from "../empty/empty-state";
+import { SampleSessions } from "../empty/samples";
 
 const PAGE_FONT = "font-[family-name:var(--font-geist-pixel-square)]";
 
@@ -45,7 +47,10 @@ export function SessionsView({ view }: { view: GroupView }) {
             </div>
           ) : null}
           {!data && !error ? <div className="p-6 text-[#a9a693]" role="status">Loading sessions…</div> : null}
-          {data && !rows.length && !error ? (
+          {data && !rows.length && !error && !view.filters.length ? (
+            <EmptyState eyebrow="Sessions" title="Follow one user through a whole conversation" why="A session groups every run that shares an id, so you see the full journey and where it went wrong." sample={<SampleSessions />} action={{ label: "Add a session id", href: `${view.basePath}/quickstart` }} />
+          ) : null}
+          {data && !rows.length && !error && view.filters.length ? (
             <div className="mx-auto max-w-sm p-10 text-center">
               <p className={`${PAGE_FONT} text-xl`}>{view.filters.length ? "Nothing matches" : "No sessions yet"}</p>
               <p className="mt-2 leading-5 text-[#a9a693]">{view.filters.length ? "Clear a filter or widen the time range." : "Sessions appear once your agent sends a session id with its steps. Add sessionId to your SDK calls."}</p>

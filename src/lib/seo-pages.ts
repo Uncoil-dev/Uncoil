@@ -18,7 +18,25 @@ export type Comparison = {
   pickUncoil: readonly string[];
   rows: readonly (readonly [string, string, string])[];
   faq: readonly Faq[];
+  /** Verified plan facts, read from the vendor's public pages on `asOf`. */
+  plans?: readonly { name: string; price: string; includes: string }[];
+  /** Where the other product wins on the numbers, stated plainly. */
+  theirEdge?: readonly string[];
+  /** Differences in what a "unit" means, so prices are not compared blindly. */
+  unitNote?: string;
+  /** Short recent news about the vendor, only if read on an official page. */
+  news?: string;
+  /** Steps to move from this tool to Uncoil. */
+  switching?: readonly string[];
+  asOf?: string;
+  sources?: readonly { label: string; href: string }[];
 };
+
+export const uncoilPlans = [
+  { name: "Free", price: "$0", includes: "25k spans a month, 7 days of history, 1 member, 3 projects" },
+  { name: "Pro", price: "$19 a month", includes: "500k spans a month, 30 days of history, 5 members, evaluations, Slack alerts" },
+  { name: "Team", price: "$39 a month", includes: "2m spans a month, 90 days of history, 20 members, unlimited projects, release gates" },
+] as const;
 
 const uncoilRows = {
   tracing: "Traces for agent runs, model calls and tool calls, ingested over OpenTelemetry (OTLP) or the TypeScript and Python SDKs",
@@ -47,6 +65,34 @@ export const comparisons: readonly Comparison[] = [
       { q: "Is Langfuse only for self-hosting?", a: "No. Langfuse also runs a hosted cloud with separate US, EU, Japan and HIPAA regions, and the open-source edition can be self-hosted. The two are the same product, so the choice is about who operates it." },
       { q: "Is Uncoil an alternative to Langfuse?", a: "Yes. Both trace LLM applications and agents and track cost and quality. Langfuse is open source; Uncoil is a managed platform with an EU region, alerts and evaluation built in." },
       { q: "Can I use OpenTelemetry with Uncoil instead of a proprietary SDK?", a: "Yes. Uncoil accepts spans over OTLP HTTP, so any OpenTelemetry-instrumented library can send traces. The TypeScript and Python SDKs are optional." },
+      { q: "Who owns Langfuse now?", a: "Langfuse's site says it has joined ClickHouse, and its footer is marked ClickHouse, Inc. The product and the self-hosted edition are still published. We have not read the announcement, so check Langfuse's own blog for what it means for roadmap and pricing." },
+      { q: "Which is cheaper, Langfuse or Uncoil?", a: "It depends on your volume and what you count. Langfuse bills in units from $29 a month (Core, 100k units, then $8 per extra 100k). Uncoil bills flat from $19 a month for 500k spans. A unit and a span are not the same thing, so run your real traffic through both before you decide." },
+    ],
+    plans: [
+      { name: "Hobby", price: "Free", includes: "50k units a month, 30 days of data, 2 users, 2 alerts" },
+      { name: "Core", price: "$29 a month", includes: "100k units a month, then $8 per 100k, 90 days of data, unlimited users" },
+      { name: "Pro", price: "$199 a month", includes: "3 years of data, retention controls, SOC 2 and ISO 27001 reports, HIPAA-ready region" },
+      { name: "Enterprise", price: "$2,499 a month", includes: "Audit logs, SCIM, custom rate limits, uptime SLA" },
+    ],
+    theirEdge: [
+      "Longer history. Langfuse keeps 90 days on Core and 3 years on Pro. Uncoil keeps 7, 30 or 90 days.",
+      "Open source and self-hostable (Docker Compose, Kubernetes, Terraform). Uncoil is managed only.",
+      "Prompt management, human annotation queues, a larger set of regions (US, EU, Japan, HIPAA) and a bigger community.",
+      "A new AI Gateway in public beta, announced on its changelog on 4 November 2026.",
+    ],
+    unitNote: "Langfuse bills in units. Uncoil bills in spans. They count different things, so a price per unit is not a price per span.",
+    news: "Langfuse's site says it has joined ClickHouse. We have not read the announcement, so we make no claim about what changes.",
+    switching: [
+      "Create an Uncoil project and copy its API key.",
+      "Point your OpenTelemetry exporter at Uncoil's OTLP endpoint. Langfuse also takes OTLP over HTTP, so most setups only change the URL and the key.",
+      "Run both for a week on the same traffic and compare cost and latency numbers.",
+      "Export what you need from Langfuse before you turn it off, since history does not move across.",
+    ],
+    asOf: "7 November 2026",
+    sources: [
+      { label: "Langfuse pricing", href: "https://langfuse.com/pricing" },
+      { label: "Langfuse OpenTelemetry docs", href: "https://langfuse.com/integrations/native/opentelemetry" },
+      { label: "Langfuse on GitHub", href: "https://github.com/langfuse/langfuse" },
     ],
   },
   {
@@ -67,6 +113,31 @@ export const comparisons: readonly Comparison[] = [
     faq: [
       { q: "Do I need LangChain to use Uncoil?", a: "No. Uncoil works with any code that emits OpenTelemetry spans, and wraps for OpenAI, Anthropic and LangGraph are in the docs." },
       { q: "Is Uncoil a LangSmith alternative?", a: "Yes, for teams who want framework-neutral tracing, cost tracking and evaluation in one managed product." },
+      { q: "How long does LangSmith keep traces?", a: "LangSmith's pricing FAQ says base traces are kept for 14 days and extended traces for 180 days. Upgrading a trace to extended costs extra. Uncoil keeps 7 days on Free, 30 on Pro and 90 on Team." },
+      { q: "Does LangSmith charge per seat?", a: "Yes. Plus is $39 per seat per month. Uncoil Pro is a flat $19 a month for up to 5 members, and Team is a flat $39 a month for up to 20." },
+    ],
+    plans: [
+      { name: "Developer", price: "$0 per seat", includes: "1 seat, up to 5k base traces a month, then pay as you go" },
+      { name: "Plus", price: "$39 per seat a month", includes: "Unlimited seats, up to 10k base traces a month, Deployment and Engine access" },
+      { name: "Enterprise", price: "Custom", includes: "Self-hosted or hybrid, custom SSO, RBAC and ABAC, support SLA" },
+    ],
+    theirEdge: [
+      "The tightest fit for LangChain and LangGraph, from the team that builds them.",
+      "A wider product: deployment, an LLM gateway with fallbacks and cost controls, and a prompt hub.",
+      "Self-hosted and hybrid options on Enterprise. Uncoil is managed only.",
+      "SOC 2 Type 2 and HIPAA statements on its regions page.",
+    ],
+    unitNote: "LangSmith counts traces and sells extra products in LangChain Standard Units ($1.00 per LSU). Uncoil counts spans. Compare using your own traffic.",
+    switching: [
+      "Create an Uncoil project and copy its API key.",
+      "Replace the LangSmith tracing variables with an OpenTelemetry exporter that points at Uncoil's OTLP endpoint.",
+      "Keep LangGraph and LangChain as they are. Only the destination of the traces changes.",
+      "Run both side by side for a week, then turn LangSmith off.",
+    ],
+    asOf: "7 November 2026",
+    sources: [
+      { label: "LangSmith pricing", href: "https://www.langchain.com/pricing" },
+      { label: "LangSmith regions FAQ", href: "https://docs.langchain.com/langsmith/regions-faq" },
     ],
   },
   {
@@ -83,7 +154,36 @@ export const comparisons: readonly Comparison[] = [
       ["Cost tracking", "Per-request cost analytics", uncoilRows.cost],
       ["Evaluation", "Datasets and scoring", uncoilRows.eval],
     ],
-    faq: [{ q: "Does Uncoil sit in the request path?", a: "No. Uncoil receives traces after the work is done, so it cannot add latency or a failure point to your model calls." }],
+    faq: [
+      { q: "Does Uncoil sit in the request path?", a: "No. Uncoil receives traces after the work is done, so it cannot add latency or a failure point to your model calls." },
+      { q: "Is Helicone still maintained?", a: "Helicone's pricing page shows a banner that says it is no longer part of Mintlify, with details to come. We found no statement about its roadmap, so we make no claim. Check Helicone's own site." },
+      { q: "Can I keep a gateway and use Uncoil?", a: "Yes. A gateway handles routing and fallbacks. Uncoil records what the agent did with the results. Many teams use both." },
+    ],
+    plans: [
+      { name: "Hobby", price: "Free", includes: "10,000 requests, 1 seat, 7 days of history, 10 logs a minute" },
+      { name: "Pro", price: "$79 a month", includes: "Unlimited seats, alerts and reports, 1 month of history, 1,000 logs a minute" },
+      { name: "Team", price: "$799 a month", includes: "5 organisations, SOC 2 and HIPAA, 3 months of history, 15,000 logs a minute" },
+      { name: "Enterprise", price: "Contact them", includes: "SAML SSO, on-prem, custom MSA" },
+    ],
+    theirEdge: [
+      "A real AI gateway: 100+ models behind one key, with automatic fallbacks and caching.",
+      "Open source (Apache 2.0) and self-hostable with Docker Compose.",
+      "Drop-in setup. Changing a base URL is the fastest way to start logging.",
+    ],
+    unitNote: "Helicone bills per request. Uncoil bills per span, and one agent run holds many spans. Compare using your own traffic.",
+    news: "Helicone's pricing page shows a banner: no longer part of Mintlify, details to come. We found no more detail and make no claim about it.",
+    switching: [
+      "Create an Uncoil project and copy its API key.",
+      "Add the Uncoil SDK or an OpenTelemetry exporter to your agent code.",
+      "Keep Helicone as your gateway if you use its routing. Remove only the logging you no longer need.",
+      "Check that tool calls now show inside each run.",
+    ],
+    asOf: "7 November 2026",
+    sources: [
+      { label: "Helicone pricing", href: "https://www.helicone.ai/pricing" },
+      { label: "Helicone docs", href: "https://docs.helicone.ai/" },
+      { label: "Helicone on GitHub", href: "https://github.com/Helicone/helicone" },
+    ],
   },
   {
     slug: "arize-phoenix",
@@ -225,7 +325,7 @@ await graph.invoke(input, { callbacks: [new UncoilLangGraphHandler()] });`,
     captures: ["Any OTLP-compatible span", "LLM semantic attributes such as model and tokens", "Parent and child relationships", "Errors and timing"],
     language: "bash",
     code: `# Send OTLP HTTP JSON to the /api/otel endpoint, authenticated with a project API key.
-curl -X POST https://uncoil.dev/api/otel \\
+curl -X POST https://eu.cloud.uncoil.dev/api/otel \\
   -H "Authorization: Bearer uncoil_sk_live_..." \\
   -H "Content-Type: application/json" \\
   -d @otlp-traces.json`,

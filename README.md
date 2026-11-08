@@ -79,12 +79,15 @@ SDK / OpenTelemetry → /api/ingest → background queue
 | `packages/ts-sdk/` | TypeScript SDK, `@uncoil.dev/sdk` on npm |
 | `packages/python-sdk/` | Python SDK, `uncoil-sdk` on PyPI |
 | `packages/playwright/` | Playwright test helper |
-| `content/` | Blog posts and docs |
+| `content/blog/` | Blog posts, its own repo: [Uncoil-dev/blog](https://github.com/Uncoil-dev/blog) |
+| `content/docs/` | Docs, its own repo: [Uncoil-dev/docs](https://github.com/Uncoil-dev/docs) |
 | `docs/` | Internal runbooks and specs |
 
 ## Run it locally
 
 ```bash
+git clone --recurse-submodules https://github.com/Uncoil-dev/Uncoil
+cd Uncoil
 npm ci
 npm run dev            # site on http://localhost:3000
 npx convex dev         # backend, in a second terminal

@@ -32,6 +32,8 @@ jobs:
       NEXT_PUBLIC_SITE_URL: https://example.com
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -53,6 +55,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -69,6 +73,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -85,6 +91,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -110,6 +118,8 @@ jobs:
         working-directory: packages/ts-sdk
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
@@ -128,6 +138,8 @@ jobs:
         working-directory: packages/python-sdk
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -141,6 +153,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          submodules: true
           fetch-depth: 0
       - name: Scan with gitleaks
         env:

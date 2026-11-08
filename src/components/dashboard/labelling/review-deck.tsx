@@ -7,6 +7,8 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { currentFor, queueStats, traceDigest, type TraceDigest } from "@/lib/review-utils";
 import { readJson } from "@/lib/safe-json";
+import { EmptyState } from "../empty/empty-state";
+import { SampleReview } from "../empty/samples";
 
 const LABELS = [
   { id: "good", text: "Good", key: "1", tone: "border-[#1F4D38] text-[#5BE3A0]", on: "border-[#5BE3A0] bg-[#0E1A14] text-[#5BE3A0]" },
@@ -143,7 +145,9 @@ export function ReviewDeck({ projectId }: { projectId: string }) {
               )}
             </div>
           ) : items === undefined || identity === undefined ? <div className="p-6 text-xs text-[#8B93A1]" role="status">Loading the line…</div>
-            : !current ? (
+            : !current && !stats.total ? (
+              <div className="p-4"><EmptyState eyebrow="Human review" title="Teach Uncoil what good looks like" why="Label a few real answers as good or wrong. Your labels become scores you can trust and tests you can reuse." sample={<SampleReview />} action={{ label: "Add a trace to review", onClick: () => document.getElementById("add-trace")?.focus() }} secondary={{ label: "Pick one in Tracing", href: `/dashboard/${projectId}/tracing` }} /></div>
+            ) : !current ? (
               <div className="m-auto grid max-w-md place-items-center p-10 text-center">
                 <h2 className="text-sm font-semibold">{stats.waiting ? "Ready when you are" : stats.total ? "You are all caught up" : "Teach Uncoil what good looks like"}</h2>
                 <p className="mt-2 text-xs leading-5 text-[#8B93A1]">{stats.waiting ? `${stats.waiting} trace${stats.waiting === 1 ? " is" : "s are"} waiting. You will see the question and the answer one at a time, and pick a label with the keys 1 to 4.` : stats.total ? "Nothing is waiting. New traces show up here when someone adds them." : "Add the id of a trace on the left. Each one you label becomes proof of how your agent really does, and can become a dataset row."}</p>

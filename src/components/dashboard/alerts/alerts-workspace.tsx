@@ -11,6 +11,8 @@ import { AlertRuleForm } from "./alert-rule-form";
 import { METRICS } from "./alert-metrics";
 import { DeliveryLine, SendTest } from "./delivery-status";
 import { QuietHoursBar } from "./quiet-hours-bar";
+import { EmptyState } from "../empty/empty-state";
+import { SampleAlertRules } from "../empty/samples";
 
 type Status = "all" | "firing" | "ok" | "paused";
 type View = "cards" | "list";
@@ -146,11 +148,7 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
       ) : data === null ? (
         <p className="p-6 text-[#8B93A1]">You don’t have access to this project’s alerts.</p>
       ) : rules.length === 0 ? (
-        <div className="m-4 border border-[#1F242C] bg-[#0E1115] p-8 text-center">
-          <p className="text-[15px] font-semibold">No alert rules yet</p>
-          <p className="mx-auto mt-1 max-w-md text-[#8B93A1]">Get told by email, Slack or webhook when failed runs, spend or speed go over a limit. Rules are checked every 5 minutes.</p>
-          <button type="button" onClick={() => setCreating(true)} className="mt-4 h-8 bg-[#F4D44D] px-4 font-bold text-[#090909]">Create your first rule</button>
-        </div>
+        <div className="p-4"><EmptyState eyebrow="Alert rules" title="Hear about a problem before your users do" why="Get an email, Slack message or webhook when failed runs, spend or speed pass a limit. Rules are checked every 5 minutes." sample={<SampleAlertRules />} action={{ label: "Create your first rule", onClick: () => setCreating(true) }} /></div>
       ) : (
         <>
           <div className={`flex items-center gap-3 border-b border-[#1F242C] px-4 py-3 ${firing.length ? "bg-gradient-to-r from-[#2a1214] to-[#0B0D10]" : ""}`} role="status">

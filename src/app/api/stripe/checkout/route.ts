@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     if (!process.env.STRIPE_SECRET_KEY) return NextResponse.json({ error: "Stripe is not configured" }, { status: 503 });
   const stripe = getStripe();
   const region = getDeploymentRegion();
-  const body = await request.json() as { projectId?: string; plan?: "pro" | "team"; interval?: "monthly" | "annual"; code?: string };
+  const body = await request.json() as { projectId?: string; plan?: "pro" | "team"; interval?: "monthly" | "annual" };
   if (!body.plan || !body.interval || !["pro", "team"].includes(body.plan) || !["monthly", "annual"].includes(body.interval)) return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 });
   // Pay-first: no project yet. The customer pays, then signs up and names the project on the welcome page.
   const guest = !body.projectId;
@@ -33,40 +33,23 @@ export async function POST(request: Request) {
   }
   const origin = getPublicOrigin(request);
   const plan = body.plan;
-  const createSession = (discounts?: ({ coupon: string } | { promotion_code: string })[]) =>
-    stripe.checkout.sessions.create(
-      {
-        mode: "subscription",
-        managed_payments: { enabled: true },
-        ...(customer ? { customer } : {}),
-        line_items: [{ price, quantity: 1 }],
-        // Stripe does not allow preset discounts and the promo code box together.
-        ...(discounts ? { discounts } : { allow_promotion_codes: true }),
-        ...(projectId ? { client_reference_id: projectId } : {}),
-        metadata: { ...(projectId ? { projectId } : { guest: "1" }), plan, uncoilRegion: region },
-        subscription_data: { metadata: { ...(projectId ? { projectId } : { guest: "1" }), plan, uncoilRegion: region }, billing_mode: { type: "flexible" } },
-        success_url: projectId ? `${origin}/dashboard/${projectId}/billing?checkout=success` : `${origin}/pricing/checkout/welcome?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: projectId ? `${origin}/dashboard/${projectId}/billing?checkout=cancelled` : `${origin}/pricing/checkout?plan=${plan}&interval=${body.interval}&cancelled=1`,
-        integration_identifier: "uncoil_checkout_qplmzvka",
-      },
-      { apiVersion: "2026-02-25.preview" },
-    );
-  // No discount is applied automatically. Customers type a Stripe promotion code (for example the founding code) on our page,
-  // and we look it up here. Only real promotion codes work, never raw coupon ids.
-  let session;
-  const typedCode = body.code?.trim().slice(0, 64);
-  if (typedCode) {
-    const found = await stripe.promotionCodes.list({ code: typedCode, active: true, limit: 1 });
-    const promotion = found.data[0];
-    if (!promotion) return NextResponse.json({ error: "That code is not valid or has been used up." }, { status: 400 });
-    try {
-      session = await createSession([{ promotion_code: promotion.id }]);
-    } catch (error) {
-      console.warn("Promotion code rejected", error);
-      return NextResponse.json({ error: "That code cannot be used on this plan." }, { status: 400 });
-    }
-  }
-  session ??= await createSession();
+  // Stripe shows its own promotion code box, so customers type codes (for example FOUNDING40) there.
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: "subscription",
+      managed_payments: { enabled: true },
+      ...(customer ? { customer } : {}),
+      line_items: [{ price, quantity: 1 }],
+      allow_promotion_codes: true,
+      ...(projectId ? { client_reference_id: projectId } : {}),
+      metadata: { ...(projectId ? { projectId } : { guest: "1" }), plan, uncoilRegion: region },
+      subscription_data: { metadata: { ...(projectId ? { projectId } : { guest: "1" }), plan, uncoilRegion: region }, billing_mode: { type: "flexible" } },
+      success_url: projectId ? `${origin}/dashboard/${projectId}/billing?checkout=success` : `${origin}/pricing/checkout/welcome?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: projectId ? `${origin}/dashboard/${projectId}/billing?checkout=cancelled` : `${origin}/pricing`,
+      integration_identifier: "uncoil_checkout_qplmzvka",
+    },
+    { apiVersion: "2026-02-25.preview" },
+  );
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Stripe checkout session creation failed", error);

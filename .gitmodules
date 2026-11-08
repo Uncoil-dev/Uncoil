@@ -1,0 +1,6 @@
+[submodule "content/blog"]
+	path = content/blog
+	url = https://github.com/Uncoil-dev/blog
+[submodule "content/docs"]
+	path = content/docs
+	url = https://github.com/Uncoil-dev/docs

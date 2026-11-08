@@ -71,6 +71,7 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 `/integrations`, `/contact`, `/security`, and `/status` are implemented public surfaces. Keep their claims grounded in the actual integrations, support path, security posture, and regional health checks; do not reintroduce them as missing-page work.
 
 ## Gotchas
+- **Blog and docs are separate repos, mounted as git submodules.** `content/blog` = `Uncoil-dev/blog`, `content/docs` = `Uncoil-dev/docs`. Clone with `git clone --recurse-submodules` (or run `git submodule update --init`). Change posts or docs in their own repo, merge there, then bump the submodule pointer here in a PR. Blog images stay in `public/media` in this repo. Coolify must have submodules enabled for both apps. Merging does not deploy.
 - **Next.js 16 breaking changes.** Read `node_modules/next/dist/docs/` before writing Next.js code.
 - **Convex `_generated/` bindings are committed to git.** Run `npx convex codegen` after schema changes.
 - **Verification is layered.** Node contract/content tests, Playwright E2E tests, `npm run smoke:beta`, and `scripts/platform-smoke.mjs` are available; provider-backed checks still require their documented credentials.

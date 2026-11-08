@@ -7,6 +7,8 @@ import type { FunctionReturnType } from "convex/server";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MAX_IMPORT_ROWS, parseDatasetImport } from "@/lib/dataset-import";
+import { EmptyState } from "../empty/empty-state";
+import { SampleDataset } from "../empty/samples";
 
 type Overview = FunctionReturnType<typeof api.datasets.overview>[number];
 type ItemRow = NonNullable<FunctionReturnType<typeof api.datasets.items>>["rows"][number];
@@ -50,11 +52,9 @@ export function DatasetsWorkspace({ projectId, initialDataset }: { projectId: st
       {overview === undefined ? (
         <div className="grid flex-1 content-start gap-2 p-4" role="status" aria-label="Loading datasets">{Array.from({ length: 6 }, (_, i) => <div key={i} className="h-9 animate-pulse rounded bg-[#11151A]" />)}</div>
       ) : !overview.length ? (
-        <div className="m-auto max-w-md p-10 text-center">
-          <h2 className="text-sm font-semibold">Build a set of questions to test against</h2>
-          <p className="mt-2 text-xs leading-5 text-[#8B93A1]">A dataset is a table: one column for what goes in, one for the answer you expect. Fill it by hand, paste from a spreadsheet, or save real traces into it. Then run an experiment to see how a prompt does.</p>
-          <form onSubmit={submitNew} className="mt-4 flex gap-2"><label className="sr-only" htmlFor="first-dataset">Dataset name</label><input id="first-dataset" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} placeholder="support-questions" className={`${field} h-8 font-mono`} /><button type="submit" className="h-8 shrink-0 rounded bg-[#F4D44D] px-3 text-xs font-medium text-[#090909]">Create dataset</button></form>
-        </div>
+        <div className="m-auto w-full p-4"><EmptyState eyebrow="Datasets" title="Build a set of questions to test against" why="One column for what goes in, one for the answer you expect. Paste from a spreadsheet or save real traces, then run an experiment." sample={<SampleDataset />}>
+          <form onSubmit={submitNew} className="flex flex-wrap gap-2"><label className="sr-only" htmlFor="first-dataset">Dataset name</label><input id="first-dataset" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} placeholder="support-questions" className={`${field} h-8 font-mono`} /><button type="submit" className="h-8 shrink-0 rounded bg-[#F4D44D] px-3 text-xs font-medium text-[#090909]">Create dataset</button></form>
+        </EmptyState></div>
       ) : current ? <Sheet key={current.dataset._id} projectId={projectId} row={current} onNotice={setNotice} /> : null}
       {overview?.length ? (
         <nav aria-label="Datasets" className="flex items-center gap-1 overflow-x-auto border-t border-[#1F242C] bg-[#0D1014] px-2 py-1.5">

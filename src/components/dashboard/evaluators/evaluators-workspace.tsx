@@ -9,6 +9,8 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { checkTrigger, estimatedGradeCost, JUDGE_MODELS, MAX_DAILY_LIMIT, WHEN_LABELS, type RuleWhen } from "../../../../convex/autoScoring";
 import { checkCodeRule, RULE_HELP, runCodeRule } from "@/lib/evaluator-rules";
 import { formatScoreValue } from "@/lib/score-utils";
+import { EmptyState } from "../empty/empty-state";
+import { SampleEvaluators } from "../empty/samples";
 
 type Row = FunctionReturnType<typeof api.evaluators.overview>[number];
 type Query = Record<string, string>;
@@ -129,11 +131,7 @@ export function EvaluatorsWorkspace({ projectId, initialQuery }: { projectId: st
           {rows === undefined ? (
             <div className="grid gap-3 p-4 lg:grid-cols-3" role="status" aria-label="Loading evaluators">{Array.from({ length: 3 }, (_, index) => <div key={index} className="h-64 animate-pulse rounded bg-[#11151A]" />)}</div>
           ) : !rows.length ? (
-            <div className="mx-auto max-w-md p-10 text-center">
-              <h2 className="text-sm font-semibold">Grade your agent automatically</h2>
-              <p className="mt-2 text-xs leading-5 text-[#8B93A1]">An evaluator checks a trace and gives it a score. A code rule is exact and free, like “the answer is valid JSON”. An AI judge reads the answer against a rubric you write. Scores land on the Scores page.</p>
-              <button type="button" onClick={() => setCreating(true)} className="mt-4 h-8 rounded bg-[#F4D44D] px-3 text-xs font-medium text-[#090909]">Create your first evaluator</button>
-            </div>
+            <div className="p-4"><EmptyState eyebrow="Evaluators" title="Grade your agent automatically" why="A code rule or an AI judge checks every trace and gives it a score, so you see regressions without reading logs." sample={<SampleEvaluators />} action={{ label: "Create your first evaluator", onClick: () => setCreating(true) }} /></div>
           ) : !shown.length ? (
             <div className="p-10 text-center text-xs text-[#8B93A1]">No evaluators match these filters. <button type="button" onClick={() => { setDraft(""); update({ q: "", type: "", status: "" }); }} className="text-[#8AB4FF] underline">Clear filters</button></div>
           ) : (

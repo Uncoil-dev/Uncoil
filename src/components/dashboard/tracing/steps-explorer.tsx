@@ -17,6 +17,7 @@ import {
 import { RANGES, TimeRangePicker } from "./time-range-picker";
 import { TracePanel, TRACE_VIEWS, type TraceView } from "./trace-panel";
 import { TypeIcon } from "./trace-views";
+import { SampleSteps } from "../empty/samples";
 
 type Query = Record<string, string>;
 type Result = {
@@ -581,7 +582,7 @@ export function StepsExplorer({
                 Loading steps…
               </p>
             ) : !rows.length && !error && !Object.keys(query).some((k) => !VIEW_KEYS.has(k) && k !== "range" && k !== "groupBy") ? (
-              <FirstTraceEmpty projectId={projectId} showSnippet={false} title="Every model call and tool call, one row each" description="Steps are the individual actions your agent took. They appear here once your first trace arrives." />
+              <FirstTraceEmpty projectId={projectId} sample={<SampleSteps />} eyebrow="Steps" showSnippet={false} title="Every model call and tool call, one row each" description="Steps are the individual actions your agent took. They appear here once your first trace arrives." />
             ) : !rows.length && !error ? (
               <div className="py-12 text-center">
                 <p>No actions match these filters</p>

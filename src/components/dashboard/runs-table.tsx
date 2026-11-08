@@ -25,6 +25,8 @@ import { DashboardEmptyState } from "./dashboard-primitives";
 import type { SavedRunView } from "./dashboard-contracts";
 import { FilterBuilder, type FilterCondition, type FilterColumnDef } from "./filter-builder";
 import { ColumnVisibilityMenu, useColumnVisibility, type ColumnVisibilityDef } from "./column-visibility-menu";
+import { EmptyState } from "./empty/empty-state";
+import { SampleRuns } from "./empty/samples";
 
 const RUNS_TABLE_COLUMNS: ColumnVisibilityDef[] = [
   { id: "status", label: "Status", required: true },
@@ -548,7 +550,9 @@ export function RunsTable({ projectId }: RunsTableProps) {
       ) : null}
 
       <div className="border border-border">
-        {visibleRuns.length === 0 ? (
+        {visibleRuns.length === 0 && !(search || statusFilter !== "all" || modelFilter || sessionFilter || environmentFilter || releaseFilter || minCost || minSpans) ? (
+          <EmptyState eyebrow="Runs" title="Every run of your agent, one row each" why="See what succeeded, what failed and what each run cost. Send a first run and this table fills in." sample={<SampleRuns />} action={{ label: "Send your first run", href: `/dashboard/${projectId}/quickstart` }} secondary={{ label: "Look at the demo", href: "/demo" }} />
+        ) : visibleRuns.length === 0 ? (
           <DashboardEmptyState
             title={search || statusFilter !== "all" || modelFilter || sessionFilter || environmentFilter || releaseFilter || minCost || minSpans ? "No runs match these filters" : "No runs recorded yet"}
             description={search || statusFilter !== "all" || modelFilter || sessionFilter || environmentFilter || releaseFilter || minCost || minSpans ? "Clear a filter or broaden the query to see more execution history." : "Instrument an agent with the Uncoil SDK to make execution evidence appear here."}

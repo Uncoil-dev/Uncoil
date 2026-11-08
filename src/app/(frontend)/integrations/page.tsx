@@ -8,6 +8,7 @@ import { IntegrationGrid, type Integration } from "@/components/marketing/compan
 
 import { faqJsonLd, jsonLdString } from "@/lib/seo";
 import { CodeTabs } from "@/components/marketing/company/code-tabs";
+import { FrameworkSwitcher } from "@/components/marketing/company/framework-switcher";
 export const metadata = pageMetadata({ title: "AI agent integrations: trace OpenAI, LangChain, OTel", description: "Trace OpenAI, Anthropic, LangChain, LangGraph, CrewAI, LlamaIndex, AutoGen, Vercel AI SDK and OpenTelemetry agents in Uncoil, plus Slack alerts.", path: "/integrations" });
 
 const faqs = [
@@ -60,6 +61,13 @@ export default function IntegrationsPage() {
         <HeaderAction href="/docs" kind="secondary">Read the docs</HeaderAction>
       </PageHeader>
       <StatStrip stats={[[String(integrations.length),"Adapters"],["OTLP","HTTP JSON ingest"],["2","SDKs: TypeScript, Python"],["~10","Lines to wrap an agent"]]} />
+
+      <CreamBand>
+        <Eyebrow dark={false}>Five-minute setups</Eyebrow>
+        <SectionTitle>Pick your framework.</SectionTitle>
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-black/65">Install, one line of setup, then your first run. Each page has code you can copy.</p>
+        <div className="mt-10"><FrameworkSwitcher /></div>
+      </CreamBand>
 
       <DarkBand>
         <Eyebrow>Adapters</Eyebrow>

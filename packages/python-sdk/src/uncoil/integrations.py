@@ -186,7 +186,31 @@ class _StreamManager:
         finally: self.observation.finish(error=error, cancelled=not self.observation.ended)
 
 
+def _is_raw_response(result):
+    """True for the OpenAI SDK's `with_raw_response` result (used by CrewAI and others): the body is behind `.parse()`."""
+    return callable(getattr(result, "parse", None)) and hasattr(result, "http_response") and not hasattr(result, "__aiter__")
+
+
+def _observe_parsed(parsed, obs):
+    if parsed is None or isinstance(parsed, (str, bytes)) or hasattr(parsed, "__iter__") and hasattr(parsed, "close"):
+        obs.finish()  # a raw stream or an unreadable body: record the call without a body
+    else:
+        _observe_result(parsed, obs)
+
+
+def _observe_raw(result, obs):
+    """Read usage and output from a raw response. parse() caches its result, so the caller still gets the same object."""
+    try:
+        parsed = result.parse()
+    except Exception:
+        parsed = None
+    _observe_parsed(parsed, obs)
+    return result
+
+
 def _observe_result(result, obs):
+    if _is_raw_response(result):
+        return _observe_raw(result, obs)
     if hasattr(result, "__iter__") and hasattr(result, "close") or hasattr(result, "__aiter__"):
         return _Stream(result, obs)
     if hasattr(result, "__enter__") or hasattr(result, "__aenter__"):

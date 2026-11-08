@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { reportHandledError } from "@/lib/crash-report";
 import { denyProjectAccess } from "@/lib/project-route-access";
 import { MAP_EDGE_LIMIT, MAP_NODE_LIMIT, traceAgentMap } from "@/lib/tinybird";
 import { resolveTraceFlowFilters } from "@/lib/tinybird";
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const map = await traceAgentMap(projectId, filters);
     return NextResponse.json({ ...map, limits: { nodes: MAP_NODE_LIMIT, edges: MAP_EDGE_LIMIT }, range: { from: filters.fromMs, to: filters.toMs } });
   } catch (error) {
-    console.error("Agent map failed:", error);
+    await reportHandledError("GET /api/projects/[projectId]/traces/map", error);
     return NextResponse.json({ error: "Map data is temporarily unavailable. Try again in a moment." }, { status: 503 });
   }
 }

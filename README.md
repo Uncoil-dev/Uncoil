@@ -1,16 +1,29 @@
 # Uncoil
 
-Uncoil is an observability and failure-prevention platform for AI agents. It captures agent runs, LLM generations, tool calls, costs, evaluations, and failures so teams can understand what happened, fix it, verify the fix, and prevent the same failure from returning.
+**See what your AI agents did, why they failed, and stop it happening again.**
 
-## The product loop
+Uncoil records every agent run: each model call, tool call, cost, and error. You can open any run, find the step that broke, and add a check so it does not break again.
+
+[Live demo](https://www.uncoil.dev/demo/project) · [Website](https://www.uncoil.dev) · [Docs](https://www.uncoil.dev/docs) · [Blog](https://www.uncoil.dev/blog) · [Status](https://www.uncoil.dev/status)
 
 ```text
-capture → diagnose → assign → fix → verify → prevent recurrence
+capture → diagnose → assign → fix → verify → prevent
 ```
+
+## What you get
+
+- **Traces.** Nested runs, LLM calls, tool calls, retries, and errors in one timeline.
+- **Costs.** Spend per run, per model, and per release.
+- **Alerts.** Know when a run fails, slows down, or costs too much.
+- **Evals.** Datasets, scores, and experiments to test a fix before you ship it.
+- **Prompts.** Versions and labels, linked to the traces that used them.
+- **Safe SDKs.** If Uncoil is down, your agent keeps running.
 
 ## Quickstart
 
-### TypeScript / Node.js
+Get a key in the [dashboard](https://eu.cloud.uncoil.dev/dashboard), then:
+
+### TypeScript
 
 ```bash
 npm install @uncoil.dev/sdk
@@ -22,7 +35,7 @@ import { traceAgent, llmCall, toolCall } from "@uncoil.dev/sdk";
 
 const run = traceAgent(async (question: string) => {
   await llmCall({ input: question, output: "I will look that up.", modelId: "gpt-4o-mini", costUsd: 0.001 });
-  await toolCall({ toolName: "search", input: { query: question }, output: "Search completed", latencyMs: 120 });
+  await toolCall({ toolName: "search", input: { query: question }, output: "Done", latencyMs: 120 });
   return "Done";
 }, { environment: "development", release: "quickstart" });
 
@@ -42,68 +55,53 @@ from uncoil import trace_agent, llm_call, tool_call
 @trace_agent(environment="development", release="quickstart")
 async def run_agent(question: str):
     llm_call(input_data=question, output_data="I will look that up.", model_id="gpt-4o-mini", cost_usd=0.001)
-    tool_call(tool_name="search", input_data={"query": question}, output_data="Search completed", latency_ms=120)
+    tool_call(tool_name="search", input_data={"query": question}, output_data="Done", latency_ms=120)
     return "Done"
 ```
 
-Run the example once, then open the [Uncoil dashboard](https://eu.cloud.uncoil.dev/dashboard). The canonical guide is [docs/quickstart.md](docs/quickstart.md).
+Run it once. Your first trace shows up in the dashboard in seconds. Full guide: [docs/quickstart](https://www.uncoil.dev/docs/quickstart).
 
-## What is included
-
-- Agent tracing for nested runs, LLM calls, tools, custom spans, retries, and errors.
-- Failure investigation through trace details, alerts, comments, and review workflows.
-- Evaluation with datasets, evaluators, experiments, typed scores, feedback, and monitors.
-- Prompt versioning, deployment labels, trace links, and playground workflows.
-- Cost and runtime policies with fail-open SDK behavior.
-- Region-aware endpoints and public health/status surfaces.
-
-## Repository map
-
-| Surface | Location | Status |
-| --- | --- | --- |
-| Web app and API | `src/`, `convex/` | Active |
-| TypeScript SDK | `packages/ts-sdk/` | Active; package `@uncoil.dev/sdk` on npm |
-| Python SDK | `packages/python-sdk/` | Active; package `uncoil-sdk` on PyPI |
-| Playwright package | `packages/playwright/` | Active |
-| Documentation | `content/docs/`, `docs/` | Active |
-| Tinybird analytics | `tinybird/` | Active |
-| Regional configuration | `config/`, `docs/regional-cloud-runbook.md` | Active |
-| CLI / MCP / curated examples | Planned after contracts stabilize |
-
-## Architecture
+## How it works
 
 ```text
-SDK / OTLP → Next.js ingest → asynchronous processing
-           → Tinybird raw spans and analytics
-           → Convex metadata, run summaries, workflow state, evaluations
-           → dashboard and future CLI / CI / MCP consumers
+SDK / OpenTelemetry → /api/ingest → background queue
+                    → ClickHouse   raw spans and analytics
+                    → Convex       projects, run summaries, alerts, evals
+                    → dashboard
 ```
 
-Tinybird is the analytical store for high-volume telemetry. Convex is the application store for project-owned metadata and workflow state. SDK telemetry fails open so an observability outage does not interrupt a customer agent.
+## This repository
 
-## Hosted and regional status
+| Folder | What it holds |
+| --- | --- |
+| `src/` | Website, dashboard, and API (Next.js) |
+| `convex/` | App backend and database |
+| `packages/ts-sdk/` | TypeScript SDK, `@uncoil.dev/sdk` on npm |
+| `packages/python-sdk/` | Python SDK, `uncoil-sdk` on PyPI |
+| `packages/playwright/` | Playwright test helper |
+| `content/` | Blog posts and docs |
+| `docs/` | Internal runbooks and specs |
 
-The hosted application is the supported path. Regional availability and data-flow claims are documented on the public [status](https://www.uncoil.dev/status), [security](https://www.uncoil.dev/security), and [data regions](content/docs/data-regions.mdoc) surfaces. The EU deployment currently discloses that asynchronous event processing transits the United States; it must not be described as end-to-end EU-resident until that boundary is removed or the product contract changes.
-
-## Verification
+## Run it locally
 
 ```bash
-npm ci --legacy-peer-deps
-npm run typecheck
-npm run lint
-npm run test:content
-npm run test:activation
-npm run test:sdk:ts
-npm run test:sdk:python
-npm run build
+npm ci
+npm run dev            # site on http://localhost:3000
+npx convex dev         # backend, in a second terminal
 ```
 
-See [docs/releasing.md](docs/releasing.md) before publishing or deploying.
+Before a pull request:
+
+```bash
+npm run lint && npm run test:content && npm run build
+```
+
+Read [docs/releasing.md](docs/releasing.md) before you publish or deploy.
 
 ## Security
 
-API keys are hashed server-side and shown only once. Redaction is applied before asynchronous telemetry processing. Do not send secrets or unnecessary personal data in trace metadata.
+API keys are hashed on the server and shown once. Secrets are removed before traces are processed. Do not put secrets or personal data in trace metadata. See the [security page](https://www.uncoil.dev/security). To report a problem, use the [contact page](https://www.uncoil.dev/contact).
 
 ## License
 
-The application and SDKs are MIT licensed. See [LICENSE](LICENSE).
+[MIT](LICENSE)

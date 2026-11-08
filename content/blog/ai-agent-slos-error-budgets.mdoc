@@ -13,7 +13,7 @@ tags:
   - AI agents
   - reliability
 relatedPosts:
-  - ai-observability-metrics-that-matter
+  - llm-observability-metrics-that-matter
   - ai-agent-incident-response
   - ai-agent-reliability-failures-retries-guardrails
   - ai-agent-monitoring
@@ -219,7 +219,7 @@ The Four-Indicator Model assumes an agent with distinguishable availability, rel
 
 {% editorial-panel eyebrow="Decision room" title="Four indicators, four owners, one shared budget policy." body="Availability and reliability usually sit with whoever owns infrastructure and orchestration; quality sits with whoever owns prompts, models, and evaluation; efficiency sits with whoever owns cost. The SLO set only works if all three groups review it together on the same cadence — reviewed separately, each group can honestly report their own indicator healthy while the system as a whole is not." tone="paper" /%}
 
-None of this replaces the retry, fallback, and containment mechanics covered in [retries, fallbacks, and guardrails for AI agents](/blog/ai-agent-reliability-failures-retries-guardrails) — SLOs tell you *whether* a system is behaving within acceptable bounds; guardrails and retry policy are part of *how* it stays there. Nor does it replace the trace-first triage discipline in [AI agent incident response](/blog/ai-agent-incident-response), which is what a team actually runs the moment a budget event fires an alert. The Four-Indicator Model is the target-setting layer those two practices operate against — and it depends on the same run-level metrics discussed in [the observability metrics that matter](/blog/ai-observability-metrics-that-matter) and the monitoring setup covered in [AI agent monitoring](/blog/ai-agent-monitoring) actually being collected before any of these SLIs can be computed at all.
+None of this replaces the retry, fallback, and containment mechanics covered in [retries, fallbacks, and guardrails for AI agents](/blog/ai-agent-reliability-failures-retries-guardrails) — SLOs tell you *whether* a system is behaving within acceptable bounds; guardrails and retry policy are part of *how* it stays there. Nor does it replace the trace-first triage discipline in [AI agent incident response](/blog/ai-agent-incident-response), which is what a team actually runs the moment a budget event fires an alert. The Four-Indicator Model is the target-setting layer those two practices operate against — and it depends on the same run-level metrics discussed in [the observability metrics that matter](/blog/llm-observability-metrics-that-matter) and the monitoring setup covered in [AI agent monitoring](/blog/ai-agent-monitoring) actually being collected before any of these SLIs can be computed at all.
 
 ## Leave the reader with the next move
 

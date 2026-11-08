@@ -29,19 +29,19 @@ export function BeforeAfter() {
   }
 
   return (
-    <section className="bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32">
+    <section className="bg-[#090909] mk-section px-5 text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Before / after</p>
-            <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Same run. Two ways to read it.</h2>
+            <h2 className="mt-4 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Same run. Two ways to read it.</h2>
           </div>
           <p className="max-w-sm text-base leading-7 text-white/65">Scroll, or drag the handle. On the left, the run as a wall of logs. On the right, the same run as Uncoil draws it, with the failing step lit up.</p>
         </div>
 
         <div
           ref={box}
-          className="relative mt-14 aspect-[16/10] w-full cursor-ew-resize touch-none select-none overflow-hidden border border-white/20"
+          className="relative mk-gap mk-fit aspect-[16/10] w-full cursor-ew-resize touch-none select-none overflow-hidden border border-white/20"
           onPointerDown={(e) => {
             dragging.current = true;
             e.currentTarget.setPointerCapture(e.pointerId);
@@ -89,13 +89,13 @@ const parts = [
 export function Anatomy() {
   const reduce = useReducedMotion();
   return (
-    <section className="relative overflow-hidden bg-[#090909] px-5 py-24 text-[#eceae3] md:px-10 md:py-32">
+    <section className="relative overflow-hidden bg-[#090909] mk-section px-5 text-[#eceae3] md:px-10">
       <div className="mx-auto max-w-[1320px]">
         <p className="text-center font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">Anatomy of a step</p>
-        <h2 className="mx-auto mt-5 max-w-4xl text-center font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Every step, taken apart.</h2>
+        <h2 className="mx-auto mt-4 max-w-4xl text-center font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Every step, taken apart.</h2>
 
-        <div className="mt-16 grid items-center gap-10 lg:grid-cols-[1fr_1.1fr_1fr]">
-          <ul className="grid gap-8 lg:text-right">
+        <div className="mk-gap grid items-center gap-8 lg:grid-cols-[1fr_1.1fr_1fr]">
+          <ul className="grid gap-6 lg:text-right">
             {parts.slice(0, 3).map(([t, b], i) => (
               <motion.li key={t} initial={reduce ? false : { opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: i * 0.12 }}>
                 <span className="font-mono text-[10px] text-[#f4d44d]">0{i + 1}</span>
@@ -105,7 +105,7 @@ export function Anatomy() {
             ))}
           </ul>
           <motion.div
-            className="relative mx-auto aspect-[12/13] w-full max-w-[520px]"
+            className="relative mx-auto aspect-[12/13] w-full max-w-[300px] sm:max-w-[420px] lg:max-w-[min(420px,calc((100svh-300px)*0.92))]"
             initial={reduce ? false : { opacity: 0, scale: 0.9, rotate: -4 }}
             whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -115,7 +115,7 @@ export function Anatomy() {
               <Image src="/images/landing/span-anatomy.png" alt="One step exploded into stacked layers, with the cost layer highlighted" fill unoptimized sizes="40vw" className={`object-contain ${art}`} />
             </motion.div>
           </motion.div>
-          <ul className="grid gap-8">
+          <ul className="grid gap-6">
             {parts.slice(3).map(([t, b], i) => (
               <motion.li key={t} initial={reduce ? false : { opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: 0.2 + i * 0.12 }}>
                 <span className="font-mono text-[10px] text-[#f4d44d]">0{i + 4}</span>
@@ -146,7 +146,7 @@ const cases = [
 
 function CaseCard({ c, i }: { c: (typeof cases)[number]; i: number }) {
   return (
-    <Link href={`/use-cases/${c.slug}`} className="group relative block aspect-[4/5] w-[78vw] shrink-0 overflow-hidden border-2 border-black bg-[#090909] text-[#eceae3] sm:w-[420px]">
+    <Link href={`/use-cases/${c.slug}`} className="group relative block aspect-[4/5] w-[min(74vw,420px,calc((100svh-300px)*0.8))] sm:w-[min(420px,calc((100svh-300px)*0.8))] min-w-[240px] shrink-0 overflow-hidden border-2 border-black bg-[#090909] text-[#eceae3]">
       <Image src={c.img} alt="" fill unoptimized sizes="420px" className={`object-cover transition-transform duration-700 group-hover:scale-110 ${art}`} />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,#090909_0%,#090909_22%,rgba(9,9,9,0)_55%)]" />
       <span className="absolute left-5 top-5 font-mono text-[10px] text-[#f4d44d]">0{i + 1} / 04</span>
@@ -167,18 +167,30 @@ export function UseCases() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const track = useRef<HTMLDivElement>(null);
   const dist = useMotionValue(0);
+  // Scroll length follows the real track width, so the cards move about as
+  // fast as the page scrolls instead of stretching over a fixed 260vh.
+  const [travel, setTravel] = useState(0);
   useEffect(() => {
-    const measure = () => dist.set(Math.max(0, (track.current?.scrollWidth ?? 0) - window.innerWidth));
+    const measure = () => {
+      const d = Math.max(0, (track.current?.scrollWidth ?? 0) - window.innerWidth);
+      dist.set(d);
+      setTravel(d);
+    };
     measure();
+    const ro = new ResizeObserver(measure);
+    if (track.current) ro.observe(track.current);
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, [dist]);
   const x = useTransform(() => -scrollYProgress.get() * dist.get());
 
   const heading = (
     <div className="px-5 md:px-10">
       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Use cases</p>
-      <h2 className="mt-5 max-w-3xl font-pixel text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.07em]">Whatever your agent does.</h2>
+      <h2 className="mt-5 max-w-3xl font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">Whatever your agent does.</h2>
     </div>
   );
 
@@ -196,16 +208,16 @@ export function UseCases() {
   }
 
   return (
-    <section ref={ref} className="relative h-[260vh] bg-[#f4d44d] text-black">
-      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden pt-[64px]">
+    <section ref={ref} className="relative bg-[#f4d44d] text-black" style={{ height: `calc(100svh + ${Math.round(travel * 0.8)}px)` }}>
+      <div className="sticky top-0 flex h-svh flex-col justify-center overflow-hidden pt-[64px]">
         {heading}
-        <motion.div ref={track} style={{ x }} className="mt-10 flex w-max gap-5 px-5 md:px-10">
+        <motion.div ref={track} style={{ x }} className="mt-6 flex w-max gap-4 px-5 sm:mt-8 sm:gap-5 md:px-10">
           {cases.map((c, i) => (
             <CaseCard key={c.slug} c={c} i={i} />
           ))}
-          <Link href={appHref("/demo/project")} className="flex aspect-[4/5] w-[78vw] shrink-0 flex-col justify-between border-2 border-black p-8 hover:bg-black hover:text-[#f4d44d] sm:w-[420px]">
+          <Link href={appHref("/demo/project")} className="flex aspect-[4/5] w-[min(74vw,420px,calc((100svh-300px)*0.8))] sm:w-[min(420px,calc((100svh-300px)*0.8))] min-w-[240px] shrink-0 flex-col justify-between border-2 border-black p-6 hover:bg-black hover:text-[#f4d44d] sm:p-8">
             <span className="font-mono text-[10px] uppercase tracking-[0.14em]">Not sure yet?</span>
-            <span className="font-pixel text-6xl leading-[0.9] tracking-[-0.07em]">Try the live demo →</span>
+            <span className="font-pixel text-5xl leading-[0.9] tracking-[-0.07em] sm:text-6xl">Try the live demo →</span>
           </Link>
         </motion.div>
       </div>

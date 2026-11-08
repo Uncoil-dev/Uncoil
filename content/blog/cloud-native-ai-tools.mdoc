@@ -7,7 +7,7 @@ author: Uncoil Team
 draft: false
 categories: [infrastructure]
 tags: [cloud-native, AI infrastructure, serverless inference, vector databases, autoscaling]
-relatedPosts: [ai-observability-platform, ai-agent-architecture, ai-agent-cost-attribution]
+relatedPosts: [ai-agent-architecture, ai-agent-cost-attribution]
 heroImage:
   src: /media/cloud-native-ai-tools-hero.svg
   alt: Diagram showing serverless inference, a managed vector database, cloud observability, and an autoscaling agent pool connected to a shared elastic control plane
@@ -83,7 +83,7 @@ The category also includes hybrid search services that combine vector similarity
 
 ### Cloud observability for AI workloads
 
-General-purpose APM tools were not built around the unit of work an AI system actually produces: a run composed of nested spans — a model call, a tool call, a retrieval step, a sub-agent handoff — often with retries, parallel branches, and a final evaluated outcome. Cloud-native AI observability platforms ingest that structure directly, correlate cost and latency to the same run, and let an operator open a trace instead of grepping logs across services. [AI observability platforms](/blog/ai-observability-platform) covers what a platform in this category needs to get right, and [cost attribution for AI agents](/blog/ai-agent-cost-attribution) covers the specific discipline of tying spend back to the run that generated it.
+General-purpose APM tools were not built around the unit of work an AI system actually produces: a run composed of nested spans — a model call, a tool call, a retrieval step, a sub-agent handoff — often with retries, parallel branches, and a final evaluated outcome. Cloud-native AI observability platforms ingest that structure directly, correlate cost and latency to the same run, and let an operator open a trace instead of grepping logs across services. [AI observability platforms](/blog/ai-agent-observability-complete-guide) covers what a platform in this category needs to get right, and [cost attribution for AI agents](/blog/ai-agent-cost-attribution) covers the specific discipline of tying spend back to the run that generated it.
 
 ### Autoscaling agent workloads
 
@@ -202,7 +202,7 @@ A few conditions should make a team revisit a managed-vs-self-hosted decision ra
 
 Carry the support-agent example to a close: managed serverless inference for the spiky, unscheduled load; a managed vector store for retrieval, since the ticket content does not carry the strictest residency constraint; managed cloud observability, since a three-person team cannot also operate a tracing backend; and an autoscaling agent pool with strict credential scoping and run-ID-based correlation so traces survive scale-down. If a future product line adds payment-card data to the same agent, that layer's decision — not the whole stack's — gets revisited.
 
-Teams comparing platforms in this category often also weigh vendor lock-in and switching cost; [a practical guide to AI observability tools](/blog/ai-observability-tools) is a useful next read for evaluating that trade-off specifically for the observability layer.
+Teams comparing platforms in this category often also weigh vendor lock-in and switching cost; [a practical guide to AI observability tools](/blog/ai-agent-observability-complete-guide) is a useful next read for evaluating that trade-off specifically for the observability layer.
 
 ## Leave the reader with the next move
 

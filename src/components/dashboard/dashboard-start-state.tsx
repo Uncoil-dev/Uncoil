@@ -44,7 +44,7 @@ async def research_agent(query):
   },
   typescript: {
     label: "TypeScript",
-    code: `import { traceAgent } from "uncoil-sdk"
+    code: `import { traceAgent } from "@uncoil.dev/sdk"
 
 const researchAgent = traceAgent(async (query: string) => {
   return await run(query)

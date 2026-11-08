@@ -6,10 +6,11 @@ import { ClosingBand, DarkBand, CreamBand, Eyebrow, HeaderAction, SectionTitle ,
 import { ControlExplorer } from "@/components/marketing/company/control-explorer";
 
 import { RedactionDemo } from "@/components/marketing/company/redaction-demo";
+import { DataLedger, DeletionPromise } from "@/components/marketing/company/data-ledger";
 export const metadata = pageMetadata({ title: "Security and EU data residency for AI agent traces", description: "How Uncoil protects AI agent traces and prompts: encryption in transit and at rest, project isolation, access controls, EU data residency and redaction.", path: "/security" });
 
 const faqs = [
-  { q: "Where is Uncoil data stored?", a: "EU region accounts, traces and cache are stored in Ireland. Queued span events pass through Inngest in the United States, so Uncoil does not claim end-to-end EU residency." },
+  { q: "Where is Uncoil data stored?", a: "Account data and cache are stored in Ireland, backups in an EU bucket, and traces in a database we run ourselves. Queued span events pass through Inngest in the United States, so Uncoil does not claim end-to-end EU residency. The table on this page lists every place." },
   { q: "Are prompts and personal data redacted?", a: "Email, phone, card, SSN and API-key patterns are redacted before queued events leave the EU region." },
   { q: "How are API keys protected?", a: "Project keys are shown once at creation and only a hash is stored on our side." },
   { q: "Can one project see another project's traces?", a: "No. Telemetry is scoped to the project derived from the authenticated key, and there is no cross-project query path." },
@@ -19,10 +20,10 @@ const faqs = [
 const controls = [
   { title: "Encryption", icon: "lock", summary: "TLS 1.3 in transit and AES-256 at rest.", items: ["API keys are hashed before storage.", "Plaintext project keys are shown once."] },
   { title: "Data isolation", icon: "layers", summary: "Telemetry is scoped to the project derived from the authenticated key.", items: ["No cross-project query path.", "Cost counters remain project-specific."] },
-  { title: "Data residency", icon: "globe", summary: "EU region accounts, traces, and cache are stored in Ireland; Inngest Cloud currently processes queued span events in the United States.", items: ["Convex, Tinybird, and Redis for the EU region are hosted in Ireland.", "Inngest receives queued span events in US infrastructure, so Uncoil does not claim end-to-end EU residency.", "Email, phone, card, SSN, and API-key redaction is applied before queued events leave the EU."] },
+  { title: "Data residency", icon: "globe", summary: "Account data and cache are stored in Ireland; Inngest Cloud currently processes queued span events in the United States.", items: ["Convex and Redis for the EU region are hosted in Ireland. Backups sit in an EU bucket.", "Inngest receives queued span events in US infrastructure, so Uncoil does not claim end-to-end EU residency.", "Email, phone, card, SSN, and API-key redaction is applied before queued events leave the EU."] },
   { title: "Access control", icon: "user", summary: "Better Auth sessions and Convex authorization protect workspace data.", items: ["Encrypted OAuth tokens and CSRF protection.", "Organization roles are enforced at the data layer."] },
   { title: "Runtime enforcement", icon: "server", summary: "Observe-first policies keep monitoring from silently changing production behavior.", items: ["Cost ceilings are evaluated server-side.", "Fail-open behavior protects production traffic."] },
-  { title: "Infrastructure", icon: "shield", summary: "Convex, Tinybird, Inngest, and Redis have explicit jobs in the data path.", items: ["Durable event processing and retry semantics.", "Ephemeral cache and rate-limit state stay separate."] },
+  { title: "Infrastructure", icon: "shield", summary: "Convex, ClickHouse, Inngest, and Redis have explicit jobs in the data path.", items: ["Durable event processing and retry semantics.", "Ephemeral cache and rate-limit state stay separate."] },
   { title: "Incident response", icon: "siren", summary: "A documented response path governs investigation and customer notification.", items: ["Affected users are notified within 72 hours.", "Security reviews run on a recurring schedule."] },
 ] as const;
 
@@ -30,7 +31,7 @@ const path = [
   ["Your agent", "The SDK or OTLP exporter sends spans with a project key. Plaintext keys are shown once and stored hashed."],
   ["Redaction", "Email, phone, card, SSN and API-key patterns are removed before queued events leave the EU region."],
   ["Queue", "Inngest Cloud processes queued span events in the United States, which is why we do not claim end-to-end EU residency."],
-  ["Storage", "Convex, Tinybird and Redis for the EU region are hosted in Ireland, scoped to the project that owns the key."],
+  ["Storage", "Accounts in Convex and cache in Redis sit in Ireland. Traces go to our own ClickHouse database, scoped to the project that owns the key."],
 ] as const;
 
 export default function SecurityPage() {
@@ -45,12 +46,12 @@ export default function SecurityPage() {
         <HeaderAction href="mailto:security@uncoil.dev?subject=Uncoil%20Security%20inquiry">Email security</HeaderAction>
         <HeaderAction href="/status" kind="secondary">See live status</HeaderAction>
       </PageHeader>
-      <StatStrip stats={[["TLS 1.3","In transit"],["AES-256","At rest"],["72 h","Breach notice"],["Ireland","EU region storage"]]} />
+      <StatStrip stats={[["TLS 1.3","In transit"],["AES-256","At rest"],["72 h","Breach notice"],["Ireland","Account data"]]} />
 
       <DarkBand>
         <Eyebrow>Control families / {controls.length}</Eyebrow>
         <SectionTitle>Seven boundaries. Pick one.</SectionTitle>
-        <div className="mt-14"><ControlExplorer controls={controls} /></div>
+        <div className="mk-gap"><ControlExplorer controls={controls} /></div>
       </DarkBand>
 
       <DarkBand className="border-t border-white/15">
@@ -72,7 +73,7 @@ export default function SecurityPage() {
           </div>
           <p className="max-w-sm text-base leading-7 text-black/65">Four hops, each with a named job. The US queue hop is real, so it is on the diagram.</p>
         </div>
-        <ol className="mt-14 grid gap-0 border-y-2 border-black md:grid-cols-4">
+        <ol className="mk-gap grid gap-0 border-y-2 border-black md:grid-cols-4">
           {path.map(([title, body], i) => (
             <Reveal key={title} delay={i * 0.1}>
               <li className={`relative flex h-full min-h-[300px] flex-col justify-between p-6 md:border-r-2 md:border-black md:last:border-r-0 ${i === 2 ? "bg-[#f4d44d]" : i === 3 ? "bg-black text-[#eceae3]" : ""}`}>
@@ -90,12 +91,34 @@ export default function SecurityPage() {
         </ol>
       </CreamBand>
 
+      <DarkBand id="data">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <Eyebrow>Where your data lives / {6} places</Eyebrow>
+            <SectionTitle>Every place your data sits. Named.</SectionTitle>
+          </div>
+          <p className="max-w-sm text-base leading-7 text-white/65">Account data, cache and backups are in the EU. Two places are outside it, and the table says which.</p>
+        </div>
+        <DataLedger />
+      </DarkBand>
+
+      <CreamBand id="deletion">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <Eyebrow dark={false}>Your data, your delete button</Eyebrow>
+            <SectionTitle>Take it with you. Or have it gone.</SectionTitle>
+          </div>
+          <p className="max-w-sm text-base leading-7 text-black/65">You can do both yourself, any time, on any plan. No support ticket for projects.</p>
+        </div>
+        <DeletionPromise />
+      </CreamBand>
+
       <DarkBand>
         <Eyebrow>Plain limits</Eyebrow>
         <SectionTitle>What we will not claim.</SectionTitle>
         <div className="mt-12 grid gap-4 md:grid-cols-3">
           {[
-            ["No end-to-end EU residency", "Storage is in Ireland, but queued span events pass through Inngest in the US. We say so instead of rounding up."],
+            ["No end-to-end EU residency", "Account data is in Ireland, but queued span events pass through Inngest in the US. We say so instead of rounding up."],
             ["No silent behavior changes", "Runtime policies are observe-first. Cost ceilings are checked server-side and fail open, so monitoring never quietly breaks production traffic."],
             ["No keys in plaintext", "Project keys are shown once at creation. After that only the hash exists on our side."],
           ].map(([t, body], i) => (

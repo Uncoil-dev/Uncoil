@@ -72,6 +72,20 @@ export function proxy(request: NextRequest) {
   const protocol = local ? forwardedProto || request.nextUrl.protocol.replace(":", "") : "https";
   const publicOrigin = `${protocol}://${publicHost}`;
 
+  // Bare and old domains go straight to www in one hop, so search engines see one canonical host.
+  // Reads use 301. Anything else uses 308 so a POST (for example an old ingest URL) keeps its method and body.
+  if (!local && (hostname === "uncoil.dev" || hostname === "tracify.tech" || hostname === "www.tracify.tech")) {
+    const permanent = request.method === "GET" || request.method === "HEAD" ? 301 : 308;
+    return NextResponse.redirect(new URL(`${pathname}${search}`, "https://www.uncoil.dev"), permanent);
+  }
+
+  // Old regional app hosts (eu.cloud.<old domain>) move to the same region on the new domain, path and query kept.
+  const oldCloudHost = /^([a-z]+)\.cloud\.tracify\.tech$/.exec(hostname);
+  if (!local && oldCloudHost) {
+    const permanent = request.method === "GET" || request.method === "HEAD" ? 301 : 308;
+    return NextResponse.redirect(new URL(`${pathname}${search}`, `https://${oldCloudHost[1]}.cloud.uncoil.dev`), permanent);
+  }
+
   // The sample project is a sandbox that lives on the cloud site; "/demo" is just its front door.
   if (pathname === DEMO_PREFIX || pathname === `${DEMO_PREFIX}/`) {
     const target = local || deploymentKind === "cloud" ? publicOrigin : UNCOIL_REGIONS.eu.origin;

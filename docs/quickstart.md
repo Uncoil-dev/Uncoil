@@ -39,12 +39,12 @@ async def my_agent():
 ### TypeScript / Node.js
 Install the package:
 ```bash
-npm install uncoil-sdk
+npm install @uncoil.dev/sdk
 ```
 
 Instrument your agent:
 ```typescript
-import { traceAgent, llmCall } from 'uncoil-sdk';
+import { traceAgent, llmCall } from '@uncoil.dev/sdk';
 
 const agent = traceAgent(async () => {
   await llmCall({

@@ -232,22 +232,22 @@ export function FailureStage({ p, active }: StageProps) {
 export type ChainRow = { label: string; note: string; flag?: boolean };
 export type Meter = { label: string; to: number; prefix?: string; suffix?: string; decimals?: number };
 
-export function ChainStage({ p, count, rows, title, flagTag, meter }: StageProps & { rows: readonly ChainRow[]; title: string; flagTag: string; meter?: Meter }) {
+export function ChainStage({ p, active, count, rows, title, flagTag, meter }: StageProps & { rows: readonly ChainRow[]; title: string; flagTag: string; meter?: Meter }) {
   const n = rows.length;
   const flagAt = rows.findIndex((r) => r.flag);
   const mp = meter ? clamp((p - (flagAt + 1) / n) / (1 - (flagAt + 1) / n)) : 0;
   void count;
   return (
     <div>
-      <Head left={title} right={`${Math.min(n, Math.floor(p * n * 1.15) + 1)} / ${n} steps`} />
+      <Head left={title} right={`${Math.min(n, active + 1)} / ${n} steps`} />
       <ol className="divide-y divide-black/20 border-y border-black/20">
         {rows.map((r, i) => {
-          const on = p * n * 1.15 > i;
+          const on = i <= active;
           return (
-            <li key={r.label} className={`grid grid-cols-[34px_1fr_auto] items-center gap-3 px-3 py-4 transition-all duration-500 ${on ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"} ${r.flag && on ? "bg-[#090909] text-[#eceae3]" : ""}`}>
+            <li key={r.label} className={`grid grid-cols-[34px_1fr_auto] items-center gap-3 px-3 py-2.5 transition-all duration-500 ${on ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"} ${r.flag && on ? "bg-[#090909] text-[#eceae3]" : ""}`}>
               <span className={`${mono} ${r.flag && on ? "text-[#f4d44d]" : "text-black/40"}`}>0{i + 1}</span>
               <div>
-                <p className="font-pixel text-2xl leading-none tracking-[-0.05em]">{r.label}</p>
+                <p className="font-pixel text-xl leading-none tracking-[-0.05em] md:text-2xl">{r.label}</p>
                 <p className={`mt-1 text-xs leading-5 ${r.flag && on ? "text-white/65" : "text-black/55"}`}>{r.note}</p>
               </div>
               <span className={`${mono} ${r.flag && on ? "text-[#f4d44d]" : "text-black/40"}`}>{r.flag ? flagTag : "ok"}</span>

@@ -8,7 +8,7 @@ const tabs = [
     id: "ts",
     label: "TypeScript",
     file: "agent.ts",
-    code: `import { traceAgent, span } from "uncoil-sdk";
+    code: `import { traceAgent, span } from "@uncoil.dev/sdk";
 
 export const answer = traceAgent(async (q: string) => {
   const docs = await span("docs.search", () => search(q), { type: "tool" });
@@ -34,7 +34,7 @@ def answer(question):
     id: "http",
     label: "HTTP",
     file: "terminal",
-    code: `curl -X POST https://uncoil.dev/api/ingest \\
+    code: `curl -X POST https://eu.cloud.uncoil.dev/api/ingest \\
   -H "Authorization: Bearer $UNCOIL_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"spanId":"span_123","runId":"run_123","spanType":"llm","createdAt":"2026-01-01T12:00:00Z","latencyMs":420}'`,
@@ -43,7 +43,7 @@ def answer(question):
     id: "otlp",
     label: "OpenTelemetry",
     file: ".env",
-    code: `UNCOIL_OTLP_ENDPOINT=https://uncoil.dev/api/otel
+    code: `UNCOIL_OTLP_ENDPOINT=https://eu.cloud.uncoil.dev/api/otel
 UNCOIL_API_KEY=uncoil_sk_live_...`,
   },
 ] as const;

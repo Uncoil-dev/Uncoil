@@ -307,6 +307,24 @@ const shouldPage =
 ```
 
 > **Decision rule:** Validate the example’s inputs, output, permissions, and failure behavior before connecting it to a consequential side effect.
+## Keep every metric on one run record
+
+A metric read alone often tells half the story. Attach latency, cost, reliability, quality, and tool-call success to the same run identity. Then you can compare any two of them for the same request instead of reading separate trend lines.
+
+| Metric | What it measures | What it usually trades off against |
+| --- | --- | --- |
+| Latency | End-to-end and per-step time | Quality: a faster model or shorter context can cost accuracy |
+| Cost | Spend per run, workflow, and model | Quality: the cheapest model is rarely the most accurate |
+| Reliability | Error, timeout, and retry rates | Latency: more retries raise success but also tail latency |
+| Quality or groundedness | Accurate, grounded, policy-compliant output | Cost and latency: extra checks add both |
+| Tool-call success | Calls that succeed and are read correctly | Reliability: a flaky tool hurts both together |
+
+A common failure: cost drops after a model change, and quality drops quietly with it. A dashboard that shows only cost calls this a win. A run record that carries both numbers shows the real result.
+
+## Set each alert threshold from the metric's own shape
+
+One rule such as "alert on a 10% weekly change" fits no metric well. Latency percentiles spike briefly for good reasons, so alert on a sustained rise over a rolling window. Cost per run for a fixed workflow is stable, so a tighter threshold is fair. Quality scores are noisy at small sample sizes, so require a minimum sample before you alert. Tune each threshold against that metric's own history.
+
 ## Frequently asked questions
 
 {% faq-item question="Which metric comes first?" answer="Start with the user-visible outcome and its denominator. Add latency, cost, reliability, and quality measures that explain movement or protect a decision boundary." /%}

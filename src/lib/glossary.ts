@@ -26,7 +26,7 @@ const coreTerms: readonly Term[] = [
     expansion:
       "A good trace viewer shows inputs, outputs, timing, tokens and cost for every step, and lets you jump from a bad answer to the first step that went wrong. Uncoil's trace viewer does this for every run sent through the SDK or OpenTelemetry.",
     related: ["ai-agent-trace", "span", "agent-run"],
-    link: { href: "/answers/what-is-a-trace-viewer", label: "How to view a trace" },
+    link: { href: "/product/trace-viewer", label: "See the trace viewer" },
   },
   {
     slug: "tool-call-tracking",
@@ -45,15 +45,6 @@ const coreTerms: readonly Term[] = [
     expansion:
       "Pipelines fail between stages as often as inside them. A single trace shows where time and cost go, which stage returned bad data, and how an early mistake carried into the final answer.",
     related: ["llm-tracing", "ai-agent-trace", "span"],
-  },
-  {
-    slug: "ai-agent-tracking",
-    term: "AI agent tracking",
-    definition:
-      "AI agent tracking is monitoring what your agents do in production: which runs happen, what each step costs, which runs fail, and how behavior changes between releases.",
-    expansion:
-      "Tracking covers runs, tool calls, tokens, cost and quality scores over time. It is the monitoring side of AI agent observability, while traces give the detail needed to debug a single run.",
-    related: ["ai-agent-observability", "agent-run", "llm-cost-tracking"],
   },
   {
     slug: "llm-observability",
@@ -133,8 +124,9 @@ const coreTerms: readonly Term[] = [
     definition:
       "AI agent observability is the ability to see what an AI agent did and why, by recording every model call, tool call, decision, cost and error of each run so failures can be found and fixed.",
     expansion:
-      "It extends LLM observability to multi-step agents: a run can loop, branch, call tools and hand work to other agents, so the useful unit is the whole trace, not a single request.",
-    related: ["llm-observability", "ai-agent-trace", "span"],
+      "It extends LLM observability to multi-step agents: a run can loop, branch, call tools and hand work to other agents, so the useful unit is the whole trace, not a single request. Some teams call the monitoring side of this AI agent tracking: which runs happen, what each step costs, which runs fail, and how behavior changes between releases.",
+    related: ["llm-observability", "ai-agent-trace", "span", "llm-cost-tracking"],
+    link: { href: "/blog/ai-agent-observability-complete-guide", label: "Read the complete guide" },
   },
   {
     slug: "llm-cost-tracking",

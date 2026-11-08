@@ -9,7 +9,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
 const SNIPPETS = {
-  typescript: { label: "TypeScript", install: "npm install uncoil-sdk", env: "UNCOIL_API_KEY=your_key_here", code: `import { init } from "uncoil-sdk";\n\ninit(); // call once at startup\n// every OpenAI and Anthropic call is now traced` },
+  typescript: { label: "TypeScript", install: "npm install @uncoil.dev/sdk", env: "UNCOIL_API_KEY=your_key_here", code: `import { init } from "@uncoil.dev/sdk";\n\ninit(); // call once at startup\n// every OpenAI and Anthropic call is now traced` },
   python: { label: "Python", install: "pip install uncoil-sdk", env: "UNCOIL_API_KEY=your_key_here", code: `import uncoil\n\nuncoil.init()  # call once at startup\n# every OpenAI, Anthropic and LangChain call is now traced` },
 } as const;
 

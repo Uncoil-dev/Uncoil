@@ -372,6 +372,35 @@
   transform: scale(0.98);
 }
 
+/* ── Marketing spacing tokens ─────────────────────────────────────
+   Sized by viewport HEIGHT, so one section fits one screen at
+   1366x768, 1440x900 and 1920x1080. Use these on every marketing
+   section instead of fixed py-24 / md:py-32 / mt-14.
+   mk-section  → vertical section padding
+   mk-gap      → space between a section header and its content
+   mk-h2       → section heading size (also capped by height)
+   mk-fit      → max height for a big visual, so header + visual fit
+   ─────────────────────────────────────────────────────────────── */
+:root {
+  --mk-section-y: clamp(3.5rem, 10svh, 7rem);
+  --mk-gap: clamp(1.75rem, 5svh, 3.5rem);
+  --mk-h2: clamp(2.4rem, min(5.4vw, 9svh), 5.25rem);
+  --mk-fit: max(320px, calc(100svh - 2 * var(--mk-section-y) - var(--mk-gap) - 13rem));
+}
+@utility mk-section {
+  padding-top: var(--mk-section-y);
+  padding-bottom: var(--mk-section-y);
+}
+@utility mk-gap {
+  margin-top: var(--mk-gap);
+}
+@utility mk-h2 {
+  font-size: var(--mk-h2);
+}
+@utility mk-fit {
+  max-height: var(--mk-fit);
+}
+
 .hover-glow {
   transition:
     background-color 200ms var(--ease-out),

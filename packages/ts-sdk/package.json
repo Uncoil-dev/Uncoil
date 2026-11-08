@@ -1,5 +1,5 @@
 {
-  "name": "uncoil-sdk",
+  "name": "@uncoil.dev/sdk",
   "version": "0.6.0",
   "description": "Observability, runtime enforcement, and tracing for AI agents.",
   "homepage": "https://www.uncoil.dev",
@@ -11,7 +11,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "uncoil-sdk": "dist/cli.js",
+    "uncoil": "dist/cli.js",
     "uncoil-doctor": "dist/cli.js"
   },
   "files": [

@@ -102,7 +102,7 @@ A mature AI agent monitoring workflow names what happens when evidence is missin
 
 ### Use small, reviewable examples
 
-Examples teach the boundary faster than abstract claims. Keep a representative monitoring example small enough to inspect, but include the field that changes the decision. Show the expected result and one plausible failure. The fixture patterns in [AI agent testing](/blog/ai-agent-testing-unit-tests-production-evals) are a good starting point for examples that can become executable checks. Explain which part is illustrative and which part should be adapted to the repository.
+Examples teach the boundary faster than abstract claims. Keep a representative monitoring example small enough to inspect, but include the field that changes the decision. Show the expected result and one plausible failure. The fixture patterns in [AI agent testing](/blog/ai-agent-evaluation-practical-guide) are a good starting point for examples that can become executable checks. Explain which part is illustrative and which part should be adapted to the repository.
 
 ### Test variation deliberately
 
@@ -121,7 +121,7 @@ The happy path is only one member of the monitoring distribution. Add cases for 
 
 ### Roll out in stages
 
-Use shadow mode, a narrow cohort, explicit comparison, and a rollback condition when changing monitoring or agent behavior. Shadow mode reveals what the system would have done without changing user behavior. A cohort exposes regressions hidden by averages. A rollback condition turns caution into an operational decision. Keep the release, prompt, model, data, and configuration identifiers together; the [prompt versioning workflow](/blog/prompt-versioning-production) shows why prompt identity belongs beside code and model identity.
+Use shadow mode, a narrow cohort, explicit comparison, and a rollback condition when changing monitoring or agent behavior. Shadow mode reveals what the system would have done without changing user behavior. A cohort exposes regressions hidden by averages. A rollback condition turns caution into an operational decision. Keep the release, prompt, model, data, and configuration identifiers together; the [prompt versioning workflow](/blog/prompt-versioning-and-prompt-management) shows why prompt identity belongs beside code and model identity.
 
 The following is an **illustrative rollout policy**, not vendor-specific executable configuration. Copy its fields into the release system your team actually operates.
 

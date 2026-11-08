@@ -64,7 +64,15 @@ function altTarget(label: string, model: string | undefined): { url: string; mod
 export async function callAlt(label: string, apiKey: string, model: string | undefined, prompt: Prompt): Promise<LlmAttempt> {
   const target = altTarget(label, model);
   if (!target) return { text: "", failure: "error" };
-  return callChat("alt", target.url, label, apiKey, target.model, prompt);
+  const first = await callChat("alt", target.url, label, apiKey, target.model, prompt);
+  return shouldRetry(first) ? callChat("alt", target.url, label, apiKey, target.model, prompt) : first;
+}
+
+/** One quick retry for a blip: an empty answer, a network error or a 5xx. Never for rate limits, credit or a rejected key. */
+export function shouldRetry(attempt: LlmAttempt) {
+  if (attempt.text) return false;
+  if (!attempt.failure) return true;
+  return attempt.failure === "error" && (attempt.status === undefined || attempt.status >= 500);
 }
 
 /** Pulls the text pieces out of an OpenAI-style event stream ("data: {...}" lines). Reasoning pieces are ignored. */
@@ -127,7 +135,13 @@ export async function streamWithFallback(label: string, keys: { alt?: string; op
   const failures: LlmFailure[] = [];
   if (keys.alt) {
     const target = altTarget(label, models.alt);
-    const first = target ? await streamChat("alt", target.url, label, keys.alt, target.model, prompt, onText) : { text: "", failure: "error" as LlmFailure };
+    let first: LlmAttempt = { text: "", failure: "error" };
+    if (target) {
+      let sent = false;
+      const track = (piece: string) => { sent = true; onText(piece); };
+      first = await streamChat("alt", target.url, label, keys.alt, target.model, prompt, track);
+      if (!sent && shouldRetry(first)) first = await streamChat("alt", target.url, label, keys.alt, target.model, prompt, track);
+    }
     if (first.text) return { text: first.text, provider: "alt" as const, failures };
     failures.push(first.failure ?? "error");
   }

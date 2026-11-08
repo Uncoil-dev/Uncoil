@@ -8,6 +8,8 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { compareRows, summarise, verdictCounts, type CompareRow, type Summary, type Verdict } from "@/lib/experiment-compare";
 import { readJson } from "@/lib/safe-json";
+import { EmptyState } from "../empty/empty-state";
+import { SampleExperiment } from "../empty/samples";
 
 type Experiment = FunctionReturnType<typeof api.experiments.list>[number];
 type Query = Record<string, string>;
@@ -89,11 +91,7 @@ export function ExperimentsWorkspace({ projectId, initialQuery }: { projectId: s
       {notice ? <p role={notice.tone === "error" ? "alert" : "status"} className={`mx-4 mt-3 rounded border px-3 py-2 text-xs ${notice.tone === "error" ? "border-[#5B2B2B] bg-[#1A1010] text-[#FF8A8A]" : "border-[#1F4D38] bg-[#0E1A14] text-[#5BE3A0]"}`}>{notice.text}</p> : null}
       {experiments === undefined ? <div className="grid gap-2 p-4" role="status" aria-label="Loading experiments">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-16 animate-pulse rounded bg-[#11151A]" />)}</div>
         : empty ? (
-          <div className="m-auto max-w-md p-10 text-center">
-            <h2 className="text-sm font-semibold">Find out if a change made things better</h2>
-            <p className="mt-2 text-xs leading-5 text-[#8B93A1]">An experiment runs a prompt on every row of a dataset. Run two, and this page lines their answers up side by side so you can see what got better and what broke.</p>
-            <button type="button" onClick={() => setCreating(true)} className="mt-4 h-8 rounded bg-[#F4D44D] px-3 text-xs font-medium text-[#090909]">Create your first experiment</button>
-          </div>
+          <div className="m-auto w-full p-4"><EmptyState eyebrow="Experiments" title="Find out if a change made things better" why="Run a prompt on every row of a dataset. Run two, and see side by side what got better and what broke." sample={<SampleExperiment />} action={{ label: "Create your first experiment", onClick: () => setCreating(true) }} /></div>
         ) : (
           <>
             <section aria-label="Choose runs to compare" className="grid items-end gap-3 border-b border-[#1F242C] px-4 py-3 md:grid-cols-[1fr_auto_1fr]">

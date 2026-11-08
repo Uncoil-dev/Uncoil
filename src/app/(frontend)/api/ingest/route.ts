@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+import { reportHandledError } from "@/lib/crash-report";
 import { api } from "convex/_generated/api";
 import type { FunctionReturnType } from "convex/server";
 import type { Id } from "convex/_generated/dataModel";
@@ -282,7 +283,7 @@ export async function POST(request: NextRequest) {
   try {
     await persistSpan(spanEvent);
   } catch (error) {
-    console.error("Span storage failed:", error);
+    await reportHandledError("POST /api/ingest span storage", error);
     if (process.env.NODE_ENV !== "production") {
       // Local development without Tinybird: keep the run summary and span cache in Convex only.
       try {

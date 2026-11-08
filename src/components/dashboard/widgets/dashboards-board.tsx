@@ -6,6 +6,8 @@ import { compactCost, compactNumber, duration, errorShare, moveWidget, WIDGETS, 
 import type { Board, BoardStore } from "./board-store";
 import { useWidgetData } from "./widget-data";
 import { WidgetBody } from "./widget-views";
+import { EmptyState } from "../empty/empty-state";
+import { SampleBoard } from "../empty/samples";
 
 const RANGES = [{ days: 7, label: "7 days" }, { days: 30, label: "30 days" }, { days: 90, label: "90 days" }];
 const STARTER = ["trace_volume", "error_rate", "cost_daily", "cost_by_model"];
@@ -171,7 +173,7 @@ export function DashboardsBoard({ projectId, store, initialDashboard, demo = fal
                   </div>
                 ) : null}
                 {!widgets.length ? (
-                  <div className="mx-auto max-w-md border border-dashed border-[#2C333D] p-10 text-center"><h2 className={`${PAGE_FONT} text-xl`}>This board is empty</h2><p className="mt-2 text-xs leading-5 text-[#8B93A1]">Pick the charts you want to see here.</p><button type="button" onClick={() => setGallery(true)} className={`${solid} mt-4`}>Add a widget</button></div>
+                  <EmptyState eyebrow="Board" title="Build the view you check every morning" why="Pick the charts that matter to you: runs, errors, cost by model. This board keeps them in one place." sample={<SampleBoard />} action={{ label: "Add a widget", onClick: () => setGallery(true) }} />
                 ) : (
                   <div className="grid gap-5 md:grid-cols-2">
                     {widgets.map((widget, index) => {

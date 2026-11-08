@@ -5,6 +5,7 @@ import { buildSpanTree, type SpanTreeNode } from "@/lib/uncoil-ports/treeBuildin
 import { chatMessages, compactNumber, downloadFile, formatCost, formatDuration, formatTime, parsePayload } from "./format";
 import { AskAiPanel } from "./ask-ai-panel";
 import { ScoreRunButton } from "../scores/score-run-button";
+import { ShareTraceButton } from "../share-trace-button";
 import { stepKind, TraceGraph, TraceTimeline, TypeIcon } from "./trace-views";
 
 type Span = {
@@ -56,7 +57,6 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
   const [attempt, setAttempt] = useState(0);
   const [stepFilter, setStepFilter] = useState<StepFilter>("all");
   const [stepSearch, setStepSearch] = useState("");
-  const [linkCopied, setLinkCopied] = useState(false);
   const [side, setSide] = useState<"step" | "ask">("step");
 
   useEffect(() => {
@@ -188,14 +188,6 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
     requestAnimationFrame(() => document.getElementById(`${view === "tree" ? "step" : view}-${target}`)?.scrollIntoView({ block: "center", inline: "center" }));
   }
 
-  function copyLink() {
-    const url = new URL(window.location.href);
-    url.searchParams.set("trace", runId);
-    void navigator.clipboard?.writeText(url.toString());
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 1200);
-  }
-
   function downloadJson() {
     const body = JSON.stringify({ runId, summary: summary ?? null, spans: (spans ?? []).map((span) => ({ ...span, input: parsePayload(span.input), output: parsePayload(span.output), metadata: parsePayload(span.metadata) })) }, null, 2);
     downloadFile(`trace-${runId.replace(/[^\w.-]+/g, "_").slice(0, 80)}.json`, body, "application/json");
@@ -216,7 +208,7 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">{name}</h2>
         <button type="button" onClick={() => setSide("ask")} className="h-7 rounded-md bg-[#F4D44D] px-2.5 text-xs font-medium text-[#0B0D10] hover:bg-[#F7DC6B]">Ask AI</button>
         <ScoreRunButton projectId={projectId} traceId={runId} className={toolButton} />
-        <button type="button" onClick={copyLink} className={toolButton}>{linkCopied ? "Link copied" : "Copy link"}</button>
+        <ShareTraceButton projectId={projectId} runId={runId} variant="dark" teamUrl={() => { const url = new URL(window.location.href); url.searchParams.set("trace", runId); return url.toString(); }} />
         <button type="button" onClick={downloadJson} disabled={!spans?.length} className={`${toolButton} disabled:opacity-40`}>JSON</button>
         <button type="button" aria-label="Previous trace" onClick={() => onStep(-1)} className="h-7 w-7 rounded-md border border-[#262C35] hover:border-[#4A5260]">↑</button>
         <button type="button" aria-label="Next trace" onClick={() => onStep(1)} className="h-7 w-7 rounded-md border border-[#262C35] hover:border-[#4A5260]">↓</button>

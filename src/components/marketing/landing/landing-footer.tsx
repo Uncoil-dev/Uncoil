@@ -8,6 +8,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
 import { PixelWordmark } from "@/components/marketing/landing/pixel-wordmark";
 import { appHref } from "@/lib/app-links";
+import { traceReachY } from "@/components/marketing/landing/trace-reach";
 
 const groups = [
   ["Product", [["Trace viewer", "/product/trace-viewer"], ["Cost dashboard", "/product/cost-dashboard"], ["Tool calls", "/product/tool-calls"], ["LLM calls", "/product/llm-calls"], ["Failures", "/product/failures"], ["Reports", "/product/reports"], ["Runtime control", "/product/runtime-control"], ["Evaluation engine", "/product/evaluation-engine"], ["Lifecycle", "/product/lifecycle"], ["Pricing", "/pricing"]]],
@@ -29,6 +30,8 @@ function TraceMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const [lit, setLit] = useState<number | null>(null);
   const [litX, setLitX] = useState(0);
+  // The step the pointer is on: the column's trace line runs down to it and stops there.
+  const [reach, setReach] = useState<{ col: number; y: number } | null>(null);
 
   const light = (i: number | null, el?: HTMLElement | null) => {
     setLit(i);
@@ -54,7 +57,7 @@ function TraceMap() {
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 xl:grid-cols-6">
           {groups.map(([title, links], i) => (
-            <div key={title} className="relative pl-5" onMouseEnter={(e) => light(i, e.currentTarget)} onMouseLeave={() => light(null)} onFocus={(e) => light(i, e.currentTarget)} onBlur={() => light(null)}>
+            <div key={title} data-trace-col className="relative pl-5" onMouseEnter={(e) => light(i, e.currentTarget)} onMouseLeave={() => { light(null); setReach(null); }} onFocus={(e) => light(i, e.currentTarget)} onBlur={() => { light(null); setReach(null); }}>
               <motion.span
                 className={`absolute -left-[3.5px] -top-[3.5px] size-2 transition-colors ${lit === i ? "bg-[#f4d44d] shadow-[0_0_12px_#f4d44d]" : "bg-white/60"}`}
                 initial={reduce ? false : { scale: 0 }}
@@ -64,11 +67,21 @@ function TraceMap() {
                 aria-hidden="true"
               />
               <motion.span
-                className={`absolute bottom-1 left-0 top-0 w-px origin-top transition-colors ${lit === i ? "bg-[#f4d44d]" : "bg-white/15"}`}
+                className="absolute bottom-1 left-0 top-0 w-px origin-top bg-white/15"
                 initial={reduce ? false : { scaleY: 0 }}
                 whileInView={{ scaleY: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 + i * 0.12, duration: 0.8, ease }}
+                aria-hidden="true"
+              />
+              <span
+                className="pointer-events-none absolute left-0 top-0 w-px bg-[#f4d44d] shadow-[0_0_8px_#f4d44d] transition-[height,opacity] duration-300 ease-out motion-reduce:transition-none"
+                style={{ height: reach?.col === i ? reach.y : 0, opacity: reach?.col === i ? 1 : 0 }}
+                aria-hidden="true"
+              />
+              <span
+                className="pointer-events-none absolute -left-[2px] size-[5px] bg-[#f4d44d] transition-[top,opacity] duration-300 ease-out motion-reduce:transition-none"
+                style={{ top: (reach?.col === i ? reach.y : 0) - 2.5, opacity: reach?.col === i ? 1 : 0 }}
                 aria-hidden="true"
               />
               <p className="flex items-baseline justify-between gap-2 pt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-white/45 sm:tracking-[0.16em]">
@@ -84,9 +97,11 @@ function TraceMap() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.45 + i * 0.12 + j * 0.03, duration: 0.35 }}
+                    onMouseEnter={(e) => setReach({ col: i, y: traceReachY(e.currentTarget) })}
+                    onFocus={(e) => setReach({ col: i, y: traceReachY(e.currentTarget) })}
                   >
                     <Link href={href} className="group flex items-center py-1 text-sm text-white/65 transition-colors hover:text-white focus-visible:text-white">
-                      <span className="-ml-5 mr-2.5 h-px w-2.5 shrink-0 bg-white/20 transition-all group-hover:w-4 group-hover:bg-[#f4d44d] group-focus-visible:bg-[#f4d44d]" aria-hidden="true" />
+                      <span data-trace-tick className="-ml-5 mr-2.5 h-px w-2.5 shrink-0 bg-white/20 transition-all group-hover:w-4 group-hover:bg-[#f4d44d] group-focus-visible:bg-[#f4d44d]" aria-hidden="true" />
                       <span className="min-w-0 flex-1">{label}</span>
                       <ArrowUpRight className="size-3 shrink-0 text-[#f4d44d] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
                     </Link>

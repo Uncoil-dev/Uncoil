@@ -7,6 +7,8 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { PromptDetail, TABS, type PromptVersion, type Tab } from "./prompt-detail";
 import { PromptEditor, type EditorValues } from "./prompt-editor";
+import { EmptyState } from "../empty/empty-state";
+import { SamplePrompts } from "../empty/samples";
 
 type Query = Record<string, string>;
 type Sort = "updated" | "name";
@@ -135,13 +137,9 @@ export function PromptsWorkspace({ projectId, initialQuery }: { projectId: strin
             </ul>
           )}
         </nav>
-        <main className={`min-h-0 min-w-0 ${selected ? "" : "hidden lg:block"}`}>
+        <main className={`min-h-0 min-w-0 ${selected || (prompts !== undefined && !prompts.length) ? "" : "hidden lg:block"}`}>
           {prompts !== undefined && !prompts.length ? (
-            <div className="mx-auto max-w-md p-10 text-center">
-              <h2 className="text-sm font-semibold">Keep your prompts out of your code</h2>
-              <p className="mt-2 text-xs leading-5 text-[#8B93A1]">Save a prompt here, move it from development to staging to production, and fetch it by name from your app. Change the text without a deploy, compare versions, and see which traces used which version.</p>
-              <button type="button" onClick={() => setEditor({ mode: "prompt", initial: {} })} className="mt-4 h-8 rounded bg-[#F4D44D] px-3 text-xs font-medium text-[#090909]">Create your first prompt</button>
-            </div>
+            <div className="p-4"><EmptyState eyebrow="Prompts" title="Keep your prompts out of your code" why="Change the text without a deploy, roll back in one click, and see which traces used which version." sample={<SamplePrompts />} action={{ label: "Create your first prompt", onClick: () => setEditor({ mode: "prompt", initial: {} }) }} /></div>
           ) : selected ? (
             <PromptDetail
               key={selected._id}

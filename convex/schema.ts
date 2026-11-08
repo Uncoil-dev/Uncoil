@@ -44,6 +44,8 @@ export default defineSchema({
     redactionEnabled: v.optional(v.boolean()),
     redactionRules: v.optional(v.array(v.string())),
     retentionDays: v.optional(v.number()),
+    // The project's own model prices (dollars per million tokens). Ingest uses them only when a step reports no cost.
+    modelPrices: v.optional(v.array(v.object({ pattern: v.string(), inputPerM: v.number(), outputPerM: v.number(), note: v.optional(v.string()) }))),
     runtimePolicy: v.optional(v.object({
       enforcementMode: v.union(v.literal("observe"), v.literal("enforce")),
       maxCostPerRun: v.optional(v.number()),
@@ -813,6 +815,42 @@ export default defineSchema({
     email: v.string(),
     sentAt: v.number(),
   }).index("by_email", ["email"]),
+
+  // Named score types: allowed values and what counts as a pass. Scores without a config still work as before.
+  scoreConfigs: defineTable({
+    projectId: v.id("projects"),
+    name: v.string(),
+    dataType: v.union(v.literal("numeric"), v.literal("boolean"), v.literal("categorical")),
+    description: v.optional(v.string()),
+    min: v.optional(v.number()),
+    max: v.optional(v.number()),
+    categories: v.optional(v.array(v.string())),
+    passThreshold: v.optional(v.number()),
+    passCategories: v.optional(v.array(v.string())),
+    createdBy: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_projectId", ["projectId"])
+    .index("by_projectId_and_name", ["projectId", "name"]),
+
+  // Model provider keys the project brings itself. The key is encrypted by the web server before it reaches Convex; only the server can read it back.
+  llmConnections: defineTable({
+    projectId: v.id("projects"),
+    label: v.string(),
+    provider: v.string(),
+    baseUrl: v.string(),
+    defaultModel: v.optional(v.string()),
+    ciphertext: v.string(),
+    keyLast4: v.string(),
+    isDefault: v.boolean(),
+    lastTestedAt: v.optional(v.number()),
+    lastTestOk: v.optional(v.boolean()),
+    lastTestMessage: v.optional(v.string()),
+    createdBy: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_projectId", ["projectId"]),
 
   auditLogs: defineTable({
     projectId: v.id("projects"),

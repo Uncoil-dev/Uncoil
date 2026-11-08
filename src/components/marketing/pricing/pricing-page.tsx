@@ -67,7 +67,7 @@ function PlanCard({ plan, interval, featured, recommended, t }: { plan: Plan; in
       <CapacityMeter limit={plan.spanLimit} dark={featured} />
       <p className={`mt-2 font-mono text-[10px] uppercase tracking-[0.1em] ${muted}`}>{plan.spans} {t.spansPerMonth}</p>
       <ul className="mt-5 grid gap-2 text-sm">
-        {[`${t.rows[1][plan.id === "free" ? 1 : plan.id === "pro" ? 2 : 3]} ${t.retention}`, `${t.members(plan.members)} · ${t.projects(plan.projects)}`, ...t.plans[plan.id].features].map((f) => (
+        {[`${t.retentionCells[plan.id === "free" ? 0 : plan.id === "pro" ? 1 : 2]} ${t.retention}`, `${t.members(plan.members)} · ${t.projects(plan.projects)}`, ...t.plans[plan.id].features].map((f) => (
           <li key={f} className="flex gap-2.5">
             <span className={`mt-1.5 size-1.5 shrink-0 ${featured ? "bg-[#f4d44d]" : "bg-black"}`} />
             {f}
@@ -262,13 +262,17 @@ function SpanCounter({ t }: { t: PricingCopy }) {
   );
 }
 
-function Compare({ interval, t }: { interval: BillingInterval; t: PricingCopy }) {
+function Compare({ interval, recommended, t }: { interval: BillingInterval; recommended: Plan["id"] | null; t: PricingCopy }) {
+  // Highlight the column the calculator picked; Pro is the default highlight until then.
+  const hot = recommended ?? "pro";
+  const columnTint = (id: Plan["id"]) => (id === hot ? "bg-[#f4d44d]/25" : "");
   return (
     <section className="bg-[#eceae3] px-5 mk-section text-black md:px-10" aria-labelledby="compare-title">
       <div className="mx-auto max-w-[1320px]">
         <Reveal>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">{t.compareEyebrow}</p>
           <h2 id="compare-title" className="mt-5 font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">{t.compareTitle}</h2>
+          <p className="mt-5 max-w-xl text-base leading-7 text-black/70">{t.compareLede}</p>
         </Reveal>
         <div className="mk-gap overflow-x-auto border-2 border-black">
           <table className="w-full border-collapse text-left md:min-w-[720px]">
@@ -277,33 +281,61 @@ function Compare({ interval, t }: { interval: BillingInterval; t: PricingCopy })
               <tr className="bg-black text-[#eceae3]">
                 <th scope="col" className="p-2.5 font-mono text-[8px] font-normal uppercase tracking-[0.1em] text-white/55 md:px-5 md:py-3.5 md:text-[10px] md:tracking-[0.14em]">{t.capability}</th>
                 {plans.map((plan) => (
-                  <th key={plan.id} scope="col" className={`border-l border-white/20 p-2 md:px-5 md:py-3.5 ${plan.id === "pro" ? "bg-[#f4d44d] text-black" : ""}`}>
+                  <th key={plan.id} scope="col" className={`border-l border-white/20 p-2 md:px-5 md:py-3.5 ${plan.id === hot ? "bg-[#f4d44d] text-black" : ""}`}>
                     <span className="block font-pixel text-base tracking-[-0.05em] md:text-3xl">{plan.name}</span>
                     <span className="mt-1 block font-mono text-[8px] font-normal uppercase tracking-[0.04em] opacity-60 md:text-[10px] md:tracking-[0.1em]">{formatPrice(monthlyPrice(plan, interval))}<span className="hidden md:inline"> {t.perMonth}</span></span>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {t.rows.map((row) => (
-                <tr key={row[0]} className="group border-t border-black/25 hover:bg-[#f4d44d]/40">
-                  <th scope="row" className="p-2.5 text-xs font-medium leading-4 md:px-5 md:py-3.5 md:text-sm md:leading-normal">{row[0]}</th>
-                  {row.slice(1).map((cell, i) => (
-                    <td key={i} className={`border-l border-black/25 p-2 font-mono text-[9px] uppercase tracking-[0.02em] md:px-5 md:py-3.5 md:text-[11px] md:tracking-[0.06em] ${cell === "—" ? "text-black/30" : ""}`}>
-                      {cell === t.included ? <span className="flex items-center gap-2"><span className="size-2 bg-black" /><span className="sr-only md:not-sr-only">{t.included}</span></span> : cell}
-                    </td>
-                  ))}
+            {t.compareGroups.map((group) => (
+              <tbody key={group.title}>
+                <tr className="border-t-2 border-black bg-black/[0.06]">
+                  <th scope="colgroup" colSpan={4} className="px-2.5 py-2.5 font-mono text-[9px] font-normal uppercase tracking-[0.16em] text-black/60 md:px-5 md:text-[10px]">{group.title}</th>
                 </tr>
-              ))}
-            </tbody>
+                {group.rows.map(([label, free, pro, team, note]) => (
+                  <tr key={label} className="group border-t border-black/25 hover:bg-[#f4d44d]/40">
+                    <th scope="row" className="p-2.5 align-top text-xs font-medium leading-4 md:px-5 md:py-3.5 md:text-sm md:leading-normal">
+                      {label}
+                      {note && <span className="mt-1 block text-[10px] font-normal leading-4 text-black/55 md:max-w-[26ch] md:text-xs">{note}</span>}
+                    </th>
+                    {([["free", free], ["pro", pro], ["team", team]] as const).map(([id, cell]) => (
+                      <td key={id} className={`border-l border-black/25 p-2 align-top font-mono md:px-5 md:py-3.5 ${columnTint(id)} ${cell === "—" ? "text-black/30" : ""} ${cell.length > 14 ? "text-[10px] leading-4 md:text-xs" : "text-[9px] uppercase tracking-[0.02em] md:text-[11px] md:tracking-[0.06em]"}`}>
+                        {cell === t.included ? <span className="flex items-center gap-2"><span className="size-2 bg-black" /><span className="sr-only md:not-sr-only">{t.included}</span></span> : cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ))}
+            <tfoot>
+              <tr className="border-t-2 border-black">
+                <td className="hidden p-2.5 md:table-cell md:px-5 md:py-4" />
+                {plans.map((plan) => (
+                  <td key={plan.id} className={`border-l border-black/25 p-2 md:px-5 md:py-4 ${columnTint(plan.id)}`}>
+                    <Link
+                      href={plan.id === "free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.id, interval))}
+                      className={`flex min-h-11 items-center justify-between gap-2 px-2 font-mono text-[9px] uppercase tracking-[0.1em] md:px-4 md:text-[10px] ${plan.id === hot ? "bg-black text-[#f4d44d] hover:bg-white hover:text-black" : "border-2 border-black hover:bg-black hover:text-white"}`}
+                    >
+                      <span>{plan.id === "free" ? t.startFree : t.getPlan(plan.name)}</span>
+                      <ArrowRight className="hidden size-4 md:block" aria-hidden="true" />
+                    </Link>
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
           </table>
         </div>
+        <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.12em] text-black/55">
+          {t.enterprise.name}: <Link href="/contact" className="underline underline-offset-4 hover:text-black">{t.enterprise.cta}</Link>
+        </p>
       </div>
     </section>
   );
 }
 
-function Faq({ t }: { t: PricingCopy }) {
+function Faq({ founding, t }: { founding: boolean; t: PricingCopy }) {
+  const faqs = founding ? [...t.faqs, t.foundingFaq] : t.faqs;
   return (
     <section className="border-t-2 border-black bg-[#eceae3] px-5 pb-16 text-black md:px-10 md:pb-20" aria-labelledby="faq-title">
       <div className="mx-auto grid max-w-[1320px] gap-10 pt-14 md:pt-16 lg:grid-cols-[0.8fr_1.2fr]">
@@ -312,7 +344,7 @@ function Faq({ t }: { t: PricingCopy }) {
           <h2 id="faq-title" className="mt-5 font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">{t.faqTitle}</h2>
         </Reveal>
         <div className="border-t border-black/25">
-          {t.faqs.map(([q, a]) => (
+          {faqs.map(([q, a]) => (
             <details key={q} className="group border-b border-black/25">
               <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-6 py-4 font-pixel text-[1.4rem] tracking-[-0.05em] [&::-webkit-details-marker]:hidden">
                 {q}
@@ -396,8 +428,8 @@ export function PricingPage({ locale = "en", founding = false }: { locale?: Loca
 
       <Calculator value={estimate ?? { slider: sliderFromRuns(8000), steps: 8 }} onChange={setEstimate} interval={interval} locale={locale} t={t} />
       <SpanCounter t={t} />
-      <Compare interval={interval} t={t} />
-      <Faq t={t} />
+      <Compare interval={interval} recommended={recommended} t={t} />
+      <Faq founding={founding} t={t} />
 
       <section className="overflow-hidden bg-[#090909] px-5 pt-16 text-center text-[#eceae3] md:px-10 md:pt-20">
         <Reveal>

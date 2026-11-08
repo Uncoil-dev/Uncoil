@@ -6,6 +6,8 @@ import { FilterChips, GroupControls, GroupFooter } from "./group-controls";
 import type { GroupView } from "./group-view";
 import { PixelId } from "./pixel";
 import { UserProfile } from "./user-profile";
+import { EmptyState } from "../empty/empty-state";
+import { SampleUsers } from "../empty/samples";
 
 const PAGE_FONT = "font-[family-name:var(--font-geist-pixel-square)]";
 const SHARES = ["#090909", "#f4d44d", "#55534a", "#8f8c7b", "#b9b6a4"];
@@ -105,7 +107,10 @@ export function UsersView({ view }: { view: GroupView }) {
           </div>
         ) : null}
         {!data && !error ? <div className="p-6 text-[#55534a]" role="status">Loading users…</div> : null}
-        {data && !rows.length && !error ? (
+        {data && !rows.length && !error && !view.filters.length ? (
+          <EmptyState tone="paper" eyebrow="Users" title="See who your agent is working for" why="Spend, errors and runs per end user show you who is struggling and who costs the most." sample={<SampleUsers />} action={{ label: "Add an end user id", href: `${view.basePath}/quickstart` }} />
+        ) : null}
+        {data && !rows.length && !error && view.filters.length ? (
           <div className="mx-auto max-w-sm p-10 text-center">
             <p className={`${PAGE_FONT} text-xl`}>{view.filters.length ? "Nobody matches" : "No users yet"}</p>
             <p className="mt-2 leading-5 text-[#55534a]">{view.filters.length ? "Clear a filter or widen the time range." : "Users appear once your agent sends an end user id with its steps. Add endUserId to your SDK calls."}</p>

@@ -6,6 +6,8 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { authClient } from "@/lib/auth-client";
 import { BudgetForm } from "./budget-form";
+import { EmptyState } from "../empty/empty-state";
+import { SampleBudgets } from "../empty/samples";
 
 const COLORS = { ok: "#5BE3A0", warning: "#F4D44D", over: "#FF6B6B" } as const;
 const LABELS = { ok: "ON TRACK", warning: "WARNING", over: "OVER" } as const;
@@ -34,11 +36,7 @@ export function BudgetsPanel({ projectId }: { projectId: string }) {
       ) : data === null ? (
         <p className="p-6 text-[#8B93A1]">You don’t have access to this project’s budgets.</p>
       ) : budgets.length === 0 ? (
-        <div className="m-4 border border-[#1F242C] bg-[#0E1115] p-8 text-center">
-          <p className="text-[15px] font-semibold">No budgets yet</p>
-          <p className="mx-auto mt-1 max-w-md text-[#8B93A1]">Set a weekly or monthly limit. We warn you at the level you choose (80% by default) and again when you pass the limit, by email, Slack or webhook.</p>
-          <button type="button" onClick={() => setCreating(true)} className="mt-4 h-8 bg-[#F4D44D] px-4 font-bold text-[#090909]">Set your first budget</button>
-        </div>
+        <div className="p-4"><EmptyState eyebrow="Budgets" title="Never get surprised by the bill" why="Set a weekly or monthly limit. You get a warning at 80% and another when you pass it." sample={<SampleBudgets />} action={{ label: "Set your first budget", onClick: () => setCreating(true) }} /></div>
       ) : (
         <>
           <div className={`flex items-center gap-3 border-b border-[#1F242C] px-4 py-3 ${attention.length ? "bg-gradient-to-r from-[#2a1214] to-[#0B0D10]" : ""}`} role="status">

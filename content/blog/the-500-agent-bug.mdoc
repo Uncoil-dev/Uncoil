@@ -1,0 +1,390 @@
+---
+title: "The $500 Agent Bug: How One Trace Showed Us the Loop"
+slug: the-500-agent-bug
+excerpt: A demo walkthrough of a runaway agent loop that costs about $500 in a weekend. Learn how to find it in one trace, fix the cause, and cap the whole class of bug.
+publishedAt: 2026-11-07T09:00:00.000Z
+author: Uncoil Team
+draft: true
+categories:
+  - engineering
+  - cost-management
+tags:
+  - AI agent debugging
+  - runaway agent loops
+  - LLM cost
+  - trace walkthrough
+relatedPosts:
+  - ai-agent-cost-attribution
+  - tool-calling-reliability
+heroImage:
+  src: /media/the-500-agent-bug-hero.svg
+  alt: A paper receipt uncoiling from a cream spool, printing the same failed invoice lookup again and again while the yellow price stamps climb from one cent to forty-four cents
+seo:
+  metaTitle: "The $500 Agent Bug: Find a Runaway Loop in One Trace"
+  metaDescription: A demo walkthrough that finds a $500 agent loop in one trace, with the cost math, the fix, and the guardrails that stop it from coming back.
+---
+
+{% trace-scenario title="It is Monday. What do you open first?" prompt="Weekend spend for the support agent is $742 against a usual $240. The median cost per run has not moved, but when you sort the runs table by cost, the top run shows $5.61 and 25 model calls, and the next 89 look the same. Where do you look first?" outcome="Open the single most expensive run and read its steps in order until a call repeats. Do not start with the prompt, the model choice or the provider invoice. The trace shows the mechanism. Every other starting point is a guess about it." /%}
+
+## At a glance
+
+![A histogram of one demo weekend: a tall pile of 5,910 normal runs near four cents, a short pile of 90 looping runs near five dollars sixty, and a bar showing the looping runs made up 68 percent of the spend](/media/the-500-agent-bug-cost-pile.svg)
+
+*This chart comes from the cost model in this article, not from a customer. Every number you see here is reproducible with the script near the end.*
+
+This article is for **engineers who run a tool-using agent and have never had to explain an unexpected bill**. It shows how one trace turns "something is expensive" into "this exact call repeats, and here is why". The outcome is a short routine you can run the first time an agent's spend looks wrong, plus the {% highlight %}three small changes that stop the same bug from coming back{% /highlight %}.
+
+It does not claim to teach you how to price a model, choose a provider, or write a perfect prompt. It covers one failure shape, the retry loop that grows its own context, and it uses one fully worked example.
+
+### Read this first: it is a demo
+
+We want to be direct about what this is. **This is a demo, not a customer story.** No customer lost $500. The support agent below is invented, the invoice lookup is invented, and the weekend of 6,000 runs was produced by a script we wrote to behave the way this failure behaves. We built it because the failure shape is easy to create and expensive when it happens, and because a worked example teaches the debugging routine better than a vague warning does.
+
+What is not invented is the routine. The steps we take in the trace are the steps you would take in a real project, with the same screens: a runs table you can sort by cost, a trace viewer that shows each step in order, and a span detail that shows the input, output, tokens and error of one call.
+
+### The operating model: Sort, Open, Name, Cap
+
+We organize the investigation into four moves and use them as chapter headings.
+
+1. **Sort** the runs by cost and look at the tail, not the average.
+2. **Open** the most expensive run and read it from the top.
+3. **Name** the first divergence, the earliest step where the run stopped looking like a normal one.
+4. **Cap** the damage: fix the cause, then add a ceiling so this class of bug cannot cost $500 again.
+
+| Move | Question it answers | Evidence you use | What you decide |
+| --- | --- | --- | --- |
+| Sort | Which runs are the problem? | Runs table sorted by cost, median against mean | Whether this is a tail problem or a baseline shift |
+| Open | What did the worst run actually do? | Trace tree, step order, repeated names | Which step to read closely |
+| Name | Where did it first go wrong? | Span input, output, error, token counts | The cause, in one sentence |
+| Cap | How do we stop it and prevent repeats? | A fix, a guard and a budget | What ships today and what ships next |
+
+## The setup: a demo agent with one bad release
+
+Meet the demo agent. It is a customer support agent for an invented software company. A customer writes in with a question about an invoice. The agent reads the message, calls a tool named `lookup_invoice` with the invoice id, reads the result, and writes a reply. A normal run makes about four model calls and one or two tool calls. It costs about four cents.
+
+### What changed on Friday
+
+On Friday at 17:40 a release shipped. It changed one thing: the `lookup_invoice` tool. Before the release, a lookup for an unknown invoice returned a short error: `invoice_not_found`. After the release, the same lookup returned the *whole HTTP error body*, which included a stack trace and the customer's account record. That is roughly 6,000 tokens of text, every time the tool failed.
+
+Nobody noticed, because most lookups succeed. The change only matters when an invoice id is wrong. About 1.5% of runs involve a customer who types an id with a letter in it that looks like a digit, for example `INV-0042O` with a capital O instead of a zero. For those customers, the lookup fails.
+
+### What the agent does when a tool fails
+
+The agent has a loop. It calls the model, the model asks for a tool, the agent runs the tool, and the result goes back into the conversation. The only safety limit is a step cap: stop after 25 model calls.
+
+When the tool fails, the model does what many models do. It reads the error, concludes the id might have been mistyped in transit, and calls the same tool again with the same arguments. The new error is appended to the conversation. The model reads it and tries again. Nothing in the loop says "you have already tried this twice". The loop ends at step 25 because the cap says so, not because anything was learned.
+
+> **Field note:** A step cap limits *how many* calls happen. It does not limit *how expensive* each call is, and it says nothing about calling the same tool with the same arguments. Those are three different limits, and an agent with only the first one is unguarded in the other two.
+
+### The numbers we use
+
+We use round, clearly illustrative prices so the arithmetic is easy to follow. They are not any provider's rate card, and you should substitute your own.
+
+| Input | Value | Why |
+| --- | --- | --- |
+| Input price | $3 per million tokens | Illustrative round number |
+| Output price | $15 per million tokens | Illustrative round number |
+| Base context | 2,000 tokens | System prompt, question and tool schemas |
+| Output per call | 150 tokens | A short reply or tool request |
+| Normal growth | 400 tokens per call | A normal tool result is small |
+| Broken growth | 6,000 tokens per call | The whole error body, every loop |
+| Runs in the weekend | 6,000 | An invented, flat volume |
+| Runs that hit the bug | 90 | About 1.5% of runs |
+
+## Sort: look at the tail, not the average
+
+On Monday morning, the first sign is the weekend total. The demo agent spent $742.14 over the weekend against a normal $237.58 or so. That is more than three times as much. But a total only tells you that *something* happened. It does not tell you what.
+
+The next question is whether every run got a little more expensive, or a few runs got very expensive. Those are different bugs with different causes. If every run cost more, you would suspect a prompt change that made every call longer, or a model swap. If a few runs cost much more, you would suspect something that only happens sometimes.
+
+### Median against mean
+
+The quickest test is to compare the median cost per run to the mean. In this weekend:
+
+| Measure | Value | What it tells you |
+| --- | --- | --- |
+| Median cost per run | $0.0402 | The typical run did not change |
+| Mean cost per run | $0.1237 | Pulled up three times by a small group |
+| 95th percentile | $0.0402 | Still inside the normal pile |
+| 99th percentile | $5.6063 | Inside the looping group |
+
+When {% highlight %}the median holds still and the mean climbs{% /highlight %}, the money is in a small group of runs. That is the signal to stop looking at dashboards and start looking at individual runs. With 1.5% of runs looping, the 95th percentile still looks fine, which is why a p95 alert would stay quiet. Only the 99th percentile and the total reveal the problem. {% highlight %}A bug that lives past the 95th percentile hides from the metrics people watch most{% /highlight %}.
+
+### Sort the runs table by cost
+
+In the Uncoil runs table, the cost column is sortable. Click it once to sort by cost, descending. You can also set a minimum cost, for example a "Min cost (USD)" of 1, to filter the table to the tail. In this demo, that filter leaves exactly 90 runs, and the first ten look strikingly alike: same duration pattern, 25 model calls each, and a cost near $5.61.
+
+That similarity is itself evidence. Ninety unrelated failures would look different from each other. {% highlight %}Ninety near-identical runs point to one mechanism{% /highlight %}. You do not need to open all of them. You open one.
+
+> **Decision rule:** If the most expensive runs look alike, treat them as one bug and open one run. If they look different, split them into groups first and open one run per group. Never open runs one at a time hoping to get lucky.
+
+## Open: read the worst run from the top
+
+Open the most expensive run. The trace viewer shows the run as a tree: a root step for the agent, with the model calls and tool calls beneath it in the order they ran. For a normal run, that tree is short. Here it is not.
+
+### What a loop looks like in the trace
+
+Here is the beginning of the worst run, written out as text so you can read it as a trace would show it. The invoice id is the same on every line.
+
+```text
+run  demo_run_0417   agent: support-agent   release: 2026-11-06.2
+ #1  llm_call    2,000 in /  150 out   $0.0083   asks for lookup_invoice
+ #2  tool_call   lookup_invoice("INV-0042O")      error: invoice_not_found + 6,000 tokens
+ #3  llm_call    8,000 in /  150 out   $0.0263   asks for lookup_invoice
+ #4  tool_call   lookup_invoice("INV-0042O")      error: invoice_not_found + 6,000 tokens
+ #5  llm_call   14,000 in /  150 out   $0.0443   asks for lookup_invoice
+ ... 43 more steps with the same names and the same argument ...
+#49  llm_call  146,000 in /  150 out   $0.4402   gives up, writes an apology
+```
+
+Nothing in this tree is mysterious. A reader who has never seen the code can see three things in ten seconds. A step name repeats. The argument does not change. The input token count on every model call is larger than on the one before.
+
+### Read the shape before the content
+
+You can learn a lot from the waterfall before you read a single prompt. A normal run is a few bars of different lengths. A looping run is a repeating pattern: model call, tool call, model call, tool call, with each model bar slightly longer than the last. If you see a regular rhythm, you are looking at a loop. If you see one huge bar, you are looking at a different bug: a single oversized prompt or a slow dependency.
+
+For more on reading these views, [how LLM tracing works](/blog/llm-tracing-explained) walks through the tree, the waterfall and the span detail in more depth.
+
+### Open one span, not all of them
+
+Click the second model call and read its input. You will see the system prompt, the customer's question, and the first error body, including a stack trace and an account record. Now click the fifth model call. Its input contains the first error body, the second, the third and the fourth. The conversation has become a pile of copies of the same failed result.
+
+> **Field note:** When you open a span in a looping run, check the input token count before you read the text. If the count roughly equals the previous call plus the size of the last tool result, the context is growing by whatever the tool returns. That tells you what to fix before you read a single word.
+
+## Name: find the first divergence
+
+A run does not become expensive all at once. There is a first step where it stops looking like a normal run, and every step after it is a consequence. Finding that step is the whole job of the investigation, because {% highlight %}the first divergence is where the cause lives{% /highlight %}.
+
+### The first divergence in this run
+
+Compare the worst run to a normal run, step by step. Step #1 matches: the model asks for the invoice. Step #2, the tool result, is where they split. In the normal run, the tool returns an invoice, or a one-line "not found". In the worst run, the tool returns an error that is 6,000 tokens long.
+
+Everything after that is downstream. The model sees a long error and treats it as an unusual event worth retrying. The repeated call adds another long error. The context grows. Each call costs more than the one before. The step cap ends the run, and the customer gets an apology.
+
+{% editorial-panel eyebrow="Diagnostic shortcut" title="Find the first step that is different, then stop reading." body="Compare the worst run to a normal run from the same release. The first step whose output looks different is the cause. Later steps explain the cost, but they will not tell you what to change." tone="yellow" /%}
+
+### Separate the cause from the trigger
+
+There are two things to name, and they are different.
+
+The **trigger** is what makes the bug appear. Here it is a customer typing a letter where a digit belongs, so the lookup fails. You cannot fix the trigger. Customers will always mistype things, and you would not want to stop them.
+
+The **cause** is why a small trigger becomes a large cost. Here it is three things at once: the tool returns far too much when it fails, the agent retries without checking whether it has already tried the same call, and the only limit is a step count. Each of the three is fixable.
+
+| Layer | In this demo | Can you remove it? |
+| --- | --- | --- |
+| Trigger | A mistyped invoice id | No. It is normal user behavior |
+| Cause 1 | The error body is about 6,000 tokens long | Yes. Return a short, structured error |
+| Cause 2 | The agent repeats an identical failed call | Yes. Stop after two identical calls |
+| Cause 3 | Only a step cap limits the run | Yes. Add a cost or token ceiling per run |
+
+If you only fix the trigger, you will never finish, because the trigger is a customer. If you fix the causes, the trigger becomes a short, cheap, boring event.
+
+## Why a small bug became an expensive one
+
+The surprising part of this story is the size of the bill. Ninety runs, each with a short error loop, cost more than $500. Why? Because the cost of a loop does not grow in a straight line.
+
+### The context staircase
+
+Every model call re-reads the whole conversation so far. In the first call, that is 2,000 tokens. In the second call it is the original 2,000 plus the 6,000-token error from the first, so 8,000. In the third, 14,000. By call 25, the model reads 146,000 tokens to produce a 150-token reply.
+
+![A staircase of 25 bars showing how many input tokens each model call re-reads in a looping run, growing from two thousand to one hundred forty-six thousand](/media/the-500-agent-bug-staircase.svg)
+
+Add those 25 calls together and you get 1.85 million input tokens, about $5.55 at our illustrative price, plus a few cents of output. A normal run reads about 10,400 input tokens in total. The loop reads {% highlight %}about 178 times more{% /highlight %}. This is why the dashboards look so different from the arithmetic you did in your head: you imagined 25 calls costing 25 times one call, and the real cost is the sum of a growing series.
+
+### A tiny cost model you can run
+
+Here is the whole model as a script. It is plain JavaScript with no dependencies, and the output matches every number in this article. If you disagree with our assumptions, change the constants at the top and run it again.
+
+```js
+// loop-cost.mjs — run with: node loop-cost.mjs
+// Illustrative prices, not any provider's rate card.
+const PRICE_IN = 3 / 1_000_000;
+const PRICE_OUT = 15 / 1_000_000;
+
+const BASE_CONTEXT = 2_000;
+const OUTPUT_TOKENS = 150;
+const NORMAL_GROWTH = 400;
+const NORMAL_CALLS = 4;
+const LOOP_CALLS = 25;
+const BAD_BLOB = 6_000;
+const FIXED_BLOB = 40;
+
+const callCost = (inputTokens) => inputTokens * PRICE_IN + OUTPUT_TOKENS * PRICE_OUT;
+const runCost = (calls, growth) => {
+  let total = 0;
+  for (let i = 0; i < calls; i++) total += callCost(BASE_CONTEXT + i * growth);
+  return total;
+};
+
+const RUNS = 6_000;
+const BAD_RUNS = 90;
+const normal = runCost(NORMAL_CALLS, NORMAL_GROWTH);
+const looping = runCost(LOOP_CALLS, BAD_BLOB);
+const fixed = runCost(3, FIXED_BLOB); // two identical calls, then stop
+
+console.log("normal run  ", normal.toFixed(4));   // 0.0402
+console.log("looping run ", looping.toFixed(4));  // 5.6063
+console.log("fixed run   ", fixed.toFixed(4));    // 0.0251
+console.log("bad runs    ", (BAD_RUNS * looping).toFixed(2)); // 504.56
+console.log("weekend     ", ((RUNS - BAD_RUNS) * normal + BAD_RUNS * looping).toFixed(2)); // 742.14
+```
+
+The script prints the numbers in the comments. The ninety looping runs cost $504.56, or about $500, and they are 68% of a $742.14 weekend while being 1.5% of the runs.
+
+{% editorial-panel eyebrow="Why it hides" title="Cost per call stays small. Cost per run does not." body="Each call in the loop looks cheap in isolation, and the first one costs less than a cent. The bill comes from the sum of a growing series, which is invisible if you only look at one call at a time." tone="dark" /%}
+
+### What the model assumes, and what it ignores
+
+The model is deliberately simple. It ignores prompt caching, which would discount repeated input and lower the bill, though not the shape: a loop that grows its context still costs more per call than one that does not. It assumes flat traffic and a fixed price. It ignores retries inside the provider's client, queueing delays, and any tool cost. Real numbers will differ. The reason to build the model is not to predict your bill, but to understand which variable you can control.
+
+## Cap: fix the cause, then add a ceiling
+
+With the cause named, the fix has three parts. Do them in this order, because each one protects against what the previous one missed.
+
+### Fix 1: make the error short and structured
+
+Change `lookup_invoice` so a failure returns a short error with a code and a one-line hint, not the raw body. About 40 tokens is plenty. This single change takes the staircase from 6,000 tokens per step to 40 and shrinks the cost of a loop by about 96%, even if nothing else changes.
+
+It also helps the model. A short structured error such as `invoice_not_found: check the id format` gives the model something to act on. A stack trace gives it noise.
+
+### Fix 2: stop after two identical calls
+
+The second change addresses the loop directly. Track the tool name and arguments for each call within a run. If the same call has failed twice, stop calling it, and either ask the customer or hand the conversation to a person. Here is a guard written with the SDK's `span` function. It is illustrative, so adapt the names to your own code.
+
+```ts
+import { span } from "@uncoil.dev/sdk";
+
+const MAX_IDENTICAL_FAILURES = 2;
+
+export class RepeatedCallError extends Error {
+  constructor(tool: string) {
+    super(`${tool} failed ${MAX_IDENTICAL_FAILURES} times with the same arguments`);
+    this.name = "RepeatedCallError";
+  }
+}
+
+// Create one guard per run, so counts never leak between customers.
+export function createCallGuard() {
+  const failures = new Map<string, number>();
+
+  return async function guarded<T>(tool: string, args: unknown, call: () => Promise<T>): Promise<T> {
+    const key = `${tool}:${JSON.stringify(args)}`;
+    if ((failures.get(key) ?? 0) >= MAX_IDENTICAL_FAILURES) {
+      throw new RepeatedCallError(tool);
+    }
+    return span(tool, async () => {
+      try {
+        return await call();
+      } catch (error) {
+        failures.set(key, (failures.get(key) ?? 0) + 1);
+        throw error;
+      }
+    }, { type: "tool", input: args });
+  };
+}
+```
+
+When the guard throws, the run catches `RepeatedCallError` and routes the conversation to a person. The error is also recorded on its span, so the next investigation finds it by name instead of by cost.
+
+### Fix 3: put a ceiling on the run and on the week
+
+The first two fixes stop this bug. The third stops the next bug you have not met yet. Set {% highlight %}a ceiling that does not depend on understanding the cause{% /highlight %}: a maximum number of input tokens or a maximum cost per run, and an alert for spend that outruns your normal level.
+
+![Two rows of tiles for the same failing request: before the fix, 25 growing model calls costing $5.61; after the fix, two attempts and a hand-off costing about two and a half cents](/media/the-500-agent-bug-fix-compare.svg)
+
+In Uncoil, two features cover the second half of this. A cost alert rule fires when spend in an hour or a day goes over a limit you choose. A cost budget tracks weekly or monthly spend, warns you at a percentage of the limit, and can tell you by email, Slack or a webhook. Neither one fixes the bug. They shorten the time between the first bad run and the moment you hear about it.
+
+| Guardrail | Stops this bug? | Stops the next bug? | Cost to add |
+| --- | --- | --- | --- |
+| Short structured errors | Yes, mostly | Only for this tool | One small change |
+| Identical-call guard | Yes | Any repeated call | A small wrapper |
+| Per-run token or cost ceiling | Yes, at the limit | Yes | A limit and a hand-off path |
+| Hourly cost alert | Tells you quickly | Tells you quickly | A rule in the dashboard |
+| Weekly or monthly budget | Tells you eventually | Tells you eventually | A rule in the dashboard |
+
+{% editorial-panel eyebrow="Operating principle" title="Fix the cause. Cap the class." body="The short error fixes this bug. The identical-call guard and the per-run ceiling fix every bug that behaves like it. Do the first today, and schedule the second and third before the next release." tone="paper" /%}
+
+> **Release rule:** A change to what a tool returns is a change to what every future model call reads. Review it like a prompt change: check how big the largest result can get, including the error path.
+
+## How early could we have caught it?
+
+The most useful question after the fix is a different one. Not "why did it happen" but "how early could we have known". Walk through the weekend with the guardrails in place.
+
+With flat traffic of 6,000 runs over 72 hours, a normal hour costs about $3.30. The bug adds about $7 an hour, so the hour with the bug costs about $10.30. A cost alert at $6 per hour, about twice the normal level, would have fired on Friday evening, within an hour or two of the release. The ninety runs would have been a handful instead.
+
+| Safeguard in place | When it would have fired | Runs affected before action |
+| --- | --- | --- |
+| None | Monday, by reading the total | 90 |
+| Weekly budget warning | Days later, depending on the limit you set | Tens |
+| Hourly cost alert at about twice normal | Friday evening | A handful |
+| Per-run ceiling | On the first looping run | One, capped |
+| Identical-call guard | On the first looping run | One, capped at three calls |
+
+The table makes a point that the story hides: {% highlight %}the alert, the budget and the guard are not rivals{% /highlight %}. Each one answers a different question and acts at a different time. The guard is fastest and the budget is slowest, and a mature setup has all of them, because each one fails in a different way.
+
+### What a good alert needs
+
+An alert about money is only useful if it carries enough context to act on. At minimum, a cost alert should tell you the environment, the window, the amount over the limit, and a link to the runs table filtered to the window and sorted by cost. If your first action on an alert is "figure out what this even is", the alert has failed at its job, whatever its threshold was.
+
+For the wider picture of linking spend to tenants and features, [AI agent cost attribution](/blog/ai-agent-cost-attribution) covers how to tag spend so that a bill points at an owner instead of a mystery.
+
+## What this trace cannot tell you
+
+A good investigation names its own limits. This one has several.
+
+First, **the trace shows what happened, not why the model chose to do it.** We said the model retried because it read a long error as unusual. That is a plausible reading, and it fits what we see, but we did not prove it. Models vary, and a different model might have stopped after one retry or retried forever. The fix does not depend on the explanation being right. It works whether the model is confused or merely persistent.
+
+Second, **the demo is flat and tidy.** Real traffic has peaks, mixed run lengths and several bugs at once. Real loops rarely repeat an identical call 25 times. They are more often a near-repeat: the same tool, a slightly different argument each time. An identical-call guard will miss those, and you may need a looser rule, such as "no more than N calls to the same tool in one run".
+
+Third, **the numbers are illustrative.** The prices are round numbers. Caching would lower the bill. Your own context sizes, tool results and volumes will move every figure. Use the shape of the argument, not the dollar amounts.
+
+> **Field note:** When you tell a teammate the story of a bug like this, say which parts you measured and which you inferred. "The call repeated 25 times" is measured. "The model thought the id was mistyped in transit" is a guess that happens to fit.
+
+### The security boundary
+
+There is a second, quieter problem in this demo. The broken error body contained a stack trace and a customer account record. That information was sent to the model provider on every loop, and it was stored in the trace.
+
+> **Security note:** A tool that returns a whole record on failure copies personal data into the model's context and into your telemetry, once for every retry. Treat error paths as data paths. Return codes, not records, and redact fields you do not need before they are stored. Check what your tracing setup captures and for how long.
+
+The fix for the cost bug also shrinks this exposure. A 40-token error cannot contain a customer record.
+
+### What this routine does not replace
+
+Sort, Open, Name and Cap is a routine for a cost anomaly with a visible mechanism. It does not replace testing a release before shipping, an evaluation set that catches changed behavior, or an incident process for an outage. If you want those, [debugging AI agents in production](/blog/debug-ai-agents-in-production) goes deeper on the broader workflow, and [tool calling reliability](/blog/tool-calling-reliability) explains why tool results and retries deserve their own design.
+
+## Make the release decision
+
+Suppose you own this agent and it is Monday morning. Here is the decision, laid out the way you would present it.
+
+**What ships today:** the short structured error, because it is a one-line change with a large effect and almost no risk. **What ships this week:** the identical-call guard and a per-run token ceiling, because they need a hand-off path that someone must design. **What ships next:** an hourly cost alert and a weekly budget, set from this weekend's real numbers. **What stays blocked:** any release that changes tool output size without a review of the largest possible result.
+
+The money is already spent, and no fix gets it back. {% highlight %}The decision is about the next weekend{% /highlight %}. The cost of ninety looping runs was about $500. The fix is a few small changes. The loop was a large bill.
+
+### Why the story is worth telling even as a demo
+
+A demo cannot prove how often this happens. It can show that the failure is *easy to build*, that it hides from the usual metrics, and that one trace is enough to take it apart. If you read this and recognize a loop in your own agent, you have what you need to look.
+
+## Your next move: a checklist
+
+Use this list the next time spend looks wrong, and again before your next release.
+
+- [ ] Compare the median and the mean cost per run. If only the mean moved, the problem is in the tail.
+- [ ] Sort runs by cost, filter to the tail, and check whether the top runs look alike.
+- [ ] Open one run and read the step names in order. Note the first step that repeats.
+- [ ] Compare that run to a normal one from the same release and find the first step that differs.
+- [ ] Write the cause in one sentence, and separate it from the trigger.
+- [ ] Check the largest possible result of every tool, including error results.
+- [ ] Add an identical-call guard and a per-run token or cost ceiling.
+- [ ] Set an hourly cost alert at about twice your normal level and a weekly budget with a warning.
+- [ ] Decide who is told when an alert fires, and what they should open first.
+
+Start with the smallest one. Open your runs table, sort by cost, and look at the single most expensive run from the last week. If it looks normal, you have learned something. If it does not, you have found your first loop before it found your invoice.
+
+## Frequently asked questions
+
+{% faq-item question="Did this really happen to a customer?" answer="No. This is a demo. The agent, the invoice tool, the 6,000-run weekend and every number in the article come from a script we wrote to behave the way this failure behaves. The routine for finding and fixing it is real, and the cost model in the article reproduces every figure." /%}
+{% faq-item question="Why not just lower the step limit?" answer="A lower step limit shortens the loop but does not fix it. A limit of 5 instead of 25 would cut the cost sharply, because the staircase is steep, but the agent would still retry an identical call it cannot succeed at. A step limit also says nothing about how large each result is. Use it as one limit among several, not as the whole defense." /%}
+{% faq-item question="Would prompt caching have saved us?" answer="It would have lowered the bill, because repeated input is cheaper when cached, but not removed the problem. The context still grows on every loop, the model still retries, and the stack trace and customer record still reach the provider and your logs. Treat caching as a discount on the cost, not as a fix for the cause." /%}
+{% faq-item question="What if the loop is not an identical call?" answer="Then an identical-call guard will miss it. Real loops often repeat the same tool with slightly different arguments. Add a looser rule, such as a cap on calls to one tool per run, and keep the per-run token or cost ceiling, which does not depend on how the repetition looks." /%}
+{% faq-item question="Which guardrail should I add first?" answer="Start with the cheapest one that matches what you can see today. If a tool returns large results, shorten them. If you have no cost alert, add an hourly one at about twice your normal level. Then add the identical-call guard and a per-run ceiling. Each one catches what the others miss, so the aim is to have all of them, not to pick a winner." /%}

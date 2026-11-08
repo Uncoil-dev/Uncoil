@@ -84,7 +84,11 @@ export type Copy = {
     capability: string;
     included: string;
     unlimitedWord: string;
-    rows: ReadonlyArray<readonly [string, string, string, string]>;
+    retentionCells: readonly [string, string, string];
+    compareLede: string;
+    /** Each row: label, Free, Pro, Team, optional plain-language note. */
+    compareGroups: ReadonlyArray<{ title: string; rows: ReadonlyArray<readonly [string, string, string, string, string]> }>;
+    foundingFaq: readonly [string, string];
     faqEyebrow: string;
     faqTitle: string;
     faqs: ReadonlyArray<readonly [string, string]>;

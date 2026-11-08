@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+import { reportHandledError } from "@/lib/crash-report";
 import { api } from "convex/_generated/api";
 import type { FunctionReturnType } from "convex/server";
 import type { Id } from "convex/_generated/dataModel";
@@ -11,6 +12,7 @@ import { planLimitResponse, recordRateLimitStrike } from "@/lib/plan-limits-serv
 import { FREE_MAX_SPAN_BYTES, ingestLimitPerMinute, trimOversizedSpan } from "@/lib/plan-limits";
 import { consumeRateLimit } from "@/lib/redis-cache";
 import { apiKeyProjectCache, cachedProjectForKey } from "@/lib/ingest-cache";
+import { resolveCostUsd } from "convex/modelPricing";
 import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
 
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -227,6 +229,8 @@ export async function POST(request: NextRequest) {
 
   const projectDocId = project._id as Id<"projects">;
   const now = Date.now();
+  // A cost the SDK sent always wins. Only a step with tokens but no cost is priced from the project's own model prices.
+  payload.costUsd = resolveCostUsd(payload.costUsd, payload.modelId, payload.inputTokens ?? Number(payload.metadata?.inputTokens ?? 0), payload.outputTokens ?? Number(payload.metadata?.outputTokens ?? 0), project.modelPrices);
   const redactionEnabled = project.redactionEnabled !== false;
   const redactionRules = project.redactionRules?.length ? project.redactionRules : [...DEFAULT_REDACTION_RULES];
 
@@ -279,7 +283,7 @@ export async function POST(request: NextRequest) {
   try {
     await persistSpan(spanEvent);
   } catch (error) {
-    console.error("Span storage failed:", error);
+    await reportHandledError("POST /api/ingest span storage", error);
     if (process.env.NODE_ENV !== "production") {
       // Local development without Tinybird: keep the run summary and span cache in Convex only.
       try {

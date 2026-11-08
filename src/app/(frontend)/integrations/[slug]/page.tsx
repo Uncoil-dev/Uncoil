@@ -7,6 +7,11 @@ import { integrationPages } from "@/lib/seo-pages";
 import { IntegrationWire } from "@/components/marketing/company/integration-wire";
 import { ClosingBand, CreamBand, DarkBand, Eyebrow, HeaderAction, SectionTitle } from "@/components/marketing/company/blocks";
 import { FaqList } from "@/components/marketing/company/faq-list";
+import { CodePanel } from "@/components/marketing/company/code-panel";
+import { CopyButton } from "@/components/marketing/company/copy-button";
+import { FrameworkSwitcher } from "@/components/marketing/company/framework-switcher";
+import { SampleTrace } from "@/components/marketing/company/sample-trace";
+import { frameworkSetup } from "@/lib/framework-setups";
 
 export function generateStaticParams() {
   return integrationPages.map((p) => ({ slug: p.slug }));
@@ -22,6 +27,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   const { slug } = await params;
   const p = integrationPages.find((item) => item.slug === slug);
   if (!p) notFound();
+  const framework = frameworkSetup(p.slug);
   const schema = [
     breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Integrations", path: "/integrations" }, { name: p.name, path: `/integrations/${p.slug}` }]),
     faqJsonLd(p.faq),
@@ -38,16 +44,24 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
             <HeaderAction href={`/docs/${p.doc}`}>Read the guide</HeaderAction>
             <HeaderAction href={appHref("/sign-up")} kind="secondary">Start free</HeaderAction>
           </div>
+          {framework ? (
+            <div className="mt-10 flex max-w-2xl flex-wrap items-center justify-between gap-x-6 gap-y-1 border border-white/25 bg-white/[0.04] py-1 pl-5 pr-2">
+              <code className="min-w-0 break-all py-3 font-mono text-[13px] text-[#eceae3]"><span className="select-none text-[#f4d44d]">$ </span>{framework.install}</code>
+              <CopyButton text={framework.install} label="Copy install" className="min-h-11 px-3 text-[#f4d44d] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f4d44d]" />
+            </div>
+          ) : null}
         </div>
       </section>
 
       <DarkBand className="!pt-8 md:!pt-8">
         <IntegrationWire name={p.name} captures={p.captures} />
+        {framework ? <div className="mt-8"><SampleTrace name={framework.name} rows={framework.sample} /></div> : null}
       </DarkBand>
 
       <CreamBand>
         <Eyebrow dark={false}>Setup</Eyebrow>
-        <SectionTitle>{p.steps ? `${p.steps.length} steps.` : "A few lines."}</SectionTitle>
+        <SectionTitle>{framework ? "Five minutes." : p.steps ? `${p.steps.length} steps.` : "A few lines."}</SectionTitle>
+        {framework ? <p className="mt-4 max-w-2xl text-sm leading-6 text-black/65">{p.steps?.length} short steps, each with code you can copy. We ran this setup against the current libraries before we published it.</p> : null}
         {p.steps ? (
           <ol className="mt-10 grid gap-6">
             {p.steps.map((step, i) => (
@@ -55,22 +69,15 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
                 <div>
                   <span className="font-pixel text-4xl leading-none tracking-[-0.06em]">{String(i + 1).padStart(2, "0")}</span>
                   <h3 className="mt-3 font-mono text-sm uppercase tracking-[0.12em]">{step.title}</h3>
+                  {framework && step.time ? <p className="mt-2 inline-block bg-[#f4d44d] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em]">About {step.time}</p> : null}
                   <p className="mt-3 text-sm leading-6 text-black/70">{step.body}</p>
                 </div>
-                {step.code ? (
-                  <div className="min-w-0 self-start border-2 border-black bg-[#090909] text-[#eceae3]">
-                    <div className="flex items-center gap-2 border-b border-white/20 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/50"><span className="size-2 bg-[#f4d44d]" aria-hidden="true" />{step.language ?? p.language}</div>
-                    <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-6"><code>{step.code}</code></pre>
-                  </div>
-                ) : null}
+                {step.code ? <CodePanel className="self-start" code={step.code} label={step.language ?? p.language} /> : null}
               </li>
             ))}
           </ol>
         ) : (
-          <div className="mt-10 border-2 border-black bg-[#090909] text-[#eceae3]">
-            <div className="flex items-center gap-2 border-b border-white/20 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/50"><span className="size-2 bg-[#f4d44d]" aria-hidden="true" />{p.language}</div>
-            <pre className="overflow-x-auto p-6 font-mono text-[13px] leading-6"><code>{p.code}</code></pre>
-          </div>
+          <CodePanel className="mt-10" code={p.code} label={p.language} />
         )}
         {p.notes?.length ? (
           <div className="mt-10 grid gap-px border-2 border-black bg-black md:grid-cols-2">
@@ -84,6 +91,12 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
           </div>
         ) : null}
         <p className="mt-4 text-sm text-black/60">Full details in the <Link className="underline" href={`/docs/${p.doc}`}>documentation</Link>. All integrations are listed on the <Link className="underline" href="/integrations">integrations page</Link>.</p>
+        {framework ? (
+          <div className="mt-14">
+            <Eyebrow dark={false}>Other frameworks</Eyebrow>
+            <div className="mt-4"><FrameworkSwitcher current={p.slug} /></div>
+          </div>
+        ) : null}
         <div className="mt-14"><FaqList items={p.faq} /></div>
         <ul className="mt-10 flex flex-wrap gap-3">
           {integrationPages.filter((o) => o.slug !== p.slug).map((o) => (

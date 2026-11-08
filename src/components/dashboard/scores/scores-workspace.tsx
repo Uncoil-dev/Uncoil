@@ -9,6 +9,8 @@ import { scoreSnippet, type ScoreSnippetLanguage } from "@/lib/score-snippets";
 import { downloadFile, toCsv } from "../tracing/format";
 import { BarList, Histogram, SplitBar, TrendChart, VolumeStrip } from "./score-charts";
 import { AddScore, ago, control, ScorePanel, Sheet } from "./score-drawer";
+import { EmptyState } from "../empty/empty-state";
+import { SampleScores } from "../empty/samples";
 
 type Query = Record<string, string>;
 const LOADED = 1000;
@@ -137,11 +139,9 @@ export function ScoresWorkspace({ projectId, initialQuery }: { projectId: string
       {scores === undefined ? (
         <div className="grid gap-4 p-6" role="status" aria-label="Loading scores"><div className="h-9 w-72 animate-pulse rounded bg-[#11151A]" /><div className="h-72 animate-pulse rounded bg-[#11151A]" /><div className="grid gap-4 sm:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="h-28 animate-pulse rounded bg-[#11151A]" />)}</div></div>
       ) : empty ? (
-        <div className="mx-auto max-w-2xl p-16 text-center">
-          <h2 className="text-sm font-semibold">No scores yet</h2>
-          <p className="mt-2 text-xs leading-5 text-[#8B93A1]">A score is a grade on a trace: a number, a yes/no or a category. They arrive from evaluators, from people reviewing traces, or from your own code. Add one by hand to see how this page fills in.</p>
-          <button type="button" onClick={() => update({ add: "1" })} className="mt-4 h-8 rounded bg-[#F4D44D] px-3 text-xs font-medium text-[#090909]">Add the first score</button>
-          <GradeFromCode projectId={projectId} />
+        <div className="p-4 sm:p-6">
+          <EmptyState eyebrow="Scores" title="Put a number on how good your agent is" why="A score grades a trace. Watch quality over time instead of guessing. Add one by hand to see this page fill in." sample={<SampleScores />} action={{ label: "Add the first score", onClick: () => update({ add: "1" }) }} />
+          <div className="mx-auto max-w-2xl text-center"><GradeFromCode projectId={projectId} /></div>
         </div>
       ) : !names.length ? (
         <div className="p-16 text-center text-xs text-[#8B93A1]">No scores in the last {days} days{query.source ? ` from ${SOURCE_TEXT[query.source]}` : ""}. <button type="button" onClick={() => update({ days: "30", source: "" })} className="text-[#8AB4FF] underline">Look at 30 days, all sources</button></div>

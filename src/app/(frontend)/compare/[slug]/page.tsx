@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { pageMetadata, breadcrumbJsonLd, faqJsonLd, jsonLdString } from "@/lib/seo";
-import { comparisons } from "@/lib/seo-pages";
+import { comparisons, uncoilPlans } from "@/lib/seo-pages";
 import { PageHeader } from "@/components/marketing/page-header";
 import { ClosingBand, CreamBand, DarkBand, Eyebrow, HeaderAction, SectionTitle } from "@/components/marketing/company/blocks";
 import { MarkdocRichText } from "@/components/blog/markdoc-rich-text";
@@ -86,6 +86,79 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
         </dl>
         <p className="mt-6 text-xs leading-5 text-white/45">Descriptions of other products are summaries and can change. Check {c.name}&apos;s own site for current features and pricing.</p>
       </DarkBand>
+
+      {c.plans && (
+        <CreamBand>
+          <Eyebrow dark={false}>Plans and prices{c.asOf ? ` / checked ${c.asOf}` : ""}</Eyebrow>
+          <SectionTitle>What each one costs.</SectionTitle>
+          <div className="mt-12 grid gap-px border border-black bg-black md:grid-cols-2">
+            <div className="bg-[#eceae3] p-8">
+              <h3 className="font-pixel text-2xl tracking-[-0.05em]">{c.name}</h3>
+              <ul className="mt-6 divide-y divide-black/15">
+                {c.plans.map((p) => (
+                  <li key={p.name} className="py-4">
+                    <p className="flex flex-wrap items-baseline justify-between gap-2"><span className="font-mono text-xs uppercase tracking-[0.14em]">{p.name}</span><span className="font-pixel text-xl tracking-[-0.04em]">{p.price}</span></p>
+                    <p className="mt-1 text-sm leading-6 text-black/70">{p.includes}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-[#f4d44d] p-8">
+              <h3 className="font-pixel text-2xl tracking-[-0.05em]">Uncoil</h3>
+              <ul className="mt-6 divide-y divide-black/20">
+                {uncoilPlans.map((p) => (
+                  <li key={p.name} className="py-4">
+                    <p className="flex flex-wrap items-baseline justify-between gap-2"><span className="font-mono text-xs uppercase tracking-[0.14em]">{p.name}</span><span className="font-pixel text-xl tracking-[-0.04em]">{p.price}</span></p>
+                    <p className="mt-1 text-sm leading-6 text-black/80">{p.includes}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          {c.unitNote && <p className="mt-6 max-w-3xl border-l-2 border-black pl-4 text-sm leading-6 text-black/75">{c.unitNote}</p>}
+        </CreamBand>
+      )}
+
+      {c.theirEdge && (
+        <DarkBand>
+          <Eyebrow>Where {c.name} is ahead</Eyebrow>
+          <SectionTitle>Plain credit where it is due.</SectionTitle>
+          <ul className="mt-10 grid gap-px border border-white/20 bg-white/20 md:grid-cols-2">
+            {c.theirEdge.map((t, i) => (
+              <li key={t} className="bg-[#090909] p-6 text-sm leading-6 text-white/80">
+                <span className="mb-3 block font-pixel text-lg text-[#f4d44d]">{String(i + 1).padStart(2, "0")}</span>
+                {t}
+              </li>
+            ))}
+          </ul>
+          {c.news && <p className="mt-8 max-w-3xl text-sm leading-6 text-white/60">Recent news: {c.news}</p>}
+        </DarkBand>
+      )}
+
+      {c.switching && (
+        <CreamBand>
+          <Eyebrow dark={false}>Switching</Eyebrow>
+          <SectionTitle>Moving to Uncoil, step by step.</SectionTitle>
+          <ol className="mt-10 grid gap-px border border-black bg-black md:grid-cols-2">
+            {c.switching.map((t, i) => (
+              <li key={t} className="bg-[#eceae3] p-6 text-sm leading-6 text-black/80">
+                <span className="mb-3 block font-pixel text-2xl tracking-[-0.05em]">{i + 1}</span>
+                {t}
+              </li>
+            ))}
+          </ol>
+          {c.sources && (
+            <div className="mt-10">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Sources, read {c.asOf}</p>
+              <ul className="mt-3 flex flex-wrap gap-3">
+                {c.sources.map((src) => (
+                  <li key={src.href}><a href={src.href} rel="noopener noreferrer" target="_blank" className="inline-block border border-black px-3 py-1.5 font-mono text-xs hover:bg-[#f4d44d]">{src.label}</a></li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CreamBand>
+      )}
 
       {article && (
         <CreamBand>

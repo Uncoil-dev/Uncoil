@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
@@ -109,6 +110,9 @@ export function AdminView({ data }: { data: AdminData | undefined }) {
   return (
     <div className="min-h-screen bg-[#0B0D10] font-sans text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-3 border-b border-[#1F242C] px-4 py-3">
+        <Link href="/dashboard" className="h-8 border border-[#262C35] bg-[#0E1115] px-3 font-mono text-[11px] uppercase leading-8 tracking-wider text-[#E6E9EE] hover:border-[#F4D44D]">
+          ← Back to dashboard
+        </Link>
         <h1 className="text-[15px] font-medium">Admin</h1>
         <span className="font-mono text-[11px] text-[#6B7380]">Read-only · admins only</span>
         <span className="ml-auto flex items-center gap-2 font-mono text-[11px] text-[#5BE3A0]">

@@ -29,13 +29,19 @@ function TraceMap() {
   const reduce = useReducedMotion();
   const mapRef = useRef<HTMLDivElement>(null);
   const [lit, setLit] = useState<number | null>(null);
-  const [litX, setLitX] = useState(0);
+  // The lit stretch of the root line: from the row's first node to the hovered column's node.
+  const [litBox, setLitBox] = useState({ left: 0, top: 0, width: 0 });
   // The step the pointer is on: the column's trace line runs down to it and stops there.
   const [reach, setReach] = useState<{ col: number; y: number } | null>(null);
 
   const light = (i: number | null, el?: HTMLElement | null) => {
     setLit(i);
-    if (el && mapRef.current) setLitX(el.getBoundingClientRect().left - mapRef.current.getBoundingClientRect().left);
+    const grid = el?.parentElement;
+    if (!el || !grid || !mapRef.current) return;
+    const map = mapRef.current.getBoundingClientRect();
+    const col = el.getBoundingClientRect();
+    const g = grid.getBoundingClientRect();
+    setLitBox({ left: g.left - map.left, top: col.top - map.top, width: col.left - g.left });
   };
 
   return (
@@ -52,8 +58,8 @@ function TraceMap() {
         {/* Root spine across the columns, desktop only. */}
         <div className="pointer-events-none absolute left-4 right-4 top-10 hidden h-px xl:left-6 xl:right-6 xl:block" aria-hidden="true">
           <motion.div className="h-px origin-left bg-white/20" initial={reduce ? false : { scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 1.1, ease }} />
-          <div className="absolute left-0 top-0 h-px bg-[#f4d44d] transition-[width,opacity] duration-300" style={{ width: lit === null ? 0 : litX, opacity: lit === null ? 0 : 1 }} />
         </div>
+        <div className="pointer-events-none absolute z-10 h-px bg-[#f4d44d] transition-[width,opacity] duration-300 motion-reduce:transition-none" style={{ left: litBox.left, top: litBox.top, width: lit === null ? 0 : litBox.width, opacity: lit === null ? 0 : 1 }} aria-hidden="true" />
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 xl:grid-cols-6">
           {groups.map(([title, links], i) => (
@@ -66,6 +72,21 @@ function TraceMap() {
                 transition={{ delay: 0.2 + i * 0.12, duration: 0.3 }}
                 aria-hidden="true"
               />
+              {/* Below desktop the columns wrap into rows: link each node to the next one in its row, and each row to the one above. */}
+              <motion.span
+                className={`pointer-events-none absolute left-0 top-0 h-px w-[calc(100%+1.5rem)] origin-left bg-white/20 xl:hidden ${i % 2 === 0 ? "block" : "hidden"} ${i % 3 === 2 ? "md:hidden" : "md:block"}`}
+                initial={reduce ? false : { scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 + i * 0.12, duration: 0.8, ease }}
+                aria-hidden="true"
+              />
+              {i > 0 && (
+                <span
+                  className={`pointer-events-none absolute bottom-full left-0 h-11 w-px bg-white/15 xl:hidden ${i % 2 === 0 ? "block" : "hidden"} ${i % 3 === 0 ? "md:block" : "md:hidden"}`}
+                  aria-hidden="true"
+                />
+              )}
               <motion.span
                 className="absolute bottom-1 left-0 top-0 w-px origin-top bg-white/15"
                 initial={reduce ? false : { scaleY: 0 }}

@@ -429,5 +429,5 @@ export const getPublishedPosts = repository.getPublishedPosts;
 export const getPublishedPost = repository.getPublishedPost;
 export const getCategoryOptions = repository.getCategoryOptions;
 export function getPostDate(post: BlogPost) {
-  return post.publishedAt;
+  return post.updatedAt ?? post.publishedAt;
 }

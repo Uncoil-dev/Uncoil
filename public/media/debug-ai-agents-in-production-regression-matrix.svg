@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 570" role="img" aria-labelledby="title desc">
+  <title id="title">Build a regression case from an incident</title>
+  <desc id="desc">A four-column matrix connects the failing condition to expected behavior, recorded evidence, and the check that prevents recurrence.</desc>
+  <rect width="1100" height="570" fill="#090909"/>
+  <text x="48" y="63" fill="#f4d44d" font-family="Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="3">FROM INCIDENT TO REGRESSION CASE</text>
+  <text x="48" y="108" fill="#eceae3" font-family="Arial,sans-serif" font-size="30" font-weight="700">Save the condition that made the failure possible</text>
+  <g font-family="Arial,sans-serif">
+    <rect x="48" y="150" width="1004" height="56" fill="#f4d44d"/>
+    <text x="70" y="185" fill="#090909" font-size="15" font-weight="700">INPUT CONDITION</text><text x="314" y="185" fill="#090909" font-size="15" font-weight="700">EXPECTED BEHAVIOR</text><text x="558" y="185" fill="#090909" font-size="15" font-weight="700">EVIDENCE</text><text x="802" y="185" fill="#090909" font-size="15" font-weight="700">REGRESSION CHECK</text>
+    <g fill="#eceae3" font-size="16">
+      <text x="70" y="250">No policy result</text><text x="314" y="250">Abstain or escalate</text><text x="558" y="250">retrieval count = 0</text><text x="802" y="250">must not promise refund</text>
+      <text x="70" y="316">Stale account state</text><text x="314" y="316">Request fresh state</text><text x="558" y="316">state timestamp</text><text x="802" y="316">block expired state</text>
+      <text x="70" y="382">Tool timeout, unknown</text><text x="314" y="382">Reconcile before retry</text><text x="558" y="382">request id + result</text><text x="802" y="382">no duplicate side effect</text>
+      <text x="70" y="448">Partial tool response</text><text x="314" y="448">Validate completeness</text><text x="558" y="448">schema + missing fields</text><text x="802" y="448">reject unsafe output</text>
+    </g>
+    <g stroke="#555555" stroke-width="1"><path d="M48 274H1052M48 340H1052M48 406H1052M48 472H1052"/><path d="M292 150V472M536 150V472M780 150V472"/></g>
+    <text x="48" y="526" fill="#c9c7c1" font-size="15">Record the expected user outcome and the observable assertion. Avoid exact-text checks when meaning is what matters.</text>
+  </g>
+</svg>

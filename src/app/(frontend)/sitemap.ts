@@ -6,8 +6,17 @@ import { glossaryTerms } from "@/lib/glossary";
 import { tools } from "@/lib/tools/registry";
 import type { MetadataRoute } from "next";
 
-// Real "last reviewed" date for pages that are not blog posts. Bump it when those pages change in a meaningful way.
+// Baseline review date for static pages. Add route-specific dates below for pages changed later.
 const SITE_REVIEWED = new Date("2026-10-25T00:00:00.000Z");
+const PAGE_LAST_MODIFIED: Record<string, Date> = {
+  "/": new Date("2026-11-08T03:29:55.000Z"),
+  "/pricing": new Date("2026-11-08T03:29:55.000Z"),
+  "/about": new Date("2026-11-08T03:29:55.000Z"),
+  "/contact": new Date("2026-11-08T03:29:55.000Z"),
+  "/security": new Date("2026-11-08T03:29:55.000Z"),
+  "/status": new Date("2026-11-08T03:29:55.000Z"),
+};
+const pageLastModified = (path: string) => PAGE_LAST_MODIFIED[path] ?? SITE_REVIEWED;
 const INTERNAL_POSTS = new Set(["how-to-write-uncoil-blog-posts"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -27,14 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const documentation = getDocs().map((doc) => doc.slug);
 
   return [
-    { url: baseUrl, lastModified: SITE_REVIEWED, changeFrequency: "weekly", priority: 1.0 },
+    { url: baseUrl, lastModified: pageLastModified("/"), changeFrequency: "weekly", priority: 1.0 },
     { url: `${baseUrl}/blog`, lastModified: posts[0] ? new Date(getPostDate(posts[0])) : undefined, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/pricing`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/pricing`, lastModified: pageLastModified("/pricing"), changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/roadmap`, lastModified: SITE_REVIEWED, changeFrequency: "weekly", priority: 0.6 },
     { url: `${baseUrl}/integrations`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${baseUrl}/security`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${baseUrl}/status`, lastModified: SITE_REVIEWED, changeFrequency: "daily", priority: 0.5 },
-    { url: `${baseUrl}/contact`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/security`, lastModified: pageLastModified("/security"), changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/status`, lastModified: pageLastModified("/status"), changeFrequency: "daily", priority: 0.5 },
+    { url: `${baseUrl}/contact`, lastModified: pageLastModified("/contact"), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/privacy`, lastModified: SITE_REVIEWED, changeFrequency: "yearly", priority: 0.3 },
     { url: `${baseUrl}/cookie-policy`, lastModified: SITE_REVIEWED, changeFrequency: "yearly", priority: 0.3 },
     { url: `${baseUrl}/terms`, lastModified: SITE_REVIEWED, changeFrequency: "yearly", priority: 0.3 },
@@ -42,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/docs`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/tools`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     ...tools.map((t) => ({ url: `${baseUrl}/tools/${t.slug}`, lastModified: SITE_REVIEWED, changeFrequency: (t.slug === "ai-api-status" ? "daily" : "monthly") as "daily" | "monthly", priority: 0.8 })),
-    { url: `${baseUrl}/about`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/about`, lastModified: pageLastModified("/about"), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/answers`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },
     ...answers.map((a) => ({ url: `${baseUrl}/answers/${a.slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     { url: `${baseUrl}/glossary`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },

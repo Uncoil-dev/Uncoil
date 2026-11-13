@@ -1,11 +1,9 @@
 import { query, type QueryCtx } from "./_generated/server";
 import { components } from "./_generated/api";
+import { isAllowedAdminEmail } from "./adminAccess";
 
-// Built-in owner account. More admins come from the same environment variables
+// Who may enter: see adminAccess.ts. More admins come from the same environment variables
 // the lead inbox already uses (UNCOIL_LIBRARY_ADMIN_EMAILS, UNCOIL_ADMIN_USER_IDS).
-const BUILT_IN_ADMIN_EMAILS = ["kristofferbon@gmail.com"];
-// Every verified address on these domains is an admin.
-const ADMIN_DOMAINS = ["uncoil.dev"];
 const CAP = 500;
 
 type AuthUser = { id?: string; _id?: string; name: string; email: string; emailVerified: boolean; createdAt: number };
@@ -22,8 +20,7 @@ async function adminEmail(ctx: QueryCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
   const email = identity.email?.toLowerCase();
-  const emails = [...BUILT_IN_ADMIN_EMAILS, ...list("UNCOIL_LIBRARY_ADMIN_EMAILS").map((x) => x.toLowerCase())];
-  const allowed = list("UNCOIL_ADMIN_USER_IDS").includes(identity.subject) || (!!email && (emails.includes(email) || ADMIN_DOMAINS.some((d) => email.endsWith("@" + d))));
+  const allowed = list("UNCOIL_ADMIN_USER_IDS").includes(identity.subject) || isAllowedAdminEmail(email, list("UNCOIL_LIBRARY_ADMIN_EMAILS"));
   if (!allowed || !email) return null;
   const account = (await ctx.runQuery(components.betterAuth.adapter.findOne, {
     model: "user",
@@ -133,8 +130,35 @@ export const overview = query({
       model: r.primaryModel ?? null, spans: r.spanCount, costUsd: r.totalCostUsd, startedAt: r.startedAt,
     }));
 
+    // Last 14 days, one bucket per UTC day, oldest first. Powers the charts.
+    const DAY = 24 * 3600 * 1000;
+    const dayKey = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+    const series = Array.from({ length: 14 }, (_, i) => {
+      const day = dayKey(now - (13 - i) * DAY);
+      return { day, signups: 0, runs: 0, failed: 0, costUsd: 0 };
+    });
+    const byDay = new Map(series.map((d) => [d.day, d]));
+    for (const u of users) { const d = byDay.get(dayKey(u.signedUpAt)); if (d) d.signups += 1; }
+    for (const r of runDocs) {
+      const d = byDay.get(r.startedAt.slice(0, 10));
+      if (!d) continue;
+      d.runs += 1; d.costUsd += r.totalCostUsd; if (r.status === "failed") d.failed += 1;
+    }
+
+    // Things a person should look at first.
+    const pastDue = projects.filter((p) => p.subscription === "past_due" || p.subscription === "unpaid");
+    const attention = [
+      ...(leads.filter((l) => l.status === "new").length ? [{ kind: "leads", tone: "warn", text: `${leads.filter((l) => l.status === "new").length} new lead(s) waiting for a reply`, tab: "Leads" }] : []),
+      ...(pastDue.length ? [{ kind: "billing", tone: "bad", text: `${pastDue.length} project(s) with a failed payment`, tab: "Billing" }] : []),
+      ...(alertDocs.some((a) => (a.state ?? "active") === "active") ? [{ kind: "alerts", tone: "warn", text: `${alertDocs.filter((a) => (a.state ?? "active") === "active").length} active alert(s)`, tab: "Alerts" }] : []),
+      ...(runs24h.filter((r) => r.status === "failed").length ? [{ kind: "runs", tone: "warn", text: `${runs24h.filter((r) => r.status === "failed").length} failed run(s) in the last day`, tab: "Activity" }] : []),
+      ...(users.filter((u) => !u.verified && u.signedUpAt >= now - 7 * DAY).length ? [{ kind: "users", tone: "mute", text: `${users.filter((u) => !u.verified && u.signedUpAt >= now - 7 * DAY).length} new sign-up(s) not verified yet`, tab: "Users" }] : []),
+    ];
+
     return {
       generatedAt: now,
+      series,
+      attention,
       capped: { users: !userPage.isDone, projects: projectDocs.length >= CAP, runs: runDocs.length >= CAP },
       totals: {
         users: users.length,

@@ -72,7 +72,7 @@ function TraceMap() {
                 transition={{ delay: 0.2 + i * 0.12, duration: 0.3 }}
                 aria-hidden="true"
               />
-              {/* Below desktop the columns wrap into rows: link each node to the next one in its row, and each row to the one above. */}
+              {/* Below desktop the columns wrap into rows: link each node to the next one in its row and to the one above it. */}
               <motion.span
                 className={`pointer-events-none absolute left-0 top-0 h-px w-[calc(100%+1.5rem)] origin-left bg-white/20 xl:hidden ${i % 2 === 0 ? "block" : "hidden"} ${i % 3 === 2 ? "md:hidden" : "md:block"}`}
                 initial={reduce ? false : { scaleX: 0 }}
@@ -81,9 +81,9 @@ function TraceMap() {
                 transition={{ delay: 0.2 + i * 0.12, duration: 0.8, ease }}
                 aria-hidden="true"
               />
-              {i > 0 && (
+              {i >= 2 && (
                 <span
-                  className={`pointer-events-none absolute bottom-full left-0 h-11 w-px bg-white/15 xl:hidden ${i % 2 === 0 ? "block" : "hidden"} ${i % 3 === 0 ? "md:block" : "md:hidden"}`}
+                  className={`pointer-events-none absolute bottom-full left-0 h-11 w-px bg-white/15 xl:hidden ${i >= 3 ? "" : "md:hidden"}`}
                   aria-hidden="true"
                 />
               )}

@@ -92,3 +92,6 @@ artifacts/reference-parity/
 .preview-account.json
 public/preview-login.html
 .preview-watch.log
+
+# Local agent notes
+CLAUDE.local.md

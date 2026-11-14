@@ -2,7 +2,7 @@ import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { pageMetadata, breadcrumbJsonLd, faqJsonLd, jsonLdString } from "@/lib/seo";
+import { pageMetadata, breadcrumbJsonLd, faqJsonLd, jsonLdString, productJsonLd } from "@/lib/seo";
 import { integrationPages } from "@/lib/seo-pages";
 import { IntegrationWire } from "@/components/marketing/company/integration-wire";
 import { ClosingBand, CreamBand, DarkBand, Eyebrow, HeaderAction, SectionTitle } from "@/components/marketing/company/blocks";
@@ -30,6 +30,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   const framework = frameworkSetup(p.slug);
   const schema = [
     breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Integrations", path: "/integrations" }, { name: p.name, path: `/integrations/${p.slug}` }]),
+    productJsonLd({ name: p.title, description: p.description, path: `/integrations/${p.slug}` }),
     faqJsonLd(p.faq),
   ];
   return (

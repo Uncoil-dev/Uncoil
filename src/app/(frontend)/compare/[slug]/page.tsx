@@ -2,7 +2,7 @@ import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { pageMetadata, breadcrumbJsonLd, faqJsonLd, jsonLdString } from "@/lib/seo";
+import { pageMetadata, breadcrumbJsonLd, faqJsonLd, jsonLdString, productJsonLd } from "@/lib/seo";
 import { comparisons, uncoilPlans } from "@/lib/seo-pages";
 import { PageHeader } from "@/components/marketing/page-header";
 import { ClosingBand, CreamBand, DarkBand, Eyebrow, HeaderAction, SectionTitle } from "@/components/marketing/company/blocks";
@@ -31,6 +31,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
   if (!c) notFound();
   const schema = [
     breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Compare", path: "/compare" }, { name: `Uncoil vs ${c.name}`, path: `/compare/${c.slug}` }]),
+    productJsonLd({ name: `Uncoil vs ${c.name}`, description: c.oneLine, path: `/compare/${c.slug}` }),
     faqJsonLd(c.faq),
   ];
   const article = c.post ? await getPublishedPost(c.post) : null;

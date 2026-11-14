@@ -6,7 +6,7 @@ import { Reveal } from "@/components/marketing/landing/reveal";
 import { ClosingBand, DarkBand, CreamBand, Eyebrow, HeaderAction, SectionTitle , StatStrip } from "@/components/marketing/company/blocks";
 import { IntegrationGrid, type Integration } from "@/components/marketing/company/integration-grid";
 
-import { faqJsonLd, jsonLdString } from "@/lib/seo";
+import { breadcrumbJsonLd, faqJsonLd, itemListJsonLd, jsonLdString } from "@/lib/seo";
 import { CodeTabs } from "@/components/marketing/company/code-tabs";
 import { FrameworkSwitcher } from "@/components/marketing/company/framework-switcher";
 export const metadata = pageMetadata({ title: "AI agent integrations: trace OpenAI, LangChain, OTel", description: "Trace OpenAI, Anthropic, LangChain, LangGraph, CrewAI, LlamaIndex, AutoGen, Vercel AI SDK and OpenTelemetry agents in Uncoil, plus Slack alerts.", path: "/integrations" });
@@ -115,7 +115,7 @@ export default function IntegrationsPage() {
             </details>
           ))}
         </div>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqJsonLd(faqs.map(({ q, a }) => ({ q, a })))) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString([breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Integrations", path: "/integrations" }]), itemListJsonLd("Uncoil integrations", integrationPages.map((o) => ({ name: o.name, path: `/integrations/${o.slug}` }))), faqJsonLd(faqs.map(({ q, a }) => ({ q, a })))]) }} />
       </CreamBand>
 
       <ClosingBand

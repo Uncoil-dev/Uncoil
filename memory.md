@@ -2467,3 +2467,6 @@ Merged into canonical posts with 301s (next.config.ts): ai-observability-metrics
 - Run "Ask AI" now streams the answer (NDJSON, same style as the site assistant); panel has Stop, Try again, Copy, New chat and follow-up chips. Alternate provider retries once on empty/5xx/network blips (not on rate limit or bad key). Trace text, questions and history can no longer fake our `<trace>`/`<conversation>` tags. Tests in `test:ask-ai`. Still needs the 4 `ASK_AI_ALT_*` settings in Coolify (already there per Kristoffer). Not tested against the live provider from here.
 
 - Nov 8: Navbar logo now pixel-snapped (scripts/generate-crisp-logo.py, 204x38, 1 logo pixel = 1 screen pixel). Old lockup was scaled to ~0.6px per dither pixel, so it blurred. Never scale BrandLogo to non-whole sizes.
+
+## 2026-11-17 Sample project for new users
+- The read-only support-agent demo (`/demo/project`) is now offered inside the real dashboard: a "Sample" card on the no-project start screen and a Sample row in the project switcher. It is not a database row, so it never counts toward project or span limits. Hide/show is remembered per browser (`uncoil.sampleProject.hidden`, `src/lib/demo/sample-project-state.ts`).

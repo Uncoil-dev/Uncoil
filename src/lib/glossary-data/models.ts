@@ -15,6 +15,8 @@ export const modelTerms: readonly Term[] = [
       "A support agent sends the customer's message and a list of available tools to an LLM. The model answers with a request to call the \"lookup_order\" tool.",
     related: ["foundation-model", "token", "context-window", "llm-observability"],
     link: { href: "/product/llm-calls", label: "See how LLM calls are traced" },
+    inPractice:
+      "Treat the model as one component that can change under you. Record the model name and version on every call, and keep a fixed test set, so you can tell whether a provider update changed your results.",
   },
   {
     slug: "foundation-model",
@@ -28,6 +30,8 @@ export const modelTerms: readonly Term[] = [
       "You run the same 200 support questions through two provider models and compare accuracy, cost per run and latency in your own traces before picking one.",
     related: ["large-language-model", "benchmark", "fine-tuning", "model-fallback"],
     link: { href: "/docs/provider-integrations", label: "See supported providers" },
+    inPractice:
+      "Pick the smallest model that passes your test set for each step, and keep the choice in config, not in code. Record the model on every span so cost and quality can be compared across models.",
   },
   {
     slug: "token",
@@ -41,6 +45,8 @@ export const modelTerms: readonly Term[] = [
       "The sentence \"Tracing agents is useful\" might be split into about five tokens. A 3,000-word document is roughly 4,000 tokens.",
     related: ["input-tokens", "output-tokens", "token-usage", "context-window"],
     link: { href: "/docs/costs", label: "Track model cost and latency" },
+    inPractice:
+      "Tokens are what you pay for and what limits context. Record input and output tokens on every model span. A sudden rise in input tokens per run usually means a prompt or retrieved document grew, and it shows up as cost long before it shows up as an error.",
   },
   {
     slug: "input-tokens",
@@ -54,6 +60,8 @@ export const modelTerms: readonly Term[] = [
       "An agent step sends a 900-token system prompt, 1,500 tokens of chat history and 2,000 tokens of retrieved text. The call used 4,400 input tokens before the model wrote a word.",
     related: ["output-tokens", "prompt-caching", "context-window", "llm-cost-tracking"],
     link: { href: "/docs/costs", label: "Track model cost and latency" },
+    inPractice:
+      "Input tokens are usually most of the bill for agents, because every loop sends the history again. Look at which part of the input grew: system prompt, history or retrieved text. Trim that part first.",
   },
   {
     slug: "output-tokens",
@@ -67,6 +75,8 @@ export const modelTerms: readonly Term[] = [
       "A classifier that returns one word uses about 3 output tokens. A model asked to explain its answer may use 300.",
     related: ["input-tokens", "max-tokens", "reasoning-model", "latency"],
     link: { href: "/docs/costs", label: "Track model cost and latency" },
+    inPractice:
+      "Cap output length so a runaway answer cannot cost much, and record the finish reason. A reply cut off by the limit looks fine but is incomplete. Ask for short formats when you only need a label or a number.",
   },
   {
     slug: "prompt-caching",
@@ -80,6 +90,8 @@ export const modelTerms: readonly Term[] = [
       "An agent's 3,000-token instructions never change. After the first call, later calls read them from cache at a lower price, and the trace shows 3,000 cached input tokens per step.",
     related: ["input-tokens", "system-prompt", "llm-cost-tracking", "latency"],
     link: { href: "/docs/prompt-caching", label: "Read the prompt caching guide" },
+    inPractice:
+      "Put the stable parts of a prompt first and the changing parts last, so the provider can reuse the start. Check the cache hit rate in your traces. If it is low, something early in the prompt changes on every call.",
   },
   {
     slug: "temperature",
@@ -93,6 +105,8 @@ export const modelTerms: readonly Term[] = [
       "A data-extraction step runs at temperature 0 so the same invoice always gives the same fields. A name-suggestion step runs at 0.9 for variety.",
     related: ["max-tokens", "structured-output", "hallucination", "agent-drift"],
     link: { href: "/docs/playground", label: "Try settings in the playground" },
+    inPractice:
+      "Use a low value for tasks with one right answer, such as extraction or tool arguments. Record the setting on each call, because a changed temperature can explain a change in results that looks like a model problem.",
   },
   {
     slug: "max-tokens",
@@ -106,6 +120,8 @@ export const modelTerms: readonly Term[] = [
       "A summarizer is capped at 200 tokens. A long article produces a reply cut off mid-sentence, and the trace shows the stop reason \"length\".",
     related: ["output-tokens", "structured-output", "temperature", "context-window"],
     link: { href: "/docs/costs", label: "Track model cost and latency" },
+    inPractice:
+      "Set max tokens high enough that answers are not cut off, and low enough to cap cost. Watch for runs that end because they hit the limit, since the reply looks fine but is incomplete. Record the finish reason on every model span.",
   },
   {
     slug: "reasoning-model",
@@ -119,6 +135,8 @@ export const modelTerms: readonly Term[] = [
       "The same question costs 150 output tokens on a standard model and 2,400 on a reasoning model, because most of those tokens are internal reasoning.",
     related: ["output-tokens", "chain-of-thought", "latency", "llm-cost-tracking"],
     link: { href: "/docs/costs", label: "Track model cost and latency" },
+    inPractice:
+      "Reasoning models spend extra tokens thinking, so cost and latency rise. Use them for steps that need it and a faster model for the rest. Record reasoning tokens separately so the extra cost is visible.",
   },
   {
     slug: "structured-output",
@@ -132,6 +150,8 @@ export const modelTerms: readonly Term[] = [
       "A triage step must return {\"priority\": \"low\" | \"high\", \"reason\": string}. Your code parses it directly and routes the ticket without reading prose.",
     related: ["function-calling", "max-tokens", "guardrails", "tool-call"],
     link: { href: "/product/llm-calls", label: "See how LLM calls are traced" },
+    inPractice:
+      "Validate every reply against the schema and log failures. Retry once with the error message, and if it still fails, fall back safely. Most downstream bugs start from a reply that looked right but did not match the schema.",
   },
   {
     slug: "embeddings",
@@ -145,6 +165,8 @@ export const modelTerms: readonly Term[] = [
       "The question \"how do I get my money back?\" and a document titled \"Refund policy\" share no words, but their embeddings are close, so retrieval finds the document.",
     related: ["vector-database", "semantic-search", "rag", "chunking"],
     link: { href: "/docs/observability", label: "Read the observability guide" },
+    inPractice:
+      "In an agent, embeddings power retrieval: the question is turned into a vector and compared with stored vectors to find relevant text. If answers cite the wrong document, check the retrieval span first. A bad match there often comes from poor chunking or a mismatched embedding model, not from the language model.",
   },
   {
     slug: "fine-tuning",
@@ -158,5 +180,7 @@ export const modelTerms: readonly Term[] = [
       "You collect 800 reviewed support replies in your brand voice, fine-tune a small model on them, and check it against a held-out set before replacing the large model.",
     related: ["foundation-model", "evaluation-dataset", "golden-dataset", "agent-evaluation"],
     link: { href: "/docs/datasets", label: "Build datasets from traces" },
+    inPractice:
+      "Fine-tune only after a prompt change and better retrieval have failed to fix a repeatable problem. Keep a fixed evaluation set before and after, so you can prove the tuned model is better and not just different. Record the model version on every span, so a regression points to the right version.",
   },
 ];

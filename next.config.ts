@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
   // incoming request are passed through and merged with `view=create`.
   async redirects() {
     return [
+      // Search engines asked for /blog/<slug>.md and got 404s. Send them to the real page.
+      { source: "/blog/:slug.md", destination: "/blog/:slug", permanent: true },
+      { source: "/checkout", destination: "/pricing", permanent: true },
+      { source: "/securitySecurity", destination: "/security", permanent: true },
       // Old blog URLs from before the rename.
       // Old comparison posts that now live on /compare: one hop, no chain through /blog.
       { source: "/blog/langfuse-vs-tracify", destination: "/compare/langfuse", permanent: true },

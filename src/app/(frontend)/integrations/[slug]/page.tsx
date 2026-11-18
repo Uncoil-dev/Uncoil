@@ -28,6 +28,9 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   const p = integrationPages.find((item) => item.slug === slug);
   if (!p) notFound();
   const framework = frameworkSetup(p.slug);
+  // Eight neighbours that differ from page to page, so 26 pages do not all repeat the same 25-link block.
+  const at = integrationPages.findIndex((item) => item.slug === p.slug);
+  const nextIntegrations = Array.from({ length: Math.min(8, integrationPages.length - 1) }, (_, i) => integrationPages[(at + 1 + i) % integrationPages.length]);
   const schema = [
     breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Integrations", path: "/integrations" }, { name: p.name, path: `/integrations/${p.slug}` }]),
     productJsonLd({ name: p.title, description: p.description, path: `/integrations/${p.slug}` }),
@@ -100,7 +103,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
         ) : null}
         <div className="mt-14"><FaqList items={p.faq} /></div>
         <ul className="mt-10 flex flex-wrap gap-3">
-          {integrationPages.filter((o) => o.slug !== p.slug).map((o) => (
+          {nextIntegrations.map((o) => (
             <li key={o.slug}><Link href={`/integrations/${o.slug}`} className="inline-block border border-black px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] hover:bg-[#f4d44d]">{o.name}</Link></li>
           ))}
         </ul>

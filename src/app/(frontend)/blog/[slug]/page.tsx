@@ -34,7 +34,7 @@ export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const posts = await getPublishedPosts();
-  return posts.filter((post) => post.slug).map((post) => ({ slug: post.slug! }));
+  return posts.filter((post) => post.slug && !internalPosts.has(post.slug)).map((post) => ({ slug: post.slug! }));
 }
 
 export async function generateMetadata({
@@ -74,7 +74,6 @@ export async function generateMetadata({
     },
     alternates: {
       canonical,
-      types: { "text/markdown": `/blog/${slug}.md` },
     },
     robots: { index: !internalPosts.has(slug), follow: true },
   };
@@ -135,7 +134,7 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
   const post = await getPublishedPost(slug);
-  if (!post) notFound();
+  if (!post || internalPosts.has(slug)) notFound();
 
   const categories = post.categories;
   const tags = post.tags;

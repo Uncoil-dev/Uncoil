@@ -18,6 +18,8 @@ export const agentTerms: readonly Term[] = [
       "A user asks \"Where is my order?\". The prompt sent to the model also includes the system instructions, the last four messages and the order record your code fetched.",
     related: ["system-prompt", "prompt-template", "context-window", "llm-tracing"],
     link: { href: "/product/llm-calls", label: "See how LLM calls are traced" },
+    inPractice:
+      "Keep prompts in version control, not scattered in code. Record which prompt version produced each run. When a result changes, you can then tell whether the prompt, the model or the data changed.",
   },
   {
     slug: "system-prompt",
@@ -31,6 +33,8 @@ export const agentTerms: readonly Term[] = [
       "\"You are a support agent for Acme. Only answer questions about orders. Use the lookup_order tool before quoting a status. Reply in two sentences.\"",
     related: ["prompt", "prompt-caching", "prompt-injection", "guardrails"],
     link: { href: "/docs/prompts", label: "Manage prompts" },
+    inPractice:
+      "Keep it short and specific, and test every change on your cases. Long system prompts raise cost on every call and can contradict each other. Record the version on each trace.",
   },
   {
     slug: "prompt-template",
@@ -44,6 +48,8 @@ export const agentTerms: readonly Term[] = [
       "\"Summarize the following ticket for {{team}} in {{max_sentences}} sentences: {{ticket_text}}\"",
     related: ["prompt", "prompt-versioning", "prompt-engineering", "context-engineering"],
     link: { href: "/docs/prompts", label: "Manage prompts" },
+    inPractice:
+      "Log the filled prompt, not only the template, since bugs often come from the values. Check for empty or oversized placeholders before the call, and version templates like code.",
   },
   {
     slug: "prompt-versioning",
@@ -57,6 +63,8 @@ export const agentTerms: readonly Term[] = [
       "Version 14 of the refund prompt adds a rule about partial refunds. Runs tagged v14 show a higher success rate than v13, so you keep it.",
     related: ["prompt-template", "regression-testing", "agent-drift", "evaluation-dataset"],
     link: { href: "/docs/prompts", label: "Manage prompts" },
+    inPractice:
+      "Give each prompt a version and record it on every run. Release prompt changes like code, behind your test cases. If quality drops, you can find the version and revert in minutes.",
   },
   {
     slug: "prompt-engineering",
@@ -70,6 +78,8 @@ export const agentTerms: readonly Term[] = [
       "You rewrite a vague instruction into three numbered rules, run both versions on 100 saved questions, and keep the one with fewer wrong answers.",
     related: ["context-engineering", "few-shot-prompting", "agent-evaluation", "prompt-versioning"],
     link: { href: "/docs/playground", label: "Try prompts in the playground" },
+    inPractice:
+      "Change one thing at a time and run your cases after each change. Keep the examples that failed, and write down why a change helped. Without a test set, prompt work becomes guesswork.",
   },
   {
     slug: "few-shot-prompting",
@@ -83,6 +93,8 @@ export const agentTerms: readonly Term[] = [
       "To label tickets, the prompt shows three tickets with their labels: \"billing\", \"bug\" and \"feature request\". The model labels the fourth ticket in the same style.",
     related: ["prompt-engineering", "prompt", "structured-output", "input-tokens"],
     link: { href: "/docs/playground", label: "Try prompts in the playground" },
+    inPractice:
+      "Choose examples that match real inputs, including a hard case. Too many examples raise cost on every call and can make the model copy them too closely. Test the prompt with and without the examples.",
   },
   {
     slug: "chain-of-thought",
@@ -96,6 +108,8 @@ export const agentTerms: readonly Term[] = [
       "Prompt: \"Think through the discount rules step by step, then give the total.\" The reply lists each rule it applied, then states $84.50.",
     related: ["reasoning-model", "react-pattern", "output-tokens", "prompt-engineering"],
     link: { href: "/docs/playground", label: "Try prompts in the playground" },
+    inPractice:
+      "Use written steps when a task needs several logical moves. They add output tokens and time, so measure the gain against your cases. Do not show raw reasoning to users unless you have checked it.",
   },
   {
     slug: "context-engineering",
@@ -109,6 +123,8 @@ export const agentTerms: readonly Term[] = [
       "After ten steps an agent's history is 40,000 tokens. You keep the last three tool results in full, replace the older ones with a short summary, and quality stays the same at a third of the cost.",
     related: ["context-window", "context-window-overflow", "agent-memory", "prompt-engineering"],
     link: { href: "/product/llm-calls", label: "See how LLM calls are traced" },
+    inPractice:
+      "Decide what each step needs and send only that. Trim old turns, summarize long tool output, and put the most important text where the model will use it. Measure input tokens per step to see what grows.",
   },
   {
     slug: "context-window-overflow",
@@ -122,6 +138,8 @@ export const agentTerms: readonly Term[] = [
       "A research agent pastes full web pages into its history. On step 12 the input reaches 130,000 tokens and the provider rejects the call with a context length error.",
     related: ["context-window", "context-engineering", "input-tokens", "error-rate"],
     link: { href: "/product/failures", label: "See how failures are surfaced" },
+    inPractice:
+      "Measure how full the window gets, and act before it is full. Summarize old turns, drop tool output you no longer need, and alert when runs reach most of the limit. Truncation is silent, so log it.",
   },
 
   // Agents and tools
@@ -137,6 +155,8 @@ export const agentTerms: readonly Term[] = [
       "You ask a coding agent to fix a failing test. It reads the test file, runs the tests, edits a function, runs the tests again and reports that they pass.",
     related: ["agent-loop", "agentic-workflow", "tool-use", "ai-agent-observability"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
+    inPractice:
+      "An agent is easy to build and hard to trust, because it chooses its own steps. Before you ship one, decide how you will see each step it takes, what a good outcome looks like and what limit stops a runaway loop.",
   },
   {
     slug: "agentic-workflow",
@@ -150,6 +170,8 @@ export const agentTerms: readonly Term[] = [
       "A claims workflow always runs intake, then validation. Inside validation, an agent decides which documents to request before passing the case on.",
     related: ["ai-agent", "ai-pipeline-tracing", "orchestrator", "agent-run"],
     link: { href: "/use-cases/automation", label: "See automation use cases" },
+    inPractice:
+      "Put limits on the number of steps and the spend per run. Log each decision the model makes about what happens next, so you can see why a run took a path. Add approval for steps that cannot be undone.",
   },
   {
     slug: "tool-use",
@@ -163,6 +185,8 @@ export const agentTerms: readonly Term[] = [
       "The model replies with get_weather({\"city\": \"Oslo\"}). Your code calls a weather API and sends back \"4°C, light rain\" for the model to use in its answer.",
     related: ["function-calling", "tool-call", "tool-call-tracking", "model-context-protocol"],
     link: { href: "/docs/tool-calls", label: "Read about tool calls" },
+    inPractice:
+      "Check which tool the model chose and what arguments it produced. Wrong tool choices come from unclear tool descriptions, and bad arguments come from loose schemas. Fix the tool description or schema first, and only then change the prompt.",
   },
   {
     slug: "function-calling",
@@ -176,6 +200,8 @@ export const agentTerms: readonly Term[] = [
       "You declare create_refund(order_id: string, amount: number). The model returns create_refund({\"order_id\": \"A-1042\", \"amount\": 19.0}) and your code checks the amount before acting.",
     related: ["tool-use", "tool-call", "structured-output", "guardrails"],
     link: { href: "/docs/tool-calls", label: "Read about tool calls" },
+    inPractice:
+      "Define each function with a clear name, description and strict schema. Log the arguments the model produced and validate them before running. Most failures are wrong or missing arguments, and they are easy to spot when each call is a span.",
   },
   {
     slug: "agent-loop",
@@ -189,6 +215,8 @@ export const agentTerms: readonly Term[] = [
       "Pass 1: the model asks to search. Pass 2: it reads a result. Pass 3: it writes the answer. The trace shows three model spans and two tool spans under one run.",
     related: ["ai-agent", "react-pattern", "agent-run"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
+    inPractice:
+      "Set a maximum number of loop passes and a per-run budget. Record each pass as a span, so a loop that repeats the same call is easy to spot. A long repetitive chain of spans is the classic sign of a stuck loop.",
   },
   {
     slug: "react-pattern",
@@ -202,6 +230,8 @@ export const agentTerms: readonly Term[] = [
       "Thought: I need the order status. Action: lookup_order(A-1042). Observation: shipped on Monday. Thought: I can answer now.",
     related: ["agent-loop", "chain-of-thought", "tool-use", "ai-agent"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
+    inPractice:
+      "Log each thought, action and observation as its own span. When a run fails, find the first observation that was wrong or empty, since later steps are built on it. Cap the number of steps.",
   },
   {
     slug: "planner-agent",
@@ -215,6 +245,8 @@ export const agentTerms: readonly Term[] = [
       "Asked to write a market report, the planner returns five steps: search, read sources, extract figures, draft, check. Worker agents then handle each step.",
     related: ["orchestrator", "multi-agent-system", "agent-handoff", "agentic-workflow"],
     link: { href: "/use-cases/research", label: "See research agent use cases" },
+    inPractice:
+      "Log the plan and compare it with what actually ran. A good plan that was followed badly is an executor problem, and a bad plan is a planner problem. Fix the right one.",
   },
   {
     slug: "orchestrator",
@@ -228,6 +260,8 @@ export const agentTerms: readonly Term[] = [
       "A support orchestrator sends billing questions to a billing agent and technical ones to a diagnostics agent, then merges their answers into one reply.",
     related: ["multi-agent-system", "agent-handoff", "planner-agent", "agentic-workflow"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
+    inPractice:
+      "The orchestrator decides which agent or tool runs next, so its choices explain most failures. Record each decision and the reason, and compare the plan with what actually ran. A loop limit on the orchestrator keeps cost bounded.",
   },
   {
     slug: "agent-handoff",
@@ -241,6 +275,8 @@ export const agentTerms: readonly Term[] = [
       "A triage agent hands a ticket to a refunds agent with the order ID and the customer's request, but forgets to include the earlier agreement to waive the fee.",
     related: ["multi-agent-system", "orchestrator", "context-engineering", "session-tracing"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
+    inPractice:
+      "Record what is passed at each handoff and compare what one agent sent with what the next one used. Information is often lost or changed there. Keep the handoff message short and structured.",
   },
   {
     slug: "agent-memory",
@@ -254,6 +290,8 @@ export const agentTerms: readonly Term[] = [
       "A travel agent saves \"prefers aisle seats\" after one booking and retrieves it three weeks later when the user books again.",
     related: ["context-engineering", "session-tracing", "rag", "context-window"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
+    inPractice:
+      "Log what is read from and written to memory on each run. Stale or wrong memories cause confident mistakes that look like model errors. Give memory an expiry, and let people correct it.",
   },
   {
     slug: "human-in-the-loop",
@@ -267,6 +305,8 @@ export const agentTerms: readonly Term[] = [
       "A finance agent drafts payments but cannot send any over $500 until a manager approves. Rejected drafts are saved to a dataset for review.",
     related: ["guardrails", "human-feedback", "agent-evaluation", "evaluation-dataset"],
     link: { href: "/docs/annotation-queues", label: "Review runs in annotation queues" },
+    inPractice:
+      "Require approval for actions that cannot be undone, such as payments or messages. Record who approved what and when. Keep the review queue short, since a long queue makes people approve without reading.",
   },
   {
     slug: "guardrails",
@@ -280,6 +320,8 @@ export const agentTerms: readonly Term[] = [
       "Before replying, a check scans the draft for card numbers and email addresses. If it finds any, the reply is blocked and the event is recorded on the run.",
     related: ["prompt-injection", "pii-redaction", "human-in-the-loop", "jailbreak"],
     link: { href: "/docs/resilience-testing", label: "Read about resilience testing" },
+    inPractice:
+      "Log every time a guardrail blocks or changes an output, with the reason. Too many blocks hurt users, and too few miss risks. Review a sample of blocked runs each week and tune the rules.",
   },
 
   // Retrieval
@@ -295,6 +337,8 @@ export const agentTerms: readonly Term[] = [
       "A user asks about the refund window. The system retrieves three paragraphs from the policy handbook and the model answers \"30 days\", citing the second paragraph.",
     related: ["vector-database", "chunking", "reranking", "grounding"],
     link: { href: "/docs/trace-anatomy", label: "Read about trace anatomy" },
+    inPractice:
+      "When an answer is wrong, check retrieval first: was the right text found? Then check whether the model used it. Log retrieved chunks with scores, and fix chunking and search before you change the prompt.",
   },
   {
     slug: "vector-database",
@@ -308,6 +352,8 @@ export const agentTerms: readonly Term[] = [
       "A query for \"cancel my plan\" returns the five nearest chunks, with similarity scores from 0.82 down to 0.71, each linking back to its source page.",
     related: ["embeddings", "semantic-search", "rag", "chunking"],
     link: { href: "/docs/observability", label: "Read the observability guide" },
+    inPractice:
+      "Log which chunks each query retrieved, with their scores. When an answer is wrong, you can see whether the right chunk was missing or present but ignored. Re-check retrieval whenever you change chunking, the embedding model or the index.",
   },
   {
     slug: "chunking",
@@ -321,6 +367,8 @@ export const agentTerms: readonly Term[] = [
       "A 20-page handbook is split by section into 60 chunks of about 300 words, each tagged with its heading and page.",
     related: ["rag", "embeddings", "vector-database", "reranking"],
     link: { href: "/docs/evaluation", label: "Read about evaluation" },
+    inPractice:
+      "Test chunk size on real questions, not by feel. Too small loses context, and too large adds noise and cost. Keep headings with their text, and re-run your retrieval checks after any change.",
   },
   {
     slug: "reranking",
@@ -334,6 +382,8 @@ export const agentTerms: readonly Term[] = [
       "Vector search returns 30 chunks. The reranker keeps the best four, and the correct policy paragraph moves from position 11 to position 1.",
     related: ["rag", "semantic-search", "chunking", "latency"],
     link: { href: "/docs/evaluation", label: "Read about evaluation" },
+    inPractice:
+      "Reranking reorders retrieved chunks so the best ones come first. Log the order before and after. If the correct chunk moves up, reranking helps. If it was never retrieved, no reranker can fix it, and the problem is earlier in retrieval.",
   },
   {
     slug: "grounding",
@@ -347,6 +397,8 @@ export const agentTerms: readonly Term[] = [
       "Asked about warranty length, the agent answers \"two years\" and links the manual section that says so. Without that text, it replies that it could not find the information.",
     related: ["hallucination", "rag", "llm-as-a-judge", "agent-evaluation"],
     link: { href: "/docs/evaluation", label: "Read about evaluation" },
+    inPractice:
+      "Ask the model to answer only from the provided text and to say when it does not know. Check answers against the sources, and log which sources were used, so unsupported claims are easy to find.",
   },
   {
     slug: "semantic-search",
@@ -360,5 +412,7 @@ export const agentTerms: readonly Term[] = [
       "A search for \"how do I stop being charged\" returns the cancellation article even though it never uses the word \"charged\".",
     related: ["embeddings", "vector-database", "reranking", "rag"],
     link: { href: "/docs/observability", label: "Read the observability guide" },
+    inPractice:
+      "Combine it with keyword search for names and codes, which meaning-based search can miss. Log the query, the top results and their scores, and test on real questions whenever you change the embedding model.",
   },
 ];

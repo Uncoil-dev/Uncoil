@@ -15,6 +15,8 @@ export const tracingTerms: readonly Term[] = [
       "A support agent replies with a wrong refund amount. The reply handler logs trace ID 4bf92f3577b34da6a3ce929d0e0e4736. Searching that ID in the trace viewer opens the whole run, including the tool call that returned the wrong order total.",
     related: ["span", "agent-run", "trace-context-propagation", "ai-agent-trace"],
     link: { href: "/docs/trace-anatomy", label: "Read about trace anatomy" },
+    inPractice:
+      "Pass the trace ID in every request header and log line so one run can be found across services. When a user reports a bad answer, ask for the trace ID or store it with the feedback, so you open the exact run instead of guessing.",
   },
   {
     slug: "parent-span",
@@ -28,6 +30,8 @@ export const tracingTerms: readonly Term[] = [
       "The root span \"answer-question\" has children \"retrieve-documents\" and \"call-model\". The retrieval span has a child \"vector-search\". If vector-search takes 900 ms of a 1 s retrieval, you know where to look.",
     related: ["span", "trace-waterfall", "ai-agent-trace", "trace-id"],
     link: { href: "/docs/trace-anatomy", label: "Read about trace anatomy" },
+    inPractice:
+      "Use a parent span for each logical step, such as one agent turn, and let model and tool calls nest inside it. Then the time of a step includes everything inside it, and you can see which child took the longest.",
   },
   {
     slug: "span-attributes",
@@ -41,6 +45,8 @@ export const tracingTerms: readonly Term[] = [
       "A model-call span carries model=\"gpt-5\", inputTokens=1840, outputTokens=212 and environment=\"production\". Filtering on environment and grouping by model shows which model drives your cost.",
     related: ["span", "opentelemetry", "token-usage", "llm-cost-tracking"],
     link: { href: "/docs/typescript", label: "See how to set attributes in the SDK" },
+    inPractice:
+      "Use consistent attribute names so you can filter and group later, for example model, release, customer tier and tool name. Avoid putting whole prompts in attributes that you index. Store large payloads as span input and output instead.",
   },
   {
     slug: "span-event",
@@ -54,6 +60,8 @@ export const tracingTerms: readonly Term[] = [
       "A tool-call span for a payments API records an event \"retry\" at 2.1 s and a second event \"retry\" at 4.3 s, then ends with status error. You can see the agent tried three times before giving up.",
     related: ["span", "retry-with-backoff", "ai-agent-trace", "error-rate"],
     link: { href: "/docs/trace-anatomy", label: "Read about trace anatomy" },
+    inPractice:
+      "Use span events for moments inside a step, such as a retry, a cache hit or a guardrail check. They keep the span count low while still showing what happened and when. Each event has a time, so you can see where inside a long step the time went.",
   },
   {
     slug: "trace-sampling",
@@ -67,6 +75,8 @@ export const tracingTerms: readonly Term[] = [
       "An agent handles 2 million requests a month. You keep 100% of runs with errors, 100% of runs slower than 20 seconds, and 5% of everything else.",
     related: ["distributed-tracing", "data-retention", "error-rate", "opentelemetry"],
     link: { href: "/pricing", label: "See plans and span limits" },
+    inPractice:
+      "Keep every failed and every slow run, and sample the normal ones. Sampling at random can drop exactly the run you need to debug later. Record the sampling rate, so counts from sampled data can be scaled correctly.",
   },
   {
     slug: "distributed-tracing",
@@ -80,6 +90,8 @@ export const tracingTerms: readonly Term[] = [
       "A Next.js route starts a trace, calls a Python agent over HTTP, and the agent calls a search API. All three services report spans with the same trace ID, so the viewer shows one tree.",
     related: ["trace-context-propagation", "opentelemetry", "trace-id", "ai-pipeline-tracing"],
     link: { href: "/docs/observability", label: "Read the observability guide" },
+    inPractice:
+      "Pass the trace context across every service boundary, including queues and background jobs. If one hop drops it, the trace splits in two. Test one request that crosses all the services before you rely on it.",
   },
   {
     slug: "trace-context-propagation",
@@ -93,6 +105,8 @@ export const tracingTerms: readonly Term[] = [
       "A web server sends traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01 to the agent service. The agent's first span uses that trace ID and names the web span as its parent.",
     related: ["distributed-tracing", "trace-id", "parent-span", "opentelemetry"],
     link: { href: "/docs/observability", label: "Read the observability guide" },
+    inPractice:
+      "Pass the trace context across every boundary: HTTP calls, queues and background jobs. If one hop drops it, the trace splits into two unrelated traces and the link between cause and effect is lost. Test a request that crosses each boundary.",
   },
   {
     slug: "session-tracing",
@@ -106,6 +120,8 @@ export const tracingTerms: readonly Term[] = [
       "A user asks four questions in one chat. Four runs share session ID s_8841. The third answer is wrong because the second turn's tool result was truncated, which you only see by reading both runs together.",
     related: ["agent-run", "context-window", "agent-memory", "ai-agent-observability"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
+    inPractice:
+      "Group the traces of one conversation under a session ID. A single reply can look fine while the conversation fails, because the agent forgot an earlier turn. Open the whole session to see where the context was lost.",
   },
   {
     slug: "instrumentation",
@@ -119,6 +135,8 @@ export const tracingTerms: readonly Term[] = [
       "You wrap your retrieval function in a span called \"retrieve-documents\" and set the number of results as an attribute. Now every run shows how many documents were found.",
     related: ["auto-instrumentation", "span", "opentelemetry", "llm-tracing"],
     link: { href: "/docs/quickstart", label: "Follow the quickstart" },
+    inPractice:
+      "Instrument the boundary of a request first, then add spans only where a question could not be answered. Prefer the auto-instrumentation for libraries and add manual spans for your own business steps.",
   },
   {
     slug: "auto-instrumentation",
@@ -132,6 +150,8 @@ export const tracingTerms: readonly Term[] = [
       "You add one setup line at the top of your app. From then on, every call made through your model provider's SDK appears as a span with its model and token counts.",
     related: ["instrumentation", "llm-tracing", "opentelemetry", "span"],
     link: { href: "/docs/provider-integrations", label: "See supported providers" },
+    inPractice:
+      "Auto-instrumentation gives you model and tool spans fast, with almost no code. Add manual spans around your own business steps, such as policy checks, so traces show your logic as well as the library calls. Check that sensitive values are removed.",
   },
   {
     slug: "trace-waterfall",
@@ -145,5 +165,7 @@ export const tracingTerms: readonly Term[] = [
       "Three tool calls run one after another, each taking 1.2 s. The waterfall shows them as a staircase. Running them in parallel would cut about 2.4 s from the run.",
     related: ["span", "parent-span", "latency", "trace-viewer"],
     link: { href: "/product/trace-viewer", label: "See the trace viewer" },
+    inPractice:
+      "Read a waterfall from the top. Long bars show where time goes, and gaps between bars show waiting. Many short bars in a row point to a loop or retries. Compare a slow run and a normal run side by side to see which step changed.",
   },
 ];

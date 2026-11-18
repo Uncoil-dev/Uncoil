@@ -60,6 +60,12 @@ export default async function GlossaryTermPage({ params }: { params: Promise<{ t
               <p className="mt-3 text-base leading-7 text-black/80">{t.example}</p>
             </div>
           )}
+          {t.inPractice && (
+            <div className="mt-10">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">In practice</p>
+              <p className="mt-3 text-lg leading-8 text-black/80">{t.inPractice}</p>
+            </div>
+          )}
           {related.length > 0 && (
             <div className="mt-12">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Related terms</p>

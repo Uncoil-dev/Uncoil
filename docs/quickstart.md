@@ -3,7 +3,7 @@
 Get your first agent trace live in less than 5 minutes.
 
 ## 1. Create a Project
-Head to [uncoil.dev/dashboard](https://uncoil.dev/dashboard) and create your first project. Copy your **API Key** from the onboarding flow or the API Keys settings page.
+Head to [uncoil.dev/dashboard](https://uncoil.dev/dashboard) and create your first project. Copy your **API Key** from the onboarding flow or the API Keys settings page. While you name your project, we also ask one optional question: what do you want to fix with Uncoil? Your answer helps us decide what to build next. You can skip it.
 
 ## 2. Set Your Environment Variable
 Ensure your agent can authenticate with our pipeline by setting the following environment variable:

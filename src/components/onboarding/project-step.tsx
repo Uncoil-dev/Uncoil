@@ -161,7 +161,7 @@ export function ProjectStep() {
         rows={2}
         maxLength={500}
         placeholder="e.g. my agent loops and burns money, and I can't see why"
-        className="w-full resize-none border border-black bg-[#f3f2ed] px-4 py-3 font-mono text-sm text-black outline-none transition-colors placeholder:text-black/45 focus:bg-white focus:shadow-[4px_4px_0_#f4d44d]"
+        className="w-full resize-none border border-black bg-[#f3f2ed] px-4 py-3 font-mono text-sm text-black outline-none transition-colors placeholder:text-black/55 focus:bg-white focus:shadow-[4px_4px_0_#f4d44d]"
       />
       {error ? <p className="mt-3 text-sm text-[#EF4444]">{error}</p> : null}
       {needsVerification ? (

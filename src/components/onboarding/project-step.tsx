@@ -31,6 +31,8 @@ export function ProjectStep() {
   const isConvexLoading = auth.status === "loading";
   const isAuthenticated = auth.isAuthenticated;
   const createProject = useMutation(api.projects.createProject);
+  const saveAnswer = useMutation(api.onboardingAnswers.submit);
+  const [goal, setGoal] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
@@ -67,6 +69,8 @@ export function ProjectStep() {
     setError("");
     try {
       const result = await createProject({ name: trimmed });
+      // Optional and best effort: a failed save never blocks the project.
+      if (goal.trim()) void saveAnswer({ answer: goal.trim() }).catch(() => undefined);
       if (session?.user.email) void fetch("/api/lifecycle/onboarding-reminder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: session.user.email, name: session.user.name, projectId: result.projectId, projectName: trimmed }) }).catch(() => undefined);
       if (isPostHogConfigured) {
         captureAnalytics("project_created", { creation_flow: "onboarding" });
@@ -143,6 +147,22 @@ export function ProjectStep() {
           </button>
         ))}
       </div>
+      <label
+        htmlFor="project-goal"
+        className="mb-2 mt-8 flex items-baseline justify-between text-[11px] uppercase tracking-wide text-black/60"
+      >
+        <span>What do you want to fix with Uncoil?</span>
+        <span className="normal-case tracking-normal text-black/45">Optional</span>
+      </label>
+      <textarea
+        id="project-goal"
+        value={goal}
+        onChange={(event) => setGoal(event.target.value.slice(0, 500))}
+        rows={2}
+        maxLength={500}
+        placeholder="e.g. my agent loops and burns money, and I can't see why"
+        className="w-full resize-none border border-black bg-[#f3f2ed] px-4 py-3 font-mono text-sm text-black outline-none transition-colors placeholder:text-black/45 focus:bg-white focus:shadow-[4px_4px_0_#f4d44d]"
+      />
       {error ? <p className="mt-3 text-sm text-[#EF4444]">{error}</p> : null}
       {needsVerification ? (
         <button

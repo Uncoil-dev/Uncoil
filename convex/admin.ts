@@ -116,6 +116,8 @@ export const overview = query({
       id: l._id, name: l.name, email: l.email, company: l.company ?? null, intent: l.intent,
       status: l.status, source: l.sourcePath, createdAt: l.createdAt,
     }));
+    const answerDocs = await ctx.db.query("onboardingAnswers").withIndex("by_createdAt").order("desc").take(CAP);
+    const answers = answerDocs.map((a) => ({ id: a._id, email: a.email ?? null, name: a.name ?? null, answer: a.answer, createdAt: a.createdAt }));
     const auditDocs = await ctx.db.query("auditLogs").order("desc").take(200);
     const audit = auditDocs.map((a) => ({
       id: a._id, actor: a.actorEmail ?? a.actorId, action: a.action, summary: a.summary,
@@ -177,6 +179,7 @@ export const overview = query({
       },
       planCounts,
       leads,
+      answers,
       newLeads: leads.filter((l) => l.status === "new").length,
       audit,
       users: usersWithProjects,

@@ -39,6 +39,7 @@ import type * as notificationPreferences from "../notificationPreferences.js";
 import type * as ownerMigration from "../ownerMigration.js";
 import type * as projectData from "../projectData.js";
 import type * as notify from "../notify.js";
+import type * as onboardingAnswers from "../onboardingAnswers.js";
 import type * as projects from "../projects.js";
 import type * as prompts from "../prompts.js";
 import type * as quietHours from "../quietHours.js";
@@ -98,6 +99,7 @@ declare const fullApi: ApiFromModules<{
   ownerMigration: typeof ownerMigration;
   projectData: typeof projectData;
   notify: typeof notify;
+  onboardingAnswers: typeof onboardingAnswers;
   projects: typeof projects;
   prompts: typeof prompts;
   quietHours: typeof quietHours;

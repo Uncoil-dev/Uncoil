@@ -6,6 +6,8 @@ This is the canonical release record. The public `/changelog` page and GitHub Re
 
 ### Features
 - Release-log and SharePoint discovery foundations.
+- New free tool: a tracing bill calculator that compares the monthly cost on Langfuse, LangSmith, Helicone and Uncoil for the same traffic.
+- New Switch to Uncoil guide for teams moving from Langfuse, LangSmith, Helicone or OpenTelemetry.
 
 ### Fixes
 - None.

@@ -106,6 +106,15 @@ export const tools: readonly ToolEntry[] = [
     group: "Cost",
     trackLine: "This is a plan. Uncoil shows the real number, run by run.",
   },
+  {
+    slug: "ai-observability-cost-calculator",
+    name: "Tracing bill calculator",
+    title: "LLM observability pricing calculator: Langfuse, LangSmith, Helicone and Uncoil",
+    description: "Enter your agent traffic and see the monthly bill on Langfuse, LangSmith, Helicone and Uncoil. Prices from each vendor's public pricing page, checked 19 November 2026. Free.",
+    blurb: "Same traffic, four bills: what tracing costs on each tool.",
+    group: "Cost",
+    trackLine: "A calculator guesses the volume. Uncoil counts your real spans, so you pick a plan from facts.",
+  },
 ];
 
 export function getTool(slug: string): ToolEntry {

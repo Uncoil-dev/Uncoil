@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { checkFit, compareModels, defaultCompare, defaultRate, rateLimits } from "./calculators.ts";
+import { cachingSavings, defaultCaching, checkFit, compareModels, defaultCompare, defaultRate, rateLimits } from "./calculators.ts";
 import { callCost, getModel, models, money, formatTokens } from "./models.ts";
 
 test("shared model list is sane and unique", () => {
@@ -80,4 +80,12 @@ test("formatters", () => {
   assert.equal(formatTokens(1_048_576), "1.05M");
   assert.equal(formatTokens(128000), "128K");
   assert.equal(formatTokens(4096), "4.1K");
+});
+
+test("caching savings only lists cached models and saves nothing at zero hits", () => {
+  const rows = cachingSavings(defaultCaching);
+  assert.ok(rows.length > 0 && rows.every((r) => r.model.cached !== undefined && r.saved > 0));
+  assert.ok(rows.every((r) => r.withCache < r.withoutCache));
+  const none = cachingSavings({ ...defaultCaching, hitRate: 0 });
+  assert.ok(none.every((r) => Math.abs(r.saved) < 1e-9));
 });

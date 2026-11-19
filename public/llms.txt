@@ -32,6 +32,7 @@ Use the documentation for implementation details and the blog for explanatory gu
 - [Tool definition checker](https://www.uncoil.dev/tools/tool-definition-checker): Find mistakes in OpenAI, Anthropic, MCP and Gemini tool definitions.
 - [AI API status](https://www.uncoil.dev/tools/ai-api-status): Live status of OpenAI, Anthropic, Gemini and other AI providers.
 - [JSON fixer](https://www.uncoil.dev/tools/json-fixer): Repair broken JSON from language models.
+- [Prompt caching calculator](https://www.uncoil.dev/tools/prompt-caching-calculator): Monthly savings from prompt caching on GPT, Claude, Gemini and more.
 - [Rate limit calculator](https://www.uncoil.dev/tools/rate-limit-calculator): How many users an app can serve within its provider's rate limits.
 - [Free AI agent cost estimator](https://www.uncoil.dev/tools/ai-cost-estimator): Estimate cost per run, per finished task and per month from traffic and token counts.
 - [Best LLM observability tools](https://www.uncoil.dev/best-llm-observability-tools): How to choose a tool, and who each option fits.

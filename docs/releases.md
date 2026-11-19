@@ -6,6 +6,7 @@ This is the canonical release record. The public `/changelog` page and GitHub Re
 
 ### Features
 - Release-log and SharePoint discovery foundations.
+- New free tool: prompt caching savings calculator.
 - New comparison pages: Uncoil vs Opik, AgentOps and Pydantic Logfire.
 
 ### Fixes

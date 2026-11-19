@@ -6,6 +6,7 @@ This is the canonical release record. The public `/changelog` page and GitHub Re
 
 ### Features
 - Release-log and SharePoint discovery foundations.
+- Landing page: a clickable sample weekly agent report (cost, errors, slow steps) that links into the public demo project, no sign-up needed.
 
 ### Fixes
 - None.

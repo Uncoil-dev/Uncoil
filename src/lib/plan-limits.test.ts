@@ -3,7 +3,7 @@ import test from "node:test";
 import { trimOversizedSpan, dailySpanLimit, FREE_MAX_PROJECTS, ingestLimitPerMinute, secondsUntilNextDay, enforcedSpanLimit, usageLevel, monthKey, planLimitMessage, secondsUntilNextMonth } from "./plan-limits.ts";
 
 test("free stops at its limit, Pro and Team at their limit plus 10%", () => {
-  assert.equal(enforcedSpanLimit("free"), 25_000);
+  assert.equal(enforcedSpanLimit("free"), 10_000);
   assert.equal(enforcedSpanLimit("pro"), 550_000);
   assert.equal(enforcedSpanLimit("team"), 2_200_000);
   for (const tier of ["enterprise", undefined, "unknown"]) assert.equal(enforcedSpanLimit(tier), null);
@@ -15,7 +15,7 @@ test("usage level walks ok, warn, over, blocked", () => {
   assert.equal(usageLevel(500_000, "pro"), "over");
   assert.equal(usageLevel(549_999, "pro"), "over");
   assert.equal(usageLevel(550_000, "pro"), "blocked");
-  assert.equal(usageLevel(25_000, "free"), "blocked");
+  assert.equal(usageLevel(10_000, "free"), "blocked");
   assert.equal(usageLevel(9e9, "enterprise"), "ok");
 });
 
@@ -31,16 +31,16 @@ test("seconds until reset count to the first of next month, across year end", ()
 });
 
 test("message names the limit", () => {
-  assert.match(planLimitMessage(25_000), /25,000 free spans/);
+  assert.match(planLimitMessage(10_000), /10,000 free spans/);
   assert.match(planLimitMessage(550_000, "pro"), /all 550,000 spans/);
 });
 
-test("free is held to 3 projects, 600 requests a minute and a daily cap of 5,000 spans", () => {
-  assert.equal(FREE_MAX_PROJECTS, 3);
-  assert.equal(ingestLimitPerMinute("free", 6_000), 600);
-  assert.equal(ingestLimitPerMinute(undefined, 6_000), 600);
+test("free is held to 2 projects, 300 requests a minute and a daily cap of 2,000 spans", () => {
+  assert.equal(FREE_MAX_PROJECTS, 2);
+  assert.equal(ingestLimitPerMinute("free", 6_000), 300);
+  assert.equal(ingestLimitPerMinute(undefined, 6_000), 300);
   assert.equal(ingestLimitPerMinute("pro", 6_000), 6_000);
-  assert.equal(dailySpanLimit("free"), 5_000);
+  assert.equal(dailySpanLimit("free"), 2_000);
   assert.equal(dailySpanLimit("pro"), null);
 });
 

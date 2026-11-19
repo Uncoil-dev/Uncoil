@@ -20,7 +20,7 @@ const DESCRIPTION_MAX = 160;
 const DESCRIPTION_TAILS = [
   "Uncoil is AI agent observability.",
   "Trace runs, tool calls, cost and quality in one place.",
-  "Start free with 25,000 spans a month.",
+  "Start free with 10,000 spans a month.",
 ];
 
 /**

@@ -11,7 +11,7 @@ const plans = [
     name: "Free",
     monthly: "$0",
     annual: "$0",
-    features: ["25k spans", "7-day retention", "1 project / 1 member"],
+    features: ["10k spans", "7-day retention", "1 project / 1 member"],
     featured: false,
   },
   {

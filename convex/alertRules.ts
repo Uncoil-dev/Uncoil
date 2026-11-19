@@ -77,6 +77,7 @@ export const overview = query({
     const quiet = await ctx.db.query("alertQuietHours").withIndex("by_projectId", (q) => q.eq("projectId", projectId)).unique();
     return {
       now,
+      planTier: project.planTier ?? "free",
       quietHours: quiet ? { enabled: quiet.enabled, startMinute: quiet.startMinute, endMinute: quiet.endMinute, timezone: quiet.timezone, activeNow: inQuietHours(quiet, now) } : null,
       rules: rules.map(({ slackUrl, webhookUrl, ...rule }) => ({
         ...rule,
@@ -128,7 +129,8 @@ export const create = mutation({
     webhookUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { identity } = await requireProject(ctx, args.projectId);
+    const { identity, project } = await requireProject(ctx, args.projectId);
+    if ((project.planTier ?? "free") === "free") throw new Error("Alerts are part of Pro. Upgrade to create alert rules.");
     const name = args.name.trim().slice(0, 80);
     if (!name) throw new Error("Give the rule a name");
     if (!Number.isFinite(args.threshold) || args.threshold < 0) throw new Error("Limit must be zero or more");

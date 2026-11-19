@@ -31,7 +31,7 @@ const PLANS = [
     audience: "Production agents",
     popular: true,
     icon: BarChart3,
-    features: ["500k spans / month", "30-day retention", "3 projects", "5 team members", "Evaluations + datasets", "Slack alerts"],
+    features: ["500k spans / month", "30-day retention", "3 projects", "5 team members", "Alerts (email + Slack)", "Ask AI, any question", "Evaluations + datasets"],
   },
   {
     id: "team",

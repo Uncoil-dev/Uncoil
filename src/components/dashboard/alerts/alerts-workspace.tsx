@@ -7,6 +7,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { authClient } from "@/lib/auth-client";
 import { relativeTime } from "@/components/dashboard/tracing/format";
 import { AlertChart } from "./alert-chart";
+import { UpgradePrompt } from "../upgrade-prompt";
 import { AlertRuleForm } from "./alert-rule-form";
 import { METRICS } from "./alert-metrics";
 import { DeliveryLine, SendTest } from "./delivery-status";
@@ -225,7 +226,8 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
           </div>
         </>
       )}
-      {creating ? <AlertRuleForm projectId={projectId} defaultEmail={session?.user?.email ?? ""} onClose={() => setCreating(false)} /> : null}
+      {creating && data?.planTier === "free" ? <UpgradePrompt feature="Alerts" plan="pro" onClose={() => setCreating(false)}>Get told by email or Slack the moment your agent fails, slows down or costs too much.</UpgradePrompt> : null}
+      {creating && data?.planTier !== "free" ? <AlertRuleForm projectId={projectId} defaultEmail={session?.user?.email ?? ""} onClose={() => setCreating(false)} /> : null}
     </div>
   );
 }

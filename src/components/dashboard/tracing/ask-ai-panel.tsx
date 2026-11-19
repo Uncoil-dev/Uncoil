@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { pricingCheckoutHref } from "@/lib/billing-links";
 import { stepName, SUGGESTED_QUESTIONS, type AskSpan } from "@/lib/ask-ai";
 
 type Message =
   | { role: "user"; text: string }
   | { role: "assistant"; text: string; stepIds: string[]; source: "ai" | "basic" }
+  | { role: "upgrade"; text: string }
   | { role: "error"; text: string };
 
 export function AskAiPanel({ projectId, runId, spans, onSelectStep }: {
@@ -42,6 +44,7 @@ export function AskAiPanel({ projectId, runId, spans, onSelectStep }: {
       const type = response.headers.get("content-type") ?? "";
       if (!response.ok || !type.includes("ndjson") || !response.body) {
         const body = await response.json().catch(() => ({})) as { answer?: string; stepIds?: string[]; source?: "ai" | "basic"; error?: string };
+        if (response.status === 402) { setMessages((current) => [...current, { role: "upgrade", text: body.error ?? "Ask AI is part of Pro." }]); return; }
         if (!response.ok || !body.answer) throw new Error(body.error ?? "Something went wrong. Please try again.");
         setMessages((current) => [...current, { role: "assistant", text: body.answer!, stepIds: body.stepIds ?? [], source: body.source ?? "basic" }]);
         return;
@@ -104,8 +107,9 @@ export function AskAiPanel({ projectId, runId, spans, onSelectStep }: {
         ) : (
           <ol aria-live="polite" className="flex flex-col gap-3">
             {messages.map((message, index) => (
-              <li key={index} className={message.role === "user" ? "self-end max-w-[85%] rounded-lg bg-[#232A34] px-3 py-2 text-sm" : message.role === "error" ? "rounded-lg border border-[#5A2A2A] bg-[#1E1314] p-3 text-sm text-[#FF8A8A]" : "rounded-lg border border-[#1F242C] bg-[#111418] p-3"}>
+              <li key={index} className={message.role === "user" ? "self-end max-w-[85%] rounded-lg bg-[#232A34] px-3 py-2 text-sm" : message.role === "error" ? "rounded-lg border border-[#5A2A2A] bg-[#1E1314] p-3 text-sm text-[#FF8A8A]" : message.role === "upgrade" ? "rounded-lg border border-[#F4D44D] bg-[#2A2616] p-3 text-sm" : "rounded-lg border border-[#1F242C] bg-[#111418] p-3"}>
                 <p className="whitespace-pre-wrap text-sm leading-6">{message.text.replace(/\s*\[s\d+\]/g, "")}</p>
+                {message.role === "upgrade" ? <a href={pricingCheckoutHref("pro", "monthly")} className="mt-2 inline-block bg-[#F4D44D] px-2.5 py-1 font-mono text-[11px] font-bold text-[#090909]">Upgrade to Pro</a> : null}
                 {message.role === "error" && lastQuestion ? <button type="button" disabled={busy} onClick={() => void ask(lastQuestion)} className="mt-2 rounded border border-[#5A2A2A] px-2 py-1 font-mono text-[11px] text-[#FF8A8A] hover:bg-[#2A1A1B] disabled:opacity-40">Try again</button> : null}
                 {message.role === "assistant" && message.stepIds.length ? (
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">

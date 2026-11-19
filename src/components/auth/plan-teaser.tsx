@@ -7,7 +7,7 @@ export function PlanTeaser({ founding = false }: { founding?: boolean }) {
   return (
     <div className="mt-4 border border-black/30 bg-[#eceae3] px-5 py-4 text-sm text-black" data-testid="signup-plan-teaser">
       <p>
-        <strong>Free:</strong> {free.spans} spans a month, {free.retention} history, no card. <strong>Pro</strong> ({formatPrice(pro.monthly)}/mo): {pro.spans} spans, {pro.retention} history, Slack alerts.
+        <strong>Free:</strong> {free.spans} spans a month, {free.retention} history, no card. <strong>Pro</strong> ({formatPrice(pro.monthly)}/mo): {pro.spans} spans, {pro.retention} history, alerts and Ask AI.
       </p>
       {founding && (
         <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em]">

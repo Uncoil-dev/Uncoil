@@ -132,7 +132,8 @@ export const de: Copy = {
         ["Kostenanalyse", "Basis", "Voll", "Voll", ""],
         ["Evaluierungen + Datensätze", "—", "Enthalten", "Enthalten", ""],
         ["Prompt-Versionen", "—", "Enthalten", "Enthalten", ""],
-        ["Slack-Warnungen", "—", "Enthalten", "Enthalten", ""],
+        ["Warnungen (E-Mail + Slack)", "—", "Enthalten", "Enthalten", ""],
+        ["Ask AI", "Fertige Fragen", "Jede Frage", "Jede Frage", ""],
         ["Release-Gates", "—", "—", "Enthalten", ""],
         ["Zusammenarbeit + Reviews", "—", "—", "Enthalten", ""],
         ["Support", "Community", "Standard", "Priorität", ""]

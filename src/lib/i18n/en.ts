@@ -74,8 +74,8 @@ export const en: Copy = {
     annualOff: "Switch to annual and save 20%",
     noCard: "No card needed for Free. Prices in USD.",
     plans: {
-      free: { line: "Try it on a real agent.", features: ["Trace viewer", "Cost visibility", "Community support"] },
-      pro: { line: "For a builder shipping agents.", features: ["Evaluations + datasets", "Prompt versions", "Slack alerts"] },
+      free: { line: "Try it on a real agent.", features: ["Trace viewer", "Cost visibility", "Ready-made Ask AI questions", "Community support"] },
+      pro: { line: "For a builder shipping agents.", features: ["Alerts (email + Slack)", "Ask AI, any question", "Evaluations + datasets", "Prompt versions"] },
       team: { line: "For teams running agents in prod.", features: ["Release gates", "Collaboration + reviews", "Priority support"] },
     },
     unlimited: "Unlimited",
@@ -132,7 +132,8 @@ export const en: Copy = {
         ["Cost analytics", "Basic", "Full", "Full", ""],
         ["Evaluations + datasets", "—", "Included", "Included", ""],
         ["Prompt versions", "—", "Included", "Included", ""],
-        ["Slack alerts", "—", "Included", "Included", ""],
+        ["Alerts (email + Slack)", "—", "Included", "Included", "Alerts stay off on Free."],
+        ["Ask AI", "Ready-made questions", "Any question", "Any question", ""],
         ["Release gates", "—", "—", "Included", ""],
         ["Collaboration + reviews", "—", "—", "Included", ""],
         ["Support", "Community", "Standard", "Priority", ""]

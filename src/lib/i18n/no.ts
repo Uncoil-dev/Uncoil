@@ -132,7 +132,8 @@ export const no: Copy = {
         ["Kostnadsanalyse", "Enkel", "Full", "Full", ""],
         ["Evalueringer + datasett", "—", "Inkludert", "Inkludert", ""],
         ["Prompt-versjoner", "—", "Inkludert", "Inkludert", ""],
-        ["Slack-varsler", "—", "Inkludert", "Inkludert", ""],
+        ["Varsler (e-post + Slack)", "—", "Inkludert", "Inkludert", ""],
+        ["Ask AI", "Ferdige spørsmål", "Alle spørsmål", "Alle spørsmål", ""],
         ["Lanseringsporter", "—", "—", "Inkludert", ""],
         ["Samarbeid + gjennomgang", "—", "—", "Inkludert", ""],
         ["Støtte", "Fellesskap", "Standard", "Prioritert", ""]

@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
+import { pricingCheckoutHref } from "@/lib/billing-links";
 
 /** Relative ranges, shortest first. The server keeps at most 90 days. */
 export const RANGES = [
@@ -20,6 +25,8 @@ export const RANGES = [
   { id: "90d", label: "Last 90 days", ms: 7_776_000_000 },
 ];
 export const MAX_RANGE_DAYS = 90;
+/** Free projects keep 7 days of data, so longer ranges are a Pro feature. */
+export const FREE_RANGE_DAYS = 7;
 
 const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 const addDays = (date: Date, days: number) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
@@ -92,10 +99,14 @@ export function TimeRangePicker({ range, from, to, now, onPreset, onCustom, onRe
   onPreset: (id: string) => void; onCustom: (from: number, to: number) => void; onReset: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  // Free projects keep 7 days; longer ranges are part of Pro.
+  const projectId = /\/dashboard\/([^/]+)/.exec(usePathname() ?? "")?.[1];
+  const project = useQuery(api.projects.getProjectById, projectId ? { projectId: projectId as Id<"projects"> } : "skip");
+  const freeProject = project ? (project.planTier ?? "free") === "free" : false;
   const wrapper = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const today = startOfDay(new Date(now));
-  const min = addDays(today, -(MAX_RANGE_DAYS - 1));
+  const min = addDays(today, -((freeProject ? FREE_RANGE_DAYS : MAX_RANGE_DAYS) - 1));
   const [month, setMonth] = useState(today);
   const [start, setStart] = useState<Date | null>(null);
   const [end, setEnd] = useState<Date | null>(null);
@@ -162,6 +173,13 @@ export function TimeRangePicker({ range, from, to, now, onPreset, onCustom, onRe
             <li aria-hidden="true" className="my-1 hidden border-t border-[#1F242C] sm:block" />
             {RANGES.map((item) => {
               const active = !custom && range === item.id;
+              if (freeProject && item.ms > FREE_RANGE_DAYS * 86_400_000) {
+                return (
+                  <li key={item.id}>
+                    <a href={pricingCheckoutHref("pro", "monthly")} title="Longer history is part of Pro" className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-left text-xs text-[#6B7380] hover:bg-[#1A1F27]">{item.label}<span className="bg-[#F4D44D] px-1 font-mono text-[9px] font-bold uppercase text-[#0B0D10]">Pro</span></a>
+                  </li>
+                );
+              }
               return (
                 <li key={item.id}>
                   <button type="button" aria-pressed={active} onClick={() => { onPreset(item.id); close(true); }}
@@ -178,7 +196,7 @@ export function TimeRangePicker({ range, from, to, now, onPreset, onCustom, onRe
               <label className="flex items-center gap-1.5">To<input type="time" aria-label="End time" value={endTime} onChange={(event) => setEndTime(event.target.value || "23:59")} className={input} /></label>
             </div>
             <p className="min-h-4 text-[11px] text-[#8B93A1]" aria-live="polite">
-              {error ? <span role="alert" className="text-[#FF8A8A]">{error}</span> : start ? `${short(start, true)}${end && !sameDay(start, end) ? ` – ${short(end, true)}` : ""} · your local time · up to ${MAX_RANGE_DAYS} days back` : `Pick a start and end date · your local time · up to ${MAX_RANGE_DAYS} days back`}
+              {error ? <span role="alert" className="text-[#FF8A8A]">{error}</span> : start ? `${short(start, true)}${end && !sameDay(start, end) ? ` – ${short(end, true)}` : ""} · your local time · up to ${freeProject ? FREE_RANGE_DAYS : MAX_RANGE_DAYS} days back` : `Pick a start and end date · your local time · up to ${freeProject ? FREE_RANGE_DAYS : MAX_RANGE_DAYS} days back`}
             </p>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => close(true)} className={button}>Cancel</button>

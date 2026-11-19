@@ -3,12 +3,12 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 
 /** Shared frame for the checkout pages: slim header (logo + one way back) and a dark/cream split. No site navbar, no footer. */
-export function CheckoutShell({ aside, children }: { aside: React.ReactNode; children: React.ReactNode }) {
+export function CheckoutShell({ aside, children, backHref = "/pricing", backLabel = "← Back to pricing" }: { aside: React.ReactNode; children: React.ReactNode; backHref?: string; backLabel?: string }) {
   return (
     <main className="flex min-h-svh flex-col bg-[#090909] text-black">
       <header className="flex h-14 shrink-0 items-center justify-between gap-4 px-5 text-[#eceae3] md:px-10">
         <BrandLogo className="text-lg" />
-        <Link href="/pricing" className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/70 underline underline-offset-4 hover:text-[#f4d44d]">← Back to pricing</Link>
+        <Link href={backHref} className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/70 underline underline-offset-4 hover:text-[#f4d44d]">{backLabel}</Link>
       </header>
       <div className="grid flex-1 lg:grid-cols-[5fr_7fr]">
         <aside className="relative isolate order-2 flex flex-col justify-between overflow-hidden px-5 pb-12 pt-10 text-[#eceae3] md:px-10 lg:order-1 lg:pt-14">

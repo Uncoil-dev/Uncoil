@@ -33,6 +33,7 @@ import type * as evaluation from "../evaluation.js";
 import type * as evaluationEngine from "../evaluationEngine.js";
 import type * as evaluators from "../evaluators.js";
 import type * as experiments from "../experiments.js";
+import type * as healthReports from "../healthReports.js";
 import type * as http from "../http.js";
 import type * as leads from "../leads.js";
 import type * as notificationPreferences from "../notificationPreferences.js";
@@ -92,6 +93,7 @@ declare const fullApi: ApiFromModules<{
   evaluationEngine: typeof evaluationEngine;
   evaluators: typeof evaluators;
   experiments: typeof experiments;
+  healthReports: typeof healthReports;
   http: typeof http;
   leads: typeof leads;
   notificationPreferences: typeof notificationPreferences;

@@ -872,4 +872,16 @@ export default defineSchema({
     dismissedAlertIds: v.array(v.string()),
     updatedAt: v.number(),
   }).index("by_userKey", ["userKey"]),
+
+  // One-off paid agent health report. One row per Stripe checkout session; the report is stored as JSON text.
+  healthReports: defineTable({
+    token: v.string(),
+    stripeSessionId: v.string(),
+    email: v.optional(v.string()),
+    reportJson: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_stripeSessionId", ["stripeSessionId"]),
 });

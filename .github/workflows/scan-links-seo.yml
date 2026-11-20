@@ -2,7 +2,7 @@ name: Scan content
 
 on:
   schedule:
-    - cron: "17 3 * * *"
+    - cron: "0 4,16 * * *"
   workflow_dispatch:
 
 permissions:

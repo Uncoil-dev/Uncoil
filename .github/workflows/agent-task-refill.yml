@@ -1,0 +1,119 @@
+name: Agent task refill
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  actions: write
+
+concurrency:
+  group: agent-task-refill
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  refill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      ran: ${{ steps.count.outputs.low }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Ensure labels exist
+        run: |
+          gh label create agent-task --color 0e8a16 --description "Ready for an automated agent" 2>/dev/null || true
+          gh label create agent-task-queued --color c5def5 --description "Waiting for a free agent slot" 2>/dev/null || true
+
+      - name: Count queued issues
+        id: count
+        run: |
+          n=$(gh issue list --label agent-task-queued --state open --limit 500 --json number --jq length)
+          echo "queued=$n"
+          if [ "$n" -lt 100 ]; then echo "low=true" >> "$GITHUB_OUTPUT"; else echo "low=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Find new tasks
+        if: steps.count.outputs.low == 'true'
+        uses: anthropics/claude-code-action@acfe7992852970efb4fee683d63d628e3e52df67 # v1.0.286
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: >-
+            --max-turns 50
+            --allowedTools "Read,Glob,Grep,Bash(gh issue:*),Bash(gh pr list:*),Bash(gh api:*),Bash(git log:*),Bash(ls:*)"
+          prompt: |
+            Find up to 20 new small, independent tasks in this repository and open each as a GitHub issue labelled `agent-task-queued`.
+
+            Good candidates: missing tests, small SDK fixes, and documentation or blog gaps. Each task must fit in under about 200 changed lines.
+            - Each task owns distinct file paths, and none overlap with any open issue (any label) or open pull request. Check with `gh issue list --state open` and `gh pr list --state open --json files`.
+            - Never propose work on authentication, billing, secrets, infrastructure, data deletion, workflow files or visible UI.
+            - Create each issue with `gh issue create --label agent-task-queued --title "<short neutral title>" --body "<body>"`.
+            - Use this body layout, in general terms only and without internal plans:
+
+            ### Task
+            <one small, self-contained change>
+
+            ### Files owned (paths)
+            <one repository path per line>
+
+            ### Done looks like
+            <how a reviewer can tell the task is complete>
+
+  dispatch:
+    needs: refill
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Promote queued issues
+        run: |
+          set -euo pipefail
+          open=$(gh issue list --label agent-task --state open --limit 100 --json number --jq length)
+          free=$((6 - open))
+          [ "$free" -gt 0 ] || { echo "No free slots"; exit 0; }
+          : > taken.txt
+          for n in $(gh issue list --label agent-task --state open --limit 100 --json number --jq '.[].number'); do
+            gh api "repos/$GH_REPO/issues/$n" --jq .body | python3 -c '
+          import re,sys
+          m = re.search(r"###\s*Files owned[^\n]*\n(.*?)(?=\n###|\Z)", sys.stdin.read(), re.S)
+          for l in (m.group(1) if m else "").splitlines():
+              p = l.strip().strip("`-* ").lstrip("./").rstrip("/")
+              if p: print(p)' >> taken.txt
+          done
+          for pr in $(gh pr list --state open --limit 200 --json number --jq '.[].number'); do
+            gh api --paginate "repos/$GH_REPO/pulls/$pr/files" --jq '.[].filename' >> taken.txt
+          done
+          gh issue list --label agent-task-queued --state open --limit 200 --json number,body > queued.json
+          python3 - "$free" > promote.txt <<'PY'
+          import json, re, sys
+          free = int(sys.argv[1])
+          taken = [l.strip() for l in open("taken.txt") if l.strip()]
+          def clash(a, b):
+              return a == b or a.startswith(b + "/") or b.startswith(a + "/")
+          picked = 0
+          for it in sorted(json.load(open("queued.json")), key=lambda i: i["number"]):
+              m = re.search(r"###\s*Files owned[^\n]*\n(.*?)(?=\n###|\Z)", it["body"] or "", re.S)
+              paths = [l.strip().strip("`-* ").lstrip("./").rstrip("/") for l in (m.group(1) if m else "").splitlines()]
+              paths = [p for p in paths if p]
+              if not paths or any(clash(p, t) for p in paths for t in taken):
+                  continue
+              taken += paths
+              print(it["number"])
+              picked += 1
+              if picked >= free:
+                  break
+          PY
+          for n in $(cat promote.txt); do
+            gh issue edit "$n" --remove-label agent-task-queued --add-label agent-task
+            gh workflow run agent-task.yml -f issue_number="$n"
+          done

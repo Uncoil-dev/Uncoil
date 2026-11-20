@@ -98,6 +98,15 @@ export const tools: readonly ToolEntry[] = [
     trackLine: "Limits are easy to calculate and easy to forget. Uncoil shows every 429 and retry in your real traffic.",
   },
   {
+    slug: "prompt-caching-calculator",
+    name: "Prompt caching calculator",
+    title: "Prompt caching savings calculator for GPT, Claude and Gemini",
+    description: "See how much prompt caching saves per month on GPT, Claude, Gemini and more. Enter your prompt size and cache hit rate. Free, runs in your browser.",
+    blurb: "How much would prompt caching save me each month?",
+    group: "Cost",
+    trackLine: "Caching only saves money if calls actually hit it. Uncoil shows tokens and cost on every call so you can see which ones paid full price.",
+  },
+  {
     slug: "ai-cost-estimator",
     name: "AI cost estimator",
     title: "Free AI agent cost estimator",

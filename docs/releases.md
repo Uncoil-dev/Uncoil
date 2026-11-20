@@ -6,6 +6,8 @@ This is the canonical release record. The public `/changelog` page and GitHub Re
 
 ### Features
 - Release-log and SharePoint discovery foundations.
+- New free tool: a tracing bill calculator that compares the monthly cost on Langfuse, LangSmith, Helicone and Uncoil for the same traffic.
+- New Switch to Uncoil guide for teams moving from Langfuse, LangSmith, Helicone or OpenTelemetry.
 - Agent health report: a one-off $79 report on cost, errors and slow steps, built from a file of runs, with ranked fixes, a private link and a print-ready PDF. See /health-report.
 - New free tool: prompt caching savings calculator.
 - New comparison pages: Uncoil vs Opik, AgentOps and Pydantic Logfire.

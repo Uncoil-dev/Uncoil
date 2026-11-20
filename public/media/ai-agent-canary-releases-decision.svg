@@ -1,0 +1,12 @@
+<svg viewBox="0 0 1600 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
+  <title id="t">Two lines over time: canary error rate crossing a gate threshold while stable stays flat</title>
+  <desc id="d">A chart with a flat black line for the stable arm and a yellow line for the canary arm that rises after the third step and crosses a dashed red threshold, with a marker where traffic share is held.</desc>
+  <rect width="1600" height="700" fill="#eceae3"/>
+  <g stroke="#090909" stroke-width="4" fill="none"><path d="M120 60 V600 H1500"/></g>
+  <path d="M120 420 H1500" stroke="#ff6b5b" stroke-width="5" stroke-dasharray="24 14"/>
+  <path d="M120 520 L420 515 L720 522 L1020 518 L1500 520" stroke="#090909" stroke-width="8" fill="none"/>
+  <path d="M120 510 L420 505 L720 480 L1020 400 L1280 300" stroke="#f4d44d" stroke-width="12" fill="none"/>
+  <g fill="#090909"><circle cx="1020" cy="400" r="14"/></g>
+  <path d="M1020 60 V600" stroke="#090909" stroke-width="3" stroke-dasharray="8 8"/>
+  <g font-family="monospace" font-size="24" fill="#090909"><text x="1040" y="90">breach: hold share, then roll back</text><text x="130" y="405" fill="#ff6b5b">gate threshold</text><text x="130" y="560">stable arm</text><text x="1100" y="290">canary arm</text><text x="110" y="650">step 1 (1%)</text><text x="560" y="650">step 2 (5%)</text><text x="1000" y="650">step 3 (25%)</text></g>
+</svg>

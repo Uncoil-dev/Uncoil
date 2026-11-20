@@ -1,0 +1,28 @@
+name: Agent task
+description: A small, self-contained task for an automated agent
+labels: []
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Task
+      description: One small, self-contained change. Keep it under about 200 changed lines.
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Files owned (paths)
+      description: One repository path per line. Files or directories this task may change.
+      placeholder: |
+        packages/ts-sdk/src/example.ts
+        packages/ts-sdk/tests/
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done looks like
+      description: How a reviewer can tell the task is complete.
+    validations:
+      required: true

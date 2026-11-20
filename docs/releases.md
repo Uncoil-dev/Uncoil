@@ -6,6 +6,7 @@ This is the canonical release record. The public `/changelog` page and GitHub Re
 
 ### Features
 - Release-log and SharePoint discovery foundations.
+- Agent health report: a one-off $79 report on cost, errors and slow steps, built from a file of runs, with ranked fixes, a private link and a print-ready PDF. See /health-report.
 - New free tool: prompt caching savings calculator.
 - New comparison pages: Uncoil vs Opik, AgentOps and Pydantic Logfire.
 - Landing page: a clickable sample weekly agent report (cost, errors, slow steps) that links into the public demo project, no sign-up needed.

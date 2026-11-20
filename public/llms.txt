@@ -47,6 +47,7 @@ Use the documentation for implementation details and the blog for explanatory gu
 
 - [Product overview](https://www.uncoil.dev/): Uncoil's core agent observability and evaluation capabilities.
 - [Pricing](https://www.uncoil.dev/pricing): Current plans and billing options.
+- [Agent health report](https://www.uncoil.dev/health-report): One-off paid report on an AI agent's cost, errors and slow steps, built from a file of runs.
 - [Integrations directory](https://www.uncoil.dev/integrations): Available and planned integrations, with status shown on the page.
 - [Security](https://www.uncoil.dev/security): Data handling, security controls, and compliance posture.
 - [Status](https://www.uncoil.dev/status): Current service status.

@@ -98,6 +98,15 @@ export const tools: readonly ToolEntry[] = [
     trackLine: "Limits are easy to calculate and easy to forget. Uncoil shows every 429 and retry in your real traffic.",
   },
   {
+    slug: "prompt-caching-calculator",
+    name: "Prompt caching calculator",
+    title: "Prompt caching savings calculator for GPT, Claude and Gemini",
+    description: "See how much prompt caching saves per month on GPT, Claude, Gemini and more. Enter your prompt size and cache hit rate. Free, runs in your browser.",
+    blurb: "How much would prompt caching save me each month?",
+    group: "Cost",
+    trackLine: "Caching only saves money if calls actually hit it. Uncoil shows tokens and cost on every call so you can see which ones paid full price.",
+  },
+  {
     slug: "ai-cost-estimator",
     name: "AI cost estimator",
     title: "Free AI agent cost estimator",
@@ -105,6 +114,15 @@ export const tools: readonly ToolEntry[] = [
     blurb: "What will my agent cost per run, per task and per month?",
     group: "Cost",
     trackLine: "This is a plan. Uncoil shows the real number, run by run.",
+  },
+  {
+    slug: "ai-observability-cost-calculator",
+    name: "Tracing bill calculator",
+    title: "LLM observability pricing calculator: Langfuse, LangSmith, Helicone and Uncoil",
+    description: "Enter your agent traffic and see the monthly bill on Langfuse, LangSmith, Helicone and Uncoil. Prices from each vendor's public pricing page, checked 19 November 2026. Free.",
+    blurb: "Same traffic, four bills: what tracing costs on each tool.",
+    group: "Cost",
+    trackLine: "A calculator guesses the volume. Uncoil counts your real spans, so you pick a plan from facts.",
   },
 ];
 

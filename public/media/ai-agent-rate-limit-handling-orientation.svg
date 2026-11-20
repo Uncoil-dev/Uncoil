@@ -1,0 +1,17 @@
+<svg viewBox="0 0 1600 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
+  <title id="t">Decision map from a 429 response through classify, budget, wait, decide and record</title>
+  <desc id="d">Five boxes in a row labeled classify, budget, wait, decide, record. A trace line runs underneath all five. Decide leads to retry or fail.</desc>
+  <rect width="1600" height="640" fill="#0a0a0a"/>
+  <text x="70" y="60" fill="#f4d44d" font-family="monospace" font-size="20" letter-spacing="2">429 TO DECISION</text>
+  <g font-family="monospace" font-size="20" fill="#f6f1e6" text-anchor="middle">
+    <rect x="60" y="240" width="250" height="110" fill="none" stroke="#f4d44d" stroke-width="3"/><text x="185" y="302">1 CLASSIFY</text>
+    <rect x="350" y="240" width="250" height="110" fill="none" stroke="#f4d44d" stroke-width="3"/><text x="475" y="302">2 BUDGET</text>
+    <rect x="640" y="240" width="250" height="110" fill="none" stroke="#f4d44d" stroke-width="3"/><text x="765" y="302">3 WAIT</text>
+    <rect x="930" y="240" width="250" height="110" fill="none" stroke="#f4d44d" stroke-width="3"/><text x="1055" y="302">4 DECIDE</text>
+    <rect x="1220" y="240" width="250" height="110" fill="none" stroke="#f4d44d" stroke-width="3"/><text x="1345" y="302">5 RECORD</text>
+    <text x="1055" y="200" fill="#f4d44d">retry or fail</text>
+    <text x="765" y="500" opacity="0.7">every stage writes attempt, wait and outcome to the trace</text>
+  </g>
+  <path d="M310 295 H350 M600 295 H640 M890 295 H930 M1180 295 H1220" stroke="#f6f1e6" stroke-width="3"/>
+  <line x1="60" y1="440" x2="1470" y2="440" stroke="#f4d44d" stroke-width="3"/>
+</svg>

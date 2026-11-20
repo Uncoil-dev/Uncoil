@@ -7,6 +7,8 @@ import { useRouter, useParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { cn } from "@/lib/utils";
+import { DEMO_BASE_PATH } from "@/lib/demo/demo-config";
+import { useSampleProjectHidden } from "@/lib/demo/sample-project-state";
 
 import {
   DropdownMenu,
@@ -53,6 +55,7 @@ export function ProjectSwitcher({
   const currentProjectId = params?.projectId as string | undefined;
   const [open, setOpen] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
+  const [sampleHidden, setSampleHidden] = useSampleProjectHidden();
 
   const projectsResult = useQuery(api.projects.getProjectsByUserOrOrg, synthetic ? "skip" : undefined);
   const projects = useMemo(() => projectsResult ?? [], [projectsResult]);
@@ -156,7 +159,9 @@ export function ProjectSwitcher({
         {synthetic ? (
           <>
             <DropdownMenuLabel>Projects</DropdownMenuLabel>
-            <DropdownMenuItem disabled>Uncoil Demo · view only</DropdownMenuItem>
+            <DropdownMenuItem disabled>Sample project · view only</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/dashboard")}>My projects</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setSampleHidden(true); router.push("/dashboard"); }}>Hide sample project</DropdownMenuItem>
             <DropdownMenuItem onClick={() => window.location.assign("https://www.uncoil.dev/cloud")}>Build a real project</DropdownMenuItem>
           </>
         ) : projects.length ? (
@@ -174,6 +179,23 @@ export function ProjectSwitcher({
         ) : (
           <DropdownMenuItem disabled>No projects yet</DropdownMenuItem>
         )}
+        <DropdownMenuSeparator />
+        {!synthetic ? (
+          sampleHidden ? (
+            <DropdownMenuItem onClick={() => setSampleHidden(false)}>Show sample project</DropdownMenuItem>
+          ) : (
+            <div className="flex items-stretch gap-1">
+              <DropdownMenuItem onClick={() => router.push(DEMO_BASE_PATH)} className="min-w-0 flex-1 flex-col items-start gap-0 normal-case">
+                <span className="flex w-full items-center gap-2">
+                  <span className="truncate text-[13px]">support-agent</span>
+                  <span className="ml-auto bg-[#f4d44d] px-1 text-[10px] uppercase !text-[#090909]">Sample</span>
+                </span>
+                <span className="text-[10px] uppercase opacity-55">View only · not counted</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSampleHidden(true)} className="shrink-0 justify-center px-2.5 text-[10px]">Hide</DropdownMenuItem>
+            </div>
+          )
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/onboarding/project")}>
           <Plus className="size-4" />

@@ -9,6 +9,7 @@ import { Bento } from "./bento";
 import { Anatomy, BeforeAfter, UseCases } from "./more-sections";
 import { Timeline } from "./timeline";
 import { LiveDemo } from "./live-demo";
+import { ReportDemo } from "./report-demo";
 import { PricingSection } from "./pricing-section";
 import { AgentSetup } from "./agent-setup";
 import { SmoothScroll } from "./smooth-scroll";
@@ -40,6 +41,7 @@ export function LandingPage() {
       <Timeline />
       <ProductWindow />
       <LiveDemo />
+      <ReportDemo />
       <Anatomy />
       <Bento />
       <UseCases />

@@ -7,7 +7,7 @@ import { ClosingBand, CreamBand, Eyebrow, HeaderAction, SectionTitle } from "@/c
 
 export const metadata = pageMetadata({
   title: "Uncoil alternatives and comparisons",
-  description: "Compare Uncoil with Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust and Datadog for AI agent observability, cost tracking and evaluation.",
+  description: "Compare Uncoil with Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust, Opik, AgentOps, Pydantic Logfire and Datadog for AI agent observability, cost tracking and evaluation.",
   path: "/compare",
 });
 
@@ -27,6 +27,8 @@ export default function ComparePage() {
       <PageHeader eyebrow="Compare / alternatives" title="Uncoil vs the rest." lede="Plain comparisons with the other tools teams look at, including the cases where they are the better pick.">
         <HeaderAction href={appHref("/demo/project")}>See Uncoil live</HeaderAction>
         <HeaderAction href="/pricing" kind="secondary">Pricing</HeaderAction>
+        <HeaderAction href="/tools/ai-observability-cost-calculator" kind="secondary">Compare your bill</HeaderAction>
+        <HeaderAction href="/switch" kind="secondary">Switch to Uncoil</HeaderAction>
       </PageHeader>
       <CreamBand>
         <Eyebrow dark={false}>{comparisons.length} comparisons</Eyebrow>

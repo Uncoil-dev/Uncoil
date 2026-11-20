@@ -1,0 +1,14 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
+  <title id="t">A wide stable stream of runs and a thin canary stream splitting off toward a gate</title>
+  <desc id="d">Many small squares flow left to right on a thick stable lane. A thin lane carrying a few yellow squares branches off and passes through a gate where a gauge compares it with the stable lane.</desc>
+  <rect width="1600" height="900" fill="#eceae3"/>
+  <g fill="#090909"><rect x="80" y="300" width="1000" height="160"/><rect x="1100" y="300" width="420" height="160"/></g>
+  <g fill="#eceae3"><rect x="120" y="340" width="36" height="36"/><rect x="200" y="400" width="36" height="36"/><rect x="280" y="340" width="36" height="36"/><rect x="360" y="400" width="36" height="36"/><rect x="440" y="340" width="36" height="36"/><rect x="520" y="400" width="36" height="36"/><rect x="600" y="340" width="36" height="36"/><rect x="680" y="400" width="36" height="36"/><rect x="760" y="340" width="36" height="36"/><rect x="840" y="400" width="36" height="36"/><rect x="920" y="340" width="36" height="36"/><rect x="1000" y="400" width="36" height="36"/><rect x="1140" y="340" width="36" height="36"/><rect x="1220" y="400" width="36" height="36"/><rect x="1300" y="340" width="36" height="36"/><rect x="1380" y="400" width="36" height="36"/></g>
+  <path d="M360 460 L360 640 L1060 640" fill="none" stroke="#090909" stroke-width="28"/>
+  <g fill="#f4d44d" stroke="#090909" stroke-width="4"><rect x="420" y="622" width="36" height="36"/><rect x="620" y="622" width="36" height="36"/><rect x="820" y="622" width="36" height="36"/></g>
+  <g fill="none" stroke="#090909" stroke-width="10"><rect x="1060" y="560" width="120" height="160"/></g>
+  <rect x="1060" y="560" width="120" height="160" fill="#f4d44d" opacity="0.55"/>
+  <path d="M1180 640 L1520 640" stroke="#090909" stroke-width="28"/>
+  <g font-family="monospace" font-size="28" fill="#090909"><text x="80" y="270">STABLE  95%</text><text x="420" y="700">CANARY  5%</text><text x="1050" y="780">GATE</text></g>
+  <g font-family="monospace" font-size="22" fill="#090909"><text x="1200" y="620">widen</text><text x="1200" y="700">or roll back</text></g>
+</svg>

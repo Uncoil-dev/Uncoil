@@ -1,0 +1,12 @@
+<svg viewBox="0 0 1600 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
+  <title id="t">Four stage loop: slice, compare, gate, widen, with a rollback arrow from the gate</title>
+  <desc id="d">Four boxes in a row labeled slice, compare, gate and widen. An arrow leads from each box to the next. A second arrow leaves the gate box downward to a box labeled roll back.</desc>
+  <rect width="1600" height="640" fill="#090909"/>
+  <g fill="#eceae3"><rect x="60" y="170" width="320" height="200"/><rect x="460" y="170" width="320" height="200"/><rect x="860" y="170" width="320" height="200"/><rect x="1260" y="170" width="280" height="200"/></g>
+  <rect x="860" y="170" width="320" height="200" fill="#f4d44d"/>
+  <g stroke="#f4d44d" stroke-width="10" fill="none"><path d="M390 270 H450"/><path d="M790 270 H850"/><path d="M1190 270 H1250"/><path d="M1020 380 V470"/></g>
+  <rect x="860" y="470" width="320" height="110" fill="none" stroke="#ff6b5b" stroke-width="8"/>
+  <g font-family="monospace" font-size="34" fill="#090909"><text x="110" y="250">1 SLICE</text><text x="510" y="250">2 COMPARE</text><text x="910" y="250">3 GATE</text><text x="1310" y="250">4 WIDEN</text></g>
+  <g font-family="monospace" font-size="20" fill="#090909"><text x="110" y="300">pin a stable bucket</text><text x="510" y="300">same fields, both arms</text><text x="910" y="300">pre-set thresholds</text><text x="1310" y="300">one step at a time</text></g>
+  <text x="900" y="535" font-family="monospace" font-size="30" fill="#ff6b5b">ROLL BACK</text>
+</svg>

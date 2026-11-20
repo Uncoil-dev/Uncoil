@@ -1,0 +1,16 @@
+<svg viewBox="0 0 1600 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
+  <title id="t">Request tokens queue at a metered gate while a retry loop feeds tokens back</title>
+  <desc id="d">Yellow request tokens line up on the left and pass through a narrow gate. A looping arrow returns rejected tokens to the back of the queue, showing retries adding load.</desc>
+  <rect width="1600" height="640" fill="#0a0a0a"/>
+  <text x="70" y="60" fill="#f4d44d" font-family="monospace" font-size="20" letter-spacing="2">THE RETRY LOOP</text>
+  <g fill="#f4d44d"><rect x="120" y="290" width="44" height="44"/><rect x="180" y="290" width="44" height="44"/><rect x="240" y="290" width="44" height="44"/><rect x="300" y="290" width="44" height="44"/><rect x="360" y="290" width="44" height="44"/></g>
+  <rect x="700" y="180" width="30" height="110" fill="#f6f1e6"/>
+  <rect x="700" y="340" width="30" height="110" fill="#f6f1e6"/>
+  <text x="640" y="490" fill="#f6f1e6" font-family="monospace" font-size="18">limit: one lane</text>
+  <path d="M460 312 H690" stroke="#f6f1e6" stroke-width="3" fill="none"/>
+  <path d="M730 312 H1000" stroke="#f6f1e6" stroke-width="3" fill="none" stroke-dasharray="8 8"/>
+  <path d="M690 330 C 690 560, 140 560, 140 350" stroke="#ff6b5b" stroke-width="4" fill="none"/>
+  <text x="330" y="580" fill="#ff6b5b" font-family="monospace" font-size="18">429 returns the request to the queue</text>
+  <rect x="1000" y="280" width="140" height="64" fill="none" stroke="#f4d44d" stroke-width="3"/>
+  <text x="1070" y="320" text-anchor="middle" fill="#f4d44d" font-family="monospace" font-size="18">provider</text>
+</svg>

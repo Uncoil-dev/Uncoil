@@ -321,6 +321,11 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
     ...(query.edge ? [{ key: "edge", label: `Path: ${query.edge.split(EDGE_SEPARATOR).map(stepLabel).join(" → ")}` }] : []),
   ];
 
+  const costScale = useMemo(() => {
+    const costs = rows.map((row) => Number(row.totalCostUsd) || 0).filter((cost) => cost > 0).sort((a, b) => a - b);
+    return { max: costs.length ? costs[costs.length - 1] : 0, median: costs.length ? costs[Math.floor(costs.length / 2)] : 0 };
+  }, [rows]);
+
   return (
     <div className="flex min-h-svh flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
@@ -442,9 +447,9 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
                 <tbody className={loading ? "opacity-60" : ""}>
                   {rows.map((row) => (
                     <tr key={row.runId} aria-selected={selected === row.runId}
-                      className={`cursor-pointer transition-colors duration-700 ${selected === row.runId ? "bg-[#161B22] shadow-[inset_3px_0_0_#F4D44D]" : fresh.has(row.runId) ? "bg-[#1F2A1F]" : "hover:bg-[#12161C]"}`}
+                      className={`cursor-pointer transition-colors duration-700 ${selected === row.runId ? "bg-[#161B22] shadow-[inset_3px_0_0_#F4D44D]" : fresh.has(row.runId) ? "bg-[#1F2A1F]" : Number(row.errorCount) > 0 ? "bg-[#1A1012] shadow-[inset_3px_0_0_#FF8A8A] hover:bg-[#241518]" : "hover:bg-[#12161C]"}`}
                       onClick={() => update({ trace: row.runId }, false)}>
-                      {columns.map((id) => <td key={id} className="max-w-[320px] truncate border-b border-[#171B21] px-2.5 py-1.5 align-middle">{cell(id, row, update, clock, feedback, projectId)}</td>)}
+                      {columns.map((id) => <td key={id} className="max-w-[320px] truncate border-b border-[#171B21] px-2.5 py-1.5 align-middle">{cell(id, row, update, clock, feedback, projectId, costScale)}</td>)}
                     </tr>
                   ))}
                 </tbody>
@@ -483,7 +488,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
   );
 }
 
-function cell(id: string, row: TraceRow, update: (patch: TraceQuery, resetPage?: boolean) => void, clock: number, feedback: FeedbackState, projectId: string) {
+function cell(id: string, row: TraceRow, update: (patch: TraceQuery, resetPage?: boolean) => void, clock: number, feedback: FeedbackState, projectId: string, costScale: { max: number; median: number }) {
   const link = (key: string, value: string) => value
     ? <button type="button" className="truncate text-[#8AB4FF] hover:underline" onClick={(event) => { event.stopPropagation(); update({ [key]: encodeValues([value]) }); }}>{value}</button>
     : <span className="text-[#4A5260]">—</span>;
@@ -497,7 +502,16 @@ function cell(id: string, row: TraceRow, update: (patch: TraceQuery, resetPage?:
     case "output": return <span className="text-[#C9CED6]">{previewText(row.outputPreview) || <span className="text-[#4A5260]">—</span>}</span>;
     case "feedback": return projectId === DEMO_PROJECT_ID ? <span className="text-[#4A5260]">—</span> : <FeedbackCell runId={row.runId} feedback={feedback} />;
     case "latency": return <span className="font-mono text-xs">{formatDuration(row.durationMs)}</span>;
-    case "cost": return <span className="font-mono text-xs">{formatCost(row.totalCostUsd)}</span>;
+    case "cost": {
+      const value = Number(row.totalCostUsd) || 0;
+      const high = costScale.median > 0 && value >= costScale.median * 3 && value > 0;
+      return (
+        <span className="flex min-w-[96px] flex-col gap-1" title={high ? "Costs 3× or more than the typical run on this page" : undefined}>
+          <span className={`font-mono text-xs ${high ? "font-bold text-[#F4D44D]" : ""}`}>{formatCost(value)}{high ? " ▲" : ""}</span>
+          <span aria-hidden="true" className="block h-[3px] w-full bg-[#1A1F27]"><span className={`block h-full ${high ? "bg-[#F4D44D]" : "bg-[#4A5260]"}`} style={{ width: `${costScale.max > 0 ? Math.max(2, Math.round((value / costScale.max) * 100)) : 0}%` }} /></span>
+        </span>
+      );
+    }
     case "tokens": return <span className="font-mono text-xs text-[#C9CED6]">{compactNumber(Number(row.inputTokens) + Number(row.outputTokens))}</span>;
     case "model": return link("modelId", row.modelId);
     case "user": return link("endUserId", row.endUserId);

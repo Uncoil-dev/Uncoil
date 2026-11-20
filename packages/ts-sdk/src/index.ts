@@ -207,7 +207,7 @@ export function buildRedactor(options?: RedactionOptions): ((text: string) => st
   }
   if (!patterns.length && !maskPii && !options.fn) return undefined;
   return (text: string) => {
-    if (maskPii) text = text.replace(CARD_NUMBER, (m) => { const d = m.replace(/\D/g, ""); return d.length >= 13 && passesLuhn(d) ? replacement : m; });
+    if (maskPii) text = text.replace(CARD_NUMBER, (m) => { const d = m.replace(/\D/g, ""); return d.length >= 13 && passesLuhn(d) ? replacement + m.slice(m.search(/[ -]*$/)) : m; });
     for (const pattern of patterns) text = text.replace(pattern, replacement);
     return options!.fn ? options.fn(text) : text;
   };

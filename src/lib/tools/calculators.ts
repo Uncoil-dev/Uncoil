@@ -160,3 +160,40 @@ export function rateLimits(raw: RateInput): RateResult {
   const verdict: RateResult["verdict"] = headroom < 1 ? "over" : headroom < 1.3 ? "tight" : "ok";
   return { callsPerActionWithRetries: callsWithRetries, tokensPerCall, byRpm, byTpm, byOtpm, limitingFactor, maxCallsPerMinute, maxActionsPerMinute, maxUsersNormal, maxUsersPeak, neededRpm, neededTpm, neededOtpm, headroom, verdict };
 }
+
+// ---------------------------------------------------------- prompt caching
+
+export type CachingInput = {
+  requestsPerMonth: number;
+  /** Tokens at the start of every prompt that never change (system prompt, tool definitions, fixed context). */
+  stableTokens: number;
+  /** Tokens that change on every call (the user message, new tool results). */
+  changingTokens: number;
+  outputTokens: number;
+  /** Share of calls where the stable start is found in the cache, 0 to 100. */
+  hitRate: number;
+};
+
+export const defaultCaching: CachingInput = { requestsPerMonth: 200_000, stableTokens: 6000, changingTokens: 800, outputTokens: 400, hitRate: 80 };
+
+export type CachingRow = { model: Model; withoutCache: number; withCache: number; saved: number; savedPercent: number };
+
+/** Only models with a published cache price. Cache write surcharges are not included. */
+export function cachingSavings(raw: CachingInput, list: readonly Model[] = models): CachingRow[] {
+  const clamp = (v: number, max: number) => (Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : 0);
+  const requests = clamp(raw.requestsPerMonth, 1e12);
+  const stable = clamp(raw.stableTokens, 1e8);
+  const changing = clamp(raw.changingTokens, 1e8);
+  const output = clamp(raw.outputTokens, 1e7);
+  const hit = clamp(raw.hitRate, 100) / 100;
+  return list
+    .filter((m) => m.cached !== undefined)
+    .map((model) => {
+      const input = stable + changing;
+      const withoutCache = callCost(model, input, output, 0) * requests;
+      const withCache = callCost(model, input, output, stable * hit) * requests;
+      const saved = withoutCache - withCache;
+      return { model, withoutCache, withCache, saved, savedPercent: withoutCache > 0 ? (saved / withoutCache) * 100 : 0 };
+    })
+    .sort((a, b) => b.saved - a.saved);
+}

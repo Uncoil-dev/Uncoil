@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import { SampleProjectCard } from "@/components/dashboard/sample-project-card";
 import { setOneTimeApiKey } from "@/lib/onboarding-client-state";
 
 const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
@@ -71,6 +72,7 @@ export function NoProjectStart() {
           </li>
         ))}
       </ol>
+      <SampleProjectCard />
     </main>
   );
 }

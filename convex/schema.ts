@@ -810,6 +810,15 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_userKey", ["userKey"]),
 
+  // The optional "What do you want to fix?" answer from onboarding. One row per person.
+  onboardingAnswers: defineTable({
+    userId: v.string(),
+    email: v.optional(v.string()),
+    name: v.optional(v.string()),
+    answer: v.string(),
+    createdAt: v.number(),
+  }).index("by_userId", ["userId"]).index("by_createdAt", ["createdAt"]),
+
   // One row per address already welcomed, so the welcome email is never sent twice.
   welcomeEmails: defineTable({
     email: v.string(),

@@ -56,7 +56,7 @@ test("withCacheReason sets cache metadata and computes age", () => {
 });
 
 test("withCacheReason uses a null age without updatedAt and keeps a null reason", () => {
-  const result = withCacheReason({}, null, "fresh");
+  const result = withCacheReason<{ meta?: Record<string, unknown> }>({}, null, "fresh");
   assert.equal(result.meta?.ageMs, null);
   assert.equal(result.meta?.reason, null);
   assert.equal(result.meta?.cacheStatus, "fresh");

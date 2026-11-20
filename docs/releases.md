@@ -5,6 +5,8 @@ This is the canonical release record. The public `/changelog` page and GitHub Re
 ## [Unreleased]
 
 ### Features
+- Updated plan limits: Free is now 10,000 spans a month, 2,000 a day, 2 projects and 300 requests a minute.
+- Alerts, custom Ask AI questions and date ranges over 7 days are part of Pro.
 - Release-log and SharePoint discovery foundations.
 - New free tool: a tracing bill calculator that compares the monthly cost on Langfuse, LangSmith, Helicone and Uncoil for the same traffic.
 - New Switch to Uncoil guide for teams moving from Langfuse, LangSmith, Helicone or OpenTelemetry.

@@ -115,14 +115,14 @@ export const de: Copy = {
     compareLede: "Klare Grenzen, kein Kleingedrucktes. Mehr als Team? Enterprise ist individuell.",
     compareGroups: [
       { title: "Grenzen, auf die du dich verlassen kannst", rows: [
-        ["Spans pro Monat", "25.000", "500.000", "2.000.000", "Eine Span ist ein Schritt deines Agenten. Die Zähler starten jeden Monat (UTC) neu."],
-        ["Spans pro Tag", "5.000", "Kein Tageslimit", "Kein Tageslimit", "Bei Free kann eine Endlosschleife nicht den ganzen Monat an einem Tag verbrauchen."],
+        ["Spans pro Monat", "10.000", "500.000", "2.000.000", "Eine Span ist ein Schritt deines Agenten. Die Zähler starten jeden Monat (UTC) neu."],
+        ["Spans pro Tag", "2.000", "Kein Tageslimit", "Kein Tageslimit", "Bei Free kann eine Endlosschleife nicht den ganzen Monat an einem Tag verbrauchen."],
         ["Am Monatslimit", "Neue Daten stoppen bis zum nächsten Monat", "10 % Puffer, dann Stopp", "10 % Puffer, dann Stopp", "Es wird nie extra berechnet. Gespeicherte Daten bleiben."],
         ["Anfragen pro Minute", "600", "6.000", "6.000", "Pro Projekt."],
         ["Span-Größe", "256 KB, längerer Text wird gekürzt", "1 MB pro Anfrage", "1 MB pro Anfrage", "Gekürzte Spans erscheinen trotzdem, nur kürzer."]
       ] },
       { title: "Menschen und Daten", rows: [
-        ["Projekte", "3", "3", "Unbegrenzt", "Bei Free pro Konto. Ein bezahlter Plan gilt für das eine Projekt, das du wählst."],
+        ["Projekte", "2", "3", "Unbegrenzt", "Bei Free pro Konto. Ein bezahlter Plan gilt für das eine Projekt, das du wählst."],
         ["Mitglieder", "1", "5", "20", ""],
         ["Aufbewahrung", "7 Tage", "30 Tage", "90 Tage", "Wie lange Traces gespeichert bleiben."]
       ] },
@@ -132,7 +132,8 @@ export const de: Copy = {
         ["Kostenanalyse", "Basis", "Voll", "Voll", ""],
         ["Evaluierungen + Datensätze", "—", "Enthalten", "Enthalten", ""],
         ["Prompt-Versionen", "—", "Enthalten", "Enthalten", ""],
-        ["Slack-Warnungen", "—", "Enthalten", "Enthalten", ""],
+        ["Warnungen (E-Mail + Slack)", "—", "Enthalten", "Enthalten", ""],
+        ["Ask AI", "Fertige Fragen", "Jede Frage", "Jede Frage", ""],
         ["Release-Gates", "—", "—", "Enthalten", ""],
         ["Zusammenarbeit + Reviews", "—", "—", "Enthalten", ""],
         ["Support", "Community", "Standard", "Priorität", ""]
@@ -143,8 +144,8 @@ export const de: Copy = {
     faqTitle: "Kurze Antworten.",
     faqs: [
       ["Was ist eine Span?", "Ein erfasster Schritt in einem Lauf: ein Modellaufruf, ein Tool-Aufruf, eine Abfrage. Ein Lauf mit sechs Schritten sind sechs Spans. Die Pläne richten sich nach Spans pro Monat."],
-      ["Kann ich es ohne Bezahlung testen?", "Ja. Free bietet 25.000 Spans pro Monat, bis zu 3 Projekte und 7 Tage Verlauf. Ohne Karte. Du bestätigst deine E-Mail, bevor du den ersten Schlüssel erstellst."],
-      ["Was passiert, wenn ich mein Limit erreiche?", "Free speichert ab 25.000 Spans im Monat oder 5.000 an einem Tag keine neuen Daten mehr. Pro und Team haben zuerst 10 % Puffer. Es wird nie extra berechnet, und bereits gespeicherte Daten bleiben. Die Zähler starten jeden Monat (UTC) neu, oder du upgradest jederzeit."],
+      ["Kann ich es ohne Bezahlung testen?", "Ja. Free bietet 10.000 Spans pro Monat, bis zu 2 Projekte und 7 Tage Verlauf. Ohne Karte. Du bestätigst deine E-Mail, bevor du den ersten Schlüssel erstellst."],
+      ["Was passiert, wenn ich mein Limit erreiche?", "Free speichert ab 10.000 Spans im Monat oder 2.000 an einem Tag keine neuen Daten mehr. Pro und Team haben zuerst 10 % Puffer. Es wird nie extra berechnet, und bereits gespeicherte Daten bleiben. Die Zähler starten jeden Monat (UTC) neu, oder du upgradest jederzeit."],
       ["Zahle ich pro Platz oder pro Projekt?", "Ein bezahlter Plan gilt für ein Projekt: das, das du an der Kasse wählst. Deine anderen Projekte bleiben bei Free, bis du sie upgradest. Jeder Plan hat ein Mitgliederlimit, aber keinen Preis pro Platz."],
       ["Wie funktioniert die jährliche Abrechnung?", "Wähle jährlich, und Pro und Team sind pro Monat etwa 20 % günstiger. Du wirst einmal im Jahr statt monatlich abgerechnet. Der Schalter oben zeigt den genauen Preis."],
       ["Wie starte ich einen bezahlten Plan?", "Wähle Pro oder Team, dann gelangst du auf eine kurze Bezahlseite. Wähle das Projekt und gehe weiter zu Stripe. Kartendaten verarbeitet Stripe."],

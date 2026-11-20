@@ -13,7 +13,7 @@ export const no: Copy = {
   },
   home: {
     metaTitle: "Uncoil | Observerbarhet og evaluering for AI-agenter",
-    metaDescription: "Følg hver beslutning, verktøykall, kostnad og kvalitetsmåling i én feilsøkingstidslinje. Start gratis med 25 000 spans i måneden.",
+    metaDescription: "Følg hver beslutning, verktøykall, kostnad og kvalitetsmåling i én feilsøkingstidslinje. Start gratis med 10 000 spans i måneden.",
     badgeNew: "Nytt",
     badge: "TypeScript SDK v0.4.0 · OpenAI, Anthropic og LangGraph",
     heroA: "Se agenten din",
@@ -115,14 +115,14 @@ export const no: Copy = {
     compareLede: "Tydelige grenser, ingen liten skrift. Trenger du mer enn Team? Enterprise er skreddersydd.",
     compareGroups: [
       { title: "Grenser du kan stole på", rows: [
-        ["Spans per måned", "25 000", "500 000", "2 000 000", "En span er ett steg agenten din tar. Tellerne nullstilles hver måned (UTC)."],
-        ["Spans per dag", "5 000", "Ingen dagsgrense", "Ingen dagsgrense", "På Gratis kan én løkke som går løpsk ikke bruke opp hele måneden på én dag."],
+        ["Spans per måned", "10 000", "500 000", "2 000 000", "En span er ett steg agenten din tar. Tellerne nullstilles hver måned (UTC)."],
+        ["Spans per dag", "2 000", "Ingen dagsgrense", "Ingen dagsgrense", "På Gratis kan én løkke som går løpsk ikke bruke opp hele måneden på én dag."],
         ["Ved månedsgrensen", "Nye data stopper til neste måned", "10 % buffer, så stopp", "10 % buffer, så stopp", "Du får aldri ekstra regning. Data som allerede er lagret blir liggende."],
         ["Forespørsler per minutt", "600", "6 000", "6 000", "Per prosjekt."],
         ["Span-størrelse", "256 KB, lengre tekst kortes ned", "1 MB per forespørsel", "1 MB per forespørsel", "Forkortede spans vises fortsatt, bare kortere."]
       ] },
       { title: "Folk og data", rows: [
-        ["Prosjekter", "3", "3", "Ubegrenset", "På Gratis gjelder det per konto. En betalt plan dekker det ene prosjektet du velger."],
+        ["Prosjekter", "2", "3", "Ubegrenset", "På Gratis gjelder det per konto. En betalt plan dekker det ene prosjektet du velger."],
         ["Medlemmer", "1", "5", "20", ""],
         ["Lagring", "7 dager", "30 dager", "90 dager", "Hvor lenge spor lagres."]
       ] },
@@ -132,7 +132,8 @@ export const no: Copy = {
         ["Kostnadsanalyse", "Enkel", "Full", "Full", ""],
         ["Evalueringer + datasett", "—", "Inkludert", "Inkludert", ""],
         ["Prompt-versjoner", "—", "Inkludert", "Inkludert", ""],
-        ["Slack-varsler", "—", "Inkludert", "Inkludert", ""],
+        ["Varsler (e-post + Slack)", "—", "Inkludert", "Inkludert", ""],
+        ["Ask AI", "Ferdige spørsmål", "Alle spørsmål", "Alle spørsmål", ""],
         ["Lanseringsporter", "—", "—", "Inkludert", ""],
         ["Samarbeid + gjennomgang", "—", "—", "Inkludert", ""],
         ["Støtte", "Fellesskap", "Standard", "Prioritert", ""]
@@ -143,8 +144,8 @@ export const no: Copy = {
     faqTitle: "Raske svar.",
     faqs: [
       ["Hva er en span?", "Ett registrert steg i en kjøring: et modellkall, et verktøykall eller et oppslag. En kjøring med seks steg er seks spans. Planene er satt etter spans per måned."],
-      ["Kan jeg prøve uten å betale?", "Ja. Gratis gir 25 000 spans i måneden, opptil 3 prosjekter og 7 dagers historikk. Uten kort. Du bekrefter e-posten før du lager den første nøkkelen."],
-      ["Hva skjer når jeg når grensen?", "Gratis slutter å lagre nye data ved 25 000 spans i måneden, eller 5 000 på én dag. Pro og Team får først 10 % buffer. Du får aldri ekstra regning, og det som er lagret blir liggende. Tellerne nullstilles hver måned (UTC), eller du oppgraderer når som helst."],
+      ["Kan jeg prøve uten å betale?", "Ja. Gratis gir 10 000 spans i måneden, opptil 2 prosjekter og 7 dagers historikk. Uten kort. Du bekrefter e-posten før du lager den første nøkkelen."],
+      ["Hva skjer når jeg når grensen?", "Gratis slutter å lagre nye data ved 10 000 spans i måneden, eller 2 000 på én dag. Pro og Team får først 10 % buffer. Du får aldri ekstra regning, og det som er lagret blir liggende. Tellerne nullstilles hver måned (UTC), eller du oppgraderer når som helst."],
       ["Betaler jeg per plass eller per prosjekt?", "En betalt plan dekker ett prosjekt: det du velger i kassen. De andre prosjektene dine blir på Gratis til du oppgraderer dem. Hver plan har en medlemsgrense, men ingen pris per plass."],
       ["Hvordan fungerer årlig fakturering?", "Velg årlig, så er Pro og Team omtrent 20 % billigere per måned. Du faktureres én gang i året i stedet for hver måned. Bryteren øverst viser den nøyaktige prisen."],
       ["Hvordan starter jeg en betalt plan?", "Velg Pro eller Team, så kommer du til en kort betalingsside. Velg prosjektet planen skal gjelde for og gå videre til Stripe. Kortopplysninger håndteres av Stripe."],

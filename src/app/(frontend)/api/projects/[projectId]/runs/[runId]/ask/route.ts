@@ -8,7 +8,7 @@ import { consumeRateLimit } from "@/lib/redis-cache";
 import { getSpansForRun } from "@/lib/tinybird";
 import { completeWithFallback, streamWithFallback } from "@/lib/llm-chain";
 import { providerForKey } from "@/lib/openai-chat";
-import { buildUserMessage, MAX_QUESTION_LENGTH, quickAnswer, resolveCitations, sanitizeHistory, SYSTEM_PROMPT, type AskAnswer, type AskSpan, type AskTurn } from "@/lib/ask-ai";
+import { buildUserMessage, SUGGESTED_QUESTIONS, MAX_QUESTION_LENGTH, quickAnswer, resolveCitations, sanitizeHistory, SYSTEM_PROMPT, type AskAnswer, type AskSpan, type AskTurn } from "@/lib/ask-ai";
 
 export const maxDuration = 30;
 
@@ -97,6 +97,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
   }
 
   const convex = await getAuthedConvexClient();
+  // Free projects keep the four ready-made questions; typing your own question is part of Pro.
+  const project = await convex.query(api.projects.getProjectById, { projectId: projectId as Id<"projects"> }).catch(() => null);
+  const free = (project?.planTier ?? "free") === "free";
+  const suggested = (SUGGESTED_QUESTIONS as readonly string[]).includes(question);
+  if (project && free && !suggested) {
+    return NextResponse.json({ error: "Asking your own questions is part of Pro. The four ready-made questions stay free.", upgrade: true }, { status: 402 });
+  }
   const run = await convex.query(api.agentRuns.getByRunIdForViewer, { projectId: projectId as Id<"projects">, runId }).catch(() => null);
   if (!run) return NextResponse.json({ error: "Run not found" }, { status: 404 });
 
@@ -124,6 +131,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
   }
 
   const history = sanitizeHistory(body?.history);
+  if (free) {
+    const basic = quickAnswer(question, spans);
+    const reply = { ...(basic ?? { answer: "Nothing to report for this trace yet.", stepIds: [] as string[] }), source: "basic" as const };
+    if (body?.stream === true) return new Response(`${JSON.stringify({ done: reply })}\n`, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store" } });
+    return NextResponse.json(reply);
+  }
 
   // The panel asks for a stream: pieces of the answer arrive as they are written, then one final message with the step links.
   if (body?.stream === true) {

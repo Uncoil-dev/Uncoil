@@ -33,7 +33,7 @@ export type Comparison = {
 };
 
 export const uncoilPlans = [
-  { name: "Free", price: "$0", includes: "25k spans a month, 7 days of history, 1 member, 3 projects" },
+  { name: "Free", price: "$0", includes: "10k spans a month, 7 days of history, 1 member, 2 projects" },
   { name: "Pro", price: "$19 a month", includes: "500k spans a month, 30 days of history, 5 members, evaluations, Slack alerts" },
   { name: "Team", price: "$39 a month", includes: "2m spans a month, 90 days of history, 20 members, unlimited projects, release gates" },
 ] as const;

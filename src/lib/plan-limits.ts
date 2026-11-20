@@ -50,7 +50,7 @@ export { FREE_MAX_PROJECTS } from "./free-plan-limits.ts";
 
 /** Requests (or OTLP spans) per minute per project. Free is held lower than paid so a leaked or looping key cannot flood storage. */
 export function ingestLimitPerMinute(tier: string | undefined, paidLimit: number): number {
-  return (tier ?? "free") === "free" ? Math.min(paidLimit, 600) : paidLimit;
+  return (tier ?? "free") === "free" ? Math.min(paidLimit, 300) : paidLimit;
 }
 
 /** Most spans one OTLP request may carry; bigger batches are refused with 413 so they cannot sidestep the per-span checks. */
@@ -94,8 +94,8 @@ export function trimOversizedSpan<T extends Record<string, unknown>>(span: T): {
   return { span: next as T, trimmed };
 }
 
-/** Daily cap for Free: 5,000 spans. Room for a heavy day of testing, but one runaway loop cannot burn the 25k month. */
-export const FREE_DAILY_SPAN_LIMIT = 5_000;
+/** Daily cap for Free: 2,000 spans. Room for a heavy day of testing, but one runaway loop cannot burn the 10k month. */
+export const FREE_DAILY_SPAN_LIMIT = 2_000;
 
 export function dailySpanLimit(tier: string | undefined): number | null {
   return (tier ?? "free") === "free" ? FREE_DAILY_SPAN_LIMIT : null;

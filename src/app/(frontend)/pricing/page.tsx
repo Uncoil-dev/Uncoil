@@ -4,7 +4,7 @@ import { breadcrumbJsonLd, faqJsonLd, jsonLdString, productJsonLd } from "@/lib/
 import { getCopy } from "@/lib/i18n";
 
 export const metadata: Metadata = {
-  title: "Pricing: 25,000 free spans a month",
+  title: "Pricing: 10,000 free spans a month",
   description: "Start free, then pay by spans per month. Uncoil pricing for AI agent tracing, cost tracking and evaluation: Free, Pro, Team and Enterprise plans.",
   alternates: { canonical: "/pricing" },
 };

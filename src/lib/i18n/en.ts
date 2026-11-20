@@ -13,7 +13,7 @@ export const en: Copy = {
   },
   home: {
     metaTitle: "Uncoil | AI agent observability and evaluation",
-    metaDescription: "Trace every decision, tool call, cost, quality signal, and deployment change in one debugging timeline. Start free with 25,000 spans a month.",
+    metaDescription: "Trace every decision, tool call, cost, quality signal, and deployment change in one debugging timeline. Start free with 10,000 spans a month.",
     badgeNew: "New",
     badge: "SDK v0.6.0 · TypeScript and Python",
     heroA: "Watch your agent",
@@ -74,8 +74,8 @@ export const en: Copy = {
     annualOff: "Switch to annual and save 20%",
     noCard: "No card needed for Free. Prices in USD.",
     plans: {
-      free: { line: "Try it on a real agent.", features: ["Trace viewer", "Cost visibility", "Community support"] },
-      pro: { line: "For a builder shipping agents.", features: ["Evaluations + datasets", "Prompt versions", "Slack alerts"] },
+      free: { line: "Try it on a real agent.", features: ["Trace viewer", "Cost visibility", "Ready-made Ask AI questions", "Community support"] },
+      pro: { line: "For a builder shipping agents.", features: ["Alerts (email + Slack)", "Ask AI, any question", "Evaluations + datasets", "Prompt versions"] },
       team: { line: "For teams running agents in prod.", features: ["Release gates", "Collaboration + reviews", "Priority support"] },
     },
     unlimited: "Unlimited",
@@ -115,14 +115,14 @@ export const en: Copy = {
     compareLede: "Plain limits, no fine print. Need more than Team? Enterprise is custom.",
     compareGroups: [
       { title: "Limits you can count on", rows: [
-        ["Spans per month", "25,000", "500,000", "2,000,000", "One span is one step your agent takes. Counts reset at the start of each UTC month."],
-        ["Spans per day", "5,000", "No daily cap", "No daily cap", "On Free, one runaway loop cannot burn the whole month in a day."],
+        ["Spans per month", "10,000", "500,000", "2,000,000", "One span is one step your agent takes. Counts reset at the start of each UTC month."],
+        ["Spans per day", "2,000", "No daily cap", "No daily cap", "On Free, one runaway loop cannot burn the whole month in a day."],
         ["At the monthly limit", "New data stops until next month", "10% buffer, then stops", "10% buffer, then stops", "You are never billed extra. Data already saved stays."],
         ["Requests per minute", "600", "6,000", "6,000", "Per project."],
         ["Span size", "256 KB, longer text is trimmed", "1 MB per request", "1 MB per request", "Trimmed spans still show up, just shortened."]
       ] },
       { title: "People and data", rows: [
-        ["Projects", "3", "3", "Unlimited", "On Free this is per account. A paid plan covers the one project you pick."],
+        ["Projects", "2", "3", "Unlimited", "On Free this is per account. A paid plan covers the one project you pick."],
         ["Members", "1", "5", "20", ""],
         ["Retention", "7 days", "30 days", "90 days", "How long traces are kept."]
       ] },
@@ -132,7 +132,8 @@ export const en: Copy = {
         ["Cost analytics", "Basic", "Full", "Full", ""],
         ["Evaluations + datasets", "—", "Included", "Included", ""],
         ["Prompt versions", "—", "Included", "Included", ""],
-        ["Slack alerts", "—", "Included", "Included", ""],
+        ["Alerts (email + Slack)", "—", "Included", "Included", "Alerts stay off on Free."],
+        ["Ask AI", "Ready-made questions", "Any question", "Any question", ""],
         ["Release gates", "—", "—", "Included", ""],
         ["Collaboration + reviews", "—", "—", "Included", ""],
         ["Support", "Community", "Standard", "Priority", ""]
@@ -143,8 +144,8 @@ export const en: Copy = {
     faqTitle: "Quick answers.",
     faqs: [
       ["What is a span?", "One recorded step in a run: a model call, a tool call, a retrieval. A run with six steps is six spans. Plans are sized by spans per month."],
-      ["Can I try it without paying?", "Yes. Free gives you 25,000 spans a month, up to 3 projects and 7 days of history. No card. You confirm your email before you create your first key."],
-      ["What happens when I reach my limit?", "Free stops saving new data at 25,000 spans a month, or 5,000 in one day. Pro and Team get a 10% buffer first. You are never billed extra, and what is already saved stays. Counts reset at the start of each UTC month, or you can upgrade at any time."],
+      ["Can I try it without paying?", "Yes. Free gives you 10,000 spans a month, up to 2 projects and 7 days of history. No card. You confirm your email before you create your first key."],
+      ["What happens when I reach my limit?", "Free stops saving new data at 10,000 spans a month, or 2,000 in one day. Pro and Team get a 10% buffer first. You are never billed extra, and what is already saved stays. Counts reset at the start of each UTC month, or you can upgrade at any time."],
       ["Do I pay per seat or per project?", "A paid plan covers one project: the one you pick at checkout. Your other projects stay on Free until you upgrade them. Each plan has a member limit, but no per-seat price."],
       ["How does annual billing work?", "Pick annual and Pro and Team are about 20% cheaper per month. You are billed once a year instead of monthly. The toggle at the top shows the exact price."],
       ["How do I start a paid plan?", "Choose Pro or Team and you go to a short checkout page. Pick the project it should cover and continue to Stripe. Card details are handled by Stripe."],

@@ -1,0 +1,15 @@
+<svg viewBox="0 0 1600 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
+  <title id="t">Timeline of synchronized retries compared with jittered retries and a budgeted cutoff</title>
+  <desc id="d">Three rows over three rounds. The first row shows tall identical bars, the second shows shorter spread bars, the third shows bars that stop after round two.</desc>
+  <rect width="1600" height="640" fill="#0a0a0a"/>
+  <g font-family="monospace" font-size="18" fill="#f6f1e6"><text x="60" y="90">NO JITTER</text><text x="60" y="290">JITTER</text><text x="60" y="490">JITTER + BUDGET</text></g>
+  <g fill="#ff6b5b"><rect x="500" y="40" width="60" height="120"/><rect x="800" y="40" width="60" height="120"/><rect x="1100" y="40" width="60" height="120"/></g>
+  <g fill="#f4d44d">
+    <rect x="480" y="260" width="20" height="40"/><rect x="520" y="260" width="20" height="40"/><rect x="560" y="260" width="20" height="40"/>
+    <rect x="780" y="270" width="20" height="30"/><rect x="830" y="270" width="20" height="30"/>
+    <rect x="1090" y="280" width="20" height="20"/><rect x="1150" y="280" width="20" height="20"/>
+    <rect x="480" y="460" width="20" height="40"/><rect x="520" y="460" width="20" height="40"/><rect x="780" y="470" width="20" height="30"/>
+  </g>
+  <text x="1050" y="490" fill="#f6f1e6" font-family="monospace" font-size="18">budget empty: fail fast</text>
+  <g font-family="monospace" font-size="16" fill="#f6f1e6"><text x="480" y="590">round 1</text><text x="780" y="590">round 2</text><text x="1090" y="590">round 3</text></g>
+</svg>

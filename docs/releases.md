@@ -8,6 +8,7 @@ This is the canonical release record. The public `/changelog` page and GitHub Re
 - Release-log and SharePoint discovery foundations.
 - New free tool: prompt caching savings calculator.
 - New comparison pages: Uncoil vs Opik, AgentOps and Pydantic Logfire.
+- New sign-up question: "What do you want to fix with Uncoil?" on the first-project step. It is optional, and the team reads the answers in the admin page under Goals.
 
 ### Fixes
 - None.

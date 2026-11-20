@@ -5,10 +5,9 @@ import { PLAN_RETENTION_DAYS } from "@/lib/retention";
  * - Convex, Redis: config/regional-cloud.json (aws eu-west-1, Ireland).
  * - Queue: Inngest Cloud runs in the US (config/regional-cloud.json, eventProcessing).
  * - Backups: nightly to Cloudflare R2 bucket in the EU, 14 days kept (see memory.md).
- * Set TRACE_STORE_LOCATION to the country of the trace database server once confirmed;
- * until then the page names no country for it, on purpose.
+ * TRACE_STORE_LOCATION is the city and country of the trace database server.
  */
-export const TRACE_STORE_LOCATION: string | null = null;
+export const TRACE_STORE_LOCATION: string | null = "Frankfurt, Germany";
 
 export const BACKUP_DAYS = 14;
 

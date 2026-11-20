@@ -10,7 +10,7 @@ import { DataLedger, DeletionPromise } from "@/components/marketing/company/data
 export const metadata = pageMetadata({ title: "Security and EU data residency for AI agent traces", description: "How Uncoil protects AI agent traces and prompts: encryption in transit and at rest, project isolation, access controls, EU data residency and redaction.", path: "/security" });
 
 const faqs = [
-  { q: "Where is Uncoil data stored?", a: "Account data and cache are stored in Ireland, backups in an EU bucket, and traces in a database we run ourselves. Queued span events pass through Inngest in the United States, so Uncoil does not claim end-to-end EU residency. The table on this page lists every place." },
+  { q: "Where is Uncoil data stored?", a: "Account data and cache are stored in Ireland, backups in an EU bucket, and traces in a database we run ourselves in Frankfurt, Germany. Queued span events pass through Inngest in the United States, so Uncoil does not claim end-to-end EU residency. The table on this page lists every place." },
   { q: "Are prompts and personal data redacted?", a: "Email, phone, card, SSN and API-key patterns are redacted before queued events leave the EU region." },
   { q: "How are API keys protected?", a: "Project keys are shown once at creation and only a hash is stored on our side." },
   { q: "Can one project see another project's traces?", a: "No. Telemetry is scoped to the project derived from the authenticated key, and there is no cross-project query path." },
@@ -20,7 +20,7 @@ const faqs = [
 const controls = [
   { title: "Encryption", icon: "lock", summary: "TLS 1.3 in transit and AES-256 at rest.", items: ["API keys are hashed before storage.", "Plaintext project keys are shown once."] },
   { title: "Data isolation", icon: "layers", summary: "Telemetry is scoped to the project derived from the authenticated key.", items: ["No cross-project query path.", "Cost counters remain project-specific."] },
-  { title: "Data residency", icon: "globe", summary: "Account data and cache are stored in Ireland; Inngest Cloud currently processes queued span events in the United States.", items: ["Convex and Redis for the EU region are hosted in Ireland. Backups sit in an EU bucket.", "Inngest receives queued span events in US infrastructure, so Uncoil does not claim end-to-end EU residency.", "Email, phone, card, SSN, and API-key redaction is applied before queued events leave the EU."] },
+  { title: "Data residency", icon: "globe", summary: "Account data and cache are stored in Ireland; Inngest Cloud currently processes queued span events in the United States.", items: ["Convex and Redis for the EU region are hosted in Ireland. Backups sit in an EU bucket.", "Traces are stored in our own ClickHouse database on a server in Frankfurt, Germany.", "Inngest receives queued span events in US infrastructure, so Uncoil does not claim end-to-end EU residency.", "Email, phone, card, SSN, and API-key redaction is applied before queued events leave the EU."] },
   { title: "Access control", icon: "user", summary: "Better Auth sessions and Convex authorization protect workspace data.", items: ["Encrypted OAuth tokens and CSRF protection.", "Organization roles are enforced at the data layer."] },
   { title: "Runtime enforcement", icon: "server", summary: "Observe-first policies keep monitoring from silently changing production behavior.", items: ["Cost ceilings are evaluated server-side.", "Fail-open behavior protects production traffic."] },
   { title: "Infrastructure", icon: "shield", summary: "Convex, ClickHouse, Inngest, and Redis have explicit jobs in the data path.", items: ["Durable event processing and retry semantics.", "Ephemeral cache and rate-limit state stay separate."] },
@@ -31,7 +31,7 @@ const path = [
   ["Your agent", "The SDK or OTLP exporter sends spans with a project key. Plaintext keys are shown once and stored hashed."],
   ["Redaction", "Email, phone, card, SSN and API-key patterns are removed before queued events leave the EU region."],
   ["Queue", "Inngest Cloud processes queued span events in the United States, which is why we do not claim end-to-end EU residency."],
-  ["Storage", "Accounts in Convex and cache in Redis sit in Ireland. Traces go to our own ClickHouse database, scoped to the project that owns the key."],
+  ["Storage", "Accounts in Convex and cache in Redis sit in Ireland. Traces go to our own ClickHouse database on a server in Frankfurt, Germany, scoped to the project that owns the key."],
 ] as const;
 
 export default function SecurityPage() {

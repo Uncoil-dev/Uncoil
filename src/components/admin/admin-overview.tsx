@@ -16,6 +16,7 @@ const tabs = [
   { id: "Money", label: "Money", note: "Who pays, who is leaving" },
   { id: "Usage", label: "Usage", note: "Who sends the most data" },
   { id: "Leads", label: "Leads", note: "People who wrote to us" },
+  { id: "Goals", label: "Goals", note: "What new people want to fix" },
   { id: "Search", label: "Search", note: "Google and Bing" },
   { id: "Alerts", label: "Alerts", note: "What went wrong" },
   { id: "Activity", label: "Activity", note: "Latest runs" },
@@ -70,6 +71,7 @@ export function AdminView({ data, initialTab = "Today", searchPreset }: { data: 
       Usage: [["project", "runs 7d", "steps", "failed", "cost usd"], d.usage.map((u) => [u.project, u.runs, u.spans, u.failed, u.costUsd])],
       Alerts: [["project", "type", "message", "state", "triggered"], d.alerts.map((a) => [a.project, a.type, a.message, a.state, a.triggeredAt])],
       Leads: [["name", "email", "company", "intent", "status", "source", "created"], d.leads.map((l) => [l.name, l.email, l.company, l.intent, l.status, l.source, new Date(l.createdAt).toISOString()])],
+      Goals: [["email", "name", "answer", "answered"], d.answers.map((a) => [a.email ?? "", a.name ?? "", a.answer, new Date(a.createdAt).toISOString()])],
       Activity: [["run", "project", "model", "status", "steps", "cost usd", "started"], d.recentRuns.map((r) => [r.runId, r.project, r.model, r.status, r.spans, r.costUsd, r.startedAt])],
       Audit: [["actor", "action", "summary", "project", "when"], d.audit.map((a) => [a.actor, a.action, a.summary, a.project, new Date(a.createdAt).toISOString()])],
     };
@@ -145,6 +147,11 @@ export function AdminView({ data, initialTab = "Today", searchPreset }: { data: 
               {tab === "Leads" && (
                 <Table head={["Name", "Email", "Company", "Wants", "Status", "From page", "Received"]} empty="No leads match."
                   rows={data.leads.filter((l) => !q || `${l.name} ${l.email} ${l.company ?? ""} ${l.intent}`.toLowerCase().includes(q)).map((l) => [l.name, l.email, l.company ?? "—", dim(l.intent), pill(l.status, l.status === "new" ? "warn" : "mute"), dim(l.source), <span key="t" title={abs(l.createdAt)}>{dim(ago(l.createdAt))}</span>])} />
+              )}
+
+              {tab === "Goals" && (
+                <Table head={["Person", "What they want to fix", "Answered"]} empty="No answers yet. New people see the question when they create their first project."
+                  rows={data.answers.filter((a) => !q || `${a.name ?? ""} ${a.email ?? ""} ${a.answer}`.toLowerCase().includes(q)).map((a) => [<span key="p">{a.email ?? "—"}{a.name ? <span className="ml-2 text-[#090909]/55">{a.name}</span> : null}</span>, <span key="a" className="block max-w-xl whitespace-pre-wrap">{a.answer}</span>, <span key="t" title={abs(a.createdAt)}>{dim(ago(a.createdAt))}</span>])} />
               )}
 
               {tab === "Audit" && (

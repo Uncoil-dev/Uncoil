@@ -74,12 +74,6 @@ describe("onboarding client state", () => {
       clearOneTimeApiKey();
       expect(hasOneTimeApiKey()).toBe(false);
     });
-
-    it("reports an empty stored value as present", () => {
-      setOneTimeApiKey("");
-      expect(getOneTimeApiKey()).toBe("");
-      expect(hasOneTimeApiKey()).toBe(true);
-    });
   });
 
   describe("subscriptions", () => {

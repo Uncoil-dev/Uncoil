@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { trimOversizedSpan, dailySpanLimit, FREE_MAX_PROJECTS, ingestLimitPerMinute, secondsUntilNextDay, enforcedSpanLimit, usageLevel, monthKey, planLimitMessage, secondsUntilNextMonth } from "./plan-limits.ts";
+import { trimOversizedSpan, dailySpanLimit, FREE_MAX_PROJECTS, ingestLimitPerMinute, secondsUntilNextDay, enforcedSpanLimit, usageLevel, monthKey, planLimitMessage, secondsUntilNextMonth, shouldWarnAboutUsage } from "./plan-limits.ts";
 
 test("free stops at its limit, Pro and Team at their limit plus 10%", () => {
   assert.equal(enforcedSpanLimit("free"), 10_000);
@@ -58,4 +58,18 @@ test("oversized Free spans are trimmed, not refused", () => {
   assert.equal((span.metadata as Record<string, unknown>).a, 1);
   const small = { spanId: "s2", input: "hi" };
   assert.equal(trimOversizedSpan(small).span, small);
+});
+
+test("usage warning is sent once a month, for Free only, from 80%", () => {
+  assert.equal(shouldWarnAboutUsage(7_999, "free", undefined, "2026-11"), false);
+  assert.equal(shouldWarnAboutUsage(8_000, "free", undefined, "2026-11"), true);
+  assert.equal(shouldWarnAboutUsage(12_000, undefined, undefined, "2026-11"), true);
+  assert.equal(shouldWarnAboutUsage(9_000, "free", "2026-11", "2026-11"), false);
+  assert.equal(shouldWarnAboutUsage(9_000, "free", "2026-10", "2026-11"), true);
+  assert.equal(shouldWarnAboutUsage(450_000, "pro", undefined, "2026-11"), false);
+});
+
+test("limit messages and responses point to the pricing page", () => {
+  assert.match(planLimitMessage(10_000), /uncoil\.dev\/pricing/);
+  assert.match(planLimitMessage(550_000, "pro"), /uncoil\.dev\/pricing/);
 });

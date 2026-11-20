@@ -2,7 +2,7 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { getConvexClient } from "@/lib/convex";
 import { sendTransactionalEmail } from "@/lib/transactional-email";
-import { ABUSE_STRIKE_LIMIT, ABUSE_STRIKE_WINDOW_SECONDS, dailySpanLimit, enforcedSpanLimit, monthKey, planLimitMessage, secondsUntilNextDay, secondsUntilNextMonth } from "@/lib/plan-limits";
+import { ABUSE_STRIKE_LIMIT, ABUSE_STRIKE_WINDOW_SECONDS, UPGRADE_URL, dailySpanLimit, enforcedSpanLimit, monthKey, planLimitMessage, secondsUntilNextDay, secondsUntilNextMonth } from "@/lib/plan-limits";
 import { consumeRateLimit } from "@/lib/redis-cache";
 
 /**
@@ -22,7 +22,7 @@ export async function planLimitResponse(project: { _id: unknown; planTier?: stri
         void alertUncoilOnce(project, `daily-cap:${month.toISOString().slice(0, 10)}`, `Free project hit its daily cap of ${dayLimit.toLocaleString("en-US")} spans`);
         const retryAfterSeconds = secondsUntilNextDay(month);
         return Response.json(
-          { error: `This Free project reached its daily limit of ${dayLimit.toLocaleString("en-US")} spans. New data is saved again after midnight UTC.`, code: "daily_limit_reached", limit: dayLimit, retryAfterSeconds },
+          { error: `This Free project reached its daily limit of ${dayLimit.toLocaleString("en-US")} spans. New data is saved again after midnight UTC, or upgrade now: ${UPGRADE_URL}`, code: "daily_limit_reached", limit: dayLimit, retryAfterSeconds, upgradeUrl: UPGRADE_URL },
           { status: 429, headers: { "Retry-After": String(retryAfterSeconds), "X-Uncoil-Daily-Limit": String(dayLimit) } },
         );
       }
@@ -31,7 +31,7 @@ export async function planLimitResponse(project: { _id: unknown; planTier?: stri
     if (monthly.allowed) return null;
     const retryAfterSeconds = secondsUntilNextMonth(month);
     return Response.json(
-      { error: planLimitMessage(spanLimit, project.planTier), code: "plan_limit_reached", limit: spanLimit, retryAfterSeconds },
+      { error: planLimitMessage(spanLimit, project.planTier), code: "plan_limit_reached", limit: spanLimit, retryAfterSeconds, upgradeUrl: UPGRADE_URL },
       { status: 429, headers: { "Retry-After": String(retryAfterSeconds), "X-Uncoil-Plan-Limit": String(spanLimit) } },
     );
   } catch (error) {

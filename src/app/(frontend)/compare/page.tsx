@@ -7,7 +7,7 @@ import { ClosingBand, CreamBand, Eyebrow, HeaderAction, SectionTitle } from "@/c
 
 export const metadata = pageMetadata({
   title: "Uncoil alternatives and comparisons",
-  description: "Compare Uncoil with Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust and Datadog for AI agent observability, cost tracking and evaluation.",
+  description: "Compare Uncoil with Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust, Opik, AgentOps, Pydantic Logfire and Datadog for AI agent observability, cost tracking and evaluation.",
   path: "/compare",
 });
 

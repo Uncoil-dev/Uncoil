@@ -28,6 +28,7 @@ const CLOUD_APP_PREFIXES = [
   "/cloud/mode",
   "/admin",
   "/demo",
+  "/health-report/r",
 ];
 
 function isCloudAppPath(pathname: string) {

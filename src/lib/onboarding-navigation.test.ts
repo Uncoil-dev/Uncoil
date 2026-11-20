@@ -70,4 +70,26 @@ describe("getOnboardingHref", () => {
     setOneTimeApiKey("uncoil_sk_live_test");
     expect(getOnboardingHref()).toBe("/onboarding/project");
   });
+
+  it("falls back to the last project when no other project is known", () => {
+    local.setItem("uncoil.lastProjectId", "proj_last");
+    expect(getOnboardingHref()).toBe("/onboarding/install");
+  });
+
+  it("falls back to the last project when the session value is empty", () => {
+    session.setItem("uncoil.onboarding.projectId", "");
+    local.setItem("uncoil.lastProjectId", "proj_last");
+    expect(getOnboardingHref("")).toBe("/onboarding/install");
+  });
+
+  it("prefers the session project over the last project", () => {
+    session.setItem("uncoil.onboarding.projectId", "no-project");
+    local.setItem("uncoil.lastProjectId", "proj_last");
+    expect(getOnboardingHref()).toBe("/onboarding/project");
+  });
+
+  it("returns the project step when the last project is the sentinel", () => {
+    local.setItem("uncoil.lastProjectId", "no-project");
+    expect(getOnboardingHref()).toBe("/onboarding/project");
+  });
 });

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { EmptyState } from "./empty/empty-state";
 import { SampleTrace } from "./empty/samples";
+import { SampleRuns } from "./sample-runs";
 
 const SNIPPET = `import uncoil
 uncoil.init()  # reads UNCOIL_API_KEY`;
@@ -16,6 +17,7 @@ export function FirstTraceEmpty({
   showSnippet = true,
   sample,
   eyebrow = "Waiting for your first trace",
+  sampleRuns,
 }: {
   projectId: string;
   title: string;
@@ -24,7 +26,10 @@ export function FirstTraceEmpty({
   /** A picture of this page with data. Defaults to a trace waterfall. */
   sample?: ReactNode;
   eyebrow?: string;
+  /** Show a few labelled sample runs under the setup steps. On by default for the Tracing page. */
+  sampleRuns?: boolean;
 }) {
+  const showSampleRuns = sampleRuns ?? !sample;
   const base = `/dashboard/${encodeURIComponent(projectId)}`;
   return (
     <div data-testid="first-trace-empty" className="px-3">
@@ -38,6 +43,7 @@ export function FirstTraceEmpty({
       >
         {showSnippet ? <pre className="w-full max-w-sm overflow-x-auto border border-[#262C35] bg-[#090909] p-3 text-left font-mono text-xs leading-5 text-[#F4D44D]"><code>{SNIPPET}</code></pre> : null}
       </EmptyState>
+      {showSampleRuns ? <SampleRuns /> : null}
     </div>
   );
 }

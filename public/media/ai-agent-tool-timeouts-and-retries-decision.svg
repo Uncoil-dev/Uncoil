@@ -1,0 +1,21 @@
+<svg viewBox="0 0 1600 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dT dD">
+  <title id="dT">Decision path for retrying a failed tool call</title>
+  <desc id="dD">Four questions in sequence: is the error transient, is the operation safe to repeat, is there budget left, is the circuit closed. Yes to all leads to a jittered retry; any no leads to a typed failure, fallback or handoff.</desc>
+  <rect width="1600" height="800" fill="#eceae3"/>
+  <g font-family="monospace" font-size="22" fill="#090909">
+    <rect x="60" y="100" width="300" height="120" fill="#090909"/><text x="80" y="150" fill="#eceae3">1. Transient error?</text><text x="80" y="185" fill="#eceae3">timeout, 429, 503</text>
+    <rect x="460" y="100" width="300" height="120" fill="#090909"/><text x="480" y="150" fill="#eceae3">2. Safe to repeat?</text><text x="480" y="185" fill="#eceae3">idempotent or keyed</text>
+    <rect x="860" y="100" width="300" height="120" fill="#090909"/><text x="880" y="150" fill="#eceae3">3. Budget left?</text><text x="880" y="185" fill="#eceae3">time and attempts</text>
+    <rect x="1260" y="100" width="280" height="120" fill="#090909"/><text x="1280" y="150" fill="#eceae3">4. Circuit closed?</text><text x="1280" y="185" fill="#eceae3">dependency healthy</text>
+    <path d="M360 160 H460 M760 160 H860 M1160 160 H1260" stroke="#090909" stroke-width="4"/>
+    <text x="375" y="145">yes</text><text x="775" y="145">yes</text><text x="1175" y="145">yes</text>
+    <rect x="1100" y="360" width="440" height="120" fill="#f4d44d" stroke="#090909" stroke-width="3"/>
+    <text x="1120" y="410">RETRY with jittered backoff</text><text x="1120" y="445">record the attempt number</text>
+    <path d="M1400 220 V360" stroke="#090909" stroke-width="4"/>
+    <rect x="60" y="560" width="1480" height="140" fill="none" stroke="#090909" stroke-width="3"/>
+    <text x="90" y="615">Any "no": stop. Return a typed failure, use a fallback, or hand off to a person.</text>
+    <text x="90" y="655">Never let the model silently re-issue the same side effect.</text>
+    <path d="M210 220 V560 M610 220 V560 M1010 220 V560" stroke="#090909" stroke-width="3" stroke-dasharray="8 8"/>
+    <text x="225" y="400">no</text><text x="625" y="400">no</text><text x="1025" y="400">no</text>
+  </g>
+</svg>

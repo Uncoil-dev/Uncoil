@@ -22,7 +22,7 @@ Use the documentation for implementation details and the blog for explanatory gu
 
 ## Compare and learn
 
-- [Compare Uncoil with other tools](https://www.uncoil.dev/compare): Uncoil vs Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust and Datadog.
+- [Compare Uncoil with other tools](https://www.uncoil.dev/compare): Uncoil vs Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust, Opik, AgentOps, Pydantic Logfire and Datadog.
 - [Free tools for AI agent builders](https://www.uncoil.dev/tools): Nine browser-based tools, no sign-up, nothing uploaded.
 - [Agent log checker](https://www.uncoil.dev/tools/agent-log-checker): Paste an agent log or trace to find the first failure, slow steps and wasted tokens.
 - [Token counter](https://www.uncoil.dev/tools/token-counter): Token counts and prices for GPT, Claude, Gemini, Llama and more (exact for OpenAI, labelled estimates for others).
@@ -32,6 +32,7 @@ Use the documentation for implementation details and the blog for explanatory gu
 - [Tool definition checker](https://www.uncoil.dev/tools/tool-definition-checker): Find mistakes in OpenAI, Anthropic, MCP and Gemini tool definitions.
 - [AI API status](https://www.uncoil.dev/tools/ai-api-status): Live status of OpenAI, Anthropic, Gemini and other AI providers.
 - [JSON fixer](https://www.uncoil.dev/tools/json-fixer): Repair broken JSON from language models.
+- [Prompt caching calculator](https://www.uncoil.dev/tools/prompt-caching-calculator): Monthly savings from prompt caching on GPT, Claude, Gemini and more.
 - [Rate limit calculator](https://www.uncoil.dev/tools/rate-limit-calculator): How many users an app can serve within its provider's rate limits.
 - [Free AI agent cost estimator](https://www.uncoil.dev/tools/ai-cost-estimator): Estimate cost per run, per finished task and per month from traffic and token counts.
 - [Best LLM observability tools](https://www.uncoil.dev/best-llm-observability-tools): How to choose a tool, and who each option fits.

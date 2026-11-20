@@ -2,7 +2,7 @@ name: Scan Lighthouse
 
 on:
   schedule:
-    - cron: "41 5 * * *"
+    - cron: "10 4,16 * * *"
   workflow_dispatch:
 
 permissions:

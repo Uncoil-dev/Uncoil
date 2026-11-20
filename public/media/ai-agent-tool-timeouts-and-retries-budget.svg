@@ -1,0 +1,16 @@
+<svg viewBox="0 0 1600 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="bT bD">
+  <title id="bT">Layered timeouts from tool call to user request</title>
+  <desc id="bD">Four nested rectangles labelled user request, agent run, agent step and single attempt, each with a smaller time limit than the one outside it.</desc>
+  <rect width="1600" height="800" fill="#090909"/>
+  <rect x="60" y="60" width="1480" height="680" fill="none" stroke="#eceae3" stroke-width="3"/>
+  <text x="90" y="110" fill="#eceae3" font-family="monospace" font-size="24">USER REQUEST  -  90 s (client gives up)</text>
+  <rect x="140" y="150" width="1320" height="540" fill="none" stroke="#eceae3" stroke-width="3"/>
+  <text x="170" y="200" fill="#eceae3" font-family="monospace" font-size="24">AGENT RUN  -  75 s total budget</text>
+  <rect x="220" y="240" width="1160" height="400" fill="#eceae3"/>
+  <text x="250" y="290" fill="#090909" font-family="monospace" font-size="24">STEP  -  30 s deadline, max 3 attempts</text>
+  <rect x="300" y="330" width="1000" height="260" fill="#f4d44d"/>
+  <text x="330" y="380" fill="#090909" font-family="monospace" font-size="24">ATTEMPT  -  10 s timeout</text>
+  <text x="330" y="430" fill="#090909" font-family="monospace" font-size="20">connect 2 s  /  first byte 5 s  /  total 10 s</text>
+  <text x="330" y="500" fill="#090909" font-family="monospace" font-size="20">Inner limits must be strictly smaller than outer limits.</text>
+  <text x="330" y="540" fill="#090909" font-family="monospace" font-size="20">Otherwise the outer layer fires first and nothing retries.</text>
+</svg>

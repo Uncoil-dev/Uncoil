@@ -13,9 +13,11 @@ on:
 permissions:
   contents: read
 
+# One group per pull request, so a new push cancels that PR's older run.
+# Pushes to main and merge queue runs get a unique group and are never cancelled.
 concurrency:
-  group: checks-${{ github.ref }}
-  cancel-in-progress: true
+  group: checks-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -85,7 +87,9 @@ jobs:
           node-version: "24"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
+      # Ratchet: 22 warnings exist today. New warnings fail the job; lower
+      # this number as existing ones are fixed, and drop to 0 when clear.
+      - run: pnpm lint --max-warnings 22
 
   unused:
     name: Unused code (report only)

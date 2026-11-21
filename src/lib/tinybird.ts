@@ -4,14 +4,11 @@ export { IS_ERROR };
 import { TYPE_ALIASES } from "@/components/dashboard/tracing/format";
 import { flowGraph, collapseFlowReturns, flowPairId, median, type FlowEdge, type FlowStep } from "./trace-flow";
 /**
- * Tinybird REST API client.
+ * ClickHouse query client (the file name is historical).
  * All span analytics queries go through here — never Convex.
  */
 
-const TINYBIRD_HOST = process.env.TINYBIRD_HOST ?? "https://api.tinybird.co";
-const TINYBIRD_TOKEN = process.env.TINYBIRD_TOKEN;
-
-// Self-hosted ClickHouse (same SQL dialect) replaces Tinybird when CLICKHOUSE_URL is set.
+// Span analytics live in self-hosted ClickHouse. CLICKHOUSE_URL is required.
 const CLICKHOUSE_URL = process.env.CLICKHOUSE_URL?.replace(/\/$/, "");
 // Anything that is not the live site (local dev, PR previews) reads the sample database,
 // whatever CLICKHOUSE_DATABASE says, so a preview can never touch live traces.
@@ -19,7 +16,12 @@ const IS_PREVIEW_RUNTIME = process.env.NODE_ENV !== "production" || (process.env
 const CLICKHOUSE_DATABASE = IS_PREVIEW_RUNTIME ? "tracify_preview" : (process.env.CLICKHOUSE_DATABASE ?? "tracify");
 
 export function analyticsBackend() {
-  return CLICKHOUSE_URL ? "clickhouse" : "tinybird";
+  return "clickhouse" as const;
+}
+
+function requireClickhouseUrl() {
+  if (!CLICKHOUSE_URL) throw new Error("CLICKHOUSE_URL is not set");
+  return CLICKHOUSE_URL;
 }
 
 function clickhouseHeaders() {
@@ -29,53 +31,32 @@ function clickhouseHeaders() {
   return { Authorization: `Basic ${Buffer.from(`${user}:${password}`).toString("base64")}` };
 }
 
-/** Runs one read query and returns the raw response; the body is `{ data: [...] }` on both backends. */
+/** Runs one read query and returns the raw response; the body is `{ data: [...] }`  */
 function analyticsSql(sql: string, init: { signal?: AbortSignal; format?: "JSON" | "JSONEachRow" } = {}) {
-  if (CLICKHOUSE_URL) {
-    const params = new URLSearchParams({ database: CLICKHOUSE_DATABASE, output_format_json_quote_64bit_integers: "1" });
-    return fetch(`${CLICKHOUSE_URL}/?${params}`, {
-      method: "POST", headers: clickhouseHeaders(), body: `${sql.trimEnd()}\nFORMAT ${init.format ?? "JSON"}`, cache: "no-store", ...init,
-    });
-  }
-  return fetch(sqlUrl(sql), { headers: getHeaders(), cache: "no-store", ...init });
+  const params = new URLSearchParams({ database: CLICKHOUSE_DATABASE, output_format_json_quote_64bit_integers: "1" });
+  return fetch(`${requireClickhouseUrl()}/?${params}`, {
+    method: "POST", headers: clickhouseHeaders(), body: `${sql.trimEnd()}\nFORMAT ${init.format ?? "JSON"}`, cache: "no-store", signal: init.signal,
+  });
 }
 
-/** Tinybird answers an insert with JSON; ClickHouse answers with an empty body. */
+/** ClickHouse answers an insert with an empty body. */
 async function insertResult(res: Response) {
   const text = await res.text();
   return text ? (JSON.parse(text) as unknown) : { ok: true };
 }
 
-/** Appends newline-delimited JSON rows to a table (Tinybird Events API or ClickHouse INSERT). */
+/** Appends newline-delimited JSON rows to a table (ClickHouse INSERT). */
 function analyticsInsert(table: "spans" | "evaluation_scores", ndjson: string) {
-  if (CLICKHOUSE_URL) {
-    const params = new URLSearchParams({
-      database: CLICKHOUSE_DATABASE, query: `INSERT INTO ${table} FORMAT JSONEachRow`,
-      date_time_input_format: "best_effort", input_format_skip_unknown_fields: "1",
-    });
-    return fetch(`${CLICKHOUSE_URL}/?${params}`, { method: "POST", headers: clickhouseHeaders(), body: ndjson });
-  }
-  return fetch(`${TINYBIRD_HOST}/v0/events?name=${table}`, { method: "POST", headers: getHeaders(), body: ndjson });
-}
-
-function sqlUrl(sql: string) {
   const params = new URLSearchParams({
-    q: `${sql.trimEnd()}\nFORMAT JSON`,
+    database: CLICKHOUSE_DATABASE, query: `INSERT INTO ${table} FORMAT JSONEachRow`,
+    date_time_input_format: "best_effort", input_format_skip_unknown_fields: "1",
   });
-  return `${TINYBIRD_HOST}/v0/sql?${params.toString()}`;
-}
-
-function getHeaders() {
-  if (!TINYBIRD_TOKEN) throw new Error("TINYBIRD_TOKEN is not set");
-  return {
-    Authorization: `Bearer ${TINYBIRD_TOKEN}`,
-    "Content-Type": "application/json",
-  };
+  return fetch(`${requireClickhouseUrl()}/?${params}`, { method: "POST", headers: clickhouseHeaders(), body: ndjson });
 }
 
 export async function checkTinybirdHealth() {
   const response = await analyticsSql("SELECT 1 AS healthy", { signal: AbortSignal.timeout(4_000) });
-  if (!response.ok) throw new Error(`Tinybird returned ${response.status}`);
+  if (!response.ok) throw new Error(`ClickHouse returned ${response.status}`);
 }
 
 export function sqlString(value: string) {
@@ -84,7 +65,7 @@ export function sqlString(value: string) {
 }
 
 /**
- * Ingest a single span row into the Tinybird `spans` datasource.
+ * Ingest a single span row into the ClickHouse `spans` table.
  */
 export async function ingestSpan(span: {
   spanId: string;
@@ -153,13 +134,13 @@ export async function ingestEvaluationScore(score: {
 export async function getEvaluationScoreTimeseries(projectId: string, scoreName: string, days = 7) {
   const sql = `SELECT toStartOfHour(createdAt) AS bucket, count() AS sampleCount, avgIf(valueNumeric, dataType = 'numeric') AS averageScore, countIf(status IN ('failed', 'error')) / count() AS failureRate, countIf(dataType = 'boolean' AND valueBoolean = 1) / greatest(countIf(dataType = 'boolean'), 1) AS booleanPassRate FROM evaluation_scores WHERE projectId = '${sqlString(projectId)}' AND scoreName = '${sqlString(scoreName)}' AND createdAt >= now() - INTERVAL ${Math.min(Math.max(days, 1), 90)} DAY GROUP BY bucket ORDER BY bucket ASC`;
   const res = await analyticsSql(sql);
-  if (!res.ok) throw new Error(`Tinybird evaluation score query failed: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`Evaluation score query failed: ${res.status} ${await res.text()}`);
   const data = await res.json();
   return data.data as Array<{ bucket: string; sampleCount: number; averageScore: number; failureRate: number; booleanPassRate: number }>;
 }
 
 /**
- * Query spans for a specific run from Tinybird.
+ * Query spans for a specific run from ClickHouse.
  */
 export async function getSpansForRun(runId: string, projectId: string) {
   const sql =
@@ -167,7 +148,7 @@ export async function getSpansForRun(runId: string, projectId: string) {
   const res = await analyticsSql(sql);
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Tinybird query failed: ${res.status} ${body}`);
+    throw new Error(`Analytics query failed: ${res.status} ${body}`);
   }
   const data = await res.json();
   return data.data as SpanRow[];
@@ -191,7 +172,7 @@ export async function getDailyCosts(projectId: string, days = 30) {
   const res = await analyticsSql(sql);
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Tinybird query failed: ${res.status} ${body}`);
+    throw new Error(`Analytics query failed: ${res.status} ${body}`);
   }
   const data = await res.json();
   return data.data as { day: string; totalCostUsd: number; spanCount: number }[];
@@ -222,7 +203,7 @@ export async function getCostByModel(projectId: string, days = 30) {
   const res = await analyticsSql(sql);
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Tinybird query failed: ${res.status} ${body}`);
+    throw new Error(`Analytics query failed: ${res.status} ${body}`);
   }
   const data = await res.json();
   return data.data as { modelId: string; totalCostUsd: number; spanCount: number; avgLatencyMs: number; p50LatencyMs: number; p75LatencyMs: number; p90LatencyMs: number; p95LatencyMs: number; p99LatencyMs: number }[];
@@ -249,7 +230,7 @@ export async function getCostByTool(projectId: string, days = 30) {
   const res = await analyticsSql(sql);
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Tinybird query failed: ${res.status} ${body}`);
+    throw new Error(`Analytics query failed: ${res.status} ${body}`);
   }
   const data = await res.json();
   return data.data as { toolName: string; totalCostUsd: number; spanCount: number; avgLatencyMs: number }[];
@@ -275,7 +256,7 @@ export async function getCostByUser(projectId: string, days = 30) {
   const res = await analyticsSql(sql);
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Tinybird query failed: ${res.status} ${body}`);
+    throw new Error(`Analytics query failed: ${res.status} ${body}`);
   }
   const data = await res.json();
   return data.data as { endUserId: string; totalCostUsd: number; totalTokens: number; spanCount: number; avgLatencyMs: number }[];
@@ -342,7 +323,7 @@ export async function searchTraces(projectId: string, filters: TraceSearchFilter
   `;
   const res = await analyticsSql(sql);
   if (!res.ok) {
-    throw new Error(`Tinybird query failed: ${res.status} ${await res.text()}`);
+    throw new Error(`Analytics query failed: ${res.status} ${await res.text()}`);
   }
   const data = await res.json();
   return data.data as Array<{
@@ -494,7 +475,7 @@ const TRACE_AGGREGATE = `
 
 export async function tinybirdRows<T>(sql: string): Promise<T[]> {
   const res = await analyticsSql(sql);
-  if (!res.ok) throw new Error(`Tinybird query failed: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`Analytics query failed: ${res.status} ${await res.text()}`);
   return (await res.json()).data as T[];
 }
 
@@ -860,7 +841,7 @@ export async function getOrchestrationSavings(projectId: string, days = 30) {
   const res = await analyticsSql(sql);
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Tinybird query failed: ${res.status} ${body}`);
+    throw new Error(`Analytics query failed: ${res.status} ${body}`);
   }
   const data = await res.json();
   const row = data.data?.[0] ?? {
@@ -890,14 +871,12 @@ export async function getOrchestrationSavings(projectId: string, days = 30) {
  */
 export async function getFailOpenRate(projectId: string, days = 7) {
   const safeDays = Math.min(Math.max(Math.floor(days), 1), 365);
-  const res = CLICKHOUSE_URL
-    ? await analyticsSql(`SELECT projectId, countIf(JSONExtractBool(metadata, 'orchestrationFailOpen') = 1) AS failOpenCount, count() AS totalOrchestrations
+  const res = await analyticsSql(`SELECT projectId, countIf(JSONExtractBool(metadata, 'orchestrationFailOpen') = 1) AS failOpenCount, count() AS totalOrchestrations
         FROM spans WHERE projectId = '${sqlString(projectId)}' AND createdAt >= now() - INTERVAL ${safeDays} DAY
-          AND metadata != '' AND JSONHas(metadata, 'orchestrationFailOpen') GROUP BY projectId`)
-    : await fetch(`${TINYBIRD_HOST}/v0/pipes/fail_open_rate.json?${new URLSearchParams({ projectId, days: String(safeDays), token: TINYBIRD_TOKEN ?? "" })}`);
+          AND metadata != '' AND JSONHas(metadata, 'orchestrationFailOpen') GROUP BY projectId`);
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Tinybird query failed: ${res.status} ${body}`);
+    throw new Error(`Analytics query failed: ${res.status} ${body}`);
   }
   const data = await res.json();
   const row = data.data?.[0] ?? {
@@ -1027,16 +1006,9 @@ export async function exportAnalyticsPage(table: "spans" | "evaluation_scores", 
 export async function deleteProjectAnalytics(projectId: string) {
   const condition = `projectId = '${sqlString(projectId)}'`;
   for (const table of ["spans", "evaluation_scores"] as const) {
-    const res = CLICKHOUSE_URL
-      ? await fetch(`${CLICKHOUSE_URL}/?${new URLSearchParams({ database: CLICKHOUSE_DATABASE })}`, {
-          method: "POST", headers: clickhouseHeaders(), body: `ALTER TABLE ${table} DELETE WHERE ${condition}`, cache: "no-store",
-        })
-      : await fetch(`${TINYBIRD_HOST}/v0/datasources/${table}/delete`, {
-          method: "POST",
-          headers: { ...getHeaders(), "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ delete_condition: condition }),
-          cache: "no-store",
-        });
+    const res = await fetch(`${requireClickhouseUrl()}/?${new URLSearchParams({ database: CLICKHOUSE_DATABASE })}`, {
+      method: "POST", headers: clickhouseHeaders(), body: `ALTER TABLE ${table} DELETE WHERE ${condition}`, cache: "no-store",
+    });
     if (!res.ok) throw new Error(`Could not delete ${table}: ${res.status}`);
   }
 }
@@ -1048,16 +1020,9 @@ export async function purgeExpiredAnalytics(projectIds: string[], days: number) 
   const ids = projectIds.map((id) => `'${sqlString(id)}'`).join(",");
   for (const table of ["spans", "evaluation_scores"] as const) {
     const condition = `projectId IN (${ids}) AND createdAt < now() - INTERVAL ${days} DAY`;
-    const res = CLICKHOUSE_URL
-      ? await fetch(`${CLICKHOUSE_URL}/?${new URLSearchParams({ database: CLICKHOUSE_DATABASE })}`, {
-          method: "POST", headers: clickhouseHeaders(), body: `ALTER TABLE ${table} DELETE WHERE ${condition}`, cache: "no-store",
-        })
-      : await fetch(`${TINYBIRD_HOST}/v0/datasources/${table}/delete`, {
-          method: "POST",
-          headers: { ...getHeaders(), "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ delete_condition: condition }),
-          cache: "no-store",
-        });
+    const res = await fetch(`${requireClickhouseUrl()}/?${new URLSearchParams({ database: CLICKHOUSE_DATABASE })}`, {
+      method: "POST", headers: clickhouseHeaders(), body: `ALTER TABLE ${table} DELETE WHERE ${condition}`, cache: "no-store",
+    });
     if (!res.ok) throw new Error(`Could not purge ${table}: ${res.status}`);
   }
 }

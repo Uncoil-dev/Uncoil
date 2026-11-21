@@ -1,0 +1,37 @@
+name: Workflow lint
+
+on:
+  pull_request:
+    paths:
+      - ".github/**"
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: workflow-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install zizmor
+        run: pip install zizmor==1.5.2
+      - name: Scan workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # Report-only while existing findings are fixed in separate small PRs.
+        # Remove --no-exit-codes once the report is clean so findings fail the check.
+        run: zizmor --no-exit-codes --format plain --config .github/zizmor.yml .github/

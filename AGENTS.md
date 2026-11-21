@@ -22,6 +22,14 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 
 This repository is public. Keep plans, task lists, memory files, scratch work and internal notes out of it.
 
+## Working notes for agents
+
+- Code map: `docs/repository-map.md`. Dashboard standard: `docs/dashboard-page-standard.md`.
+- Install with `npm ci`. CI uses pnpm (`pnpm-lock.yaml`); the Docker image uses `package-lock.json`. Keep both lockfiles in sync when dependencies change.
+- Before opening a PR run `npm run lint`, `npx tsc --noEmit` and the tests for the area you touched. Blog and docs changes run `npm run test:content`.
+- Do not break Clerk/Better Auth middleware or the ingest pipeline (`/api/ingest` → Inngest → Tinybird + Convex).
+- Keep notes short, bulleted and factual. Record decisions in the PR description, not in new files at the repo root.
+
 ## Commands
 - `npm run dev` — Next.js dev server on :3000
 - `npm run build` — Builds Next.js (Convex generated bindings are committed, not generated at build time)

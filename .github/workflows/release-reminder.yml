@@ -1,0 +1,57 @@
+name: Release reminder
+
+on:
+  schedule:
+    - cron: "0 8 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: release-reminder
+  cancel-in-progress: false
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main with tags
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: List unreleased commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REMINDER_ISSUE: ${{ vars.RELEASE_REMINDER_ISSUE }}
+        run: |
+          tag=$(git for-each-ref --sort=-creatordate --count=1 --format='%(refname:short)' refs/tags)
+          {
+            echo "## Unreleased changes on main"
+            if [ -z "$tag" ]; then
+              echo
+              echo "No tags found."
+              exit_early=1
+            fi
+          } > summary.md
+          if [ -z "$tag" ]; then
+            cat summary.md >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          count=$(git rev-list --count "$tag"..origin/main)
+          {
+            echo
+            echo "Newest tag: \`$tag\`. Commits on main since then: **$count**."
+            if [ "$count" -gt 0 ]; then
+              echo
+              git log --no-merges --format='- %h %s (%an)' "$tag"..origin/main | head -100
+            fi
+          } >> summary.md
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+          if [ "$count" -gt 0 ] && [ -n "$REMINDER_ISSUE" ]; then
+            gh issue comment "$REMINDER_ISSUE" --repo "$GITHUB_REPOSITORY" --body-file summary.md
+          fi

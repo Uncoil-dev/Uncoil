@@ -1,0 +1,36 @@
+name: Scan Lighthouse
+
+on:
+  schedule:
+    - cron: "10 4,16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Lighthouse
+        run: |
+          npx --yes @lhci/cli@0.14.0 collect \
+            --url=https://www.uncoil.dev/ \
+            --url=https://www.uncoil.dev/pricing \
+            --url=https://www.uncoil.dev/docs \
+            --numberOfRuns=1 \
+            --settings.chromeFlags="--no-sandbox --headless=new"
+          npx --yes @lhci/cli@0.14.0 upload --target=temporary-public-storage || true
+      - name: Open issues for low scores
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/scan-lighthouse.mjs --open-issues

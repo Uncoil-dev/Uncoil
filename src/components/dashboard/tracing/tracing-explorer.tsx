@@ -292,7 +292,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
   }
 
   function exportCsv() {
-    downloadFile(`traces-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.csv`, traceCsv(columns, rows), "text/csv;charset=utf-8");
+    downloadFile(`traces-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.csv`, traceCsv(columns, rows.map((row) => { const value = feedback.value(row.runId); return { ...row, feedback: value === undefined ? undefined : value ? "up" : "down" }; })), "text/csv;charset=utf-8");
   }
 
   function sortBy(sort: string) {

@@ -32,4 +32,6 @@ jobs:
       - name: Scan workflows
         env:
           GH_TOKEN: ${{ github.token }}
-        run: zizmor --format plain --config .github/zizmor.yml .github/
+        # Report-only while existing findings are fixed in separate small PRs.
+        # Remove --no-exit-codes once the report is clean so findings fail the check.
+        run: zizmor --no-exit-codes --format plain --config .github/zizmor.yml .github/

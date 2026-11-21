@@ -14,6 +14,7 @@ const PAGE_LAST_MODIFIED: Record<string, Date> = {
   "/about": new Date("2026-11-08T03:29:55.000Z"),
   "/contact": new Date("2026-11-08T03:29:55.000Z"),
   "/security": new Date("2026-11-08T03:29:55.000Z"),
+  "/startups": new Date("2026-11-21T00:00:00.000Z"),
   "/status": new Date("2026-11-08T03:29:55.000Z"),
 };
 const pageLastModified = (path: string) => PAGE_LAST_MODIFIED[path] ?? SITE_REVIEWED;
@@ -43,6 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/health-report/sample`, lastModified: new Date("2026-11-19T00:00:00.000Z"), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/roadmap`, lastModified: SITE_REVIEWED, changeFrequency: "weekly", priority: 0.6 },
     { url: `${baseUrl}/integrations`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/startups`, lastModified: pageLastModified("/startups"), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/security`, lastModified: pageLastModified("/security"), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/status`, lastModified: pageLastModified("/status"), changeFrequency: "daily", priority: 0.5 },
     { url: `${baseUrl}/contact`, lastModified: pageLastModified("/contact"), changeFrequency: "monthly", priority: 0.5 },

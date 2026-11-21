@@ -1,0 +1,36 @@
+# Owner review for auth, billing, secrets, infra and workflow files.
+
+# CI, workflows and repository configuration
+/.github/                  @BN-KR
+
+# Auth
+/convex/auth*              @BN-KR
+/convex/betterAuth/        @BN-KR
+/convex/deviceLogins.ts    @BN-KR
+/src/proxy.ts              @BN-KR
+/src/lib/auth-*.ts         @BN-KR
+/src/lib/api-keys.ts       @BN-KR
+/src/lib/cli-login.ts      @BN-KR
+
+# Billing
+/convex/billing.ts         @BN-KR
+/src/lib/stripe.ts         @BN-KR
+/src/lib/billing-links*.ts @BN-KR
+
+# Secrets and encryption
+/.gitleaks.toml            @BN-KR
+/.gitleaksignore           @BN-KR
+/src/lib/integration-crypto*.ts @BN-KR
+
+# Infrastructure and deployment
+/Dockerfile                @BN-KR
+/.dockerignore             @BN-KR
+/vercel.json               @BN-KR
+/.vercelignore             @BN-KR
+/clickhouse/               @BN-KR
+/tinybird/                 @BN-KR
+/tinybird.config.json      @BN-KR
+
+# Data deletion
+/convex/retention.ts       @BN-KR
+/src/lib/retention*.ts     @BN-KR

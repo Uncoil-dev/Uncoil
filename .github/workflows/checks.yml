@@ -20,8 +20,42 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # On pushes to main, look for a passing run of this gate on the very same
+  # commit (the merge queue tests the exact commit that lands on main). If one
+  # exists the tree is already verified and the heavy jobs are skipped.
+  # Anything else, including every pull request and merge queue run, runs in full.
+  precheck:
+    name: Look for a tested commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      checks: read
+    outputs:
+      skip: ${{ steps.tested.outputs.skip }}
+    steps:
+      - name: Look for a passing gate on this commit
+        id: tested
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          skip=false
+          if [ "$EVENT" = "push" ]; then
+            passed=$(gh api "repos/$GH_REPO/commits/$SHA/check-runs?check_name=All%20checks%20passed&per_page=100" \
+              --jq '[.check_runs[] | select(.conclusion == "success")] | length' || echo 0)
+            if [ "${passed:-0}" -gt 0 ]; then
+              skip=true
+            fi
+          fi
+          echo "Skip duplicate run: $skip"
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build (${{ matrix.site }})
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -60,6 +94,8 @@ jobs:
 
   typecheck:
     name: Code errors (types)
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -79,6 +115,8 @@ jobs:
 
   lint:
     name: Code style (lint)
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -100,6 +138,8 @@ jobs:
 
   unused:
     name: Unused code (report only)
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -130,6 +170,8 @@ jobs:
 
   spelling:
     name: Spelling
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -145,6 +187,8 @@ jobs:
 
   tests:
     name: Tests (sites)
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -170,6 +214,8 @@ jobs:
 
   unit:
     name: Tests (unit)
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -191,6 +237,8 @@ jobs:
 
   sdk-ts:
     name: Tests (TypeScript SDK)
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -212,6 +260,8 @@ jobs:
 
   sdk-python:
     name: Tests (Python SDK)
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -230,6 +280,8 @@ jobs:
 
   secrets:
     name: Leaked keys
+    needs: [precheck]
+    if: needs.precheck.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -255,17 +307,23 @@ jobs:
   all-checks-passed:
     name: All checks passed
     if: always()
-    needs: [build, typecheck, lint, unused, spelling, tests, unit, sdk-ts, sdk-python, secrets]
+    needs: [precheck, build, typecheck, lint, unused, spelling, tests, unit, sdk-ts, sdk-python, secrets]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Require every job to succeed
         env:
           NEEDS: ${{ toJSON(needs) }}
+          SKIP: ${{ needs.precheck.outputs.skip }}
         run: |
           echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
-          # Failed, cancelled and skipped all count as not passed.
-          if echo "$NEEDS" | jq -e 'to_entries | all(.value.result == "success")' > /dev/null; then
+          # Failed and cancelled never pass. Skipped passes only when the
+          # precheck found this exact commit already verified.
+          if echo "$NEEDS" | jq -e --arg skip "$SKIP" '
+              to_entries | all(
+                .value.result == "success"
+                or (.key != "precheck" and $skip == "true" and .value.result == "skipped")
+              )' > /dev/null; then
             echo "All checks passed."
           else
             echo "One or more checks did not succeed."

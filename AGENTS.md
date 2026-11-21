@@ -27,6 +27,13 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 - Never add skipped, `.only`, or commented-out tests.
 - If a change needs no new test, say so in the PR description and give the reason.
 
+## Comments and public text
+
+- Comments describe what the code does and why, not review history. Avoid phrases like "per review", "now also" or "changed to".
+- Keep internal ticket ids and tracker links out of code, comments, commits and PR text; this repository is public.
+- Write PR descriptions as a plain summary of what changed and why, with nothing about who asked or how the work was scheduled.
+- Never add a lint-disable comment without owner approval. Fix the cause, or ask the owner.
+
 ## Internal notes
 
 This repository is public. Keep plans, task lists, memory files, scratch work and internal notes out of it. Private agent notes live in a separate private repository; ask the owner for access.

@@ -27,7 +27,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 - Code map: `docs/repository-map.md`. Dashboard standard: `docs/dashboard-page-standard.md`.
 - Install with `npm ci`. CI uses pnpm (`pnpm-lock.yaml`); the Docker image uses `package-lock.json`. Keep both lockfiles in sync when dependencies change.
 - Before opening a PR run `npm run lint`, `npx tsc --noEmit` and the tests for the area you touched. Blog and docs changes run `npm run test:content`.
-- Do not break Clerk/Better Auth middleware or the ingest pipeline (`/api/ingest` → Inngest → Tinybird + Convex).
+- Do not break Clerk/Better Auth middleware or the ingest pipeline (`/api/ingest` → Inngest → ClickHouse + Convex).
 - Keep notes short, bulleted and factual. Record decisions in the PR description, not in new files at the repo root.
 
 ## Commands
@@ -44,7 +44,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 
 ## Architecture
 - **Path aliases:** `@/*` → `./src/*`, `convex/*` → `./convex/*`
-- **Ingestion:** SDK → `POST /api/ingest` → Inngest → Tinybird (raw spans) + Convex (run summaries). Tinybird = time-series telemetry. Convex = app metadata (projects, agentRuns, alerts, comments). Redis = API cache between Tinybird and dashboard.
+- **Ingestion:** SDK → `POST /api/ingest` → Inngest → ClickHouse (raw spans) + Convex (run summaries). ClickHouse = time-series telemetry. Convex = app metadata (projects, agentRuns, alerts, comments). Redis = API cache between ClickHouse and dashboard.
 - **Auth:** Clerk Keyless mode for local dev. Convex authenticates via Clerk JWT template named `convex` with `aud: "convex"`. Clerk v7 uses `<Show>`, not deprecated `<SignedIn>`/`<SignedOut>`.
 - **API keys:** HMAC-SHA256 with `UNCOIL_API_KEY_HASH_SECRET`. Prefix: `uncoil_sk_live_` (legacy `uncoil_sk_live_` accepted). Plaintext never stored server-side — shown once during onboarding.
 

@@ -16,11 +16,12 @@ In the Vercel project **uncoil**:
    - `CLERK_SECRET_KEY`
    - `CLERK_JWT_ISSUER_DOMAIN`
    - `UNCOIL_API_KEY_HASH_SECRET`
-   - `TINYBIRD_HOST`
-   - `TINYBIRD_TOKEN`
+   - `CLICKHOUSE_URL`
+   - `CLICKHOUSE_USER`
+   - `CLICKHOUSE_PASSWORD`
    - `INNGEST_EVENT_KEY`
 
-   Use a separate Convex/Tinybird project for staging when data isolation matters. Never commit `.env.prod`, `.env.local`, or Vercel tokens.
+   Use a separate Convex and ClickHouse project for staging when data isolation matters. Never commit `.env.prod`, `.env.local`, or Vercel tokens.
 
 ## Daily workflow
 

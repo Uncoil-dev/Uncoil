@@ -78,16 +78,8 @@ pre-release sequence; a non-EU read region silently breaks residency.
 
 ## Operational gotchas
 
-- `TINYBIRD_HOST` must include the `https://` scheme. `src/lib/tinybird.ts` interpolates it
-  straight into `fetch()` with no normalisation and falls back to the global
-  `https://api.tinybird.co`, so a bare hostname breaks every call and a missing value silently
-  targets the wrong region.
-- `tb deploy` must run from the repository root, where `.tinyb` lives. From `tinybird/` it fails
-  with "This action requires authentication". It also ends with a
-  `'charmap' codec can't encode '✓'` error on Windows — that is a console encoding failure
-  printing a checkmark, not a deployment failure.
-- Tinybird Forward workspaces reject `POST /v0/datasources` and `/v0/pipes` with
-  "can only be done via deployments". Schema changes must go through `tb deploy`.
+- `CLICKHOUSE_URL` must include the `http://` or `https://` scheme. `src/lib/tinybird.ts` interpolates it straight into `fetch()`.
+- Table layouts live in `clickhouse/`. Apply schema changes there by hand, then record them in the same folder.
 - `.tinyb` contains a live API token and is gitignored. It was tracked until 2026-08-18. Never
   re-add it.
 - Vercel environment variables marked *Sensitive* are write-only: `vercel env pull` returns

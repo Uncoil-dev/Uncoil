@@ -8,7 +8,6 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "deploy:convex": "convex deploy",
-    "deploy:tinybird:evaluation": "powershell -ExecutionPolicy Bypass -File scripts/deploy-evaluation-tinybird.ps1",
     "start": "next start",
     "lint": "eslint src convex scripts",
     "typecheck": "tsc --noEmit",

@@ -41,6 +41,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 ## Working notes for agents
 
 - Code map: `docs/repository-map.md`. Dashboard standard: `docs/dashboard-page-standard.md`.
+- Unattended or scheduled runs follow `docs/agent-safety.md`.
 - Install with `npm ci`. CI uses pnpm (`pnpm-lock.yaml`); the Docker image uses `package-lock.json`. Keep both lockfiles in sync when dependencies change.
 - Before opening a PR run `npm run lint`, `npx tsc --noEmit` and the tests for the area you touched. Blog and docs changes run `npm run test:content`.
 - Do not break Clerk/Better Auth middleware or the ingest pipeline (`/api/ingest` → Inngest → ClickHouse + Convex).

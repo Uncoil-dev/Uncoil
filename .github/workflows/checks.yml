@@ -87,7 +87,9 @@ jobs:
           node-version: "24"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
+      # Ratchet: 22 warnings exist today. New warnings fail the job; lower
+      # this number as existing ones are fixed, and drop to 0 when clear.
+      - run: pnpm lint --max-warnings 22
 
   tests:
     name: Tests (sites)

@@ -1,5 +1,12 @@
 {
   "blockedPatterns": ["^A?GPL", "^SSPL"],
   "unknownValues": ["UNKNOWN", "UNLICENSED", "NONE", ""],
-  "allowedPackages": []
+  "allowedPackages": [
+    "uncoil",
+    "uncoil-sdk",
+    "anyio",
+    "idna",
+    "typing_extensions",
+    "urllib3"
+  ]
 }

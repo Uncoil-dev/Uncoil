@@ -20,7 +20,7 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 
 ## Internal notes
 
-This repository is public. Keep plans, task lists, memory files, scratch work and internal notes out of it.
+This repository is public. Keep plans, task lists, memory files, scratch work and internal notes out of it. Private agent notes live in a separate private repository; ask the owner for access.
 
 ## Working notes for agents
 

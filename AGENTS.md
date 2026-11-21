@@ -18,6 +18,15 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 - Never push to `main`. Never weaken CI or branch protection.
 - Keep PR titles and text neutral and general. Never put setup or launch notes in PR text (unfinished steps, products, env var names, deploy steps). Keep internal plans out of the repo.
 
+## Tests
+
+- One focused test per fix. Write it first and watch it fail for the right reason, then make it pass.
+- Extend the closest existing test suite instead of adding a new file for a few cases.
+- Do not write tests that only restate the diff or the implementation.
+- Do not write tests that only assert on mocks; exercise real behavior and mock only external services.
+- Never add skipped, `.only`, or commented-out tests.
+- If a change needs no new test, say so in the PR description and give the reason.
+
 ## Internal notes
 
 This repository is public. Keep plans, task lists, memory files, scratch work and internal notes out of it. Private agent notes live in a separate private repository; ask the owner for access.

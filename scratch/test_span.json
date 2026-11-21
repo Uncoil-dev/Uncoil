@@ -1,1 +1,0 @@
-{"spanId":"test-003","runId":"run-001","spanType":"llm_call","input":"Hello","output":"World","latencyMs":420,"costUsd":0.000400,"modelId":"claude-sonnet-4-5","toolName":"","createdAt":"2025-01-01T12:00:00Z"}

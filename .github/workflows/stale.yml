@@ -1,0 +1,34 @@
+name: Stale issues
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+concurrency:
+  group: stale-issues
+  cancel-in-progress: false
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9.1.0
+        with:
+          # Dry run: logs intended actions only. Set to false after reviewing the Actions log.
+          debug-only: true
+          days-before-issue-stale: 30
+          days-before-issue-close: 14
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-label: stale
+          exempt-issue-labels: agent-task,pinned,security
+          stale-issue-message: >
+            This issue has had no activity for 30 days and is marked stale.
+            It will be closed in 14 days unless there is new activity.
+          close-issue-message: >
+            Closed after 14 days without activity following the stale notice.
+            Feel free to reopen if this is still relevant.

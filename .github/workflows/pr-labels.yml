@@ -1,0 +1,73 @@
+name: PR labels
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      # API calls only: no checkout, no code from the PR is executed.
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const { owner, repo } = context.repo;
+
+            const colors = {
+              agent: '5319e7',
+              bot: 'ededed',
+              docs: '0075ca',
+              blog: 'fbca04',
+              dashboard: '0e8a16',
+              sdk: 'd93f0b',
+              ci: '1d76db',
+            };
+
+            const wanted = new Set();
+
+            const login = pr.user.login.toLowerCase();
+            const isBotAuthor = pr.user.type === 'Bot' || login.endsWith('[bot]');
+            const branch = pr.head.ref;
+            if (/^(claude|codex)\//.test(branch)) wanted.add('agent');
+            if (isBotAuthor) wanted.add('bot');
+
+            const areaMap = [
+              ['docs', /^(docs\/|content\/docs\/)/],
+              ['blog', /^(content\/blog\/|src\/components\/blog\/|src\/lib\/markdoc-blog\.ts)/],
+              ['dashboard', /^(src\/components\/dashboard\/|src\/app\/dashboard\/|src\/app\/\(dashboard\)\/)/],
+              ['sdk', /^packages\/[^/]+-sdk\//],
+              ['ci', /^(\.github\/|scripts\/ci)/],
+            ];
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner, repo, pull_number: pr.number, per_page: 100,
+            });
+            for (const f of files) {
+              for (const [label, re] of areaMap) {
+                if (re.test(f.filename)) wanted.add(label);
+              }
+            }
+
+            if (wanted.size === 0) return;
+
+            for (const name of wanted) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (e) {
+                if (e.status !== 404) throw e;
+                await github.rest.issues.createLabel({
+                  owner, repo, name, color: colors[name] || 'ededed',
+                });
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner, repo, issue_number: pr.number, labels: [...wanted],
+            });

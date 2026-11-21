@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | Application | Next.js routes, dashboard, public pages, API endpoints | `src/` |
 | Application metadata | Projects, runs, alerts, comments, prompts, datasets, evaluations | `convex/` |
-| Telemetry analytics | Raw spans, analytical queries, evaluation scores | `tinybird/` |
+| Telemetry analytics | Raw spans, analytical queries, evaluation scores | `clickhouse/` (table layouts), `src/lib/tinybird.ts` (queries) |
 | Background processing | Queue and asynchronous writes | `src/lib/inngest*`, ingest routes |
 | TypeScript SDK | Node/edge tracing and feedback helpers | `packages/ts-sdk/` |
 | Python SDK | Sync/async tracing and feedback helpers | `packages/python-sdk/` |

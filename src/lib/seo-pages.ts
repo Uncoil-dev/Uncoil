@@ -576,9 +576,9 @@ async def run_team(task: str):
     slug: "mastra",
     name: "Mastra",
     title: "Trace Mastra agents and workflows",
-    description: "Trace Mastra agents, tools and workflows in Uncoil with the TypeScript SDK or OpenTelemetry.",
-    answer: "To trace Mastra with Uncoil, wrap an agent call with traceAgent in the TypeScript SDK, or export Mastra's OpenTelemetry traces to Uncoil over OTLP.",
-    captures: ["One trace per agent or workflow run", "Tool calls and results", "Model calls with tokens and cost", "Errors and retries"],
+    description: "Trace Mastra agent runs and tool calls in Uncoil with the TypeScript SDK. Short setup with copy-paste code.",
+    answer: "To trace Mastra with Uncoil, wrap an agent call with traceAgent in the TypeScript SDK and wrap your tools with traceTools. The agent run and each tool call are recorded; model calls made inside Mastra are not.",
+    captures: ["One trace per agent run", "Tool calls wrapped with traceTools, with input and output", "Errors thrown inside the run"],
     language: "typescript",
     code: `import { traceAgent } from "@uncoil.dev/sdk";
 
@@ -586,8 +586,31 @@ const run = traceAgent(async (input: string) => {
   const result = await mastraAgent.generate(input);
   return result.text;
 }, { name: "mastra-agent" });`,
+    steps: [
+      { title: "Install", body: "The Uncoil SDK sits next to Mastra.", language: "bash", code: `npm install @uncoil.dev/sdk @mastra/core`, time: "1 min" },
+      KEY_STEP,
+      { title: "Wrap the agent call", body: "traceAgent turns one call into one run in Uncoil, with the run's timing, input, output and any error.", language: "typescript", code: `import { traceAgent } from "@uncoil.dev/sdk";
+
+export const ask = traceAgent(async (input: string) => {
+  const result = await mastraAgent.generate(input);
+  return result.text;
+}, { name: "mastra-agent" });`, time: "1 min" },
+      { title: "Trace your tools", body: "traceTools wraps the execute function of each tool, so every call is its own step with input, output and time.", language: "typescript", code: `import { createTool } from "@mastra/core/tools";
+import { traceTools } from "@uncoil.dev/sdk";
+
+const tools = traceTools({
+  getOrder: createTool({ id: "getOrder", description: "Look up an order", execute: async (args) => fetchOrder(args) }),
+});
+
+// Pass the traced tools to your agent, for example new Agent({ ..., tools })`, time: "1 min" },
+      verify("Your agent"),
+    ],
+    notes: [
+      { title: "What is recorded", body: "The agent run and each tool you wrap with traceTools are recorded. Model calls made inside Mastra are not recorded by these steps." },
+      { title: "OpenTelemetry is not covered here", body: "This page covers the TypeScript SDK only. Sending Mastra's own OpenTelemetry spans to Uncoil is not part of these steps." },
+    ],
     doc: "typescript",
-    faq: [{ q: "Does Mastra work with the Uncoil TypeScript SDK?", a: "Yes. Mastra runs as ordinary server-side TypeScript, so traceAgent can wrap its calls, and OTLP export works too." }],
+    faq: [{ q: "Does Mastra work with the Uncoil TypeScript SDK?", a: "Yes. Mastra runs as ordinary server-side TypeScript, so traceAgent can wrap its calls and traceTools can wrap its tools. Model calls made inside Mastra are not recorded by these steps." }],
   },
   {
     slug: "pydantic-ai",

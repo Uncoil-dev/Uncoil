@@ -1,5 +1,5 @@
 /**
- * The framework setup pages ("Uncoil for LangChain / CrewAI / OpenAI Agents / Pydantic AI / Vercel AI SDK").
+ * The framework setup pages ("Uncoil for LangChain / CrewAI / OpenAI Agents / Pydantic AI / Mastra / Vercel AI SDK").
  * Their steps live in seo-pages.ts and integration-guides.ts; this file holds what is shared between them.
  * Every snippet on these pages is run against the real SDKs by scripts/framework-guides/.
  */
@@ -57,6 +57,17 @@ export const frameworkSetups = [
       { label: "Model call: pick tool", kind: "llm", start: 2, width: 28 },
       { label: "get_order", kind: "tool", start: 31, width: 14 },
       { label: "Model call: answer", kind: "llm", start: 46, width: 48 },
+    ],
+  },
+  {
+    slug: "mastra",
+    name: "Mastra",
+    language: "TypeScript",
+    line: "traceAgent()",
+    install: "npm install @uncoil.dev/sdk @mastra/core",
+    sample: [
+      { label: "mastra-agent", kind: "agent", start: 0, width: 100 },
+      { label: "getOrder", kind: "tool", start: 33, width: 14 },
     ],
   },
   {

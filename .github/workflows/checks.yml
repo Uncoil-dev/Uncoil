@@ -168,3 +168,25 @@ jobs:
           else
             ./gitleaks detect --source . --no-git --redact --verbose
           fi
+
+  # Single required check. The `needs` list below is the only place that
+  # names the jobs to gate on; add any new job here.
+  all-checks-passed:
+    name: All checks passed
+    if: always()
+    needs: [build, typecheck, lint, tests, sdk-ts, sdk-python, secrets]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every job to succeed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          # Failed, cancelled and skipped all count as not passed.
+          if echo "$NEEDS" | jq -e 'to_entries | all(.value.result == "success")' > /dev/null; then
+            echo "All checks passed."
+          else
+            echo "One or more checks did not succeed."
+            exit 1
+          fi

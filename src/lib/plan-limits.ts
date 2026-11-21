@@ -37,12 +37,21 @@ export function secondsUntilNextMonth(now: Date) {
   return Math.max(1, Math.ceil((next - now.getTime()) / 1000));
 }
 
+/** Where a refused request tells people to go to upgrade. Plain link, no sign-in step in between. */
+export const UPGRADE_URL = "https://www.uncoil.dev/pricing";
+
 export function planLimitMessage(limit: number, tier: string | undefined = "free") {
   const formatted = limit.toLocaleString("en-US");
   if (tier === "free") {
-    return `This project has used its ${formatted} free spans for the month. New data is not saved until the month resets or the project is upgraded.`;
+    return `This project has used its ${formatted} free spans for the month. New data is not saved until the month resets or the project is upgraded: ${UPGRADE_URL}`;
   }
-  return `This project has used all ${formatted} spans allowed on its plan this month. New data is not saved until the month resets or the plan is upgraded.`;
+  return `This project has used all ${formatted} spans allowed on its plan this month. New data is not saved until the month resets or the plan is upgraded: ${UPGRADE_URL}`;
+}
+
+/** Free projects get one email when they pass 80% of the month's spans. */
+export function shouldWarnAboutUsage(spans: number, tier: string | undefined, warnedMonth: string | undefined, month: string) {
+  if ((tier ?? "free") !== "free" || warnedMonth === month) return false;
+  return usageLevel(spans, tier) !== "ok";
 }
 
 /** Free accounts may own this many Free projects; each one gets its own monthly spans, so unlimited projects would mean unlimited free data. */

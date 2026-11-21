@@ -87,6 +87,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
 
+  spelling:
+    name: Spelling
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      # Settings and the allow-word list live in .codespellrc.
+      - run: pip install codespell==2.4.1
+      - run: codespell
+
   tests:
     name: Tests (sites)
     runs-on: ubuntu-latest
@@ -194,7 +207,7 @@ jobs:
   all-checks-passed:
     name: All checks passed
     if: always()
-    needs: [build, typecheck, lint, tests, unit, sdk-ts, sdk-python, secrets]
+    needs: [build, typecheck, lint, spelling, tests, unit, sdk-ts, sdk-python, secrets]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

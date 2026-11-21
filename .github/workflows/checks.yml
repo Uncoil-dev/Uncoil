@@ -260,3 +260,35 @@ jobs:
             echo "One or more checks did not succeed."
             exit 1
           fi
+
+  # Runs after the gate on pushes to main only. It reports the gate's result,
+  # so it is not itself part of the gate's `needs` list.
+  main-alert:
+    name: Main failure alert
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [all-checks-passed]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      GATE_RESULT: ${{ needs.all-checks-passed.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      TITLE: Main checks failing
+    steps:
+      - name: Open, update or close the failure issue
+        run: |
+          existing=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
+            --jq "[.[] | select(.title == \"$TITLE\")][0].number // empty")
+          if [ "$GATE_RESULT" = "success" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --comment "Checks on main are passing again: $RUN_URL"
+            fi
+          elif [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Still failing on commit $GITHUB_SHA: $RUN_URL"
+          else
+            gh issue create --title "$TITLE" --body "The checks on main failed on commit $GITHUB_SHA: $RUN_URL"
+          fi

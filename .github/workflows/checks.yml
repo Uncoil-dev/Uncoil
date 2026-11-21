@@ -111,6 +111,26 @@ jobs:
       - run: pnpm test:consent
       - run: pnpm test:seo
 
+  unit:
+    name: Tests (unit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The vitest half of `test:unit`; the node:test half (`test:tools`)
+      # already runs in the "Tests (sites)" job.
+      - run: pnpm exec vitest run src
+
   sdk-ts:
     name: Tests (TypeScript SDK)
     runs-on: ubuntu-latest
@@ -174,7 +194,7 @@ jobs:
   all-checks-passed:
     name: All checks passed
     if: always()
-    needs: [build, typecheck, lint, tests, sdk-ts, sdk-python, secrets]
+    needs: [build, typecheck, lint, tests, unit, sdk-ts, sdk-python, secrets]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

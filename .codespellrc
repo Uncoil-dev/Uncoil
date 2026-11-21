@@ -1,0 +1,5 @@
+[codespell]
+# Content submodules (content/blog, content/docs) are checked in their own repos.
+skip = .git,node_modules,.next,content,public,pnpm-lock.yaml,package-lock.json,*.svg,*.mdoc,i18n,.vercel
+# Product terms, identifiers, regex stems, German UI copy and deliberate test typos.
+ignore-words-list = ontext,optin,summar,retriev,generat,delet,hel,sie,oder,celcius

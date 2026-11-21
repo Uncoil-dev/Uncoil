@@ -102,6 +102,13 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 - **Marketing product feature pages** (`/product/[feature]`) have feature-specific content; update the relevant page and its metadata when changing a product surface.
 - **SDKs** (`packages/ts-sdk/`, `packages/python-sdk/`) are built but not yet published to npm/PyPI.
 
+## Finishing
+
+- End every task by quoting the summary line of each check you ran (lint, typecheck, tests).
+- State what you skipped and why.
+- Never report unverified work as done.
+- A cached pass may not have run; re-run uncached when it matters.
+
 ## Git workflow
 
 - Default to a `claude/<description>` or `codex/<description>` branch and a draft pull request.

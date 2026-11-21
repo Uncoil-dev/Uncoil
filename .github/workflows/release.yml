@@ -14,8 +14,7 @@ on:
         type: boolean
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: release-${{ inputs.version }}
@@ -25,9 +24,12 @@ jobs:
   validate:
     name: Validate release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          persist-credentials: false
           submodules: true
           fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -103,9 +105,12 @@ jobs:
     needs: validate
     if: ${{ inputs.dry_run == false }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          persist-credentials: false
           submodules: true
           fetch-depth: 0
       - name: Create draft GitHub Release
@@ -120,11 +125,14 @@ jobs:
     needs: draft
     if: ${{ inputs.dry_run == false }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment:
       name: release
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          persist-credentials: false
           submodules: true
       - name: Confirm exact release commit
         env:

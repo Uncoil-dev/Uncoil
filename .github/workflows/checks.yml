@@ -91,6 +91,35 @@ jobs:
       # this number as existing ones are fixed, and drop to 0 when clear.
       - run: pnpm lint --max-warnings 22
 
+  unused:
+    name: Unused code (report only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Report only: the first run has hundreds of findings, so this step
+      # never fails the job. Remove `continue-on-error` once they are cleared.
+      - name: Find unused files, exports and dependencies
+        continue-on-error: true
+        run: |
+          pnpm dlx --package=knip@5.61.0 --package=typescript@5.9.3 knip --no-progress | tee knip-report.txt
+          {
+            echo "### Unused code report"
+            echo '```'
+            grep -E '^[A-Z].*\([0-9]+\)$' knip-report.txt || echo "No findings."
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   tests:
     name: Tests (sites)
     runs-on: ubuntu-latest
@@ -198,7 +227,7 @@ jobs:
   all-checks-passed:
     name: All checks passed
     if: always()
-    needs: [build, typecheck, lint, tests, unit, sdk-ts, sdk-python, secrets]
+    needs: [build, typecheck, lint, unused, tests, unit, sdk-ts, sdk-python, secrets]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

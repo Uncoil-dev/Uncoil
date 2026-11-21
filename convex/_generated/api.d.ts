@@ -59,6 +59,7 @@ import type * as scoreConfigRules from "../scoreConfigRules.js";
 import type * as scoreConfigs from "../scoreConfigs.js";
 import type * as settingsAccess from "../settingsAccess.js";
 import type * as spendMetrics from "../spendMetrics.js";
+import type * as usageNotices from "../usageNotices.js";
 import type * as weeklySummary from "../weeklySummary.js";
 import type * as welcomeEmail from "../welcomeEmail.js";
 
@@ -120,6 +121,7 @@ declare const fullApi: ApiFromModules<{
   scoreConfigs: typeof scoreConfigs;
   settingsAccess: typeof settingsAccess;
   spendMetrics: typeof spendMetrics;
+  usageNotices: typeof usageNotices;
   weeklySummary: typeof weeklySummary;
   welcomeEmail: typeof welcomeEmail;
 }>;

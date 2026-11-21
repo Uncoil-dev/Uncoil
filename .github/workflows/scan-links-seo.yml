@@ -1,0 +1,30 @@
+name: Scan content
+
+on:
+  schedule:
+    - cron: "0 4,16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Check out content
+        run: git submodule update --init --depth 1 content/blog content/docs
+        continue-on-error: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Scan and open issues
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/scan-content.mjs --open-issues

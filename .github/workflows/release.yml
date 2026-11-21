@@ -26,15 +26,15 @@ jobs:
     name: Validate release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Verify release source
@@ -86,7 +86,7 @@ jobs:
       - name: Prepare SharePoint discovery index
         run: npm run prepare:m365-index
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-${{ inputs.version }}
           path: |
@@ -95,7 +95,7 @@ jobs:
             packages/python-sdk/dist/*
           if-no-files-found: error
       - name: Secret scan
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         continue-on-error: false
 
   draft:
@@ -104,7 +104,7 @@ jobs:
     if: ${{ inputs.dry_run == false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
           fetch-depth: 0
@@ -123,7 +123,7 @@ jobs:
     environment:
       name: release
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
       - name: Confirm exact release commit

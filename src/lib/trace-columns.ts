@@ -5,7 +5,7 @@ export type ColumnDef = { id: string; label: string; group: ColumnGroup; hint: s
 export type TraceRowExtras = {
   lastSeenAt?: string; meta?: Record<string, string>;
   llmCalls?: number; toolCalls?: number; slowestStepMs?: number; avgStepMs?: number; ttftMs?: number; retries?: number; timeouts?: number;
-  firstErrorType?: string; firstErrorMessage?: string; tools?: string; models?: string; rootType?: string;
+  feedback?: string; firstErrorType?: string; firstErrorMessage?: string; tools?: string; models?: string; rootType?: string;
 };
 export type RowLike = TraceRowExtras & {
   runId: string; errorCount: number; spanCount: number; inputTokens: number; outputTokens: number; environment: string; release: string;

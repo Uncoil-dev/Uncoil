@@ -63,6 +63,7 @@ Use the documentation for implementation details and the blog for explanatory gu
 - [Debugging AI agents in production](https://www.uncoil.dev/blog/debug-ai-agents-in-production): A production debugging workflow for agent failures.
 - [LLM tracing explained](https://www.uncoil.dev/blog/llm-tracing-explained): How tracing exposes model, tool, and workflow behavior.
 - [RSS feed](https://www.uncoil.dev/blog/rss.xml): Machine-readable feed of published articles.
+- [Changelog RSS feed](https://www.uncoil.dev/changelog/rss.xml): Machine-readable feed of product releases.
 
 ## Optional
 

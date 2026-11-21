@@ -86,6 +86,7 @@ export const en: Copy = {
     spanCounted: (n) => (n === 1 ? "span counted" : "spans counted"),
     runMeta: ["the run itself", "412 tokens", "140 ms", "0 results", "$0.0187", "502 error"],
     calc: {
+      compare: "Compare with other tools' bills",
       eyebrow: "Price calculator",
       title: "Slide to your volume. See your price.",
       body: "A span is one recorded step in a run: a model call, a tool call, a retrieval. Tell us how many runs you do and how long they are, and we show the plan and the price.",

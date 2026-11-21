@@ -1,0 +1,74 @@
+name: Licence check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  licences:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install TypeScript SDK dependencies
+        run: npm ci
+        working-directory: packages/ts-sdk
+
+      - name: Collect licences
+        run: |
+          mkdir -p "$RUNNER_TEMP/lic"
+          npx --yes license-checker-rseidelsohn@4.4.2 --production --json --start . > "$RUNNER_TEMP/lic/root.json"
+          npx --yes license-checker-rseidelsohn@4.4.2 --production --json --start packages/ts-sdk > "$RUNNER_TEMP/lic/ts-sdk.json"
+          python -m venv "$RUNNER_TEMP/sdkenv"
+          "$RUNNER_TEMP/sdkenv/bin/pip" install ./packages/python-sdk
+          pip install pip-licenses==5.0.0
+          pip-licenses --python "$RUNNER_TEMP/sdkenv/bin/python" --from=mixed --format=json > "$RUNNER_TEMP/lic/python-sdk.json"
+
+      - name: Check licences against allow-list
+        env:
+          LIC_DIR: ${{ runner.temp }}/lic
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const cfg = JSON.parse(fs.readFileSync('config/licence-allowlist.json', 'utf8'));
+          const blocked = cfg.blockedPatterns.map((p) => new RegExp(p, 'i'));
+          const unknown = new Set(cfg.unknownValues.map((v) => v.toUpperCase()));
+          const allowed = new Set(cfg.allowedPackages);
+          const dir = process.env.LIC_DIR;
+          const entries = [];
+          for (const [scope, file] of [['root', 'root.json'], ['ts-sdk', 'ts-sdk.json'], ['python-sdk', 'python-sdk.json']]) {
+            const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+            if (Array.isArray(data)) {
+              for (const d of data) entries.push({ scope, name: d.Name + '@' + d.Version, licence: String(d.License || '') });
+            } else {
+              for (const [name, d] of Object.entries(data)) {
+                const lic = Array.isArray(d.licenses) ? d.licenses.join(' OR ') : String(d.licenses || '');
+                entries.push({ scope, name, licence: lic });
+              }
+            }
+          }
+          const isBad = (lic) => {
+            const alts = lic.replace(/[()*]/g, '').split(/\s+OR\s+|;/i).map((s) => s.trim());
+            return alts.every((a) => unknown.has(a.toUpperCase()) || blocked.some((r) => r.test(a)));
+          };
+          const failures = entries.filter((e) => !allowed.has(e.name) && !allowed.has(e.name.replace(/@[^@]*$/, '')) && isBad(e.licence));
+          console.log('Checked ' + entries.length + ' production packages');
+          if (failures.length) {
+            for (const f of failures) console.error('::error::Disallowed licence "' + (f.licence || 'UNKNOWN') + '" in package ' + f.name + ' (' + f.scope + ')');
+            process.exit(1);
+          }
+          EOF

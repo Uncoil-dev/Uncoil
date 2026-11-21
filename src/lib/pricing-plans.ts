@@ -1,4 +1,4 @@
-import type { BillingInterval, PaidPlan } from "@/lib/billing-links";
+import type { BillingInterval, PaidPlan } from "./billing-links.ts";
 
 // Single source of truth for the pricing and checkout pages.
 // The landing page's pricing teaser mirrors these numbers by hand; change them there too.

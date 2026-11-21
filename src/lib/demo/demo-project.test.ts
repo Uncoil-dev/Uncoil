@@ -40,4 +40,10 @@ describe("public demo project", () => {
     expect(rate("v1.14.0")).toBeGreaterThan(rate("v1.14.1") * 1.5);
     expect(summary.errorGroups.groups.some((group) => group.tool === "issue_refund" && group.errorType === "ToolTimeout")).toBe(true);
   });
+
+  it("points every error group at an example trace that contains that error", () => {
+    const { groups } = demoSummary(30, NOW).errorGroups;
+    expect(groups.length).toBeGreaterThan(0);
+    for (const group of groups) expect(group.sampleRunId).toMatch(/\S/);
+  });
 });

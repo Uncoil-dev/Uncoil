@@ -13,7 +13,7 @@ import { RANGES, TimeRangePicker } from "./time-range-picker";
 import { ColumnsMenu, DEFAULT_COLUMNS, columnLabel, extraCell, extraIdsFor, isKnownColumn, metaKeysFor, orderColumns, type TraceRowExtras } from "./trace-columns";
 import { FirstTraceEmpty } from "../first-trace-empty";
 import { TraceCharts, TracesOverTime, type ChartBucket } from "./trace-charts";
-import { ErrorGroupsPanel, errorGroupLabel, type ErrorGroups } from "./error-groups";
+import { ErrorGroupsPanel, errorGroupLabel, fixQuestion, type ErrorGroups } from "./error-groups";
 import { FACETS, FacetGroup, decodeValues, encodeValues, type FacetCounts } from "./facet-filter";
 import { TRACE_VIEWS, TracePanel, type TraceView } from "./trace-panel";
 import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime } from "./format";
@@ -79,6 +79,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
   const [errorsOpen, setErrorsOpen] = useState(true);
   // Label of the last clicked error group, for its chip when the group is not in the current list.
   const [pickedGroup, setPickedGroup] = useState<{ id: string; label: string } | null>(null);
+  const [fix, setFix] = useState<{ runId: string; question: string } | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const selected = query.trace ?? null;
   const requestId = useRef(0);
@@ -406,7 +407,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
 
           {chartMode ? null : (
             <ErrorGroupsPanel data={data ? data.errorGroups : undefined} open={errorsOpen} loading={loading} active={query.errorGroup} clock={clock}
-              onToggle={toggleErrors} onSelect={(group) => { setPickedGroup({ id: group.id, label: errorGroupLabel(group) }); update({ errorGroup: query.errorGroup === group.id ? "" : group.id }); }} />
+              onToggle={toggleErrors} onSuggest={(group) => { if (!group.sampleRunId) return; setFix({ runId: group.sampleRunId, question: fixQuestion(group) }); update({ trace: group.sampleRunId }, false); }} onSelect={(group) => { setPickedGroup({ id: group.id, label: errorGroupLabel(group) }); update({ errorGroup: query.errorGroup === group.id ? "" : group.id }); }} />
           )}
 
           <div className="min-h-0 flex-1 overflow-auto px-4">
@@ -475,7 +476,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
 
         {selected ? (
           <TracePanel
-            key={selected} projectId={projectId} runId={selected}
+            key={selected} projectId={projectId} runId={selected} askQuestion={fix?.runId === selected ? fix.question : undefined}
             summary={rows.find((row) => row.runId === selected)}
             view={traceView} onView={(view) => update({ view: view === "tree" ? "" : view }, false)}
             onClose={() => update({ trace: "" }, false)}

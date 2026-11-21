@@ -10,11 +10,11 @@ type Message =
   | { role: "upgrade"; text: string }
   | { role: "error"; text: string };
 
-export function AskAiPanel({ projectId, runId, spans, onSelectStep }: {
-  projectId: string; runId: string; spans: AskSpan[]; onSelectStep: (spanId: string) => void;
+export function AskAiPanel({ projectId, runId, spans, onSelectStep, initialQuestion }: {
+  projectId: string; runId: string; spans: AskSpan[]; onSelectStep: (spanId: string) => void; initialQuestion?: string;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialQuestion ?? "");
   const [busy, setBusy] = useState(false);
   const [streaming, setStreaming] = useState("");
   const [lastQuestion, setLastQuestion] = useState("");

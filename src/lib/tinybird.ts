@@ -661,6 +661,8 @@ export async function traceStats(projectId: string, filters: TraceListFilters): 
 export type ErrorGroup = {
   id: string; tool: string; errorType: string; message: string; sample: string;
   count: number; traces: number; firstSeen: string; lastSeen: string;
+  /** A trace that contains this error, used to open an example. */
+  sampleRunId?: string;
 };
 
 /** The 20 most frequent error groups among the steps of every trace matching the filters. */
@@ -668,7 +670,7 @@ export async function traceErrorGroups(projectId: string, filters: TraceListFilt
   const { where, having } = traceListClauses(projectId, filters);
   const rows = await tinybirdRows<ErrorGroup & { totalGroups: number }>(`
     SELECT ${ERROR_GROUP_ID} AS id, ${ERROR_TOOL} AS tool, errorType, ${ERROR_MESSAGE_KEY} AS message,
-      substring(any(errorMessage), 1, 300) AS sample, count() AS count, uniqExact(runId) AS traces,
+      substring(any(errorMessage), 1, 300) AS sample, argMax(runId, createdAt) AS sampleRunId, count() AS count, uniqExact(runId) AS traces,
       min(createdAt) AS firstSeen, max(createdAt) AS lastSeen, count() OVER () AS totalGroups
     FROM spans
     WHERE ${where} AND ${IS_ERROR} AND runId IN (${matchingRunIds(where, having)})
@@ -678,7 +680,7 @@ export async function traceErrorGroups(projectId: string, filters: TraceListFilt
   return {
     total: Number(rows[0]?.totalGroups ?? 0),
     groups: rows.map((row): ErrorGroup => ({
-      id: row.id, tool: row.tool, errorType: row.errorType, message: row.message, sample: row.sample,
+      id: row.id, tool: row.tool, errorType: row.errorType, message: row.message, sample: row.sample, sampleRunId: row.sampleRunId || undefined,
       count: Number(row.count), traces: Number(row.traces), firstSeen: row.firstSeen, lastSeen: row.lastSeen,
     })),
   };

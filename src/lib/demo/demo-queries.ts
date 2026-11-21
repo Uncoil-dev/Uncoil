@@ -176,11 +176,11 @@ export function demoErrorGroups(runs: DemoRun[]) {
   for (const run of runs) {
     for (const error of run.errors) {
       const id = demoGroupId(error.tool, error.type, error.message);
-      const group = groups.get(id) ?? { id, tool: error.tool, errorType: error.type, message: error.message, sample: error.sample, count: 0, traces: 0, firstSeen: stamp(run.startMs), lastSeen: stamp(run.startMs), runs: new Set<string>() };
+      const group = groups.get(id) ?? { id, tool: error.tool, errorType: error.type, message: error.message, sample: error.sample, count: 0, traces: 0, firstSeen: stamp(run.startMs), lastSeen: stamp(run.startMs), sampleRunId: run.runId, runs: new Set<string>() };
       group.count++;
       group.runs.add(run.runId);
       if (stamp(run.startMs) < group.firstSeen) group.firstSeen = stamp(run.startMs);
-      if (stamp(run.startMs) > group.lastSeen) group.lastSeen = stamp(run.startMs);
+      if (stamp(run.startMs) > group.lastSeen) { group.lastSeen = stamp(run.startMs); group.sampleRunId = run.runId; }
       groups.set(id, group);
     }
   }

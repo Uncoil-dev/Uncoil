@@ -67,9 +67,6 @@ scratch/uncoil-regional/
 packages/python-sdk/dist/
 packages/python-sdk/src/*.egg-info/
 packages/python-sdk/src/*/egg-info/
-teams-bot/sessions.json
-teams-bot/*-out.log
-teams-bot/*-err.log
 
 # local Payload development data and uploads
 /payload-local.db*

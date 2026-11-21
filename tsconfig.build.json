@@ -10,8 +10,6 @@
   "exclude": [
     "node_modules",
     "scratch",
-    "sanity",
-    "studio-uncoil",
     "scripts",
     "packages/playwright",
     "packages/*/templates",

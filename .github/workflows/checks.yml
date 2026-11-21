@@ -52,6 +52,10 @@ jobs:
           key: next-${{ matrix.site }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
           restore-keys: next-${{ matrix.site }}-${{ hashFiles('pnpm-lock.yaml') }}-
       - run: pnpm build
+      - name: Scan browser bundles for server-only code
+        run: |
+          node --test scripts/scan-client-bundle.test.mjs
+          node scripts/scan-client-bundle.mjs .next/static src convex
 
   typecheck:
     name: Code errors (types)

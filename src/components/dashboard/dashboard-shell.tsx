@@ -15,7 +15,6 @@ type DashboardTheme = "legacy" | "uncoil-v2";
 
 export function DashboardShell({
   children,
-  canAccessContent,
   preview = false,
   previewProjectId,
   previewProjectName,
@@ -24,7 +23,6 @@ export function DashboardShell({
   demo = false,
 }: {
   children: React.ReactNode;
-  canAccessContent: boolean;
   preview?: boolean;
   previewProjectId?: string;
   previewProjectName?: string;
@@ -107,7 +105,6 @@ export function DashboardShell({
       className={`flex min-h-svh w-full font-mono ${isDashboardRoute ? "uncoil-cloud-shell text-white/70" : "text-black/70 bg-[#eceae3]"} ${isUncoilOverview ? "uncoil-shell" : ""}`}
     >
       <DashboardSidebar
-        canAccessContent={canAccessContent}
         isCollapsed={isCollapsed}
         onCollapsedChange={updateCollapsed}
         projectIdOverride={previewProjectId}

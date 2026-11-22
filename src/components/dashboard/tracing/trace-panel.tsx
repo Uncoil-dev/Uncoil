@@ -45,8 +45,8 @@ function spanName(span: Span) {
   return span.toolName || span.modelId || span.traceName || span.spanType || "span";
 }
 
-export function TracePanel({ projectId, runId, summary, view, onView, onClose, onFilter, onStep, initialStepId }: {
-  initialStepId?: string; projectId: string; runId: string; summary: Summary; view: TraceView; onView: (view: TraceView) => void;
+export function TracePanel({ projectId, runId, summary, view, onView, onClose, onFilter, onStep, initialStepId, askQuestion }: {
+  initialStepId?: string; askQuestion?: string; projectId: string; runId: string; summary: Summary; view: TraceView; onView: (view: TraceView) => void;
   onClose: () => void; onFilter: (key: string, value: string) => void; onStep: (delta: number) => void;
 }) {
   const [spans, setSpans] = useState<Span[] | null>(null);
@@ -57,7 +57,7 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
   const [attempt, setAttempt] = useState(0);
   const [stepFilter, setStepFilter] = useState<StepFilter>("all");
   const [stepSearch, setStepSearch] = useState("");
-  const [side, setSide] = useState<"step" | "ask">("step");
+  const [side, setSide] = useState<"step" | "ask">(askQuestion ? "ask" : "step");
 
   useEffect(() => {
     let live = true;
@@ -329,7 +329,7 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
               ))}
             </div>
             {side === "ask" ? (
-              <div className="min-h-0 flex-1 overflow-hidden"><AskAiPanel projectId={projectId} runId={runId} spans={spans} onSelectStep={(id) => { setCollapsed(new Set()); setStepFilter("all"); setStepSearch(""); setSelectedId(id); requestAnimationFrame(() => document.getElementById(`${view === "tree" ? "step" : view}-${id}`)?.scrollIntoView({ block: "center", inline: "center" })); }} /></div>
+              <div className="min-h-0 flex-1 overflow-hidden"><AskAiPanel projectId={projectId} runId={runId} spans={spans} initialQuestion={askQuestion} onSelectStep={(id) => { setCollapsed(new Set()); setStepFilter("all"); setStepSearch(""); setSelectedId(id); requestAnimationFrame(() => document.getElementById(`${view === "tree" ? "step" : view}-${id}`)?.scrollIntoView({ block: "center", inline: "center" })); }} /></div>
             ) : (
               <div className="min-h-0 flex-1 overflow-auto p-4">{selected ? <StepDetail span={selected} /> : null}</div>
             )}

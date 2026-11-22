@@ -4,7 +4,7 @@ import { compactNumber, formatTime, parseTime, relativeTime } from "./format";
 
 export type ErrorGroup = {
   id: string; tool: string; errorType: string; message: string; sample: string;
-  count: number; traces: number; firstSeen: string; lastSeen: string;
+  count: number; traces: number; firstSeen: string; lastSeen: string; sampleRunId?: string;
 };
 export type ErrorGroups = { total: number; groups: ErrorGroup[] };
 
@@ -13,9 +13,15 @@ export function errorGroupLabel(group: Pick<ErrorGroup, "tool" | "errorType">) {
 }
 
 /** Similar errors (ids, emails, links, quoted values and numbers ignored) across every trace matching the filters, busiest first. Clicking one filters the list. */
-export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle, onSelect }: {
+/** The question sent to Ask AI for an example trace of a group. */
+export function fixQuestion(group: Pick<ErrorGroup, "tool" | "errorType" | "message">) {
+  const what = [group.tool, group.errorType, group.message].filter(Boolean).join(": ").slice(0, 300);
+  return `This trace is an example of a repeated error (${what}). What is the likely cause, and what should I change to fix it?`;
+}
+
+export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle, onSelect, onSuggest }: {
   data: ErrorGroups | null | undefined; open: boolean; loading: boolean; active?: string; clock: number;
-  onToggle: () => void; onSelect: (group: ErrorGroup) => void;
+  onToggle: () => void; onSelect: (group: ErrorGroup) => void; onSuggest?: (group: ErrorGroup) => void;
 }) {
   const groups = data?.groups ?? [];
   return (
@@ -56,6 +62,9 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle,
                     </span>
                   </span>
                 </button>
+                {onSuggest && group.sampleRunId ? (
+                  <button type="button" onClick={() => onSuggest(group)} className="mb-1.5 ml-[3.25rem] rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#F4D44D] hover:border-[#F4D44D]">Suggest a fix</button>
+                ) : null}
               </li>
             );
           })}

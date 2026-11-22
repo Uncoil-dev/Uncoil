@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/marketing/page-header";
 import { ClosingBand, CreamBand, DarkBand, Eyebrow, HeaderAction, SectionTitle } from "@/components/marketing/company/blocks";
 import { MarkdocRichText } from "@/components/blog/markdoc-rich-text";
 import { getPublishedPost } from "@/lib/markdoc-blog";
+import { formatLastChecked } from "@/lib/seo-pages";
 import { FaqList } from "@/components/marketing/company/faq-list";
 
 export function generateStaticParams() {
@@ -67,6 +68,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
           <p aria-hidden="true" className="font-mono text-xs uppercase tracking-[0.3em] text-[#f4d44d]">vs</p>
           <p className="font-pixel text-[clamp(2rem,5vw,4.2rem)] leading-[0.9] tracking-[-0.06em] text-[#f4d44d] md:text-right">Uncoil</p>
         </div>
+        <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.16em] text-white/60">Facts last checked <time dateTime={c.lastChecked}>{formatLastChecked(c.lastChecked)}</time></p>
         <dl className="mt-10 border-t border-white/30">
           {c.rows.map(([area, them, us], i) => (
             <div key={area} className="group grid gap-3 border-b border-white/15 py-6 transition-colors hover:bg-white/[0.03] md:grid-cols-[1fr_9rem_1fr] md:items-start md:gap-8">

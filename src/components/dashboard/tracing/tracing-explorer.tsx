@@ -17,6 +17,7 @@ import { ErrorGroupsPanel, errorGroupLabel, type ErrorGroups } from "./error-gro
 import { FACETS, FacetGroup, decodeValues, encodeValues, type FacetCounts } from "./facet-filter";
 import { TRACE_VIEWS, TracePanel, type TraceView } from "./trace-panel";
 import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime } from "./format";
+import { EmptyNotice } from "../empty/empty-notice";
 
 type TraceRow = TraceRowExtras & {
   runId: string; traceName: string; startedAt: string; durationMs: number; spanCount: number; errorCount: number;
@@ -421,11 +422,10 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
             ) : !loading && rows.length === 0 && !activeFilters.length && !query.q && projectId !== DEMO_PROJECT_ID ? (
               <FirstTraceEmpty projectId={projectId} title="Every run of your agent will land here" description="Each trace shows the steps, the model calls, what it cost and where it failed. Send one and this page fills in within seconds." />
             ) : !loading && rows.length === 0 ? (
-              <div className="my-10 rounded-lg border border-dashed border-[#262C35] p-8 text-center">
-                <p className="font-medium">No traces in this range</p>
-                <p className="mt-2 text-sm text-[#8B93A1]">{activeFilters.length || query.q ? "Try removing a filter or widening the time range." : "Send traces with the Uncoil SDK and they appear here within seconds."}</p>
-                {activeFilters.length || query.q ? <button type="button" className="mt-4 rounded-md bg-[#F4D44D] px-4 py-2 text-sm font-medium text-[#0B0D10]" onClick={() => { setSearchDraft(""); update({ ...Object.fromEntries(activeFilters.map((f) => [f.key, ""])), q: "", range: "30d" }); }}>Clear filters and show 30 days</button> : <a className="mt-4 inline-block rounded-md bg-[#F4D44D] px-4 py-2 text-sm font-medium text-[#0B0D10]" href={projectId === DEMO_PROJECT_ID ? `${DEMO_BASE_PATH}` : `/dashboard/${projectId}/quickstart`}>{projectId === DEMO_PROJECT_ID ? "Back to the overview" : "Open quickstart"}</a>}
-              </div>
+              <div className="my-10"><EmptyNotice art="filtered" title="No traces in this range" description={activeFilters.length || query.q ? "Try removing a filter or widening the time range." : "Send traces with the Uncoil SDK and they appear here within seconds."}
+                {...(activeFilters.length || query.q
+                  ? { action: "Clear filters and show 30 days", onClick: () => { setSearchDraft(""); update({ ...Object.fromEntries(activeFilters.map((f) => [f.key, ""])), q: "", range: "30d" }); } }
+                  : { action: projectId === DEMO_PROJECT_ID ? "Back to the overview" : "Open quickstart", href: projectId === DEMO_PROJECT_ID ? `${DEMO_BASE_PATH}` : `/dashboard/${projectId}/quickstart` })} /></div>
             ) : (
               <>
               {feedback.failed ? <p role="alert" className="mt-3 text-xs text-[#FF8A8A]">{feedback.failed}</p> : null}

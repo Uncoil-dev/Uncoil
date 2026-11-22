@@ -11,6 +11,7 @@ import { BarList, Histogram, SplitBar, TrendChart, VolumeStrip } from "./score-c
 import { AddScore, ago, control, ScorePanel, Sheet } from "./score-drawer";
 import { EmptyState } from "../empty/empty-state";
 import { SampleScores } from "../empty/samples";
+import { EmptyNotice } from "../empty/empty-notice";
 
 type Query = Record<string, string>;
 const LOADED = 1000;
@@ -144,7 +145,7 @@ export function ScoresWorkspace({ projectId, initialQuery }: { projectId: string
           <div className="mx-auto max-w-2xl text-center"><GradeFromCode projectId={projectId} /></div>
         </div>
       ) : !names.length ? (
-        <div className="p-16 text-center text-xs text-[#8B93A1]">No scores in the last {days} days{query.source ? ` from ${SOURCE_TEXT[query.source]}` : ""}. <button type="button" onClick={() => update({ days: "30", source: "" })} className="text-[#8AB4FF] underline">Look at 30 days, all sources</button></div>
+        <div className="p-6"><EmptyNotice art="filtered" title={`No scores in the last ${days} days${query.source ? ` from ${SOURCE_TEXT[query.source]}` : ""}`} description="Scores appear when your agent or an AI judge rates a run." action="Look at 30 days, all sources" onClick={() => update({ days: "30", source: "" })} /></div>
       ) : (
         <div className="mx-auto grid w-full max-w-[1320px] gap-8 p-6">
           <section aria-label="Score trend">

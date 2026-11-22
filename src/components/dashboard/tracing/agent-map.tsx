@@ -8,6 +8,7 @@ import { layoutWithElk } from "./elk-layout";
 import type { CanvasEdge, CanvasNode } from "./trace-canvas";
 import { TraceCanvasNode } from "./trace-canvas-nodes";
 import { flowNodeWidth, flowEdgePresentation } from "@/lib/trace-flow";
+import { EmptyNotice } from "../empty/empty-notice";
 
 type MapNode = { id: string; kind: string; name: string; count: number; traces: number; errors: number; p50LatencyMs: number };
 type MapEdge = { source: string; target: string; count: number; back?: number; errors: number; traces: number; errorRate: number; p50LatencyMs: number };
@@ -148,7 +149,7 @@ export function AgentMap({ projectId, params, live, rangeMs, onNode, onEdge, map
     return <div role="alert" className="my-6 border border-[#5A2A2A] bg-[#1E1314] p-4 text-sm"><p className="font-medium text-[#FF8A8A]">{current.error}</p><button type="button" className="mt-3 border border-[#5A2A2A] px-3 py-1.5 text-xs hover:bg-[#2A1A1C]" onClick={() => { setState(null); setAttempt((value) => value + 1); }}>Try again</button></div>;
   }
   if (!data) return <p className="my-6 text-sm text-[#8B93A1]">Loading the agent map…</p>;
-  if (!data.nodes.length) return <div className="my-10 border border-dashed border-[#262C35] p-8 text-center"><p className="font-medium">No steps in this range</p><p className="mt-2 text-sm text-[#8B93A1]">The map shows steps of the selected trace name that match your filters. Try a wider range or fewer filters.</p></div>;
+  if (!data.nodes.length) return <div className="my-10"><EmptyNotice art="filtered" title="No steps in this range" description="The map shows steps of the selected trace name that match your filters. Try a wider range or fewer filters." /></div>;
 
   const selected = selectedNode ? nodeById.get(selectedNode) : null;
   return (

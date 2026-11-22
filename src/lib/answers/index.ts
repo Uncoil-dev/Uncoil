@@ -6,6 +6,7 @@ import { findCostliestCall } from "./entries/find-costliest-tool-or-model-call";
 import { addTracingToAgent } from "./entries/add-tracing-to-openai-or-langgraph-agent";
 import { freeOpenSourceMonitoring } from "./entries/free-open-source-ai-agent-monitoring";
 import { alertOnAgentSpend } from "./entries/alert-when-ai-agent-spends-too-much";
+import { faqJsonLd } from "@/lib/seo";
 import type { Answer } from "./types";
 
 export type { Answer };
@@ -15,3 +16,8 @@ export type { Answer };
  * an Answer, then import it and add it to this list.
  */
 export const answers: readonly Answer[] = [...coreAnswers, trackAgentCosts, debugFailingAgentRun, whatIsAgentObservability, findCostliestCall, addTracingToAgent, freeOpenSourceMonitoring, alertOnAgentSpend];
+
+/** FAQPage structured data for an answer page: its question and answer. */
+export function answerFaqJsonLd(a: Pick<Answer, "question" | "answer">) {
+  return faqJsonLd([{ q: a.question, a: a.answer }]);
+}

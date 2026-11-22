@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { answers } from "./answers";
+import { answers, answerFaqJsonLd } from "./answers";
 
 const internalHref = /^\/[a-z0-9][a-z0-9\-/]*$/;
 
@@ -124,5 +124,20 @@ describe("alert-when-ai-agent-spends-too-much", () => {
     const a = answers.find((x) => x.slug === "alert-when-ai-agent-spends-too-much");
     expect(a?.question.endsWith("?")).toBe(true);
     expect(a?.points.length).toBeGreaterThan(0);
+  });
+
+  it("emits valid FAQPage structured data for every answer", () => {
+    for (const a of answers) {
+      const ld = answerFaqJsonLd(a);
+      expect(ld["@context"], a.slug).toBe("https://schema.org");
+      expect(ld["@type"], a.slug).toBe("FAQPage");
+      expect(ld.mainEntity.length, a.slug).toBeGreaterThan(0);
+      for (const q of ld.mainEntity) {
+        expect(q["@type"], a.slug).toBe("Question");
+        expect(q.name.trim(), a.slug).not.toBe("");
+        expect(q.acceptedAnswer["@type"], a.slug).toBe("Answer");
+        expect(q.acceptedAnswer.text.trim(), a.slug).not.toBe("");
+      }
+    }
   });
 });

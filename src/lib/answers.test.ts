@@ -85,3 +85,11 @@ describe("what-is-ai-agent-observability", () => {
     expect(a?.points.length).toBeGreaterThan(0);
   });
 });
+
+describe("find-costliest-tool-or-model-call", () => {
+  it("is listed with steps or points", () => {
+    const a = answers.find((x) => x.slug === "find-costliest-tool-or-model-call");
+    expect(a?.question.endsWith("?")).toBe(true);
+    expect(a?.points.length).toBeGreaterThan(0);
+  });
+});

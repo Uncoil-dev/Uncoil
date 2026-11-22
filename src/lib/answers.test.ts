@@ -110,3 +110,11 @@ describe("add-tracing-to-openai-or-langgraph-agent", () => {
     expect(a?.points.length).toBeGreaterThan(0);
   });
 });
+
+describe("free-open-source-ai-agent-monitoring", () => {
+  it("is listed with steps or points", () => {
+    const a = answers.find((x) => x.slug === "free-open-source-ai-agent-monitoring");
+    expect(a?.question.endsWith("?")).toBe(true);
+    expect(a?.points.length).toBeGreaterThan(0);
+  });
+});

@@ -14,12 +14,16 @@ import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
 type Lang = "python" | "typescript";
 
-const WIZARD = [
-  { id: "install", label: "Install", title: "Install the library", hint: "One package, no config files." },
-  { id: "instrument", label: "Instrument", title: "Instrument your agent", hint: "Wrap the function that runs your agent and record each model call." },
-  { id: "key", label: "Add your key", title: "Add your key", hint: "Put it in your agent's environment. It is shown in full only once, at creation." },
-  { id: "verify", label: "First trace", title: "Run it once", hint: "Start your agent. The status panel at the top turns green when the trace lands." },
-] as const;
+type StepId = "method" | "prompt" | "install" | "instrument" | "key" | "verify";
+
+const STEP_INFO: Record<StepId, { label: string; title: string; hint: string }> = {
+  method: { label: "Start", title: "How do you want to connect?", hint: "Both take about five minutes. Pick what suits you." },
+  prompt: { label: "Paste", title: "Paste this into your coding agent", hint: "Claude Code, Cursor or Codex will install, wire up and send the first trace." },
+  install: { label: "Install", title: "Install the library", hint: "One package, no config files." },
+  instrument: { label: "Instrument", title: "Instrument your agent", hint: "Wrap the function that runs your agent and record each model call." },
+  key: { label: "Add your key", title: "Add your key", hint: "Put it in your agent's environment. It is shown in full only once, at creation." },
+  verify: { label: "First trace", title: "Run your agent once", hint: "Start your agent. This page updates by itself when the trace lands." },
+};
 
 const BARS = [
   { name: "your-agent", left: 0, width: 100 },
@@ -91,11 +95,16 @@ export function QuickstartGuide({ projectId }: { projectId: string }) {
   const { done, copy } = useCopy();
   const snippet = SNIPPETS[lang];
 
+  const steps: StepId[] = mode === "agent" ? ["method", "prompt", "verify"] : ["method", "install", "instrument", "key", "verify"];
+  const current = steps[Math.min(step, steps.length - 1)];
+  const info = STEP_INFO[current];
+  const isLast = step >= steps.length - 1;
+
   useEffect(() => {
-    if (arrived) return;
+    if (arrived || current !== "verify") return;
     const id = window.setInterval(() => setElapsed((value) => value + 1), 1000);
     return () => window.clearInterval(id);
-  }, [arrived]);
+  }, [arrived, current]);
 
   const keyLine = `UNCOIL_API_KEY=${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}\nUNCOIL_REGION=${region.id}`;
   const envCopy = `UNCOIL_API_KEY=YOUR_API_KEY\nUNCOIL_REGION=${region.id}`;
@@ -104,170 +113,120 @@ export function QuickstartGuide({ projectId }: { projectId: string }) {
   const ss = String(elapsed % 60).padStart(2, "0");
 
   return (
-    <div className="mx-auto max-w-[1180px] space-y-6 px-4 pb-24 pt-6 lg:px-6">
-      {/* Hero */}
-      <section className="relative overflow-hidden border border-[#2a2a2a] bg-[#070707]">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_top_right,black,transparent_55%)]">
-          <DitherEmber className="!opacity-35" />
-        </div>
-        <div className="relative grid gap-8 p-6 md:p-10 lg:grid-cols-[1.25fr_1fr] lg:items-end">
-          <div>
-            <p className="inline-flex items-center gap-2 bg-[#f4d44d] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#090909]">
-              <span className="size-1.5 animate-pulse bg-[#090909]" /> Setup · about 5 minutes
-            </p>
-            <h2 className="mt-6 font-pixel text-[clamp(2.75rem,6vw,5rem)] leading-[0.86] tracking-[-0.07em] text-[#f4f3ee]">
-              Connect your
-              <br />
-              <span className="text-[#f4d44d]">agent.</span>
-            </h2>
-            <p className="mt-5 max-w-[46ch] font-sans text-[15px] leading-relaxed text-[#b4b4ad]">
-              Add four lines, run your agent once, and watch the trace land here. Nothing else to configure.
-            </p>
-          </div>
+    <div className="mx-auto w-full max-w-[920px] px-4 pb-24 pt-8 lg:px-6">
+      {/* Progress */}
+      <div className="mb-3 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8a84]">
+        <span>Setup · step {Math.min(step + 1, steps.length)} of {steps.length}</span>
+        <span>{arrived ? "Connected" : "About 5 minutes"}</span>
+      </div>
+      <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }} aria-label="Setup progress">
+        {steps.map((id, i) => (
+          <li key={id}>
+            <button type="button" onClick={() => setStep(i)} aria-current={i === step ? "step" : undefined} className="group block w-full text-left">
+              <span className={`block h-1.5 transition-colors ${i < step || arrived ? "bg-[#f4d44d]" : i === step ? "bg-[#f4f3ee]" : "bg-[#2a2a2a]"}`} />
+              <span className={`mt-2 hidden font-mono text-[10px] uppercase tracking-[0.14em] sm:block ${i === step ? "text-[#f4f3ee]" : "text-[#6f6f6a] group-hover:text-[#b4b4ad]"}`}>{STEP_INFO[id].label}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
 
-          {/* Live status */}
-          <div className="border border-[#3a3a3a] bg-[#000000cc] font-mono backdrop-blur" role="status" aria-live="polite">
-            <div className="flex items-center justify-between border-b border-[#2a2a2a] px-4 py-3 text-[10px] uppercase tracking-[0.16em]">
-              <span className="flex items-center gap-2 text-[#eceae3]">
-                <span className={`size-2 ${arrived ? "bg-[#5be3a0]" : "animate-pulse bg-[#f4d44d]"}`} />
-                {arrived ? "Trace received" : "Waiting for first trace"}
-              </span>
-              <span className="text-[#8a8a84]">{arrived ? "connected" : `${mm}:${ss}`}</span>
-            </div>
-            <div className="space-y-2.5 px-4 py-5">
-              {BARS.map((bar, i) => (
-                <div key={i} className="grid grid-cols-[80px_1fr] items-center gap-3">
-                  <span className="truncate text-[10px] text-[#8a8a84]">{bar.name}</span>
-                  <div className="relative h-3 bg-[#ffffff0d]">
-                    <motion.div
-                      className="absolute inset-y-0 origin-left bg-[#f4d44d] [background-image:repeating-linear-gradient(90deg,transparent_0_3px,rgba(0,0,0,0.35)_3px_4px)]"
-                      style={{ left: `${bar.left}%`, width: `${bar.width}%` }}
-                      initial={false}
-                      animate={arrived || reduce ? { scaleX: 1, opacity: arrived ? 1 : 0.25 } : { scaleX: [0, 1, 1, 0], opacity: [0.2, 0.55, 0.55, 0.2] }}
-                      transition={arrived || reduce ? { duration: 0.4 } : { duration: 3.2, repeat: Infinity, delay: i * 0.25, ease: "easeInOut" }}
-                    />
+      {/* Stage */}
+      <section className="relative mt-6 min-h-[520px] overflow-hidden border border-[#2a2a2a] bg-[#070707]">
+        {current === "method" || current === "verify" ? (
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 rotate-180 [mask-image:linear-gradient(to_top_right,black,transparent_45%)]">
+            <DitherEmber className="!opacity-30" />
+          </div>
+        ) : null}
+        <motion.div key={`${current}-${mode}`} initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="relative flex min-h-[520px] flex-col p-6 md:p-10">
+          <div className="flex-1">
+            <span className="font-pixel text-[72px] leading-none tracking-[-0.06em] text-[#f4d44d]">{String(step + 1).padStart(2, "0")}</span>
+            <h2 className="mt-4 font-pixel text-[clamp(2rem,4vw,3.25rem)] leading-[0.95] tracking-[-0.06em] text-[#f4f3ee]">{info.title}</h2>
+            <p className="mt-4 max-w-[52ch] font-sans text-[15px] leading-relaxed text-[#9b9b95]">{info.hint}</p>
+
+            <div className="mt-8">
+              {current === "method" ? (
+                <div className="space-y-5">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {([["agent", "Use my coding agent", "One paste. Fastest."], ["manual", "Do it step by step", "Install, add code, add key."]] as const).map(([value, label, sub]) => (
+                      <button key={value} type="button" onClick={() => setMode(value)} aria-pressed={mode === value} className={`border p-5 text-left transition-colors ${mode === value ? "border-[#f4d44d] bg-[#14120a]" : "border-[#333] bg-[#0c0c0c] hover:border-[#666]"}`}>
+                        <span className="block font-mono text-[12px] uppercase tracking-[0.14em] text-[#f4f3ee]">{label}</span>
+                        <span className="mt-1 block font-sans text-[13px] text-[#9b9b95]">{sub}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div role="tablist" aria-label="Language" className="inline-flex gap-1 border border-[#333] bg-[#0c0c0c] p-1">
+                    {(["python", "typescript"] as const).map((value) => (
+                      <button key={value} type="button" role="tab" aria-selected={lang === value} onClick={() => setLang(value)} className={`h-9 px-5 font-mono text-[11px] uppercase tracking-widest transition-colors ${lang === value ? "bg-[#f4f3ee] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{value}</button>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="border-t border-[#2a2a2a] px-4 py-3 text-[11px]">
-              {arrived ? (
-                <Link href={`/dashboard/${projectId}/tracing`} className="flex items-center justify-between !text-[#f4d44d] hover:underline">
-                  Open your first trace <ArrowRight className="size-3.5" />
-                </Link>
-              ) : (
-                <span className="text-[#8a8a84]">Run your agent once. This page updates by itself.</span>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Guided setup */}
-      <section className="border border-[#2a2a2a] bg-[#0a0a0a]" aria-label="Guided setup">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2a2a2a] px-4 py-3">
-          <div role="tablist" aria-label="Setup method" className="inline-flex gap-1 border border-[#333] bg-[#0c0c0c] p-1">
-            {([["agent", "Use my coding agent"], ["manual", "Step by step"]] as const).map(([value, label]) => (
-              <button key={value} type="button" role="tab" aria-selected={mode === value} onClick={() => { setMode(value); setStep(0); }} className={`h-8 px-4 font-mono text-[11px] uppercase tracking-widest transition-colors ${mode === value ? "bg-[#f4d44d] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{label}</button>
-            ))}
-          </div>
-          <div role="tablist" aria-label="Language" className="inline-flex gap-1 border border-[#333] bg-[#0c0c0c] p-1">
-            {(["python", "typescript"] as const).map((value) => (
-              <button key={value} type="button" role="tab" aria-selected={lang === value} onClick={() => setLang(value)} className={`h-8 px-4 font-mono text-[11px] uppercase tracking-widest transition-colors ${lang === value ? "bg-[#f4f3ee] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{value}</button>
-            ))}
-          </div>
-        </div>
-
-        {mode === "agent" ? (
-          <div className="relative overflow-hidden bg-[#f4d44d] p-6 text-[#090909] md:p-10">
-            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 [mask-image:linear-gradient(to_left,black,transparent)]">
-              <DitherEmber rgb={[9, 9, 9]} className="!opacity-20" />
-            </div>
-            <div className="relative grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em]">Fastest way · one paste</p>
-                <h3 className="mt-3 font-pixel text-[clamp(1.75rem,2.6vw,2.4rem)] leading-[0.95] tracking-[-0.06em]">Let your coding agent do it.</h3>
-                <p className="mt-3 max-w-[40ch] font-sans text-[14px] leading-relaxed text-[#090909cc]">Paste this into Claude Code, Cursor or Codex. It installs, wires up and sends the first trace. Then watch the panel above.</p>
-                <button type="button" onClick={() => copy("prompt", agentPrompt)} className="mt-5 inline-flex h-10 items-center gap-2 bg-[#090909] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#f4d44d] transition-transform hover:-translate-y-0.5">
-                  {done === "prompt" ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  {done === "prompt" ? "Copied" : "Copy prompt"}
-                </button>
-              </div>
-              <pre className="max-h-56 overflow-auto whitespace-pre-wrap bg-[#090909] p-4 font-mono text-[11px] leading-relaxed text-[#eceae3]">{agentPrompt}</pre>
-            </div>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-[260px_1fr]">
-            <ol className="flex gap-px overflow-x-auto border-b border-[#2a2a2a] bg-[#2a2a2a] md:flex-col md:border-b-0 md:border-r md:bg-[#0c0c0c]" aria-label="Setup steps">
-              {WIZARD.map((item, i) => {
-                const complete = i < step || (arrived && i === WIZARD.length - 1);
-                const active = i === step;
-                return (
-                  <li key={item.id} className="min-w-[150px] flex-1 md:flex-none">
-                    <button type="button" onClick={() => setStep(i)} aria-current={active ? "step" : undefined} className={`flex w-full items-center gap-3 px-4 py-4 text-left font-mono text-[11px] uppercase tracking-[0.12em] transition-colors ${active ? "bg-[#161616] !text-[#f4f3ee] shadow-[inset_3px_0_0_#f4d44d]" : "bg-[#0c0c0c] !text-[#8a8a84] hover:bg-[#121212]"}`}>
-                      <span className={`grid size-7 shrink-0 place-items-center text-[12px] ${complete ? "bg-[#f4d44d] text-[#090909]" : active ? "bg-[#f4f3ee] text-[#090909]" : "border border-[#444]"}`}>
-                        {complete ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
-                      </span>
-                      {item.label}
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
-            <div className="flex min-h-[420px] flex-col p-6 md:p-8">
-              <motion.div key={step} initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex-1">
-                <span className="font-pixel text-[64px] leading-none tracking-[-0.06em] text-[#f4d44d]">{String(step + 1).padStart(2, "0")}</span>
-                <h3 className="mt-3 font-pixel text-[clamp(1.6rem,2.4vw,2.2rem)] leading-[0.95] tracking-[-0.05em] text-[#f4f3ee]">{WIZARD[step].title}</h3>
-                <p className="mt-3 max-w-[56ch] font-sans text-[14px] leading-relaxed text-[#9b9b95]">{WIZARD[step].hint}</p>
-                <div className="mt-6">
-                  {step === 0 ? <Code code={snippet.install} id="install" file="terminal" copied={done === "install"} onCopy={() => copy("install", snippet.install)} /> : null}
-                  {step === 1 ? <Code code={snippet.code} id="code" file={snippet.file} copied={done === "code"} onCopy={() => copy("code", snippet.code)} /> : null}
-                  {step === 2 ? <Code code={keyLine} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", envCopy)} /> : null}
-                  {step === 3 ? (
-                    <div className={`flex items-center gap-3 border px-4 py-5 font-mono text-[12px] ${arrived ? "border-[#5be3a0] !text-[#5be3a0]" : "border-[#333] text-[#b4b4ad]"}`}>
-                      <span className={`size-2 ${arrived ? "bg-[#5be3a0]" : "animate-pulse bg-[#f4d44d]"}`} />
-                      {arrived ? "Your first trace arrived." : "Listening for your first trace… run your agent once."}
-                    </div>
-                  ) : null}
+              ) : null}
+              {current === "prompt" ? (
+                <div className="space-y-4">
+                  <pre className="max-h-64 overflow-auto whitespace-pre-wrap border border-[#2a2a2a] bg-[#050505] p-4 font-mono text-[12px] leading-relaxed text-[#eceae3]">{agentPrompt}</pre>
+                  <button type="button" onClick={() => copy("prompt", agentPrompt)} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">
+                    {done === "prompt" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    {done === "prompt" ? "Copied" : "Copy prompt"}
+                  </button>
                 </div>
-              </motion.div>
-              <div className="mt-8 flex items-center justify-between border-t border-[#2a2a2a] pt-5">
-                <button type="button" onClick={() => setStep((v) => Math.max(0, v - 1))} disabled={step === 0} className="h-10 border border-[#444] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#eceae3] transition-colors hover:border-[#f4d44d] disabled:opacity-30">Back</button>
-                {step < WIZARD.length - 1 ? (
-                  <button type="button" onClick={() => setStep((v) => v + 1)} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">Next <ArrowRight className="size-4" /></button>
-                ) : (
-                  <Link href={`/dashboard/${projectId}/tracing`} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">{arrived ? "Open your trace" : "Open tracing"} <ArrowRight className="size-4" /></Link>
-                )}
-              </div>
+              ) : null}
+              {current === "install" ? <Code code={snippet.install} id="install" file="terminal" copied={done === "install"} onCopy={() => copy("install", snippet.install)} /> : null}
+              {current === "instrument" ? <Code code={snippet.code} id="code" file={snippet.file} copied={done === "code"} onCopy={() => copy("code", snippet.code)} /> : null}
+              {current === "key" ? <Code code={keyLine} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", envCopy)} /> : null}
+              {current === "verify" ? (
+                <div className="max-w-[560px] border border-[#3a3a3a] bg-[#000000cc] font-mono" role="status" aria-live="polite">
+                  <div className="flex items-center justify-between border-b border-[#2a2a2a] px-4 py-3 text-[10px] uppercase tracking-[0.16em]">
+                    <span className="flex items-center gap-2 text-[#eceae3]">
+                      <span className={`size-2 ${arrived ? "bg-[#5be3a0]" : "animate-pulse bg-[#f4d44d]"}`} />
+                      {arrived ? "Trace received" : "Waiting for first trace"}
+                    </span>
+                    <span className="text-[#8a8a84]">{arrived ? "connected" : `${mm}:${ss}`}</span>
+                  </div>
+                  <div className="space-y-2.5 px-4 py-5">
+                    {BARS.map((bar, i) => (
+                      <div key={i} className="grid grid-cols-[80px_1fr] items-center gap-3">
+                        <span className="truncate text-[10px] text-[#8a8a84]">{bar.name}</span>
+                        <div className="relative h-3 bg-[#ffffff0d]">
+                          <motion.div
+                            className="absolute inset-y-0 origin-left bg-[#f4d44d] [background-image:repeating-linear-gradient(90deg,transparent_0_3px,rgba(0,0,0,0.35)_3px_4px)]"
+                            style={{ left: `${bar.left}%`, width: `${bar.width}%` }}
+                            initial={false}
+                            animate={arrived || reduce ? { scaleX: 1, opacity: arrived ? 1 : 0.25 } : { scaleX: [0, 1, 1, 0], opacity: [0.2, 0.55, 0.55, 0.2] }}
+                            transition={arrived || reduce ? { duration: 0.4 } : { duration: 3.2, repeat: Infinity, delay: i * 0.25, ease: "easeInOut" }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-[#2a2a2a] px-4 py-3 text-[11px] text-[#8a8a84]">{arrived ? "Your agent is connected." : "Nothing yet. Run your agent once."}</div>
+                </div>
+              ) : null}
             </div>
           </div>
-        )}
+
+          <div className="mt-10 flex items-center justify-between border-t border-[#2a2a2a] pt-5">
+            <button type="button" onClick={() => setStep((v) => Math.max(0, v - 1))} disabled={step === 0} className="h-10 border border-[#444] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#eceae3] transition-colors hover:border-[#f4d44d] disabled:opacity-30">Back</button>
+            {!isLast ? (
+              <button type="button" onClick={() => setStep((v) => v + 1)} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">Next <ArrowRight className="size-4" /></button>
+            ) : (
+              <Link href={`/dashboard/${projectId}/tracing`} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">{arrived ? "Open your trace" : "Open tracing"} <ArrowRight className="size-4" /></Link>
+            )}
+          </div>
+        </motion.div>
       </section>
 
-      <section className="border-t border-[#2a2a2a] pt-6">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="font-pixel text-2xl tracking-[-0.05em] text-[#f4f3ee]">Then grade your own runs</h3>
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#8a8a84]">Optional</span>
+      <details className="mt-6 border border-[#2a2a2a] bg-[#0a0a0a]">
+        <summary className="cursor-pointer px-4 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#c9c9c2]">Optional · grade your own runs from code</summary>
+        <div className="space-y-3 px-4 pb-4">
+          <p className="font-sans text-[13px] text-[#9b9b95]">Let your agent score each run. Scores appear on the Scores page.</p>
+          <Code code={scoreSnippet(lang, projectId)} id="score" file={lang === "python" ? "score.py" : "score.ts"} copied={done === "score"} onCopy={() => copy("score", scoreSnippet(lang, projectId))} />
         </div>
-        <p className="mb-4 max-w-[60ch] font-sans text-[13px] text-[#9b9b95]">Let your agent score each run from code. Scores appear on the Scores page.</p>
-        <Code code={scoreSnippet(lang, projectId)} id="score" file={lang === "python" ? "score.py" : "score.ts"} copied={done === "score"} onCopy={() => copy("score", scoreSnippet(lang, projectId))} />
-      </section>
+      </details>
 
-      {/* CTA */}
-      <section className="flex flex-wrap items-center justify-between gap-4 border border-[#f4d44d] bg-[#0c0c0c] p-6">
-        <div>
-          <p className="font-pixel text-2xl tracking-[-0.05em] text-[#f4f3ee]">Stuck? We read every message.</p>
-          <p className="mt-1 font-sans text-[13px] text-[#9b9b95]">The full guide covers frameworks, environments and troubleshooting.</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/docs/quickstart" className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">
-            <BookOpen className="size-4" /> Full guide
-          </Link>
-          <Link href={`/dashboard/${projectId}/tracing`} className="inline-flex h-10 items-center gap-2 border border-[#444] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#eceae3] hover:border-[#f4d44d]">
-            Open tracing <ArrowRight className="size-4" />
-          </Link>
-        </div>
-      </section>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 font-sans text-[13px] text-[#9b9b95]">
+        <span>Stuck? The full guide covers frameworks, environments and troubleshooting.</span>
+        <Link href="/docs/quickstart" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#eceae3] hover:!text-[#f4d44d]"><BookOpen className="size-4" /> Full guide</Link>
+      </div>
     </div>
   );
 }

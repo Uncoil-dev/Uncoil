@@ -7,7 +7,7 @@ import { Check, BarChart3, Users, Shield } from "lucide-react";
 
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
-import { Card } from "@/components/ui/card";
+import { Panel, StatTile, adminButton, adminButtonPrimary } from "@/components/dashboard/project-admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCurrency } from "@/lib/utils";
 import { planById } from "@/lib/pricing-plans";
@@ -68,15 +68,15 @@ export function BillingPlan({ projectId }: { projectId: string }) {
   if (summary === undefined) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-28 w-full rounded-none" />
-        <Skeleton className="h-80 w-full rounded-none" />
+        <Skeleton className="h-28 w-full rounded-none bg-[#111418]" />
+        <Skeleton className="h-80 w-full rounded-none bg-[#111418]" />
       </div>
     );
   }
 
   if (!summary) {
     return (
-      <div className="border border-black/15 bg-white p-6 font-mono text-sm text-black/60">
+      <div className="border border-[#262C35] bg-[#0E1115] p-6 font-mono text-sm text-[#8B93A1]">
         Project not found or access denied.
       </div>
     );
@@ -85,45 +85,31 @@ export function BillingPlan({ projectId }: { projectId: string }) {
   const currentPlan = summary.project.planTier ?? "free";
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <UsageCard
+        <StatTile
           label="Current plan"
-          value={currentPlan}
-          detail={usage && currentPlan !== "enterprise" ? `${usage.spans.toLocaleString()} of ${planById(currentPlan).spans} spans used this month` : "From project metadata"}
+          value={currentPlan.toUpperCase()}
+          detail={usage && currentPlan !== "enterprise" ? `${usage.spans.toLocaleString()} of ${planById(currentPlan).spans} spans this month` : "From project metadata"}
         />
-        <UsageCard
-          label="Saved spend"
-          value={formatCurrency(summary.totals.totalCostUsd)}
-          detail={`${summary.totals.totalRuns.toLocaleString()} saved runs`}
-        />
-        <UsageCard
-          label="Saved spans"
-          value={summary.totals.totalSpans.toLocaleString()}
-          detail={`${summary.totals.failedRuns.toLocaleString()} failed runs`}
-        />
+        <StatTile label="Saved spend" value={formatCurrency(summary.totals.totalCostUsd)} detail={`${summary.totals.totalRuns.toLocaleString()} saved runs`} />
+        <StatTile label="Saved spans" value={summary.totals.totalSpans.toLocaleString()} detail={`${summary.totals.failedRuns.toLocaleString()} failed runs`} />
       </div>
 
-      <div className="border border-black/15 bg-white p-5">
-        <div className="font-mono text-[11px] uppercase tracking-widest text-black">
-          Subscription billing
-        </div>
-        <p className="mt-2 max-w-3xl font-mono text-[12px] leading-relaxed text-black/55">
-          Paid plans use secure Stripe Checkout. Existing subscribers can manage
-          payment methods, invoices, plan changes, and cancellation in Stripe.
-        </p>
-        {summary.project.stripeCustomerId ? <PortalButton projectId={projectId} /> : null}
-      </div>
-
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h3 className="font-mono text-sm uppercase tracking-widest text-black">Plans</h3>
-          <div className="flex border border-black/15 p-1" aria-label="Billing interval">
-            <button type="button" aria-pressed={!annual} onClick={() => setAnnual(false)} className={cn("px-3 py-2 font-mono text-[9px] uppercase", !annual && "bg-black text-white")}>Monthly</button>
-            <button type="button" aria-pressed={annual} onClick={() => setAnnual(true)} className={cn("px-3 py-2 font-mono text-[9px] uppercase", annual && "bg-black text-white")}>Annual −20%</button>
+      <Panel
+        title="Plans"
+        hint="Paid plans use secure Stripe Checkout. Subscribers change plan, card and invoices in the billing portal."
+        action={
+          <div className="flex items-center gap-2">
+            {summary.project.stripeCustomerId ? <PortalButton projectId={projectId} /> : null}
+            <div className="flex border border-[#262C35] p-0.5" aria-label="Billing interval">
+              <button type="button" aria-pressed={!annual} onClick={() => setAnnual(false)} className={cn("px-3 py-1.5 font-mono text-[10px] uppercase text-[#8B93A1]", !annual && "bg-[#E6E9EE] text-[#0B0D10]")}>Monthly</button>
+              <button type="button" aria-pressed={annual} onClick={() => setAnnual(true)} className={cn("px-3 py-1.5 font-mono text-[10px] uppercase text-[#8B93A1]", annual && "bg-[#E6E9EE] text-[#0B0D10]")}>Annual −20%</button>
+            </div>
           </div>
-        </div>
-        <div className="mt-5 grid gap-5 lg:grid-cols-4">
+        }
+      >
+        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
           {PLANS.map((plan) => (
             <PlanCard
               key={plan.id}
@@ -135,28 +121,8 @@ export function BillingPlan({ projectId }: { projectId: string }) {
             />
           ))}
         </div>
-      </div>
+      </Panel>
     </div>
-  );
-}
-
-function UsageCard({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-}) {
-  return (
-    <Card className="rounded-none border-black/15 bg-white p-5 shadow-none">
-      <div className="font-mono text-[10px] uppercase tracking-widest text-black/55">
-        {label}
-      </div>
-      <div className="mt-3 font-mono text-2xl uppercase text-black">{value}</div>
-      <div className="mt-2 font-mono text-[11px] text-black/55">{detail}</div>
-    </Card>
   );
 }
 
@@ -179,79 +145,53 @@ function PlanCard({
     : interval === "annual" && plan.id === "team"
       ? "$31"
       : plan.price;
+  const footer = "mt-6 border border-[#262C35] px-3 py-2 text-center font-mono text-[10px] uppercase text-[#8B93A1]";
 
   return (
-    <Card
-      className={cn(
-        "relative flex h-full flex-col rounded-none border p-5 shadow-none transition-all duration-200 hover:-translate-y-0.5",
-        plan.popular && !current
-          ? "border-black bg-[#f3f2ed]"
-          : current
-            ? "border-black bg-[#f3f2ed]"
-            : "border-black/15 bg-white hover:border-black/30",
-      )}
-    >
-      {plan.popular && !current && (
-        <div className="absolute -top-[1px] left-5 -translate-y-full bg-black px-2.5 py-1">
-          <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white">
-            Most popular
-          </span>
-        </div>
-      )}
+    <div className={cn("relative flex h-full flex-col border p-5", current ? "border-[#F4D44D] bg-[#111418]" : "border-[#262C35] bg-[#0B0D10]")}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           {Icon && (
-            <div className="flex size-8 items-center justify-center border border-black/15">
-              <Icon className="size-4 text-black" />
+            <div className="flex size-8 items-center justify-center border border-[#262C35]">
+              <Icon className="size-4 text-[#E6E9EE]" />
             </div>
           )}
           <div>
-            <h4 className="font-mono text-base uppercase text-black">{plan.name}</h4>
-            <p className="mt-0.5 font-mono text-[11px] text-black/55">
-              {plan.audience}
-            </p>
+            <h4 className="font-mono text-base uppercase text-[#E6E9EE]">{plan.name}</h4>
+            <p className="mt-0.5 text-[12px] text-[#8B93A1]">{plan.audience}</p>
           </div>
         </div>
         {current ? (
-          <span className="bg-black px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-white">
-            Current
-          </span>
+          <span className="bg-[#F4D44D] px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-[#0B0D10]">Current</span>
+        ) : plan.popular ? (
+          <span className="border border-[#262C35] px-1.5 py-0.5 font-mono text-[9px] uppercase text-[#8B93A1]">Popular</span>
         ) : null}
       </div>
       <div className="mt-5 flex items-baseline gap-1.5">
-        <span className="font-mono text-2xl text-black">{displayPrice}</span>
-        {plan.note && (
-          <span className="font-mono text-[10px] text-black/55">{plan.note}</span>
-        )}
-        {interval === "annual" && (plan.id === "pro" || plan.id === "team") ? <span className="font-mono text-[9px] text-black/55">billed annually</span> : null}
+        <span className="font-mono text-2xl text-[#E6E9EE]">{displayPrice}</span>
+        {plan.note && <span className="font-mono text-[10px] text-[#8B93A1]">{plan.note}</span>}
+        {interval === "annual" && (plan.id === "pro" || plan.id === "team") ? <span className="font-mono text-[9px] text-[#6B7380]">billed annually</span> : null}
       </div>
-      <ul className="mt-5 flex-1 space-y-3">
+      <ul className="mt-5 flex-1 space-y-2.5">
         {plan.features.map((feature) => (
-          <li
-            key={feature}
-            className="flex items-center gap-3 font-mono text-[11px] text-black/70"
-          >
-            <Check className="size-3 shrink-0 text-black" />
+          <li key={feature} className="flex items-center gap-3 text-[12px] text-[#E6E9EE]">
+            <Check className="size-3 shrink-0 text-[#5BE3A0]" />
             <span>{feature}</span>
           </li>
         ))}
       </ul>
       {current ? (
-        <div className="mt-8 border border-black/15 px-3 py-2 text-center font-mono text-[10px] uppercase text-black/55">
-          Active plan
-        </div>
+        <div className={footer}>Active plan</div>
+      ) : hasSubscription && (plan.id === "pro" || plan.id === "team") ? (
+        <div className={footer}>Change in billing portal</div>
+      ) : plan.id === "pro" || plan.id === "team" ? (
+        <CheckoutButton projectId={projectId} plan={plan.id} interval={interval} />
       ) : (
-        hasSubscription && (plan.id === "pro" || plan.id === "team") ? (
-          <div className="mt-8 border border-black/15 px-3 py-2 text-center font-mono text-[10px] uppercase text-black/55">Change in billing portal</div>
-        ) : plan.id === "pro" || plan.id === "team" ? (
-          <CheckoutButton projectId={projectId} plan={plan.id} interval={interval} />
-        ) : (
-          <Link href={plan.id === "enterprise" ? "/contact" : "/dashboard"} className="mt-8 block border border-black/15 px-3 py-2 text-center font-mono text-[10px] uppercase text-black/70 transition-colors hover:border-black hover:text-black">
-            {plan.id === "enterprise" ? "Contact us" : "Free plan"}
-          </Link>
-        )
+        <Link href={plan.id === "enterprise" ? "/contact" : "/dashboard"} className={`${footer} block transition-colors hover:border-[#F4D44D] hover:text-[#E6E9EE]`}>
+          {plan.id === "enterprise" ? "Contact us" : "Free plan"}
+        </Link>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -270,7 +210,7 @@ function CheckoutButton({ projectId, plan, interval }: { projectId: string; plan
       setPending(false);
     }
   };
-  return <button type="button" onClick={startCheckout} disabled={pending} className="mt-8 border border-black bg-black px-3 py-2 font-mono text-[10px] uppercase text-white disabled:opacity-50">{pending ? "Opening checkout…" : `Choose ${plan}`}</button>;
+  return <button type="button" onClick={startCheckout} disabled={pending} className={`${adminButtonPrimary} mt-6`}>{pending ? "Opening checkout…" : `Choose ${plan}`}</button>;
 }
 
 function PortalButton({ projectId }: { projectId: string }) {
@@ -282,5 +222,5 @@ function PortalButton({ projectId }: { projectId: string }) {
     const data = await response.json() as { url?: string };
     if (data.url) window.location.assign(data.url); else setPending(false);
   };
-  return <button type="button" onClick={openPortal} disabled={pending} className="mt-4 border border-black/30 px-3 py-2 font-mono text-[10px] uppercase text-black">{pending ? "Opening…" : "Manage billing"}</button>;
+  return <button type="button" onClick={openPortal} disabled={pending} className={adminButton}>{pending ? "Opening…" : "Manage billing"}</button>;
 }

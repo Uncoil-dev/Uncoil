@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Panel } from "@/components/dashboard/project-admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface IngestQuota {
@@ -45,43 +45,31 @@ export function IngestQuotaCard({ projectId }: { projectId: string }) {
   }, [projectId]);
 
   if (!quota && !error) {
-    return <Skeleton className="h-28 w-full rounded-none" />;
+    return <Skeleton className="h-28 w-full rounded-none bg-[#111418]" />;
   }
 
   const usedPct = quota && quota.limit > 0 ? Math.min(100, Math.round((quota.used / quota.limit) * 100)) : 0;
   const nearLimit = usedPct >= 80;
 
   return (
-    <Card className="p-6 rounded-none border-border bg-white shadow-none space-y-4">
-      <div>
-        <h3 className="font-mono text-[14px] text-black uppercase tracking-widest">Ingest Rate Limit</h3>
-        <p className="text-[11px] text-black/55 mt-1">
-          Spans accepted per rolling 60-second window. Requests beyond the limit return HTTP 429.
-        </p>
-      </div>
-
+    <Panel title="Ingest rate" hint="Spans accepted per rolling 60 seconds. Above it, requests get HTTP 429.">
       {error || !quota?.available ? (
-        <p className="text-[11px] font-mono text-black/55 uppercase">Quota data unavailable right now.</p>
+        <p className="font-mono text-[11px] uppercase text-[#8B93A1]">Quota data unavailable right now.</p>
       ) : (
-        <>
+        <div className="space-y-3">
           <div className="flex items-baseline justify-between font-mono">
-            <span className={`text-2xl ${nearLimit ? "text-red-600" : "text-black"}`}>
-              {quota.used.toLocaleString()}
-            </span>
-            <span className="text-[11px] text-black/55">/ {quota.limit.toLocaleString()} per minute</span>
+            <span className={`text-2xl ${nearLimit ? "text-[#FF8A8A]" : "text-[#E6E9EE]"}`}>{quota.used.toLocaleString()}</span>
+            <span className="text-[11px] text-[#8B93A1]">/ {quota.limit.toLocaleString()} per minute</span>
           </div>
-          <div className="h-2 w-full border border-black/15 bg-white">
-            <div
-              className={`h-full ${nearLimit ? "bg-red-500" : "bg-black"}`}
-              style={{ width: `${usedPct}%` }}
-            />
+          <div className="h-2 w-full border border-[#262C35] bg-[#0B0D10]">
+            <div className={`h-full ${nearLimit ? "bg-[#FF6B6B]" : "bg-[#E6E9EE]"}`} style={{ width: `${usedPct}%` }} />
           </div>
-          <p className="text-[9px] text-black/55 font-mono uppercase">
-            {quota.remaining.toLocaleString()} requests remaining this window
+          <p className="font-mono text-[10px] uppercase text-[#6B7380]">
+            {quota.remaining.toLocaleString()} left this window
             {quota.resetSeconds > 0 ? ` · resets in ${quota.resetSeconds}s` : ""}
           </p>
-        </>
+        </div>
       )}
-    </Card>
+    </Panel>
   );
 }

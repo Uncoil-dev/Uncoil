@@ -1,0 +1,45 @@
+<svg viewBox="0 0 1600 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="htcGT htcGD">
+  <title id="htcGT">Five gates in a row that narrow a long tool list to two</title>
+  <desc id="htcGD">A decision map with five rectangular gates in sequence: hosting, SDK, trace depth, cost per run and price at your volume. Each gate has a dashed red fail path that removes a tool. Below the gates a funnel narrows a long list of tools to a shortlist of two, Tool A and Tool B.</desc>
+  <rect width="1600" height="640" fill="#0a0a0a"/>
+  <text x="70" y="55" fill="#f4d44d" font-family="monospace" font-size="18" letter-spacing="2">THE FIVE-GATE MODEL</text>
+  <text x="70" y="82" fill="#f6f1e6" opacity="0.6" font-family="monospace" font-size="13">hard constraints remove tools before features are compared</text>
+  <rect x="70" y="140" width="240" height="150" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="190" y="205" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" fill="#f4d44d">1 HOSTING</text>
+  <text x="190" y="240" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.8">region, operator</text>
+  <polygon points="320,215 360,215 340,200 " fill="none"/>
+  <line x1="314" y1="215" x2="366" y2="215" stroke="#f6f1e6" stroke-opacity="0.6" stroke-width="2"/>
+  <line x1="190" y1="290" x2="190" y2="340" stroke="#e2694f" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="190" y="362" text-anchor="middle" font-family="monospace" font-size="12" fill="#e2694f">fail: tool removed</text>
+  <rect x="370" y="140" width="240" height="150" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="490" y="205" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" fill="#f4d44d">2 SDK</text>
+  <text x="490" y="240" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.8">language, exit</text>
+  <polygon points="620,215 660,215 640,200 " fill="none"/>
+  <line x1="614" y1="215" x2="666" y2="215" stroke="#f6f1e6" stroke-opacity="0.6" stroke-width="2"/>
+  <line x1="490" y1="290" x2="490" y2="340" stroke="#e2694f" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="490" y="362" text-anchor="middle" font-family="monospace" font-size="12" fill="#e2694f">fail: tool removed</text>
+  <rect x="670" y="140" width="240" height="150" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="790" y="205" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" fill="#f4d44d">3 TRACE</text>
+  <text x="790" y="240" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.8">run to answer</text>
+  <polygon points="920,215 960,215 940,200 " fill="none"/>
+  <line x1="914" y1="215" x2="966" y2="215" stroke="#f6f1e6" stroke-opacity="0.6" stroke-width="2"/>
+  <line x1="790" y1="290" x2="790" y2="340" stroke="#e2694f" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="790" y="362" text-anchor="middle" font-family="monospace" font-size="12" fill="#e2694f">fail: tool removed</text>
+  <rect x="970" y="140" width="240" height="150" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="1090" y="205" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" fill="#f4d44d">4 COST</text>
+  <text x="1090" y="240" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.8">per run</text>
+  <polygon points="1220,215 1260,215 1240,200 " fill="none"/>
+  <line x1="1214" y1="215" x2="1266" y2="215" stroke="#f6f1e6" stroke-opacity="0.6" stroke-width="2"/>
+  <line x1="1090" y1="290" x2="1090" y2="340" stroke="#e2694f" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="1090" y="362" text-anchor="middle" font-family="monospace" font-size="12" fill="#e2694f">fail: tool removed</text>
+  <rect x="1270" y="140" width="240" height="150" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="1390" y="205" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" fill="#f4d44d">5 PRICE</text>
+  <text x="1390" y="240" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.8">at your volume</text>
+  <line x1="1390" y1="290" x2="1390" y2="340" stroke="#e2694f" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="1390" y="362" text-anchor="middle" font-family="monospace" font-size="12" fill="#e2694f">fail: tool removed</text>
+  <polygon points="70,420 1530,420 1100,520 500,520" fill="none" stroke="#f6f1e6" stroke-opacity="0.6" stroke-width="2"/>
+  <text x="800" y="478" text-anchor="middle" font-family="monospace" font-size="18" fill="#f6f1e6">long list narrows to a shortlist of two</text>
+  <rect x="660" y="540" width="130" height="44" fill="#f4d44d"/><rect x="810" y="540" width="130" height="44" fill="#f4d44d"/>
+  <text x="725" y="568" text-anchor="middle" font-family="monospace" font-size="14" fill="#0a0a0a">TOOL A</text><text x="875" y="568" text-anchor="middle" font-family="monospace" font-size="14" fill="#0a0a0a">TOOL B</text>
+
+</svg>

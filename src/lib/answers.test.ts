@@ -64,6 +64,15 @@ describe("answer extras", () => {
     }
   });
 
+  it("has non-empty code samples where present", () => {
+    for (const a of answers) {
+      for (const c of a.code ?? []) {
+        expect(c.label.trim(), a.slug).not.toBe("");
+        expect(c.text.trim(), a.slug).not.toBe("");
+      }
+    }
+  });
+
   it("lists the cost answer", () => {
     const a = answers.find((x) => x.slug === "track-ai-agent-costs");
     expect(a?.table?.rows.map((r) => r[0])).toEqual(["Tokens", "Retries", "Tool calls"]);

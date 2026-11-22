@@ -113,13 +113,13 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
       ? `/dashboard/${projectId}/${segments[2]}`
       : dashboardHref;
 
-  return (
-    <header className="uncoil-dashboard-topbar flex h-14 shrink-0 items-center justify-between border-b border-black/15 bg-[#f3f2ed] px-4 font-mono lg:px-6">
-      <span className="sr-only">
-        {title || "Dashboard"}{description ? `: ${description}` : ""}
-      </span>
+  const showControls = controls.range || controls.environment || controls.filters;
+  const eyebrow = segments[2] ? segments[2].replace(/-/g, " ") : "overview";
 
-      <div className="flex min-w-0 flex-1 items-center gap-4">
+  return (
+    <>
+    <header className="uncoil-dashboard-topbar flex h-14 shrink-0 items-center justify-between border-b border-black/15 bg-[#f3f2ed] px-4 font-mono lg:px-6">
+            <div className="flex min-w-0 flex-1 items-center gap-4">
         <div className="flex min-w-0 items-center gap-2 text-[11px] uppercase tracking-wider text-black/55">
           <div className="flex min-w-0 items-center gap-2 overflow-hidden">
             <Link
@@ -154,41 +154,6 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2 text-[12px] text-black/60">
-        <div className="uncoil-topbar-controls hidden items-center gap-1 lg:flex">
-          {controls.range ? <label className="uncoil-topbar-select">
-            <span className="sr-only">Dashboard time range</span>
-            <select
-              aria-label="Dashboard time range"
-              value={rangeValue}
-              onChange={(event) => updateDashboardQuery(usesRunsWindow ? "days" : "range", event.target.value)}
-            >
-              <option value="1">1d</option>
-              <option value="7">7d</option>
-              <option value="30">30d</option>
-              <option value="90">90d</option>
-            </select>
-          </label> : null}
-          {controls.environment ? <label className="uncoil-topbar-select">
-            <span className="sr-only">Environment</span>
-            <select
-              aria-label="Environment"
-              value={environmentValue}
-              onChange={(event) => updateDashboardQuery("environment", event.target.value === "all" ? "all environments" : event.target.value)}
-            >
-              <option value="all">All environments</option>
-              <option value="default">default</option>
-              <option value="production">production</option>
-            </select>
-          </label> : null}
-          {controls.filters ? <button
-            type="button"
-            className="uncoil-topbar-filter"
-            onClick={() => window.dispatchEvent(new Event("uncoil:toggle-dashboard-filters"))}
-          >
-            Filters
-          </button> : null}
-        </div>
-
         <DashboardCommandMenu projectId={projectId} />
         <OrganizationSwitcher />
 
@@ -409,5 +374,53 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
         </a>
       </div>
     </header>
+    {title ? (
+      <div className="uncoil-page-hero">
+        <div className="min-w-0">
+          <div className="uncoil-page-hero-eyebrow">
+            <span className="uncoil-dissolve" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>
+            {eyebrow}
+          </div>
+          <h1 className="uncoil-page-hero-title">{title}</h1>
+          {description ? <p className="uncoil-page-hero-desc">{description}</p> : null}
+        </div>
+        <div className="uncoil-topbar-controls hidden items-center gap-1 lg:flex">
+          {controls.range ? <label className="uncoil-topbar-select">
+            <span className="sr-only">Dashboard time range</span>
+            <select
+              aria-label="Dashboard time range"
+              value={rangeValue}
+              onChange={(event) => updateDashboardQuery(usesRunsWindow ? "days" : "range", event.target.value)}
+            >
+              <option value="1">1d</option>
+              <option value="7">7d</option>
+              <option value="30">30d</option>
+              <option value="90">90d</option>
+            </select>
+          </label> : null}
+          {controls.environment ? <label className="uncoil-topbar-select">
+            <span className="sr-only">Environment</span>
+            <select
+              aria-label="Environment"
+              value={environmentValue}
+              onChange={(event) => updateDashboardQuery("environment", event.target.value === "all" ? "all environments" : event.target.value)}
+            >
+              <option value="all">All environments</option>
+              <option value="default">default</option>
+              <option value="production">production</option>
+            </select>
+          </label> : null}
+          {controls.filters ? <button
+            type="button"
+            className="uncoil-topbar-filter"
+            onClick={() => window.dispatchEvent(new Event("uncoil:toggle-dashboard-filters"))}
+          >
+            Filters
+          </button> : null}
+        </div>
+
+      </div>
+    ) : null}
+    </>
   );
 }

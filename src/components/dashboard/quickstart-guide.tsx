@@ -65,13 +65,6 @@ const runAgent = traceAgent(async () => {
 
   return (
     <div className="space-y-8 max-w-4xl">
-      <div className="space-y-2">
-        <h2 className="font-mono text-lg text-black uppercase tracking-widest">Instrumentation</h2>
-        <p className="text-sm text-black/55 font-sans">
-          Connect your agent to Uncoil in less than 5 minutes.
-        </p>
-      </div>
-
       <Tabs defaultValue="python" className="w-full">
         <TabsList className="inline-flex gap-1 rounded-none border border-black/20 bg-black/[0.04] p-1">
           <TabsTrigger

@@ -11,8 +11,8 @@ export default async function QuickstartPage({
   return (
     <div className="flex flex-col gap-6">
       <DashboardTopbar
-        title="Quickstart Guide"
-        description="Instrument your agent and start capturing traces."
+        title="Quickstart"
+        description="Connect your agent to Uncoil in less than 5 minutes."
       />
 
       <div className="px-6 pb-20">

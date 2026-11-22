@@ -284,7 +284,7 @@ function Code({ code, file, copied, onCopy }: { code: string; id: string; file: 
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <pre className="overflow-x-auto p-4 font-mono text-[12px] leading-relaxed text-[#f4d44d]">{code}</pre>
+      <pre className="overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed text-[#eceae3]">{code}</pre>
     </div>
   );
 }

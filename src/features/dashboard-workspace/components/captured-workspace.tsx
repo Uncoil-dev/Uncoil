@@ -636,7 +636,13 @@ function PromptPlaygroundSurface({ workspace, onReadOnly }: { workspace: Dashboa
 function SettingsSurface({ workspace, onReadOnly, onSave, dataPanel, tabPanels }: { workspace: DashboardWorkspace; onReadOnly: (action: string) => void; onSave?: (input: { name: string }) => Promise<void>; dataPanel?: ReactNode; tabPanels?: Record<string, ReactNode> }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tabs = ["General", "Members", "API Keys", "LLM Connections", "Model Definitions", "MCP & CLI", "Scores", "Integrations", "Notifications", "Data", "Batch Actions", "Audit log"];
+  const groups: { label: string; items: string[] }[] = [
+    { label: "Project", items: ["General", "Members", "Data"] },
+    { label: "Access", items: ["API Keys", "LLM Connections", "Model Definitions", "MCP & CLI"] },
+    { label: "Quality", items: ["Scores", "Batch Actions"] },
+    { label: "Connect", items: ["Integrations", "Notifications", "Audit log"] },
+  ];
+  const tabs = groups.flatMap((group) => group.items);
   const requestedTab = searchParams.get("tab");
   const normalizedTab = requestedTab && tabs.includes(requestedTab) ? requestedTab : "General";
   const [tab, setTab] = useState(normalizedTab);
@@ -652,7 +658,7 @@ function SettingsSurface({ workspace, onReadOnly, onSave, dataPanel, tabPanels }
     window.history.replaceState(null, "", query ? `${pathname}?${query}` : pathname);
   }
   async function save() { if (!onSave) { onReadOnly("Save project settings"); return; } setSaving(true); setNotice(null); try { await onSave({ name }); setNotice("Settings saved"); } catch (error) { setNotice(error instanceof Error ? error.message : "Unable to save settings"); } finally { setSaving(false); } }
-  return <main className="captured-settings"><nav>{tabs.map((item) => <button key={item} type="button" className={tab === item ? "active" : ""} onClick={() => selectTab(item)}>{item}</button>)}</nav><section><span>Project settings / {tab}</span><h2>{tab === "General" ? name : tab}</h2>{tab === "General" ? <><label>Project name<input value={name} onChange={(event) => setName(event.target.value)} /></label><label>Project ID<input value={workspace.project.id} readOnly /></label><div className="captured-settings-actions"><button type="button" disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : "Save changes"}</button><button type="button" onClick={() => onReadOnly("Open LLM Connections")}>Open LLM Connections</button></div>{notice ? <p role="status">{notice}</p> : null}</> : tab === "Data" && dataPanel ? dataPanel : tabPanels?.[tab] ? tabPanels[tab] : <><p className="captured-settings-placeholder">{tab} controls are available in the live project workspace.</p><button type="button" onClick={() => onReadOnly(`Open ${tab}`)}>Open {tab}</button></>}</section></main>;
+  return <main className="captured-settings"><nav aria-label="Project settings">{groups.map((group) => <div key={group.label} className="captured-settings-group"><p>{group.label}</p>{group.items.map((item) => <button key={item} type="button" aria-current={tab === item ? "page" : undefined} className={tab === item ? "active" : ""} onClick={() => selectTab(item)}>{item}</button>)}</div>)}</nav><section><span>{groups.find((group) => group.items.includes(tab))?.label} / {tab}</span><h2>{tab === "General" ? name : tab}</h2>{tab === "General" ? <><label>Project name<input value={name} onChange={(event) => setName(event.target.value)} /></label><label>Project ID<input value={workspace.project.id} readOnly /></label><div className="captured-settings-actions"><button type="button" disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : "Save changes"}</button><button type="button" onClick={() => onReadOnly("Open LLM Connections")}>Open LLM Connections</button></div>{notice ? <p role="status">{notice}</p> : null}</> : tab === "Data" && dataPanel ? dataPanel : tabPanels?.[tab] ? tabPanels[tab] : <><p className="captured-settings-placeholder">{tab} controls are available in the live project workspace.</p><button type="button" onClick={() => onReadOnly(`Open ${tab}`)}>Open {tab}</button></>}</section></main>;
 }
 
 function SessionsSurface({ workspace, basePath, recordId, onReadOnly }: { workspace: DashboardWorkspace; basePath: string; recordId?: string; onReadOnly?: (action: string) => void }) {

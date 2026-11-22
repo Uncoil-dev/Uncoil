@@ -5,6 +5,7 @@ import { whatIsAgentObservability } from "./entries/what-is-ai-agent-observabili
 import { findCostliestCall } from "./entries/find-costliest-tool-or-model-call";
 import { addTracingToAgent } from "./entries/add-tracing-to-openai-or-langgraph-agent";
 import { freeOpenSourceMonitoring } from "./entries/free-open-source-ai-agent-monitoring";
+import { alertOnAgentSpend } from "./entries/alert-when-ai-agent-spends-too-much";
 import type { Answer } from "./types";
 
 export type { Answer };
@@ -13,4 +14,4 @@ export type { Answer };
  * Registry of answer pages. To add one, create a file in ./entries that exports
  * an Answer, then import it and add it to this list.
  */
-export const answers: readonly Answer[] = [...coreAnswers, trackAgentCosts, debugFailingAgentRun, whatIsAgentObservability, findCostliestCall, addTracingToAgent, freeOpenSourceMonitoring];
+export const answers: readonly Answer[] = [...coreAnswers, trackAgentCosts, debugFailingAgentRun, whatIsAgentObservability, findCostliestCall, addTracingToAgent, freeOpenSourceMonitoring, alertOnAgentSpend];

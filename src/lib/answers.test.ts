@@ -118,3 +118,11 @@ describe("free-open-source-ai-agent-monitoring", () => {
     expect(a?.points.length).toBeGreaterThan(0);
   });
 });
+
+describe("alert-when-ai-agent-spends-too-much", () => {
+  it("is listed with steps or points", () => {
+    const a = answers.find((x) => x.slug === "alert-when-ai-agent-spends-too-much");
+    expect(a?.question.endsWith("?")).toBe(true);
+    expect(a?.points.length).toBeGreaterThan(0);
+  });
+});

@@ -83,7 +83,7 @@ export function FirstRunPanel({
         <p className="font-mono text-sm tabular-nums text-[#f4d44d]">{clock(elapsed)}</p>
       </div>
       <p className="mt-4 truncate border-t border-white/10 pt-3 font-mono text-[11px] text-white/45">{keyDisplay}</p>
-      {hint ? <p className="mt-3 font-sans text-sm leading-6 text-[#f4d44d]">{hint}</p> : null}
+      {hint ? <p className="mt-3 font-sans text-sm leading-6 text-[#eceae3]">{hint}</p> : null}
     </div>
   );
 }

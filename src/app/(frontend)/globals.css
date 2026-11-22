@@ -924,3 +924,5 @@ body:has(.uncoil-cloud-shell) [role="menu"] [class*="border-black"]{border-color
 .uncoil-page-hero-desc{margin:12px 0 0;max-width:56ch;font:400 14px/1.5 var(--font-geist-sans),Arial,sans-serif;color:#9b9b95}
 .uncoil-cloud-shell [data-slot="skeleton"],.uncoil-cloud-shell main .bg-muted{background:#1b1b1b!important}
 @media(max-width:700px){.uncoil-page-hero{padding:20px 16px 4px}}
+.uncoil-cloud-shell main h1.text-base.font-semibold,.uncoil-cloud-shell main h1.text-\[15px\].font-semibold,.uncoil-cloud-shell main h1.text-lg.font-semibold{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-geist-pixel),monospace;font-weight:400;font-size:22px;line-height:1;letter-spacing:-.04em;text-transform:uppercase;color:#f4f3ee}
+.uncoil-cloud-shell main h1.text-base.font-semibold::before,.uncoil-cloud-shell main h1.text-\[15px\].font-semibold::before,.uncoil-cloud-shell main h1.text-lg.font-semibold::before{content:"";width:6px;height:16px;background:#f4d44d;flex:none}

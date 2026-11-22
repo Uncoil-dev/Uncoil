@@ -86,6 +86,7 @@ export const de: Copy = {
     spanCounted: (n) => (n === 1 ? "Span gezählt" : "Spans gezählt"),
     runMeta: ["der Lauf selbst", "412 Tokens", "140 ms", "0 Treffer", "$0.0187", "502-Fehler"],
     calc: {
+      compare: "Mit den Rechnungen anderer Tools vergleichen",
       eyebrow: "Preisrechner",
       title: "Schiebe auf dein Volumen. Sieh deinen Preis.",
       body: "Eine Span ist ein erfasster Schritt in einem Lauf: ein Modellaufruf, ein Tool-Aufruf, eine Abfrage. Sag uns, wie viele Läufe du hast und wie lang sie sind, und wir zeigen Plan und Preis.",

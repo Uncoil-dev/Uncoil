@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PricingPage } from "@/components/marketing/pricing/pricing-page";
 import { breadcrumbJsonLd, faqJsonLd, jsonLdString, productJsonLd } from "@/lib/seo";
+import { pricingFaqItems } from "@/lib/pricing-faq";
 import { getCopy } from "@/lib/i18n";
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export const revalidate = 300;
 export default function Page() {
   const founding = Boolean(process.env.STRIPE_FOUNDING_COUPON_ID);
   const { faqs, foundingFaq } = getCopy("en").pricing;
-  const items = (founding ? [...faqs, foundingFaq] : faqs).map(([q, a]) => ({ q, a }));
+  const items = pricingFaqItems({ faqs, foundingFaq }, founding);
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString([breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Pricing", path: "/pricing" }]), productJsonLd({ name: "Uncoil pricing", description: "Free, Pro, Team and Enterprise plans for AI agent tracing, cost tracking and evaluation.", path: "/pricing" }), faqJsonLd(items)]) }} />

@@ -28,10 +28,10 @@ function CommandTrigger() {
       type="button"
       onClick={() => window.dispatchEvent(new Event("uncoil:open-command"))}
       aria-label="Open command menu"
-      className="hidden h-8 items-center gap-2 border border-black/15 bg-white px-3 font-mono text-[10px] uppercase tracking-widest text-black/55 transition-colors hover:border-black hover:text-black md:flex"
+      className="hidden h-8 items-center gap-2 border border-black/15 bg-white px-2.5 font-mono text-[10px] uppercase tracking-widest text-black/55 transition-colors hover:border-black hover:text-black md:flex"
     >
       <Command className="size-3" aria-hidden="true" />
-      <span>Command</span>
+      <span className="sr-only">Command</span>
       <kbd className="border border-black/25 px-1.5 py-0.5 text-[9px] text-black/55">⌘K</kbd>
     </button>
   );

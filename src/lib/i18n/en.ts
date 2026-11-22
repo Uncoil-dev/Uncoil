@@ -145,6 +145,7 @@ export const en: Copy = {
     faqTitle: "Quick answers.",
     faqs: [
       ["What is a span?", "One recorded step in a run: a model call, a tool call, a retrieval. A run with six steps is six spans. Plans are sized by spans per month."],
+      ["Is there a trial for Pro and Team?", "Yes. New paid subscriptions start with 7 days free. You add a card at checkout, and it is not charged until the trial ends. Cancel before then and you pay nothing. Each project gets one trial."],
       ["Can I try it without paying?", "Yes. Free gives you 10,000 spans a month, up to 2 projects and 7 days of history. No card. You confirm your email before you create your first key."],
       ["What happens when I reach my limit?", "Free stops saving new data at 10,000 spans a month, or 2,000 in one day. Pro and Team get a 10% buffer first. You are never billed extra, and what is already saved stays. Counts reset at the start of each UTC month, or you can upgrade at any time."],
       ["Do I pay per seat or per project?", "A paid plan covers one project: the one you pick at checkout. Your other projects stay on Free until you upgrade them. Each plan has a member limit, but no per-seat price."],

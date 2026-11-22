@@ -16,7 +16,7 @@ import { BrandLogo } from "@/components/brand-logo";
 const stepPresentation = {
   project: { code: "01", label: "Name your project", note: "One project per agent or product. Every run, tool call and cost lands in it.", img: "map-flat" },
   "api-key": { code: "02", label: "Grab your key", note: "Your agent uses this key to talk to Uncoil. It is shown once, so save it now.", img: "span-anatomy" },
-  install: { code: "03", label: "Send your first run", note: "Paste the code, run your agent once. This page lights up the moment Uncoil hears it.", img: "capture-streams" },
+  install: { code: "03", label: "Send your first run", note: "Follow the steps, then run your agent once. This page lights up the moment Uncoil hears it.", img: "capture-streams" },
   waiting: { code: "03", label: "Send your first run", note: "Run your agent once. This page lights up the moment Uncoil hears it.", img: "capture-streams" },
   success: { code: "03", label: "You're live", note: "Your first run arrived. Open it and see every step as a map.", img: "horizon-sun" },
 } satisfies Record<OnboardingStepId, { code: string; label: string; note: string; img: string }>;

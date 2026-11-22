@@ -73,7 +73,7 @@ export function ApiKeyStep() {
         </div>
       ) : apiKey ? (
         <>
-          <div className="relative border border-black bg-[#090909] p-5 font-mono text-sm text-[#f4d44d]">
+          <div className="relative border border-black bg-[#090909] p-5 font-mono text-sm text-[#eceae3]">
             <span className="absolute right-3 top-3 font-mono text-[9px] uppercase tracking-[0.14em] text-white/40">shown once</span>
             <code className="mt-3 block break-all">{apiKey}</code>
           </div>

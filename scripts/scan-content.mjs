@@ -89,6 +89,7 @@ export function scan(root) {
   if (existsSync(llms)) {
     for (const m of readFileSync(llms, "utf8").matchAll(/\]\(https:\/\/www\.uncoil\.dev(\/(?:blog|docs)\/[^)\s#?]+)\)/g)) {
       const p = normalizeHref(m[1]);
+      if (/\.xml$/.test(p)) continue; // feed routes, not content pages
       if (!slugs[p] && (blog.length || docs.length)) findings.push({ key: stableKey("llms", "public/llms.txt", p), problem: `llms.txt links to unknown page: ${p}`, file: "public/llms.txt" });
     }
   }

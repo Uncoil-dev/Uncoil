@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "convex/_generated/api";
-import { BrandLogo } from "@/components/brand-logo";
+import { WorkspaceCheckScreen } from "@/components/brand/workspace-check-screen";
 import { ConvexAuthState } from "@/components/auth/convex-auth-state";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 
@@ -52,23 +52,5 @@ export function OnboardingEntryRouter() {
 
   if (auth.status === "error") return <ConvexAuthState mode="error" redirectPath="/onboarding" />;
 
-  return (
-    <main className="min-h-svh bg-[#f3f2ed] px-4 py-8 font-mono text-black/70">
-      <div className="mx-auto flex min-h-[calc(100svh-64px)] w-full max-w-[720px] flex-col justify-center">
-        <div className="mb-4 text-black"><BrandLogo tone="light" className="text-lg" /></div>
-        <section className="border border-black/15 bg-white p-6 md:p-8">
-          <div className="text-[11px] uppercase tracking-wide text-black/55">
-            onboarding.route
-          </div>
-          <h1 className="mt-3 font-mono text-2xl normal-case tracking-normal text-black">
-            Checking workspace state.
-          </h1>
-          <p className="mt-3 max-w-xl font-sans text-sm leading-6 text-black/60">
-            You will only enter onboarding when a project still needs to be
-            created.
-          </p>
-        </section>
-      </div>
-    </main>
-  );
+  return <WorkspaceCheckScreen label="Checking your workspace" />;
 }

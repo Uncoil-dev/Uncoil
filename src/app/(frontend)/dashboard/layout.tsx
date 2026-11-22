@@ -12,5 +12,5 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <><DashboardShell canAccessContent={true}>{children}</DashboardShell><DashboardAssistant /></>;
+  return <><DashboardShell>{children}</DashboardShell><DashboardAssistant /></>;
 }

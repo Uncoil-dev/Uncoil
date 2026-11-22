@@ -1,0 +1,40 @@
+name: Scan unused code
+
+# Weekly report of unused files, exports and dependencies. Report only.
+
+on:
+  schedule:
+    - cron: "30 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unused:
+    name: Unused code (report only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          submodules: true
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Find unused files, exports and dependencies
+        continue-on-error: true
+        run: |
+          pnpm dlx --package=knip@5.61.0 --package=typescript@5.9.3 knip --no-progress | tee knip-report.txt
+          {
+            echo "### Unused code report"
+            echo '```'
+            grep -E '^[A-Z].*\([0-9]+\)$' knip-report.txt || echo "No findings."
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

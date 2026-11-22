@@ -8,6 +8,14 @@ test("public product surfaces load", async ({ request }) => {
   }
 });
 
+test("unknown URLs get the branded 404 page", async ({ request }) => {
+  const response = await request.get("/no-such-page-here");
+  expect(response.status()).toBe(404);
+  const html = await response.text();
+  expect(html).toContain("This trace stops here.");
+  expect(html).toContain("Back home");
+});
+
 test("sign-in route redirects safely when auth is unavailable", async ({ request }) => {
   const response = await request.get("/sign-in", { maxRedirects: 0 });
   expect([200, 301, 302, 307, 308]).toContain(response.status());

@@ -11,10 +11,8 @@ import {
   MessageSquareText,
   PanelLeftClose,
   PanelLeftOpen,
-  PhoneCall,
   Search,
   Settings2,
-  ShieldCheck,
   Terminal,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -83,7 +81,6 @@ function isActivePath(pathname: string, href: string, projectId: string, isPrevi
 }
 
 export function DashboardSidebar({
-  canAccessContent,
   isCollapsed,
   onCollapsedChange,
   projectIdOverride,
@@ -94,7 +91,6 @@ export function DashboardSidebar({
   onMobileClose,
   onMobileToggle,
 }: {
-  canAccessContent: boolean;
   isCollapsed: boolean;
   onCollapsedChange: (next: boolean) => void;
   projectIdOverride?: string;
@@ -173,9 +169,7 @@ export function DashboardSidebar({
       rows: [
         ...(liveProject ? [{ id: "quickstart", title: "Quickstart", icon: Terminal, href: workspaceHref("quickstart") }] : []),
         { id: "docs", title: "Docs", icon: BookOpen, href: `${MARKETING_ORIGIN}/docs`, external: true },
-        { id: "call", title: "Book a call", icon: PhoneCall, href: `${MARKETING_ORIGIN}/contact`, external: true },
         { id: "support", title: "Support", icon: MessageSquareText, href: `${MARKETING_ORIGIN}/contact`, external: true },
-        ...(canAccessContent ? [{ id: "admin-library", title: "Admin Library", icon: ShieldCheck, href: "/admin/library" }] : []),
       ],
     };
     if (!hasProject) return [help];
@@ -250,7 +244,7 @@ export function DashboardSidebar({
       },
       help,
     ];
-  }, [canAccessContent, demo, hasProject, isSynthetic, liveProject, projectId, savedViews, showSessions, workspaceHref]);
+  }, [demo, hasProject, isSynthetic, liveProject, projectId, savedViews, showSessions, workspaceHref]);
 
   const currentSearch = searchParams.toString();
   // With no project yet, `/dashboard/<page>` would be read as a project id and the page would

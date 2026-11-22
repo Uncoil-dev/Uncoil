@@ -93,3 +93,11 @@ describe("find-costliest-tool-or-model-call", () => {
     expect(a?.points.length).toBeGreaterThan(0);
   });
 });
+
+describe("add-tracing-to-openai-or-langgraph-agent", () => {
+  it("is listed with steps or points", () => {
+    const a = answers.find((x) => x.slug === "add-tracing-to-openai-or-langgraph-agent");
+    expect(a?.question.endsWith("?")).toBe(true);
+    expect(a?.points.length).toBeGreaterThan(0);
+  });
+});

@@ -10,6 +10,8 @@ export type Answer = {
   points: readonly { heading: string; body: string }[];
   /** Optional numbered steps, shown before the points. */
   steps?: readonly { heading: string; body: string }[];
+  /** Optional code samples, shown after the steps. */
+  code?: readonly { label: string; text: string }[];
   /** Optional small table, shown after the steps. */
   table?: { caption: string; columns: readonly string[]; rows: readonly (readonly string[])[] };
   link: { href: string; label: string };

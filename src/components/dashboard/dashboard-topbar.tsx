@@ -23,6 +23,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { buttonVariants } from "@/components/ui/button";
 import { getOnboardingHref } from "@/lib/onboarding-navigation";
 import { getUncoilRegion } from "@/lib/regions";
+import { topbarControlsFor } from "@/lib/dashboard-topbar-controls";
 
 import { authClient } from "@/lib/auth-client";
 import { OrganizationSwitcher } from "@/components/auth/organization-switcher";
@@ -68,14 +69,9 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
   const environmentValue = environmentContext === "all environments" ? "all" : environmentContext;
 
   const region = getUncoilRegion();
+  const controls = topbarControlsFor(pathname);
   const { data: session } = authClient.useSession();
-  const { data: organization } = authClient.useActiveOrganization();
   const user = session?.user;
-
-  const project = useQuery(
-    api.projects.getProject,
-    projectId ? { projectId: projectId as Id<"projects"> } : "skip",
-  );
 
   const alerts = useQuery(
     api.alerts.listByProject,
@@ -117,13 +113,12 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
       ? `/dashboard/${projectId}/${segments[2]}`
       : dashboardHref;
 
-  return (
-    <header className="uncoil-dashboard-topbar flex h-14 shrink-0 items-center justify-between border-b border-black/15 bg-[#f3f2ed] px-4 font-mono lg:px-6">
-      <span className="sr-only">
-        {title || "Dashboard"}{description ? `: ${description}` : ""}
-      </span>
+  const eyebrow = segments[2] ? segments[2].replace(/-/g, " ") : "overview";
 
-      <div className="flex min-w-0 flex-1 items-center gap-4">
+  return (
+    <>
+    <header className="uncoil-dashboard-topbar flex h-14 shrink-0 items-center justify-between border-b border-black/15 bg-[#f3f2ed] px-4 font-mono lg:px-6">
+            <div className="flex min-w-0 flex-1 items-center gap-4">
         <div className="flex min-w-0 items-center gap-2 text-[11px] uppercase tracking-wider text-black/55">
           <div className="flex min-w-0 items-center gap-2 overflow-hidden">
             <Link
@@ -158,49 +153,6 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2 text-[12px] text-black/60">
-        <div className="uncoil-topbar-controls hidden items-center gap-1 lg:flex">
-          <Link
-            href={`/cloud/region?next=${encodeURIComponent(pathname)}`}
-            className="uncoil-topbar-region inline-flex h-8 items-center gap-1.5 border border-black/15 bg-white px-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-black/70 transition-colors hover:border-black hover:text-black"
-            title="Switch regional cloud"
-          >
-            <span aria-hidden="true">{region.flag}</span>
-            <span>{region.shortName} cloud</span>
-          </Link>
-          <label className="uncoil-topbar-select">
-            <span className="sr-only">Dashboard time range</span>
-            <select
-              aria-label="Dashboard time range"
-              value={rangeValue}
-              onChange={(event) => updateDashboardQuery(usesRunsWindow ? "days" : "range", event.target.value)}
-            >
-              <option value="1">1d</option>
-              <option value="7">7d</option>
-              <option value="30">30d</option>
-              <option value="90">90d</option>
-            </select>
-          </label>
-          <label className="uncoil-topbar-select">
-            <span className="sr-only">Environment</span>
-            <select
-              aria-label="Environment"
-              value={environmentValue}
-              onChange={(event) => updateDashboardQuery("environment", event.target.value === "all" ? "all environments" : event.target.value)}
-            >
-              <option value="all">All environments</option>
-              <option value="default">default</option>
-              <option value="production">production</option>
-            </select>
-          </label>
-          <button
-            type="button"
-            className="uncoil-topbar-filter"
-            onClick={() => window.dispatchEvent(new Event("uncoil:toggle-dashboard-filters"))}
-          >
-            Filters
-          </button>
-        </div>
-
         <DashboardCommandMenu projectId={projectId} />
         <OrganizationSwitcher />
 
@@ -216,23 +168,6 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
             Setup
           </button>
         ) : null}
-
-        <div className="hidden max-w-[360px] items-center gap-2 border border-black/15 bg-white px-2 sm:flex">
-          <span className="size-1.5 bg-emerald-600" aria-hidden="true" />
-          <span className="truncate text-[10px] uppercase tracking-widest text-black/70">
-            {organization?.name || "Personal workspace"}
-          </span>
-          <span className="text-black/55">/</span>
-          <span className="truncate text-[10px] text-black/55">{project?.name || "Loading project…"}</span>
-          <span className="text-black/55">/</span>
-          <span className="truncate text-[10px] uppercase text-black/55" title="Environment context">
-            {environmentContext}
-          </span>
-          <span className="text-black/55">/</span>
-          <span className="shrink-0 text-[10px] uppercase text-black/55" title="Dashboard time range">
-            {rangeContext}
-          </span>
-        </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -293,6 +228,12 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link href={`/cloud/region?next=${encodeURIComponent(pathname)}`}>
+                  <span aria-hidden="true">{region.flag}</span>
+                  <span>{region.shortName} cloud · switch region</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={projectDocsHref}>
                   <Book size={14} className="opacity-60" />
@@ -428,9 +369,57 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
           className="flex h-8 items-center gap-2 border border-black/15 bg-white px-2 text-black/60 transition-colors hover:bg-[#f3f2ed] hover:text-black"
         >
           <BookOpen className="size-4" />
-          <span className="hidden sm:inline">Docs</span>
+          <span className="sr-only">Docs</span>
         </a>
       </div>
     </header>
+    {title ? (
+      <div className="uncoil-page-hero">
+        <div className="min-w-0">
+          <div className="uncoil-page-hero-eyebrow">
+            <span className="uncoil-dissolve" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>
+            {eyebrow}
+          </div>
+          <h1 className="uncoil-page-hero-title">{title}</h1>
+          {description ? <p className="uncoil-page-hero-desc">{description}</p> : null}
+        </div>
+        <div className="uncoil-topbar-controls hidden items-center gap-1 lg:flex">
+          {controls.range ? <label className="uncoil-topbar-select">
+            <span className="sr-only">Dashboard time range</span>
+            <select
+              aria-label="Dashboard time range"
+              value={rangeValue}
+              onChange={(event) => updateDashboardQuery(usesRunsWindow ? "days" : "range", event.target.value)}
+            >
+              <option value="1">1d</option>
+              <option value="7">7d</option>
+              <option value="30">30d</option>
+              <option value="90">90d</option>
+            </select>
+          </label> : null}
+          {controls.environment ? <label className="uncoil-topbar-select">
+            <span className="sr-only">Environment</span>
+            <select
+              aria-label="Environment"
+              value={environmentValue}
+              onChange={(event) => updateDashboardQuery("environment", event.target.value === "all" ? "all environments" : event.target.value)}
+            >
+              <option value="all">All environments</option>
+              <option value="default">default</option>
+              <option value="production">production</option>
+            </select>
+          </label> : null}
+          {controls.filters ? <button
+            type="button"
+            className="uncoil-topbar-filter"
+            onClick={() => window.dispatchEvent(new Event("uncoil:toggle-dashboard-filters"))}
+          >
+            Filters
+          </button> : null}
+        </div>
+
+      </div>
+    ) : null}
+    </>
   );
 }

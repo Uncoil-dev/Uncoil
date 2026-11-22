@@ -10,14 +10,8 @@ export default async function QuickstartPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <DashboardTopbar
-        title="Quickstart Guide"
-        description="Instrument your agent and start capturing traces."
-      />
-
-      <div className="px-6 pb-20">
-        <QuickstartGuide projectId={projectId} />
-      </div>
+      <DashboardTopbar />
+      <QuickstartGuide projectId={projectId} />
     </div>
   );
 }

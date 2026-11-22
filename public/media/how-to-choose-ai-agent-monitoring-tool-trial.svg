@@ -1,0 +1,41 @@
+<svg viewBox="0 0 1600 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="htcTT htcTD">
+  <title id="htcTT">A seven-day trial timeline with four checkpoints and identical traffic sent to two tools</title>
+  <desc id="htcTD">A horizontal seven-day timeline. Day one is setup with one instrumentation sending OTLP to both tools, day three is the failed-run test, day five is the cost question compared with the provider invoice, and day seven is the decision meeting. Below, two parallel bars show the same traffic flowing to tool A and tool B.</desc>
+  <rect width="1600" height="640" fill="#0a0a0a"/>
+  <text x="70" y="55" fill="#f4d44d" font-family="monospace" font-size="18" letter-spacing="2">THE ONE-WEEK TRIAL</text>
+  <line x1="100" y1="300" x2="1500" y2="300" stroke="#f6f1e6" stroke-opacity="0.6" stroke-width="3"/>
+  <circle cx="100" cy="300" r="9" fill="#f4d44d" stroke="#f4d44d" stroke-width="2"/>
+  <text x="100" y="335" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.7">DAY 1</text>
+  <circle cx="300" cy="300" r="9" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="300" y="335" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.7">DAY 2</text>
+  <circle cx="500" cy="300" r="9" fill="#f4d44d" stroke="#f4d44d" stroke-width="2"/>
+  <text x="500" y="335" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.7">DAY 3</text>
+  <circle cx="700" cy="300" r="9" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="700" y="335" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.7">DAY 4</text>
+  <circle cx="900" cy="300" r="9" fill="#f4d44d" stroke="#f4d44d" stroke-width="2"/>
+  <text x="900" y="335" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.7">DAY 5</text>
+  <circle cx="1100" cy="300" r="9" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="1100" y="335" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.7">DAY 6</text>
+  <circle cx="1300" cy="300" r="9" fill="#f4d44d" stroke="#f4d44d" stroke-width="2"/>
+  <text x="1300" y="335" text-anchor="middle" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.7">DAY 7</text>
+  <rect x="10" y="120" width="180" height="90" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="100" y="160" text-anchor="middle" font-family="monospace" font-size="16" font-weight="bold" fill="#f4d44d">instrument once</text>
+  <text x="100" y="186" text-anchor="middle" font-family="monospace" font-size="12" fill="#f6f1e6" opacity="0.8">OTLP to both</text>
+  <line x1="100" y1="210" x2="100" y2="290" stroke="#f4d44d" stroke-opacity="0.6" stroke-width="2"/>
+  <rect x="410" y="120" width="180" height="90" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="500" y="160" text-anchor="middle" font-family="monospace" font-size="16" font-weight="bold" fill="#f4d44d">failed-run test</text>
+  <text x="500" y="186" text-anchor="middle" font-family="monospace" font-size="12" fill="#f6f1e6" opacity="0.8">time the finder</text>
+  <line x1="500" y1="210" x2="500" y2="290" stroke="#f4d44d" stroke-opacity="0.6" stroke-width="2"/>
+  <rect x="810" y="120" width="180" height="90" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="900" y="160" text-anchor="middle" font-family="monospace" font-size="16" font-weight="bold" fill="#f4d44d">cost question</text>
+  <text x="900" y="186" text-anchor="middle" font-family="monospace" font-size="12" fill="#f6f1e6" opacity="0.8">vs provider invoice</text>
+  <line x1="900" y1="210" x2="900" y2="290" stroke="#f4d44d" stroke-opacity="0.6" stroke-width="2"/>
+  <rect x="1210" y="120" width="180" height="90" fill="none" stroke="#f4d44d" stroke-width="2"/>
+  <text x="1300" y="160" text-anchor="middle" font-family="monospace" font-size="16" font-weight="bold" fill="#f4d44d">decision</text>
+  <text x="1300" y="186" text-anchor="middle" font-family="monospace" font-size="12" fill="#f6f1e6" opacity="0.8">weights set day 1</text>
+  <line x1="1300" y1="210" x2="1300" y2="290" stroke="#f4d44d" stroke-opacity="0.6" stroke-width="2"/>
+  <rect x="100" y="400" width="500" height="50" fill="none" stroke="#f6f1e6" stroke-opacity="0.6" stroke-width="2"/><text x="350" y="432" text-anchor="middle" font-family="monospace" font-size="16" fill="#f6f1e6">same traffic  &#8594;  tool A</text>
+  <rect x="100" y="470" width="500" height="50" fill="none" stroke="#f6f1e6" stroke-opacity="0.6" stroke-width="2"/><text x="350" y="502" text-anchor="middle" font-family="monospace" font-size="16" fill="#f6f1e6">same traffic  &#8594;  tool B</text>
+  <text x="700" y="470" font-family="monospace" font-size="14" fill="#f6f1e6" opacity="0.7">identical spans to both, so the comparison is about the tool, not the instrumentation</text>
+
+</svg>

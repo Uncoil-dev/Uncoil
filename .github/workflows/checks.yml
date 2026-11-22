@@ -49,6 +49,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BASE_SHA: ${{ github.event.merge_group.base_sha }}
           HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+          HEAD_REF: ${{ github.event.merge_group.head_ref }}
         run: |
           skipped=","
           add() { skipped="${skipped}$1,"; }
@@ -67,6 +68,23 @@ jobs:
               [ "$(printf '%s\n' "$files" | wc -l)" -lt 2900 ] && known=true
             fi
           elif [ "$EVENT" = "merge_group" ]; then
+            # A queue entry whose file tree is identical to the pull request
+            # head that already passed this gate adds no new information, so
+            # every job is skipped. Any other case (other pull requests ahead
+            # in the group, or main moved) runs the full checks.
+            pr=$(sed -nE 's#^refs/heads/gh-readonly-queue/[^/]+/pr-([0-9]+)-.*#\1#p' <<< "$HEAD_REF")
+            if [ -n "$pr" ]; then
+              pr_head=$(gh api "repos/$GH_REPO/pulls/$pr" --jq .head.sha || echo "")
+              if [ -n "$pr_head" ]; then
+                queue_tree=$(gh api "repos/$GH_REPO/commits/$HEAD_SHA" --jq .commit.tree.sha || echo a)
+                pr_tree=$(gh api "repos/$GH_REPO/commits/$pr_head" --jq .commit.tree.sha || echo b)
+                passed=$(gh api "repos/$GH_REPO/commits/$pr_head/check-runs?check_name=All%20checks%20passed&per_page=100" \
+                  --jq '[.check_runs[] | select(.conclusion == "success")] | length' || echo 0)
+                if [ "$queue_tree" = "$pr_tree" ] && [ "${passed:-0}" -gt 0 ]; then
+                  for j in build static tests hygiene sdks; do add "$j"; done
+                fi
+              fi
+            fi
             if files=$(gh api "repos/$GH_REPO/compare/$BASE_SHA...$HEAD_SHA" \
                 --jq '.files[]? | .filename, (.previous_filename // empty)'); then
               [ "$(printf '%s\n' "$files" | wc -l)" -lt 290 ] && known=true

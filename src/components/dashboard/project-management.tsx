@@ -4,21 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import {
-  AlertTriangle,
-  ArrowRight,
-  Calendar,
-  CircleDollarSign,
-  KeyRound,
-  Settings2,
-  Trash2,
-} from "lucide-react";
+import { ArrowRight, Trash2 } from "lucide-react";
 
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { KeyValue, Panel, StatTile } from "@/components/dashboard/project-admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
 import { captureAnalytics } from "@/lib/analytics";
@@ -47,10 +37,6 @@ export function ProjectManagement({ projectId }: { projectId: string }) {
     );
   }, [confirmationName, confirmationWord, summary]);
 
-  if (!projectId) {
-    return <div className="border border-black/15 bg-white p-6"><h2 className="font-mono text-xl text-black">Project Management</h2><p className="mt-2 max-w-xl font-sans text-sm leading-6 text-black/60">No project data is available yet. The management view is read-only until a project is selected.</p></div>;
-  }
-
   async function handleDelete() {
     if (!summary || !canDelete) return;
 
@@ -75,15 +61,15 @@ export function ProjectManagement({ projectId }: { projectId: string }) {
   if (summary === undefined) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-32 w-full rounded-none" />
-        <Skeleton className="h-64 w-full rounded-none" />
+        <Skeleton className="h-32 w-full rounded-none bg-[#111418]" />
+        <Skeleton className="h-64 w-full rounded-none bg-[#111418]" />
       </div>
     );
   }
 
   if (!summary) {
     return (
-      <div className="border border-black/15 bg-white p-6 font-mono text-sm text-black/60">
+      <div className="border border-[#262C35] bg-[#0E1115] p-6 font-mono text-sm text-[#8B93A1]">
         Project not found or access denied.
       </div>
     );
@@ -95,209 +81,97 @@ export function ProjectManagement({ projectId }: { projectId: string }) {
     : "No runs yet";
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="space-y-6">
-        <Card className="rounded-none border-black/15 bg-white p-6 shadow-none">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0">
-              <div className="mb-2 font-mono text-[11px] uppercase tracking-widest text-black/55">
-                project.management
-              </div>
-              <h1 className="truncate font-mono text-2xl text-black">
-                {project.name}
-              </h1>
-              <div className="mt-3 grid gap-2 font-mono text-[11px] text-black/55 sm:grid-cols-2">
-                <span>ID: {project._id}</span>
-                <span>Plan: {project.planTier ?? "free"}</span>
-                <span>API key: {project.apiKeyLast4 ? `...${project.apiKeyLast4}` : "not issued"}</span>
-                <span>Latest activity: {latestActivity}</span>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href={`/dashboard/${projectId}/settings`}
-                className={buttonVariants({
-                  variant: "outline",
-                  className: "gap-2",
-                })}
-              >
-                  <Settings2 className="size-4" />
-                  Settings
-              </Link>
-              <Link
-                href={`/dashboard/${projectId}/api-keys`}
-                className={buttonVariants({
-                  variant: "outline",
-                  className: "gap-2",
-                })}
-              >
-                  <KeyRound className="size-4" />
-                  API Keys
-              </Link>
-            </div>
-          </div>
-        </Card>
+    <div className="space-y-6">
+      <div className="border border-[#262C35] bg-[#0E1115] p-5">
+        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#8B93A1]">Project</div>
+        <h2 className="mt-2 truncate font-pixel text-3xl tracking-[-0.05em] text-[#E6E9EE]">{project.name}</h2>
+        <dl className="mt-4 grid gap-x-8 sm:grid-cols-2">
+          <KeyValue label="ID" value={project._id} />
+          <KeyValue label="Plan" value={project.planTier ?? "free"} />
+          <KeyValue label="API key" value={project.apiKeyLast4 ? `...${project.apiKeyLast4}` : "not issued"} />
+          <KeyValue label="Latest activity" value={latestActivity} />
+        </dl>
+      </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <ManagementStat
-            label="Saved Runs"
-            value={summary.totals.totalRuns.toLocaleString()}
-            sublabel={`${summary.totals.activeRuns} running`}
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatTile label="Saved runs" value={summary.totals.totalRuns.toLocaleString()} detail={`${summary.totals.activeRuns} running`} />
+        <StatTile label="Saved spans" value={summary.totals.totalSpans.toLocaleString()} detail={`${summary.totals.failedRuns} failed runs`} />
+        <StatTile label="Saved cost" value={formatCurrency(summary.totals.totalCostUsd)} detail={`${summary.totals.alertCount} alerts`} />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Panel title="Lifecycle">
+          <dl>
+            <KeyValue label="Created" value={formatDate(project.createdAt)} />
+            <KeyValue label="Updated" value={formatDate(project.updatedAt)} />
+            <KeyValue label="Key last used" value={formatDate(project.apiKeyLastUsedAt)} />
+          </dl>
+        </Panel>
+        <Panel title="Limits">
+          <dl>
+            <KeyValue label="Cost threshold" value={formatCurrency(project.costThresholdUsd ?? 0)} />
+            <KeyValue label="Max duration" value={`${project.maxDurationSeconds ?? 0}s`} />
+            <KeyValue label="Max stall" value={`${project.maxStallMinutes ?? 0}m`} />
+          </dl>
+        </Panel>
+      </div>
+
+      <Panel title="Recent saved runs" hint="Saved activity used when analytics are unavailable.">
+        <div className="divide-y divide-[#1F242C] border border-[#1F242C]">
+          {summary.recentRuns.length ? (
+            summary.recentRuns.map((run) => (
+              <Link
+                key={run._id}
+                href={`/dashboard/${projectId}/runs/${run.runId}`}
+                className="grid gap-3 px-4 py-3 font-mono text-[12px] text-[#8B93A1] transition-colors hover:bg-[#111418] sm:grid-cols-[minmax(0,1fr)_120px_100px_24px]"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-[#E6E9EE]">{run.runId}</div>
+                  <div className="mt-1 text-[10px] uppercase tracking-widest text-[#6B7380]">{run.primaryModel ?? "no model"}</div>
+                </div>
+                <div>{run.status}</div>
+                <div>{run.spanCount} spans</div>
+                <ArrowRight className="size-4 self-center justify-self-end" />
+              </Link>
+            ))
+          ) : (
+            <div className="px-4 py-8 font-mono text-[12px] text-[#8B93A1]">No saved runs yet.</div>
+          )}
+        </div>
+      </Panel>
+
+      <Panel
+        tone="danger"
+        title="Delete project"
+        hint="Removes the project plus saved runs, alerts and comments from your account. Type the exact project name, then DELETE."
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <input
+            value={confirmationName}
+            onChange={(event) => setConfirmationName(event.target.value)}
+            placeholder={project.name}
+            aria-label="Project name"
+            className="h-10 border border-[#5a2a2a] bg-[#0B0D10] px-3 font-mono text-[12px] text-[#E6E9EE] outline-none placeholder:text-[#566070] focus:border-[#FF8A8A]"
           />
-          <ManagementStat
-            label="Saved Spans"
-            value={summary.totals.totalSpans.toLocaleString()}
-            sublabel={`${summary.totals.failedRuns} failed runs`}
-          />
-          <ManagementStat
-            label="Saved Cost"
-            value={formatCurrency(summary.totals.totalCostUsd)}
-            sublabel={`${summary.totals.alertCount} alerts`}
+          <input
+            value={confirmationWord}
+            onChange={(event) => setConfirmationWord(event.target.value)}
+            placeholder="DELETE"
+            aria-label="Confirmation word"
+            className="h-10 border border-[#5a2a2a] bg-[#0B0D10] px-3 font-mono text-[12px] text-[#E6E9EE] outline-none placeholder:text-[#566070] focus:border-[#FF8A8A]"
           />
         </div>
-
-        <Card className="rounded-none border-black/15 bg-white p-6 shadow-none">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h2 className="font-mono text-[14px] uppercase tracking-widest text-black">
-                Recent Saved Runs
-              </h2>
-              <p className="mt-1 font-mono text-[11px] text-black/55">
-                Saved activity used when analytics are unavailable.
-              </p>
-            </div>
-          </div>
-          <div className="divide-y divide-black/15 border border-black/15">
-            {summary.recentRuns.length ? (
-              summary.recentRuns.map((run) => (
-                <Link
-                  key={run._id}
-                  href={`/dashboard/${projectId}/runs/${run.runId}`}
-                  className="grid gap-3 px-4 py-3 font-mono text-[12px] text-black/60 transition-colors hover:bg-[#f3f2ed] sm:grid-cols-[minmax(0,1fr)_120px_100px_24px]"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-black">{run.runId}</div>
-                    <div className="mt-1 text-[10px] uppercase tracking-widest text-black/55">
-                      {run.primaryModel ?? "no model"}
-                    </div>
-                  </div>
-                  <div>{run.status}</div>
-                  <div>{run.spanCount} spans</div>
-                  <ArrowRight className="size-4 self-center justify-self-end" />
-                </Link>
-              ))
-            ) : (
-              <div className="px-4 py-8 font-mono text-[12px] text-black/55">
-                No saved runs yet.
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
-
-      <aside className="space-y-6">
-        <Card className="rounded-none border-black/15 bg-white p-5 shadow-none">
-          <div className="mb-4 flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest text-black">
-            <Calendar className="size-4 text-black/55" />
-            Lifecycle
-          </div>
-          <InfoRow label="Created" value={formatDate(project.createdAt)} />
-          <InfoRow label="Updated" value={formatDate(project.updatedAt)} />
-          <InfoRow label="Key last used" value={formatDate(project.apiKeyLastUsedAt)} />
-        </Card>
-
-        <Card className="rounded-none border-black/15 bg-white p-5 shadow-none">
-          <div className="mb-4 flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest text-black">
-            <CircleDollarSign className="size-4 text-black/55" />
-            Limits
-          </div>
-          <InfoRow
-            label="Cost threshold"
-            value={formatCurrency(project.costThresholdUsd ?? 0)}
-          />
-          <InfoRow
-            label="Max duration"
-            value={`${project.maxDurationSeconds ?? 0}s`}
-          />
-          <InfoRow label="Max stall" value={`${project.maxStallMinutes ?? 0}m`} />
-        </Card>
-
-        <Card className="rounded-none border-red-900/50 bg-red-950/10 p-5 shadow-none">
-          <div className="mb-4 flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-600" />
-            <div>
-              <h2 className="font-mono text-[12px] uppercase tracking-widest text-red-600">
-                Delete Project
-              </h2>
-              <p className="mt-2 font-mono text-[11px] leading-5 text-red-300/60">
-                This removes the project plus saved runs, alerts, and comments
-                from your account. Type the exact project name, then type DELETE.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Input
-              value={confirmationName}
-              onChange={(event) => setConfirmationName(event.target.value)}
-              placeholder={project.name}
-              className="h-10 border-red-900/50 bg-white text-red-100"
-            />
-            <Input
-              value={confirmationWord}
-              onChange={(event) => setConfirmationWord(event.target.value)}
-              placeholder="DELETE"
-              className="h-10 border-red-900/50 bg-white text-red-100"
-            />
-            {error ? (
-              <div className="font-mono text-[11px] text-red-600">{error}</div>
-            ) : null}
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={!canDelete || isDeleting}
-              onClick={handleDelete}
-              className="w-full gap-2"
-            >
-              <Trash2 className="size-4" />
-              {isDeleting ? "Deleting..." : "Delete Project"}
-            </Button>
-          </div>
-        </Card>
-      </aside>
-    </div>
-  );
-}
-
-function ManagementStat({
-  label,
-  value,
-  sublabel,
-}: {
-  label: string;
-  value: string;
-  sublabel: string;
-}) {
-  return (
-    <Card className="rounded-none border-black/15 bg-white p-5 shadow-none">
-      <div className="font-mono text-[10px] uppercase tracking-widest text-black/55">
-        {label}
-      </div>
-      <div className="mt-3 font-mono text-2xl text-black">{value}</div>
-      <div className="mt-2 font-mono text-[11px] text-black/55">{sublabel}</div>
-    </Card>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between border-t border-black/15 py-3 first:border-t-0 first:pt-0">
-      <span className="font-mono text-[11px] uppercase tracking-widest text-black/55">
-        {label}
-      </span>
-      <span className="max-w-[170px] truncate text-right font-mono text-[11px] text-black/70">
-        {value}
-      </span>
+        {error ? <div className="mt-3 font-mono text-[11px] text-[#FF8A8A]">{error}</div> : null}
+        <button
+          type="button"
+          disabled={!canDelete || isDeleting}
+          onClick={handleDelete}
+          className="mt-4 inline-flex items-center gap-2 border border-[#FF6B6B] px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-[#FF8A8A] transition-colors hover:bg-[#FF6B6B] hover:text-[#0B0D10] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[#FF8A8A]"
+        >
+          <Trash2 className="size-4" />
+          {isDeleting ? "Deleting..." : "Delete project"}
+        </button>
+      </Panel>
     </div>
   );
 }

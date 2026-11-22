@@ -4,9 +4,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { KeyValue, Panel, adminButton, adminButtonPrimary } from "@/components/dashboard/project-admin-shell";
 import { Copy, Check, RefreshCw, AlertTriangle } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import { captureAnalytics } from "@/lib/analytics";
@@ -59,101 +58,64 @@ export function ApiKeysManager({ projectId }: ApiKeysManagerProps) {
   }
 
   if (project === undefined) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-40 w-full rounded-none" />
-      </div>
-    );
+    return <Skeleton className="h-52 w-full rounded-none bg-[#111418]" />;
   }
 
   if (!project) {
     return (
-      <div className="border border-dashed border-border py-16 text-center font-mono text-sm uppercase tracking-widest text-black/55">
+      <div className="border border-dashed border-[#262C35] py-16 text-center font-mono text-sm uppercase tracking-widest text-[#8B93A1]">
         Project not found
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 max-w-3xl">
-      <Card className="p-6 rounded-none border-border bg-white shadow-none space-y-6">
-        <div className="flex items-start justify-between gap-3 max-sm:flex-col">
-          <div>
-            <h3 className="font-mono text-[14px] text-black uppercase tracking-widest">Active API Key</h3>
-            <p className="text-[11px] text-black/55 mt-1">This key grants write access to your project&apos;s ingestion pipeline.</p>
-          </div>
-          <Button 
-            variant="outline" 
-            onClick={handleRotate}
-            disabled={rotating}
-            className="rounded-none border-black/15 h-8 px-3 font-mono text-[10px] uppercase hover:bg-black hover:text-white max-sm:h-10"
-          >
-            {rotating ? "Rotating..." : <span className="flex items-center gap-2"><RefreshCw className="size-3" /> Rotate Key</span>}
-          </Button>
-        </div>
-
+    <div className="space-y-6">
+      <Panel
+        title="Ingest key"
+        hint="Lets your agents send runs to this project."
+        action={
+          <button type="button" onClick={handleRotate} disabled={rotating} className={adminButton}>
+            <RefreshCw className="size-3" aria-hidden /> {rotating ? "Rotating..." : "Rotate key"}
+          </button>
+        }
+      >
         {newKey ? (
-          <div className="p-4 border border-black bg-black/5 space-y-4 animate-in fade-in slide-in-from-top-2">
-            <div className="flex items-center gap-2 text-black text-[11px] font-mono uppercase font-bold">
-              <AlertTriangle className="size-3" />
-              Copy your new API key now
+          <div className="space-y-3 border border-[#F4D44D]/50 bg-[#0B0D10] p-4">
+            <div className="flex items-center gap-2 font-mono text-[11px] uppercase text-[#E6E9EE]">
+              <AlertTriangle className="size-3.5 text-[#F4D44D]" aria-hidden />
+              Copy your new key now
             </div>
-            <p className="text-[11px] text-black/60 font-sans">
-              This key will only be shown once. If you lose it, you will have to rotate it again.
-            </p>
+            <p className="text-[13px] text-[#8B93A1]">It is shown once. If you lose it, rotate again.</p>
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-10 bg-white border border-black/20 px-3 flex items-center font-mono text-sm text-black overflow-x-auto whitespace-nowrap">
+              <div className="flex h-10 min-w-0 flex-1 items-center overflow-x-auto whitespace-nowrap border border-[#262C35] bg-[#0E1115] px-3 font-mono text-[13px] text-[#E6E9EE]">
                 {newKey}
               </div>
-              <Button 
-                onClick={() => copyToClipboard(newKey)}
-                className="rounded-none h-10 px-4 bg-black text-white hover:bg-black/80"
-              >
+              <button type="button" onClick={() => copyToClipboard(newKey)} className={`${adminButtonPrimary} h-10 w-12`} aria-label="Copy key">
                 {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="min-w-0 flex-1 h-10 bg-white border border-black/15 px-3 flex items-center font-mono text-sm text-black/55 overflow-x-auto whitespace-nowrap">
-                {project.apiKeyPrefix}************{project.apiKeyLast4}
-              </div>
-              <Button 
-                variant="outline"
-                disabled
-                className="rounded-none h-10 px-4 border-black/15 text-black/55 cursor-not-allowed"
-              >
-                <Copy className="size-4" />
-              </Button>
+          <div className="space-y-5">
+            <div className="flex h-10 items-center overflow-x-auto whitespace-nowrap border border-[#262C35] bg-[#0B0D10] px-3 font-mono text-[13px] text-[#8B93A1]">
+              {project.apiKeyPrefix}************{project.apiKeyLast4}
             </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase tracking-widest text-black/55 font-mono">Created</label>
-                <div className="text-[11px] font-mono text-black/60">
-                  {project.apiKeyCreatedAt ? formatRelativeTime(project.apiKeyCreatedAt) : "Unknown"}
-                </div>
-              </div>
-              <div className="space-y-1 text-right">
-                <label className="text-[10px] uppercase tracking-widest text-black/55 font-mono">Last Used</label>
-                <div className="text-[11px] font-mono text-black/60">
-                  {project.apiKeyLastUsedAt ? formatRelativeTime(project.apiKeyLastUsedAt) : "Never"}
-                </div>
-              </div>
-            </div>
+            <dl>
+              <KeyValue label="Created" value={project.apiKeyCreatedAt ? formatRelativeTime(project.apiKeyCreatedAt) : "Unknown"} />
+              <KeyValue label="Last used" value={project.apiKeyLastUsedAt ? formatRelativeTime(project.apiKeyLastUsedAt) : "Never"} />
+            </dl>
           </div>
         )}
-      </Card>
+      </Panel>
 
-      <div className="space-y-2 border border-dashed border-black/15 p-6">
-        <h4 className="font-mono text-[12px] text-black/60 uppercase tracking-widest">Security Note</h4>
-        <p className="text-[11px] text-black/55 leading-relaxed">
-          API keys carry the same level of access as your login credentials for data ingestion. 
-          Never commit them to version control or share them in public forums. 
-          If a key is compromised, rotate it immediately.
-        </p>
-      </div>
+      <Panel title="Keep it safe">
+        <ul className="space-y-2 text-[13px] leading-6 text-[#8B93A1]">
+          <li>Store the key in an environment variable, never in version control.</li>
+          <li>Rotating stops the old key at once. Agents using it fail to send data until you update them.</li>
+          <li>If a key leaks, rotate it right away.</li>
+        </ul>
+      </Panel>
     </div>
   );
 }

@@ -9,7 +9,7 @@ function excerpt(body: string, query: string) {
   return `${index > 60 ? "…" : ""}${body.slice(Math.max(0, index - 60), index + query.length + 100).trim()}${index + query.length + 100 < body.length ? "…" : ""}`;
 }
 
-export type SearchableDoc = Pick<DocArticle, "slug" | "title" | "description" | "section" | "headings" | "bodyText" | "body" | "noindex">;
+export type SearchableDoc = Pick<DocArticle, "slug" | "title" | "description" | "section" | "headings" | "bodyText" | "noindex">;
 export function searchDocs(docs: SearchableDoc[], query: string, limit = 8): DocsSearchResult[] {
   const normalized = query.trim().toLowerCase();
   if (!normalized) return [];
@@ -29,4 +29,9 @@ export function searchDocs(docs: SearchableDoc[], query: string, limit = 8): Doc
     score += queryTokens.filter((token) => `${title} ${headings} ${description} ${body}`.includes(token)).length * 10;
     return { slug: doc.slug, title: doc.title, description: doc.description, section: doc.section, excerpt: excerpt(doc.bodyText, normalized), score };
   }).filter((result) => result.score > 0).sort((a, b) => b.score - a.score || a.title.localeCompare(b.title)).slice(0, limit);
+}
+
+/** The search bar only needs these fields. Sending full markdown bodies would add every guide to each docs page payload. */
+export function toDockDocs(docs: DocArticle[]): SearchableDoc[] {
+  return docs.map(({ slug, title, description, section, headings, bodyText, noindex }) => ({ slug, title, description, section, headings, bodyText, noindex }));
 }

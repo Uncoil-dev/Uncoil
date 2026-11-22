@@ -80,7 +80,7 @@ function useCopy() {
   return { done, copy };
 }
 
-export function QuickstartGuide({ projectId }: { projectId: string }) {
+export function QuickstartGuide({ projectId, apiKey, embedded = false }: { projectId: string; apiKey?: string; embedded?: boolean }) {
   const reduce = useReducedMotion();
   const region = getUncoilRegion(getDeploymentRegion());
   const project = useQuery(api.projects.getProjectById, projectId ? { projectId: projectId as Id<"projects"> } : "skip");
@@ -107,13 +107,13 @@ export function QuickstartGuide({ projectId }: { projectId: string }) {
   }, [arrived, current]);
 
   const keyLine = `UNCOIL_API_KEY=${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}\nUNCOIL_REGION=${region.id}`;
-  const envCopy = `UNCOIL_API_KEY=YOUR_API_KEY\nUNCOIL_REGION=${region.id}`;
+  const envCopy = `UNCOIL_API_KEY=${apiKey || "YOUR_API_KEY"}\nUNCOIL_REGION=${region.id}`;
   const agentPrompt = `Set up Uncoil tracing in this project.\n\n1. Install: ${snippet.install}\n2. Wrap the main agent function with the Uncoil tracing helper and record each model call.\n3. Read UNCOIL_API_KEY and UNCOIL_REGION=${region.id} from the environment. Never print or commit the key.\n4. Run the agent once and tell me where to see the trace.`;
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const ss = String(elapsed % 60).padStart(2, "0");
 
   return (
-    <div className="mx-auto w-full max-w-[920px] px-4 pb-24 pt-8 lg:px-6">
+    <div className={embedded ? "w-full" : "mx-auto w-full max-w-[920px] px-4 pb-24 pt-8 lg:px-6"}>
       {/* Progress */}
       <div className="mb-3 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8a84]">
         <span>Setup · step {Math.min(step + 1, steps.length)} of {steps.length}</span>
@@ -215,6 +215,7 @@ export function QuickstartGuide({ projectId }: { projectId: string }) {
         </motion.div>
       </section>
 
+      {embedded ? null : (<>
       <details className="mt-6 border border-[#2a2a2a] bg-[#0a0a0a]">
         <summary className="cursor-pointer px-4 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#c9c9c2]">Optional · grade your own runs from code</summary>
         <div className="space-y-3 px-4 pb-4">
@@ -227,6 +228,7 @@ export function QuickstartGuide({ projectId }: { projectId: string }) {
         <span>Stuck? The full guide covers frameworks, environments and troubleshooting.</span>
         <Link href="/docs/quickstart" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#eceae3] hover:!text-[#f4d44d]"><BookOpen className="size-4" /> Full guide</Link>
       </div>
+      </>)}
     </div>
   );
 }

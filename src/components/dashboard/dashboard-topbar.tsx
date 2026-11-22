@@ -113,7 +113,6 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
       ? `/dashboard/${projectId}/${segments[2]}`
       : dashboardHref;
 
-  const showControls = controls.range || controls.environment || controls.filters;
   const eyebrow = segments[2] ? segments[2].replace(/-/g, " ") : "overview";
 
   return (

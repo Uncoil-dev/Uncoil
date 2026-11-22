@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -27,7 +28,7 @@ export function ComparePage({ projectId }: { projectId: string }) {
   return (
     <div className="flex min-h-screen flex-col bg-[#0B0D10] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-3 border-b border-[#1F242C] px-4 py-3">
-        <h1 className="m-0 text-[15px] font-semibold">Compare</h1>
+        <PageTitle>Compare</PageTitle>
         <div role="tablist" aria-label="Comparison type" className="flex rounded border border-[#262C35] bg-[#0E1115] p-0.5 text-xs">
           {([["runs", "Two runs"], ["groups", "Models and releases"]] as const).map(([id, label]) => (
             <button key={id} role="tab" type="button" aria-selected={tab === id} onClick={() => set({ tab: id === "runs" ? null : id })}

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -126,7 +127,7 @@ export function ScoresWorkspace({ projectId, initialQuery }: { projectId: string
   return (
     <div className="flex min-h-svh min-w-0 flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-3 border-b border-[#1F242C] px-6 py-3">
-        <div className="mr-auto"><h1 className="text-base font-semibold tracking-tight">Scores</h1><p className="text-[11px] text-[#6B7380]">How your agent is graded, over time</p></div>
+        <div className="mr-auto"><PageTitle>Scores</PageTitle><p className="text-[11px] text-[#6B7380]">How your agent is graded, over time</p></div>
         <div role="group" aria-label="Time range" className="flex overflow-hidden rounded border border-[#262C35]">
           {DAYS.map((item) => <button key={item.id} type="button" aria-pressed={String(days) === item.id} onClick={() => update({ days: item.id })} className={`h-7 px-3 text-xs ${String(days) === item.id ? "bg-[#F4D44D] font-medium text-[#090909]" : "bg-[#0E1115] text-[#C9CED6] hover:text-white"}`}>{item.label}</button>)}
         </div>

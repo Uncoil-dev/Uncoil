@@ -1,3 +1,4 @@
+import { AdminShell } from "@/components/dashboard/project-admin-shell";
 import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
 import { BillingPlan } from "@/components/dashboard/billing-plan";
 import { UsageMeter } from "@/components/dashboard/usage-meter";
@@ -22,13 +23,13 @@ export default async function BillingPage({
         description="Real usage, current plan, and beta plan access."
       />
 
-      <div className="px-6 pb-20 space-y-6 max-w-3xl">
+      <AdminShell projectId={projectId} active="billing">
         {checkout === "success" && <PaymentReceived projectId={projectId} />}
         {process.env.STRIPE_FOUNDING_COUPON_ID && <FoundingCard />}
         <UsageMeter projectId={projectId} />
         <IngestQuotaCard projectId={projectId} />
         <BillingPlan projectId={projectId} />
-      </div>
+      </AdminShell>
     </div>
   );
 }

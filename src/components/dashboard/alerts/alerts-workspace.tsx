@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -96,7 +97,7 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
   return (
     <div className="flex min-h-svh flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Alerts</h1>
+        <PageTitle>Alerts</PageTitle>
         <label className="flex h-7 min-w-[200px] flex-1 items-center gap-2 border border-[#262C35] bg-[#111418] px-2.5 focus-within:border-[#4A5260] sm:max-w-[300px]">
           <span aria-hidden="true" className="text-[#8B93A1]">⌕</span>
           <input aria-label="Search rules" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search rules" className="w-full bg-transparent outline-none placeholder:text-[#6B7380]" />

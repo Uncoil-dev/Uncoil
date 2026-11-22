@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -34,7 +35,7 @@ export function WeeklySummaryPanel({ projectId }: { projectId: string }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Weekly summary</h1>
+        <PageTitle>Weekly summary</PageTitle>
         <span className="text-[12px] text-[#8B93A1]">One short email every Monday with runs, failures and spend.</span>
         {data ? <span className={`ml-auto border px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-[0.1em] ${data.enabled ? "border-[#5BE3A0] text-[#5BE3A0]" : "border-[#6B7380] text-[#6B7380]"}`}>{data.enabled ? "ON" : "OFF"}</span> : null}
       </header>

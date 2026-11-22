@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
@@ -112,7 +113,7 @@ export function ReviewDeck({ projectId }: { projectId: string }) {
   return (
     <div className="flex min-h-svh min-w-0 flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Human review</h1>
+        <PageTitle>Human review</PageTitle>
         <div role="tablist" aria-label="Views" className="flex gap-1">
           {([["review", "Review"], ["done", `Reviewed ${stats.done}`]] as const).map(([id, text]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)} className={`h-7 rounded px-3 text-xs ${tab === id ? "bg-[#161B22] text-white" : "text-[#8B93A1] hover:text-white"}`}>{text}</button>)}
         </div>

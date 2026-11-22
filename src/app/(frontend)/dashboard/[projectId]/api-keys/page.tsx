@@ -1,4 +1,5 @@
 import { ApiKeysManager } from "@/components/dashboard/api-keys-manager";
+import { AdminShell } from "@/components/dashboard/project-admin-shell";
 import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
 
 export default async function ApiKeysPage({
@@ -15,9 +16,9 @@ export default async function ApiKeysPage({
         description="Manage security tokens for authenticating your agent runs."
       />
 
-      <div className="px-6 pb-20">
+      <AdminShell projectId={projectId} active="api-keys">
         <ApiKeysManager projectId={projectId} />
-      </div>
+      </AdminShell>
     </div>
   );
 }

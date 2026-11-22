@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
@@ -112,7 +113,7 @@ export function EvaluatorsWorkspace({ projectId, initialQuery }: { projectId: st
   return (
     <div className="flex min-h-svh min-w-0 flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Evaluators</h1>
+        <PageTitle>Evaluators</PageTitle>
         <form className="min-w-[180px] flex-1" onSubmit={(event) => { event.preventDefault(); update({ q: draft.trim() }); }}>
           <label htmlFor="eval-search" className="sr-only">Search evaluators</label>
           <input id="eval-search" value={draft} onChange={(event) => { setDraft(event.target.value); if (!event.target.value) update({ q: "" }); }} placeholder="Search by name or rule" className="h-8 w-full rounded border border-[#262C35] bg-[#0E1115] px-3 font-mono text-xs placeholder:text-[#6B7380] focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#F4D44D]" />

@@ -59,7 +59,7 @@ jobs:
             passed=$(gh api "repos/$GH_REPO/commits/$SHA/check-runs?check_name=All%20checks%20passed&per_page=100" \
               --jq '[.check_runs[] | select(.conclusion == "success")] | length' || echo 0)
             if [ "${passed:-0}" -gt 0 ]; then
-              for j in build typecheck lint unused spelling tests unit sdk-ts sdk-python secrets; do add "$j"; done
+              for j in build static tests hygiene sdks; do add "$j"; done
             fi
           elif [ "$EVENT" = "pull_request" ]; then
             if files=$(gh api --paginate "repos/$GH_REPO/pulls/$PR_NUMBER/files?per_page=100" \
@@ -76,10 +76,9 @@ jobs:
           if [ "$known" = true ]; then
             other=$(grep -Ev '^(docs/|[^/]+\.md$|LICENSE$|packages/python-sdk/)' <<< "$files" | grep -v '^$' || true)
             if [ -z "$other" ]; then
-              for j in build typecheck lint unit; do add "$j"; done
+              for j in build static tests; do add "$j"; done
             fi
-            grep -Eq '^(packages/ts-sdk/|\.github/)' <<< "$files" || add sdk-ts
-            grep -Eq '^(packages/python-sdk/|\.github/)' <<< "$files" || add sdk-python
+            grep -Eq '^(packages/(ts|python)-sdk/|\.github/)' <<< "$files" || add sdks
           fi
 
           echo "Skipped jobs: $skipped"
@@ -125,12 +124,13 @@ jobs:
           node --test scripts/scan-client-bundle.test.mjs
           node scripts/scan-client-bundle.mjs .next/static src convex
 
-  typecheck:
-    name: Code errors (types)
+  # Types and lint share one install, so they use one runner slot.
+  static:
+    name: Code errors and style (types, lint)
     needs: [precheck]
-    if: ${{ !contains(needs.precheck.outputs.skipped, ',typecheck,') }}
+    if: ${{ !contains(needs.precheck.outputs.skipped, ',static,') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -145,85 +145,17 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
-
-  lint:
-    name: Code style (lint)
-    needs: [precheck]
-    if: ${{ !contains(needs.precheck.outputs.skipped, ',lint,') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          submodules: true
-      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-        with:
-          version: 10
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
       # Ratchet: 22 warnings exist today. New warnings fail the job; lower
       # this number as existing ones are fixed, and drop to 0 when clear.
       - run: pnpm lint --max-warnings 22
 
-  unused:
-    name: Unused code (report only)
-    needs: [precheck]
-    if: ${{ !contains(needs.precheck.outputs.skipped, ',unused,') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          submodules: true
-      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-        with:
-          version: 10
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      # Report only: the first run has hundreds of findings, so this step
-      # never fails the job. Remove `continue-on-error` once they are cleared.
-      - name: Find unused files, exports and dependencies
-        continue-on-error: true
-        run: |
-          pnpm dlx --package=knip@5.61.0 --package=typescript@5.9.3 knip --no-progress | tee knip-report.txt
-          {
-            echo "### Unused code report"
-            echo '```'
-            grep -E '^[A-Z].*\([0-9]+\)$' knip-report.txt || echo "No findings."
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  spelling:
-    name: Spelling
-    needs: [precheck]
-    if: ${{ !contains(needs.precheck.outputs.skipped, ',spelling,') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: "3.12"
-      # Settings and the allow-word list live in .codespellrc.
-      - run: pip install codespell==2.4.1
-      - run: codespell
-
+  # Content, tool and unit tests share one install.
   tests:
-    name: Tests (sites)
+    name: Tests (sites and unit)
     needs: [precheck]
     if: ${{ !contains(needs.precheck.outputs.skipped, ',tests,') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -244,77 +176,15 @@ jobs:
       - run: pnpm test:regions
       - run: pnpm test:consent
       - run: pnpm test:seo
-
-  unit:
-    name: Tests (unit)
-    needs: [precheck]
-    if: ${{ !contains(needs.precheck.outputs.skipped, ',unit,') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          submodules: true
-      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-        with:
-          version: 10
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
       # The vitest half of `test:unit`; the node:test half (`test:tools`)
-      # already runs in the "Tests (sites)" job.
+      # already ran above.
       - run: pnpm exec vitest run src
 
-  sdk-ts:
-    name: Tests (TypeScript SDK)
+  # Checks that need no Node install: spelling and leaked keys.
+  hygiene:
+    name: Spelling and leaked keys
     needs: [precheck]
-    if: ${{ !contains(needs.precheck.outputs.skipped, ',sdk-ts,') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: packages/ts-sdk
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          submodules: true
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "24"
-          cache: npm
-          cache-dependency-path: packages/ts-sdk/package-lock.json
-      - run: npm ci
-      - run: npm run build
-      - run: npm test
-
-  sdk-python:
-    name: Tests (Python SDK)
-    needs: [precheck]
-    if: ${{ !contains(needs.precheck.outputs.skipped, ',sdk-python,') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: packages/python-sdk
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          submodules: true
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: "3.12"
-      - run: pip install -e ".[test]"
-      - run: python -m pytest tests -q
-
-  secrets:
-    name: Leaked keys
-    needs: [precheck]
-    if: ${{ !contains(needs.precheck.outputs.skipped, ',secrets,') }}
+    if: ${{ !contains(needs.precheck.outputs.skipped, ',hygiene,') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -323,6 +193,14 @@ jobs:
           persist-credentials: false
           submodules: true
           fetch-depth: 0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: .codespellrc
+      # Settings and the allow-word list live in .codespellrc.
+      - run: pip install codespell==2.4.1
+      - run: codespell
       - name: Scan with gitleaks
         env:
           GITLEAKS_VERSION: 8.21.2
@@ -335,12 +213,39 @@ jobs:
             ./gitleaks detect --source . --no-git --redact --verbose
           fi
 
+  # Both SDKs in one job; it runs only for SDK or workflow changes.
+  sdks:
+    name: Tests (TypeScript and Python SDKs)
+    needs: [precheck]
+    if: ${{ !contains(needs.precheck.outputs.skipped, ',sdks,') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: packages/ts-sdk/package-lock.json
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: packages/python-sdk/pyproject.toml
+      - run: npm ci && npm run build && npm test
+        working-directory: packages/ts-sdk
+      - run: pip install -e ".[test]" && python -m pytest tests -q
+        working-directory: packages/python-sdk
+
   # Single required check. The `needs` list below is the only place that
   # names the jobs to gate on; add any new job here.
   all-checks-passed:
     name: All checks passed
     if: always()
-    needs: [precheck, build, typecheck, lint, unused, spelling, tests, unit, sdk-ts, sdk-python, secrets]
+    needs: [precheck, build, static, tests, hygiene, sdks]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

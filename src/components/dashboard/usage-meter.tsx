@@ -34,7 +34,7 @@ export function UsageMeter({ projectId }: { projectId: string }) {
     isAuthenticated ? { projectId: projectId as Id<"projects"> } : "skip",
   );
 
-  if (!usage) return <div className="h-44 w-full animate-pulse border border-black/15 bg-white" />;
+  if (!usage) return <div className="h-44 w-full animate-pulse border border-[#262C35] bg-[#0E1115]" />;
   return <UsageMeterView usage={usage} />;
 }
 
@@ -43,10 +43,10 @@ export function UsageMeterView({ usage }: { usage: { spans: number; planTier: st
   const plan = planById(tier as PlanId);
   if (tier === "enterprise") {
     return (
-      <section className="border border-black bg-white p-6" aria-label="Monthly usage">
-        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-black/55">Spans this month</div>
-        <div className="mt-3 font-mono text-4xl text-black">{usage.spans.toLocaleString()}</div>
-        <p className="mt-2 font-mono text-[11px] text-black/55">Enterprise has no monthly span cap.</p>
+      <section className="border border-[#262C35] bg-[#0E1115] p-6" aria-label="Monthly usage">
+        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#8B93A1]">Spans this month</div>
+        <div className="mt-3 font-mono text-4xl text-[#E6E9EE]">{usage.spans.toLocaleString()}</div>
+        <p className="mt-2 font-mono text-[11px] text-[#8B93A1]">Enterprise has no monthly span cap.</p>
       </section>
     );
   }
@@ -62,20 +62,20 @@ export function UsageMeterView({ usage }: { usage: { spans: number; planTier: st
 
   return (
     <section
-      className={`border bg-white p-6 ${level === "blocked" ? "border-black bg-[#fff4b5]" : "border-black/15"}`}
+      className={`border bg-[#0E1115] p-6 ${level === "blocked" ? "border-[#F4D44D]" : "border-[#262C35]"}`}
       aria-label="Monthly usage"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-black/55">Spans this month · {plan.name} plan</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#8B93A1]">Spans this month · {plan.name} plan</div>
           <div className="mt-3 flex items-baseline gap-3 font-mono">
-            <span className="text-4xl text-black">{usage.spans.toLocaleString()}</span>
-            <span className="text-[12px] text-black/55">of {included.toLocaleString()} included</span>
+            <span className="text-4xl text-[#E6E9EE]">{usage.spans.toLocaleString()}</span>
+            <span className="text-[12px] text-[#8B93A1]">of {included.toLocaleString()} included</span>
           </div>
         </div>
         <span
           className={`px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.15em] ${
-            level === "ok" ? "border border-black/20 text-black/70" : level === "warn" ? "bg-[#fff4b5] text-black" : "bg-black text-[#f4d44d]"
+            level === "ok" ? "border border-black/20 text-[#E6E9EE]" : level === "warn" ? "border border-[#F4D44D]/60 text-[#E6E9EE]" : "bg-[#F4D44D] text-[#0B0D10]"
           }`}
         >
           {STATUS[level]}
@@ -83,7 +83,7 @@ export function UsageMeterView({ usage }: { usage: { spans: number; planTier: st
       </div>
 
       <div
-        className="relative mt-6 h-4 border border-black bg-white"
+        className="relative mt-6 h-4 border border-[#262C35] bg-[#0B0D10]"
         role="meter"
         aria-valuemin={0}
         aria-valuemax={hard}
@@ -92,21 +92,21 @@ export function UsageMeterView({ usage }: { usage: { spans: number; planTier: st
       >
         {hard > included ? (
           <div
-            className="absolute inset-y-0 right-0 bg-[repeating-linear-gradient(135deg,rgba(0,0,0,0.18)_0_2px,transparent_2px_6px)]"
+            className="absolute inset-y-0 right-0 bg-[repeating-linear-gradient(135deg,rgba(255,255,255,0.10)_0_2px,transparent_2px_6px)]"
             style={{ width: `${100 - includedAt}%` }}
           />
         ) : null}
-        <div className={`absolute inset-y-0 left-0 ${level === "ok" ? "bg-black" : "bg-[#f4d44d] outline outline-1 -outline-offset-1 outline-black"}`} style={{ width: `${fill}%` }} />
-        <div className="absolute -inset-y-1 w-px bg-black/50" style={{ left: `${warnAt}%` }} />
-        <div className="absolute -inset-y-1.5 w-px bg-black" style={{ left: `${includedAt}%` }} />
+        <div className={`absolute inset-y-0 left-0 ${level === "ok" ? "bg-[#E6E9EE]" : "bg-[#F4D44D]"}`} style={{ width: `${fill}%` }} />
+        <div className="absolute -inset-y-1 w-px bg-[#6B7380]" style={{ left: `${warnAt}%` }} />
+        <div className="absolute -inset-y-1.5 w-px bg-[#E6E9EE]" style={{ left: `${includedAt}%` }} />
       </div>
-      <div className="relative mt-2 h-4 font-mono text-[9px] uppercase tracking-widest text-black/55">
+      <div className="relative mt-2 h-4 font-mono text-[9px] uppercase tracking-widest text-[#8B93A1]">
         <span className="absolute -translate-x-1/2 max-sm:hidden" style={{ left: `${warnAt}%` }}>80%</span>
         <span className="absolute -translate-x-full whitespace-nowrap pr-1" style={{ left: `${includedAt}%` }}>{plan.spans} included</span>
       </div>
-      {hard > included ? <div className="mt-1 text-right font-mono text-[9px] uppercase tracking-widest text-black/55">Hatched = buffer · new data stops at {hard.toLocaleString()}</div> : null}
+      {hard > included ? <div className="mt-1 text-right font-mono text-[9px] uppercase tracking-widest text-[#8B93A1]">Hatched = buffer · new data stops at {hard.toLocaleString()}</div> : null}
 
-      <p className="mt-4 max-w-2xl font-mono text-[11px] leading-relaxed text-black/60">
+      <p className="mt-4 max-w-2xl font-mono text-[11px] leading-relaxed text-[#8B93A1]">
         {level === "blocked"
           ? `New data is paused until ${resetDate()}${next ? " or you upgrade" : ""}. Everything already saved stays visible.`
           : level === "over"
@@ -117,7 +117,7 @@ export function UsageMeterView({ usage }: { usage: { spans: number; planTier: st
       {next && level !== "ok" ? (
         <Link
           href={pricingCheckoutHref(next, "monthly")}
-          className="mt-4 inline-flex items-center gap-2 bg-black px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-white hover:bg-black/85"
+          className="mt-4 inline-flex items-center gap-2 bg-[#F4D44D] px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[#0B0D10] hover:bg-[#fff4b5]"
         >
           Upgrade to {planById(next).name} <ArrowRight className="size-3.5" />
         </Link>

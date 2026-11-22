@@ -12,6 +12,8 @@ import { pricingCheckoutHref, type BillingInterval } from "@/lib/billing-links";
 import { formatPrice, monthlyPrice, planForSpans, plans, type Plan } from "@/lib/pricing-plans";
 import { getCopy, type Locale } from "@/lib/i18n";
 
+import { pricingFaqEntries } from "@/lib/pricing-faq";
+
 type PricingCopy = ReturnType<typeof getCopy>["pricing"];
 
 const CELLS = 24;
@@ -335,7 +337,7 @@ function Compare({ interval, recommended, t }: { interval: BillingInterval; reco
 }
 
 function Faq({ founding, t }: { founding: boolean; t: PricingCopy }) {
-  const faqs = founding ? [...t.faqs, t.foundingFaq] : t.faqs;
+  const faqs = pricingFaqEntries(t, founding);
   return (
     <section className="border-t-2 border-black bg-[#eceae3] px-5 pb-16 text-black md:px-10 md:pb-20" aria-labelledby="faq-title">
       <div className="mx-auto grid max-w-[1320px] gap-10 pt-14 md:pt-16 lg:grid-cols-[0.8fr_1.2fr]">

@@ -103,10 +103,7 @@ export function InstallStep() {
 
   return (
     <div>
-      <OnboardingHeader
-        title={arrived ? "First run in." : "Send your first run."}
-        description={arrived ? "Uncoil heard your agent. Open the trace and see every step." : "Follow the steps below and run your agent once. This page updates the second it arrives."}
-      />
+      {arrived ? <OnboardingHeader title="First run in." description="Uncoil heard your agent. Open the trace and see every step." /> : null}
       {arrived ? <FirstRunPanel
         projectName={projectName}
         projectId={projectId}

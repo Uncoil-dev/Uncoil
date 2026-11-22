@@ -26,8 +26,8 @@ export const metadata: Metadata = {
 export default function GlobalNotFound() {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${geistPixelSquare.variable} h-full`}>
-      <body className="min-h-full bg-[#eceae3] text-black">
-        <main className="flex min-h-svh items-center justify-center px-4 py-12 sm:px-6">
+      <body className="min-h-full bg-[#090909] text-[#eceae3]">
+        <main className="flex min-h-svh items-center justify-center bg-[#090909] px-4 py-12 sm:px-6">
           <StatusScene
             code="404"
             label="not found"

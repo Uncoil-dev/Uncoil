@@ -23,6 +23,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { buttonVariants } from "@/components/ui/button";
 import { getOnboardingHref } from "@/lib/onboarding-navigation";
 import { getUncoilRegion } from "@/lib/regions";
+import { topbarControlsFor } from "@/lib/dashboard-topbar-controls";
 
 import { authClient } from "@/lib/auth-client";
 import { OrganizationSwitcher } from "@/components/auth/organization-switcher";
@@ -68,6 +69,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
   const environmentValue = environmentContext === "all environments" ? "all" : environmentContext;
 
   const region = getUncoilRegion();
+  const controls = topbarControlsFor(pathname);
   const { data: session } = authClient.useSession();
   const { data: organization } = authClient.useActiveOrganization();
   const user = session?.user;
@@ -159,15 +161,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
 
       <div className="flex shrink-0 items-center gap-2 text-[12px] text-black/60">
         <div className="uncoil-topbar-controls hidden items-center gap-1 lg:flex">
-          <Link
-            href={`/cloud/region?next=${encodeURIComponent(pathname)}`}
-            className="uncoil-topbar-region inline-flex h-8 items-center gap-1.5 border border-black/15 bg-white px-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-black/70 transition-colors hover:border-black hover:text-black"
-            title="Switch regional cloud"
-          >
-            <span aria-hidden="true">{region.flag}</span>
-            <span>{region.shortName} cloud</span>
-          </Link>
-          <label className="uncoil-topbar-select">
+          {controls.range ? <label className="uncoil-topbar-select">
             <span className="sr-only">Dashboard time range</span>
             <select
               aria-label="Dashboard time range"
@@ -179,8 +173,8 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
               <option value="30">30d</option>
               <option value="90">90d</option>
             </select>
-          </label>
-          <label className="uncoil-topbar-select">
+          </label> : null}
+          {controls.environment ? <label className="uncoil-topbar-select">
             <span className="sr-only">Environment</span>
             <select
               aria-label="Environment"
@@ -191,14 +185,14 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
               <option value="default">default</option>
               <option value="production">production</option>
             </select>
-          </label>
-          <button
+          </label> : null}
+          {controls.filters ? <button
             type="button"
             className="uncoil-topbar-filter"
             onClick={() => window.dispatchEvent(new Event("uncoil:toggle-dashboard-filters"))}
           >
             Filters
-          </button>
+          </button> : null}
         </div>
 
         <DashboardCommandMenu projectId={projectId} />
@@ -216,23 +210,6 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
             Setup
           </button>
         ) : null}
-
-        <div className="hidden max-w-[360px] items-center gap-2 border border-black/15 bg-white px-2 sm:flex">
-          <span className="size-1.5 bg-emerald-600" aria-hidden="true" />
-          <span className="truncate text-[10px] uppercase tracking-widest text-black/70">
-            {organization?.name || "Personal workspace"}
-          </span>
-          <span className="text-black/55">/</span>
-          <span className="truncate text-[10px] text-black/55">{project?.name || "Loading project…"}</span>
-          <span className="text-black/55">/</span>
-          <span className="truncate text-[10px] uppercase text-black/55" title="Environment context">
-            {environmentContext}
-          </span>
-          <span className="text-black/55">/</span>
-          <span className="shrink-0 text-[10px] uppercase text-black/55" title="Dashboard time range">
-            {rangeContext}
-          </span>
-        </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -293,6 +270,12 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link href={`/cloud/region?next=${encodeURIComponent(pathname)}`}>
+                  <span aria-hidden="true">{region.flag}</span>
+                  <span>{region.shortName} cloud · switch region</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={projectDocsHref}>
                   <Book size={14} className="opacity-60" />
@@ -428,7 +411,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
           className="flex h-8 items-center gap-2 border border-black/15 bg-white px-2 text-black/60 transition-colors hover:bg-[#f3f2ed] hover:text-black"
         >
           <BookOpen className="size-4" />
-          <span className="hidden sm:inline">Docs</span>
+          <span className="sr-only">Docs</span>
         </a>
       </div>
     </header>

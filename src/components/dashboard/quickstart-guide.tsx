@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { useState } from "react";
+import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, Terminal, Code2, BookOpen, KeyRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,16 +73,16 @@ const runAgent = traceAgent(async () => {
       </div>
 
       <Tabs defaultValue="python" className="w-full">
-        <TabsList className="bg-white border border-border rounded-none p-1 h-12">
+        <TabsList className="inline-flex gap-1 rounded-none border border-black/20 bg-black/[0.04] p-1">
           <TabsTrigger
             value="python"
-            className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-mono text-xs uppercase max-sm:h-10 max-sm:px-4"
+            className="h-9 rounded-none px-5 font-mono text-xs uppercase tracking-widest text-black/60 transition-colors hover:text-black data-[state=active]:bg-[#f4d44d] data-[state=active]:!text-[#090909]"
           >
             Python
           </TabsTrigger>
           <TabsTrigger
             value="typescript"
-            className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-mono text-xs uppercase max-sm:h-10 max-sm:px-4"
+            className="h-9 rounded-none px-5 font-mono text-xs uppercase tracking-widest text-black/60 transition-colors hover:text-black data-[state=active]:bg-[#f4d44d] data-[state=active]:!text-[#090909]"
           >
             TypeScript
           </TabsTrigger>
@@ -89,41 +90,31 @@ const runAgent = traceAgent(async () => {
 
         <TabsContent value="python" className="space-y-6 mt-6">
           <section className="space-y-4">
-            <h3 className="flex items-center gap-2 font-mono text-xs text-black/60 uppercase">
-              <Terminal className="size-4" /> 1. Install Library
-            </h3>
+            <StepHeading n="1" icon={<Terminal className="size-4" />}>Install Library</StepHeading>
             <CodeBlock code={installPy} onCopy={() => copyToClipboard(installPy, 'py-install')} copied={copied === 'py-install'} />
           </section>
 
           <section className="space-y-4">
-            <h3 className="flex items-center gap-2 font-mono text-xs text-black/60 uppercase">
-              <Code2 className="size-4" /> 2. Instrument Agent
-            </h3>
+            <StepHeading n="2" icon={<Code2 className="size-4" />}>Instrument Agent</StepHeading>
             <CodeBlock code={pythonCode} onCopy={() => copyToClipboard(pythonCode, 'py-code')} copied={copied === 'py-code'} language="python" />
           </section>
         </TabsContent>
 
         <TabsContent value="typescript" className="space-y-6 mt-6">
           <section className="space-y-4">
-            <h3 className="flex items-center gap-2 font-mono text-xs text-black/60 uppercase">
-              <Terminal className="size-4" /> 1. Install Library
-            </h3>
+            <StepHeading n="1" icon={<Terminal className="size-4" />}>Install Library</StepHeading>
             <CodeBlock code={installTs} onCopy={() => copyToClipboard(installTs, 'ts-install')} copied={copied === 'ts-install'} />
           </section>
 
           <section className="space-y-4">
-            <h3 className="flex items-center gap-2 font-mono text-xs text-black/60 uppercase">
-              <Code2 className="size-4" /> 2. Instrument Agent
-            </h3>
+            <StepHeading n="2" icon={<Code2 className="size-4" />}>Instrument Agent</StepHeading>
             <CodeBlock code={tsCode} onCopy={() => copyToClipboard(tsCode, 'ts-code')} copied={copied === 'ts-code'} language="typescript" />
           </section>
         </TabsContent>
       </Tabs>
 
       <section className="space-y-4 pt-6">
-        <h3 className="flex items-center gap-2 font-mono text-xs text-black/60 uppercase">
-          <KeyRound className="size-4" /> 3. Set Environment Variable
-        </h3>
+        <StepHeading n="3" icon={<KeyRound className="size-4" />}>Set Environment Variable</StepHeading>
         <p className="text-[11px] text-black/55 font-mono">
           Inject your API key into your agent&apos;s environment.
         </p>
@@ -135,9 +126,7 @@ const runAgent = traceAgent(async () => {
       </section>
 
       <section className="space-y-4 pt-6">
-        <h3 className="flex items-center gap-2 font-mono text-xs text-black/60 uppercase">
-          <Check className="size-4" /> 4. Grade your own runs (optional)
-        </h3>
+        <StepHeading n="4" icon={<Check className="size-4" />}>Grade your own runs (optional)</StepHeading>
         <p className="text-[11px] text-black/55 font-mono">
           Let your agent score each run from code. Scores appear on the Scores page with no copy-pasting.
         </p>
@@ -154,6 +143,18 @@ const runAgent = traceAgent(async () => {
         </Link>
       </div>
     </div>
+  );
+}
+
+function StepHeading({ n, icon, children }: { n: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <h3 className="flex items-center gap-3 font-mono text-xs uppercase tracking-widest text-black">
+      <span className="flex size-7 items-center justify-center bg-[#f4d44d] text-[13px] font-bold text-[#090909]">{n}</span>
+      <span className="flex items-center gap-2">
+        <span className="text-black/50">{icon}</span>
+        {children}
+      </span>
+    </h3>
   );
 }
 

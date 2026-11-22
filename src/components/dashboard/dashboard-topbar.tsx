@@ -71,13 +71,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
   const region = getUncoilRegion();
   const controls = topbarControlsFor(pathname);
   const { data: session } = authClient.useSession();
-  const { data: organization } = authClient.useActiveOrganization();
   const user = session?.user;
-
-  const project = useQuery(
-    api.projects.getProject,
-    projectId ? { projectId: projectId as Id<"projects"> } : "skip",
-  );
 
   const alerts = useQuery(
     api.alerts.listByProject,

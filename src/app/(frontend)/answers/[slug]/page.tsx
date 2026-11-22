@@ -2,8 +2,8 @@ import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { pageMetadata, breadcrumbJsonLd, faqJsonLd, jsonLdString } from "@/lib/seo";
-import { answers } from "@/lib/answers";
+import { pageMetadata, breadcrumbJsonLd, jsonLdString } from "@/lib/seo";
+import { answers, answerFaqJsonLd } from "@/lib/answers";
 import { ClosingBand, CreamBand, Eyebrow, HeaderAction } from "@/components/marketing/company/blocks";
 
 export function generateStaticParams() {
@@ -22,7 +22,7 @@ export default async function AnswerPage({ params }: { params: Promise<{ slug: s
   if (!a) notFound();
   const schema = [
     breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Answers", path: "/answers" }, { name: a.title, path: `/answers/${a.slug}` }]),
-    faqJsonLd([{ q: a.question, a: a.answer }]),
+    answerFaqJsonLd(a),
   ];
   return (
     <div className="overflow-x-clip bg-[#090909]">

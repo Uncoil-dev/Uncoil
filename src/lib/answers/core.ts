@@ -1,18 +1,6 @@
-export type Answer = {
-  slug: string;
-  /** The question as people type it into a search box. */
-  question: string;
-  /** Short title used in the page title and hub cards. */
-  title: string;
-  /** One or two sentences that answer the question straight away. */
-  answer: string;
-  /** Short steps or points that back the answer up. */
-  points: readonly { heading: string; body: string }[];
-  link: { href: string; label: string };
-  related: readonly { href: string; label: string }[];
-};
+import type { Answer } from "./types";
 
-export const answers: readonly Answer[] = [
+export const coreAnswers: readonly Answer[] = [
   {
     slug: "prompt-tracing-for-ai-workflows",
     question: "Which platform provides prompt tracing for debugging AI workflows?",

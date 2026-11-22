@@ -29,6 +29,8 @@ export type Comparison = {
   /** Steps to move from this tool to Uncoil. */
   switching?: readonly string[];
   asOf?: string;
+  /** ISO date (YYYY-MM-DD) the facts on this page were last verified. Single source for the page. */
+  lastChecked: string;
   sources?: readonly { label: string; href: string }[];
 };
 
@@ -48,6 +50,7 @@ const uncoilRows = {
 export const comparisons: readonly Comparison[] = [
   {
     slug: "langfuse",
+    lastChecked: "2026-11-07",
     name: "Langfuse",
     post: "langfuse-vs-uncoil",
     oneLine: "Langfuse is an MIT-licensed LLM engineering platform with a hosted cloud (US, EU, Japan and HIPAA regions) and a self-hosted edition. Uncoil is a managed agent observability platform with alerts and evaluation built in.",
@@ -97,6 +100,7 @@ export const comparisons: readonly Comparison[] = [
   },
   {
     slug: "langsmith",
+    lastChecked: "2026-11-07",
     name: "LangSmith",
     post: "langsmith-vs-uncoil",
     oneLine: "LangSmith is the observability and evaluation product from the LangChain team, hosted in the US, EU or APAC. Uncoil is framework-neutral and built around OpenTelemetry.",
@@ -142,6 +146,7 @@ export const comparisons: readonly Comparison[] = [
   },
   {
     slug: "helicone",
+    lastChecked: "2026-11-07",
     name: "Helicone",
     oneLine: "Helicone is an open-source LLM observability platform and AI gateway, often set up by routing traffic through its proxy. Uncoil watches whole agent runs from instrumentation, with no proxy in your request path.",
     theirs: "Apache-2.0 licensed, self-hostable LLM observability with request logging and analytics, plus AI gateway routing and fallbacks.",
@@ -187,6 +192,7 @@ export const comparisons: readonly Comparison[] = [
   },
   {
     slug: "arize-phoenix",
+    lastChecked: "2026-11-19",
     name: "Arize Phoenix",
     post: "arize-vs-uncoil",
     oneLine: "Phoenix is Arize's free, self-hosted tracing and evaluation tool (Elastic License 2.0); Arize AX is its managed product. Uncoil is a managed product built specifically around agent runs.",
@@ -204,6 +210,7 @@ export const comparisons: readonly Comparison[] = [
   },
   {
     slug: "braintrust",
+    lastChecked: "2026-11-19",
     name: "Braintrust",
     post: "braintrust-vs-uncoil",
     oneLine: "Braintrust is centered on evaluation and experiments, with logging and tracing alongside. Uncoil starts from production traces and adds evaluation on top.",
@@ -220,6 +227,7 @@ export const comparisons: readonly Comparison[] = [
   },
   {
     slug: "opik",
+    lastChecked: "2026-11-19",
     name: "Opik",
     oneLine: "Opik is Comet's Apache-2.0 open-source platform for LLM tracing, evaluation and prompt management, free to self-host. Uncoil is a managed platform built around agent runs, with alerts and an EU region.",
     theirs: "Opik is built by Comet. Its README describes it as open-source LLM observability and evaluation for agent tracing, LLM evaluation, prompt management and production monitoring, Apache-2.0 licensed and free to self-host.",
@@ -243,6 +251,7 @@ export const comparisons: readonly Comparison[] = [
   },
   {
     slug: "agentops",
+    lastChecked: "2026-11-19",
     name: "AgentOps",
     oneLine: "AgentOps is an MIT-licensed observability and developer tool platform for AI agents, with session replays and cost tracking. Uncoil is a managed platform for agent runs with alerts, evaluation and an EU region.",
     theirs: "AgentOps describes itself as an observability and DevTool platform for AI agents. Its README lists replay analytics, step-by-step execution graphs, LLM cost management and self-hosting. The app is open source under the MIT license.",
@@ -266,6 +275,7 @@ export const comparisons: readonly Comparison[] = [
   },
   {
     slug: "logfire",
+    lastChecked: "2026-11-19",
     name: "Pydantic Logfire",
     oneLine: "Logfire is Pydantic's general observability platform built on OpenTelemetry, with a Python-first SDK and SQL queries. Uncoil is purpose-built for AI agent runs, cost and evaluation.",
     theirs: "Pydantic Logfire is an observability platform from the team behind Pydantic. Its README says it is an opinionated wrapper around OpenTelemetry, lets you query data with standard SQL, and gives Python-centric insights. The SDK is MIT licensed; the server application is closed source.",
@@ -288,6 +298,7 @@ export const comparisons: readonly Comparison[] = [
   },
   {
     slug: "datadog",
+    lastChecked: "2026-11-19",
     name: "Datadog LLM Observability",
     post: "datadog-vs-uncoil",
     oneLine: "Datadog adds LLM monitoring to a general infrastructure platform. Uncoil is purpose-built for agents.",
@@ -727,3 +738,10 @@ agent = Agent(name="Support", instructions="Use tools.", model="gpt-4o-mini", to
 ] as const;
 
 export const integrationPages: readonly IntegrationPage[] = [...coreIntegrationPages, ...integrationGuides];
+
+/** Formats an ISO `YYYY-MM-DD` date as "November 2026". */
+export function formatLastChecked(iso: string): string {
+  const [y, m] = iso.split("-").map(Number);
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  return `${months[m - 1]} ${y}`;
+}

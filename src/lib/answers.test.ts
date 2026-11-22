@@ -49,3 +49,23 @@ describe("answers", () => {
     }
   });
 });
+
+describe("answer extras", () => {
+  it("has non-empty steps and tables where present", () => {
+    for (const a of answers) {
+      for (const s of a.steps ?? []) {
+        expect(s.heading.trim(), a.slug).not.toBe("");
+        expect(s.body.trim(), a.slug).not.toBe("");
+      }
+      if (a.table) {
+        expect(a.table.rows.length, a.slug).toBeGreaterThan(0);
+        for (const r of a.table.rows) expect(r.length, a.slug).toBe(a.table.columns.length);
+      }
+    }
+  });
+
+  it("lists the cost answer", () => {
+    const a = answers.find((x) => x.slug === "track-ai-agent-costs");
+    expect(a?.table?.rows.map((r) => r[0])).toEqual(["Tokens", "Retries", "Tool calls"]);
+  });
+});

@@ -45,7 +45,26 @@ export default async function AnswerPage({ params }: { params: Promise<{ slug: s
       <CreamBand>
         <div className="max-w-3xl">
           <Eyebrow dark={false}>In more detail</Eyebrow>
-          <ul className="mt-8 space-y-8">
+          {a.steps && (
+            <ol className="mt-8 space-y-5">
+              {a.steps.map((s, i) => (
+                <li key={s.heading} className="flex gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#090909] font-mono text-xs text-[#eceae3]">{i + 1}</span>
+                  <div><h2 className="font-mono text-xs uppercase tracking-[0.14em] text-black">{s.heading}</h2><p className="mt-2 text-base leading-7 text-black/80">{s.body}</p></div>
+                </li>
+              ))}
+            </ol>
+          )}
+          {a.table && (
+            <div className="mt-10 overflow-x-auto">
+              <table className="w-full min-w-[34rem] border-2 border-black text-left text-sm">
+                <caption className="bg-[#090909] px-4 py-3 text-left font-mono text-[10px] uppercase tracking-[0.18em] text-[#eceae3]">{a.table.caption}</caption>
+                <thead><tr className="border-b-2 border-black bg-[#f4d44d]">{a.table.columns.map((c) => <th key={c} scope="col" className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-black">{c}</th>)}</tr></thead>
+                <tbody>{a.table.rows.map((r) => <tr key={r[0]} className="border-b border-black/20 align-top">{r.map((c, i) => i === 0 ? <th key={c} scope="row" className="px-4 py-3 font-medium text-black">{c}</th> : <td key={c} className="px-4 py-3 leading-6 text-black/80">{c}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+          )}
+          <ul className="mt-12 space-y-8">
             {a.points.map((p) => (
               <li key={p.heading} className="border-l-4 border-[#f4d44d] pl-6">
                 <h2 className="font-mono text-xs uppercase tracking-[0.14em] text-black">{p.heading}</h2>

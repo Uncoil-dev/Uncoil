@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import type { GroupRow } from "@/lib/tinybird-groups";
 import { compactNumber, formatCost, formatTime, relativeTime } from "../tracing/format";
 import { FilterChips, GroupControls, GroupFooter } from "./group-controls";
@@ -54,10 +55,7 @@ export function UsersView({ view }: { view: GroupView }) {
     <div className="flex min-h-svh min-w-0 flex-col bg-[#ECEAE3] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#090909]">
       <header className="bg-[#090909] pb-4 pl-12 pr-5 pt-5 text-[#eceae3]">
         <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#f4d44d]">Customers</p>
-            <h1 className={`${PAGE_FONT} !ml-0 mt-1 text-4xl leading-none`}>Users</h1>
-          </div>
+          <PageTitle>Users</PageTitle>
           <p className="max-w-md text-[12px] leading-5 text-[#a9a693]">Everyone your agent has talked to, ranked. Click a column to rank by it, a person to open their profile.</p>
         </div>
         <div className="mt-4"><GroupControls view={view} /></div>

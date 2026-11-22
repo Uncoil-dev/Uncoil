@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -113,7 +114,6 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
       ? `/dashboard/${projectId}/${segments[2]}`
       : dashboardHref;
 
-  const eyebrow = segments[2] ? segments[2].replace(/-/g, " ") : "overview";
 
   return (
     <>
@@ -376,11 +376,7 @@ export function DashboardTopbar({ title, description }: DashboardTopbarProps) {
     {title ? (
       <div className="uncoil-page-hero">
         <div className="min-w-0">
-          <div className="uncoil-page-hero-eyebrow">
-            <span className="uncoil-dissolve" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>
-            {eyebrow}
-          </div>
-          <h1 className="uncoil-page-hero-title">{title}</h1>
+          <PageTitle>{title}</PageTitle>
           {description ? <p className="uncoil-page-hero-desc">{description}</p> : null}
         </div>
         <div className="uncoil-topbar-controls hidden items-center gap-1 lg:flex">

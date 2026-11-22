@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "convex/react";
@@ -133,7 +134,7 @@ export function PlaygroundWorkspace({ projectId, initialPrompt, initialVersion, 
   return (
     <div className="flex h-svh min-w-0 flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-1 text-base font-semibold tracking-tight">Playground</h1>
+        <PageTitle>Playground</PageTitle>
         <label className="sr-only" htmlFor="pg-source">Start from a saved prompt</label>
         <select id="pg-source" value="" onChange={(event) => pick(event.target.value)} className={`${field} h-8 max-w-64 font-mono`} disabled={!prompts?.length}>
           <option value="">{prompts === undefined ? "Loading prompts…" : prompts.length ? source ? `${source}` : "Start from a saved prompt…" : "No saved prompts yet"}</option>

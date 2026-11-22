@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { useMemo, useState } from "react";
 import {
   Table,
@@ -42,7 +43,6 @@ function toSpanMapProp(spans: ExploreSpan[]) {
 
 export function ExploreClient({
   traces,
-  projectLabel,
   isDemo = false,
 }: {
   traces: ExploreTrace[];
@@ -138,7 +138,7 @@ export function ExploreClient({
     <div className="flex flex-col gap-4 bg-black text-white min-h-full p-4 font-mono">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">{projectLabel} · Explore</h1>
+          <PageTitle>Explore</PageTitle>
           <p className="text-xs text-neutral-400">
             {isDemo
               ? "Seeded demo data — click any row to open its trace map. No backend involved."

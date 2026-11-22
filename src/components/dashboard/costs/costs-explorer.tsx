@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { FirstTraceEmpty } from "../first-trace-empty";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RANGES, TimeRangePicker } from "../tracing/time-range-picker";
@@ -175,7 +176,7 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
   return (
     <div className="flex min-h-svh flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Costs</h1>
+        <PageTitle>Costs</PageTitle>
         <p className="hidden text-xs text-[#6B7380] md:block">What your agents spent, from recorded model calls.</p>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <TimeRangePicker range={query.range ?? DEFAULT_RANGE} from={query.from ? Number(query.from) : undefined} to={query.to ? Number(query.to) : undefined} now={now}

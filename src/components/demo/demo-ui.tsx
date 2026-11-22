@@ -1,3 +1,4 @@
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 
 import { DEMO_BASE_PATH, DEMO_PROJECT_NAME } from "@/lib/demo/demo-config";
@@ -8,7 +9,7 @@ export const panel = "border border-[#1F242C] bg-[#0E1115]";
 export function DemoHeader({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <header className="flex flex-wrap items-center gap-3 border-b border-[#1F242C] py-2.5 pl-11 pr-4">
-      <h1 className="mr-2 text-base font-semibold tracking-tight">{title}</h1>
+      <PageTitle>{title}</PageTitle>
       <span className="font-mono text-xs text-[#8B93A1]">{DEMO_PROJECT_NAME}</span>
       <div className="ml-auto flex flex-wrap items-center gap-2">{children}</div>
     </header>

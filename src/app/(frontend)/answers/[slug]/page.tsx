@@ -55,6 +55,16 @@ export default async function AnswerPage({ params }: { params: Promise<{ slug: s
               ))}
             </ol>
           )}
+          {a.code && (
+            <div className="mt-10 space-y-6">
+              {a.code.map((c) => (
+                <figure key={c.label} className="border-2 border-black bg-[#090909]">
+                  <figcaption className="border-b border-[#eceae3]/30 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[#eceae3]">{c.label}</figcaption>
+                  <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#eceae3]"><code>{c.text}</code></pre>
+                </figure>
+              ))}
+            </div>
+          )}
           {a.table && (
             <div className="mt-10 overflow-x-auto">
               <table className="w-full min-w-[34rem] border-2 border-black text-left text-sm">

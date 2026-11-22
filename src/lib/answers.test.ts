@@ -69,3 +69,11 @@ describe("answer extras", () => {
     expect(a?.table?.rows.map((r) => r[0])).toEqual(["Tokens", "Retries", "Tool calls"]);
   });
 });
+
+describe("debug-failing-ai-agent-run", () => {
+  it("is listed with steps or points", () => {
+    const a = answers.find((x) => x.slug === "debug-failing-ai-agent-run");
+    expect(a?.question.endsWith("?")).toBe(true);
+    expect(a?.points.length).toBeGreaterThan(0);
+  });
+});

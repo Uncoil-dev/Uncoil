@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, BookOpen, Check, Copy } from "lucide-react";
@@ -14,11 +14,11 @@ import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
 type Lang = "python" | "typescript";
 
-const STEPS = [
-  { id: "install", label: "Install" },
-  { id: "instrument", label: "Instrument" },
-  { id: "key", label: "Add your key" },
-  { id: "verify", label: "First trace" },
+const WIZARD = [
+  { id: "install", label: "Install", title: "Install the library", hint: "One package, no config files." },
+  { id: "instrument", label: "Instrument", title: "Instrument your agent", hint: "Wrap the function that runs your agent and record each model call." },
+  { id: "key", label: "Add your key", title: "Add your key", hint: "Put it in your agent's environment. It is shown in full only once, at creation." },
+  { id: "verify", label: "First trace", title: "Run it once", hint: "Start your agent. The status panel at the top turns green when the trace lands." },
 ] as const;
 
 const BARS = [
@@ -85,6 +85,8 @@ export function QuickstartGuide({ projectId }: { projectId: string }) {
   const arrived = Boolean(firstRun);
 
   const [lang, setLang] = useState<Lang>("python");
+  const [mode, setMode] = useState<"agent" | "manual">("agent");
+  const [step, setStep] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const { done, copy } = useCopy();
   const snippet = SNIPPETS[lang];
@@ -161,84 +163,95 @@ export function QuickstartGuide({ projectId }: { projectId: string }) {
         </div>
       </section>
 
-      {/* Progress rail */}
-      <ol className="grid grid-cols-2 gap-px border border-[#2a2a2a] bg-[#2a2a2a] md:grid-cols-4" aria-label="Setup progress">
-        {STEPS.map((step, i) => {
-          const complete = arrived;
-          return (
-            <li key={step.id}>
-              <a href={`#qs-${step.id}`} className="flex items-center gap-3 bg-[#0c0c0c] px-4 py-3.5 font-mono text-[11px] uppercase tracking-[0.12em] !text-[#c9c9c2] transition-colors hover:bg-[#161616]">
-                <span className={`grid size-6 shrink-0 place-items-center text-[11px] ${complete ? "bg-[#f4d44d] text-[#090909]" : "border border-[#444] text-[#8a8a84]"}`}>
-                  {complete ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
-                </span>
-                {step.label}
-              </a>
-            </li>
-          );
-        })}
-      </ol>
-
-      {/* Agent prompt */}
-      <section className="relative overflow-hidden bg-[#f4d44d] p-6 text-[#090909] md:p-8">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 [mask-image:linear-gradient(to_left,black,transparent)]">
-          <DitherEmber rgb={[9, 9, 9]} className="!opacity-20" />
-        </div>
-        <div className="relative grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em]">Fastest way</p>
-            <h3 className="mt-3 font-pixel text-[clamp(1.75rem,2.6vw,2.4rem)] leading-[0.95] tracking-[-0.06em]">Let your coding agent do it.</h3>
-            <p className="mt-3 max-w-[40ch] font-sans text-[14px] leading-relaxed text-[#090909cc]">Paste this into Claude Code, Cursor or Codex. It installs, wires up and sends the first trace.</p>
-            <button
-              type="button"
-              onClick={() => copy("prompt", agentPrompt)}
-              className="mt-5 inline-flex h-10 items-center gap-2 bg-[#090909] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#f4d44d] transition-transform hover:-translate-y-0.5"
-            >
-              {done === "prompt" ? <Check className="size-4" /> : <Copy className="size-4" />}
-              {done === "prompt" ? "Copied" : "Copy prompt"}
-            </button>
+      {/* Guided setup */}
+      <section className="border border-[#2a2a2a] bg-[#0a0a0a]" aria-label="Guided setup">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2a2a2a] px-4 py-3">
+          <div role="tablist" aria-label="Setup method" className="inline-flex gap-1 border border-[#333] bg-[#0c0c0c] p-1">
+            {([["agent", "Use my coding agent"], ["manual", "Step by step"]] as const).map(([value, label]) => (
+              <button key={value} type="button" role="tab" aria-selected={mode === value} onClick={() => { setMode(value); setStep(0); }} className={`h-8 px-4 font-mono text-[11px] uppercase tracking-widest transition-colors ${mode === value ? "bg-[#f4d44d] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{label}</button>
+            ))}
           </div>
-          <pre className="max-h-48 overflow-auto whitespace-pre-wrap bg-[#090909] p-4 font-mono text-[11px] leading-relaxed text-[#eceae3]">{agentPrompt}</pre>
+          <div role="tablist" aria-label="Language" className="inline-flex gap-1 border border-[#333] bg-[#0c0c0c] p-1">
+            {(["python", "typescript"] as const).map((value) => (
+              <button key={value} type="button" role="tab" aria-selected={lang === value} onClick={() => setLang(value)} className={`h-8 px-4 font-mono text-[11px] uppercase tracking-widest transition-colors ${lang === value ? "bg-[#f4f3ee] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{value}</button>
+            ))}
+          </div>
         </div>
+
+        {mode === "agent" ? (
+          <div className="relative overflow-hidden bg-[#f4d44d] p-6 text-[#090909] md:p-10">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-1/2 [mask-image:linear-gradient(to_left,black,transparent)]">
+              <DitherEmber rgb={[9, 9, 9]} className="!opacity-20" />
+            </div>
+            <div className="relative grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em]">Fastest way · one paste</p>
+                <h3 className="mt-3 font-pixel text-[clamp(1.75rem,2.6vw,2.4rem)] leading-[0.95] tracking-[-0.06em]">Let your coding agent do it.</h3>
+                <p className="mt-3 max-w-[40ch] font-sans text-[14px] leading-relaxed text-[#090909cc]">Paste this into Claude Code, Cursor or Codex. It installs, wires up and sends the first trace. Then watch the panel above.</p>
+                <button type="button" onClick={() => copy("prompt", agentPrompt)} className="mt-5 inline-flex h-10 items-center gap-2 bg-[#090909] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#f4d44d] transition-transform hover:-translate-y-0.5">
+                  {done === "prompt" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                  {done === "prompt" ? "Copied" : "Copy prompt"}
+                </button>
+              </div>
+              <pre className="max-h-56 overflow-auto whitespace-pre-wrap bg-[#090909] p-4 font-mono text-[11px] leading-relaxed text-[#eceae3]">{agentPrompt}</pre>
+            </div>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-[260px_1fr]">
+            <ol className="flex gap-px overflow-x-auto border-b border-[#2a2a2a] bg-[#2a2a2a] md:flex-col md:border-b-0 md:border-r md:bg-[#0c0c0c]" aria-label="Setup steps">
+              {WIZARD.map((item, i) => {
+                const complete = i < step || (arrived && i === WIZARD.length - 1);
+                const active = i === step;
+                return (
+                  <li key={item.id} className="min-w-[150px] flex-1 md:flex-none">
+                    <button type="button" onClick={() => setStep(i)} aria-current={active ? "step" : undefined} className={`flex w-full items-center gap-3 px-4 py-4 text-left font-mono text-[11px] uppercase tracking-[0.12em] transition-colors ${active ? "bg-[#161616] !text-[#f4f3ee] shadow-[inset_3px_0_0_#f4d44d]" : "bg-[#0c0c0c] !text-[#8a8a84] hover:bg-[#121212]"}`}>
+                      <span className={`grid size-7 shrink-0 place-items-center text-[12px] ${complete ? "bg-[#f4d44d] text-[#090909]" : active ? "bg-[#f4f3ee] text-[#090909]" : "border border-[#444]"}`}>
+                        {complete ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
+                      </span>
+                      {item.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+            <div className="flex min-h-[420px] flex-col p-6 md:p-8">
+              <motion.div key={step} initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex-1">
+                <span className="font-pixel text-[64px] leading-none tracking-[-0.06em] text-[#f4d44d]">{String(step + 1).padStart(2, "0")}</span>
+                <h3 className="mt-3 font-pixel text-[clamp(1.6rem,2.4vw,2.2rem)] leading-[0.95] tracking-[-0.05em] text-[#f4f3ee]">{WIZARD[step].title}</h3>
+                <p className="mt-3 max-w-[56ch] font-sans text-[14px] leading-relaxed text-[#9b9b95]">{WIZARD[step].hint}</p>
+                <div className="mt-6">
+                  {step === 0 ? <Code code={snippet.install} id="install" file="terminal" copied={done === "install"} onCopy={() => copy("install", snippet.install)} /> : null}
+                  {step === 1 ? <Code code={snippet.code} id="code" file={snippet.file} copied={done === "code"} onCopy={() => copy("code", snippet.code)} /> : null}
+                  {step === 2 ? <Code code={keyLine} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", envCopy)} /> : null}
+                  {step === 3 ? (
+                    <div className={`flex items-center gap-3 border px-4 py-5 font-mono text-[12px] ${arrived ? "border-[#5be3a0] !text-[#5be3a0]" : "border-[#333] text-[#b4b4ad]"}`}>
+                      <span className={`size-2 ${arrived ? "bg-[#5be3a0]" : "animate-pulse bg-[#f4d44d]"}`} />
+                      {arrived ? "Your first trace arrived." : "Listening for your first trace… run your agent once."}
+                    </div>
+                  ) : null}
+                </div>
+              </motion.div>
+              <div className="mt-8 flex items-center justify-between border-t border-[#2a2a2a] pt-5">
+                <button type="button" onClick={() => setStep((v) => Math.max(0, v - 1))} disabled={step === 0} className="h-10 border border-[#444] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#eceae3] transition-colors hover:border-[#f4d44d] disabled:opacity-30">Back</button>
+                {step < WIZARD.length - 1 ? (
+                  <button type="button" onClick={() => setStep((v) => v + 1)} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">Next <ArrowRight className="size-4" /></button>
+                ) : (
+                  <Link href={`/dashboard/${projectId}/tracing`} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">{arrived ? "Open your trace" : "Open tracing"} <ArrowRight className="size-4" /></Link>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* Manual steps */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
-        <h3 className="font-pixel text-2xl tracking-[-0.05em] text-[#f4f3ee]">Or do it by hand</h3>
-        <div role="tablist" aria-label="Language" className="inline-flex gap-1 border border-[#333] bg-[#0c0c0c] p-1">
-          {(["python", "typescript"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={lang === value}
-              onClick={() => setLang(value)}
-              className={`h-9 px-5 font-mono text-[11px] uppercase tracking-widest transition-colors ${lang === value ? "bg-[#f4d44d] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}
-            >
-              {value}
-            </button>
-          ))}
+      <section className="border-t border-[#2a2a2a] pt-6">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="font-pixel text-2xl tracking-[-0.05em] text-[#f4f3ee]">Then grade your own runs</h3>
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#8a8a84]">Optional</span>
         </div>
-      </div>
-
-      <Step n={1} id="install" title="Install the library" hint="One package, no config files.">
-        <Code code={snippet.install} id="install" file="terminal" copied={done === "install"} onCopy={() => copy("install", snippet.install)} />
-      </Step>
-      <Step n={2} id="instrument" title="Instrument your agent" hint="Wrap the function that runs your agent and record each model call.">
-        <Code code={snippet.code} id="code" file={snippet.file} copied={done === "code"} onCopy={() => copy("code", snippet.code)} />
-      </Step>
-      <Step n={3} id="key" title="Add your key" hint="Put it in your agent's environment. It is shown in full only once, at creation.">
-        <Code code={keyLine} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", envCopy)} />
-      </Step>
-      <Step n={4} id="verify" title="Run it once" hint="Start your agent. The status panel at the top turns green when the trace lands.">
-        <div className={`flex items-center gap-3 border px-4 py-4 font-mono text-[12px] ${arrived ? "border-[#5be3a0] !text-[#5be3a0]" : "border-[#333] text-[#b4b4ad]"}`}>
-          <span className={`size-2 ${arrived ? "bg-[#5be3a0]" : "animate-pulse bg-[#f4d44d]"}`} />
-          {arrived ? "Your first trace arrived." : "Listening for your first trace…"}
-        </div>
-      </Step>
-
-      <Step n={5} id="score" title="Grade your own runs" hint="Optional. Let your agent score each run from code; scores appear on the Scores page." optional>
+        <p className="mb-4 max-w-[60ch] font-sans text-[13px] text-[#9b9b95]">Let your agent score each run from code. Scores appear on the Scores page.</p>
         <Code code={scoreSnippet(lang, projectId)} id="score" file={lang === "python" ? "score.py" : "score.ts"} copied={done === "score"} onCopy={() => copy("score", scoreSnippet(lang, projectId))} />
-      </Step>
+      </section>
 
       {/* CTA */}
       <section className="flex flex-wrap items-center justify-between gap-4 border border-[#f4d44d] bg-[#0c0c0c] p-6">
@@ -256,21 +269,6 @@ export function QuickstartGuide({ projectId }: { projectId: string }) {
         </div>
       </section>
     </div>
-  );
-}
-
-function Step({ n, id, title, hint, optional, children }: { n: number; id: string; title: string; hint: string; optional?: boolean; children: ReactNode }) {
-  return (
-    <section id={`qs-${id}`} className="grid scroll-mt-24 gap-4 border-t border-[#2a2a2a] pt-6 md:grid-cols-[220px_1fr] md:gap-8">
-      <div>
-        <span className="font-pixel text-[56px] leading-none tracking-[-0.06em] text-[#f4d44d]">{String(n).padStart(2, "0")}</span>
-        <h4 className="mt-3 font-mono text-[12px] uppercase tracking-[0.14em] text-[#f4f3ee]">
-          {title} {optional ? <span className="text-[#8a8a84]">· optional</span> : null}
-        </h4>
-        <p className="mt-2 font-sans text-[13px] leading-relaxed text-[#9b9b95]">{hint}</p>
-      </div>
-      <div className="min-w-0">{children}</div>
-    </section>
   );
 }
 

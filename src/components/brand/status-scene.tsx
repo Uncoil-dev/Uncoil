@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/utils";
 
 // Shared artwork + frame for the 404 and "something went wrong" pages.
@@ -73,12 +74,12 @@ export function StatusScene({
   detail?: ReactNode;
 }) {
   return (
-    <section className={cn("w-full max-w-5xl border border-black bg-[#090909] text-[#eceae3]", compact ? "" : "shadow-[10px_10px_0_#f4d44d]")}>
+    <section className={cn("w-full max-w-5xl border border-black bg-[#090909] text-[#eceae3]", compact ? "" : "border-0 bg-transparent")}>
       <div className="flex items-center justify-between border-b border-white/15 px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-[#eceae3]/60">
-        <span>uncoil / {label}</span>
+        <span className="flex items-center gap-3"><BrandLogo className="h-[19px] w-[102px] origin-left" /><span className="hidden sm:inline">/ {label}</span></span>
         <span className="text-[#f4d44d]">{code}</span>
       </div>
-      <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+      <div className="grid gap-10 p-6 sm:p-10 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-16">
         <div className="space-y-6">
           <p className="status-code font-pixel text-[clamp(4.5rem,16vw,9rem)] leading-none tracking-tighter text-[#f4d44d]" style={{ fontFamily: "var(--font-pixel)" }}>
             {code}
@@ -90,7 +91,7 @@ export function StatusScene({
           {detail}
           <div className="flex flex-col gap-3 sm:flex-row">{actions}</div>
         </div>
-        <div className="border border-white/15 p-4 sm:p-6">
+        <div className={compact ? "border border-white/15 p-4 sm:p-6" : "p-2 sm:p-4 lg:scale-110"}>
           <TraceArt broken={broken} />
         </div>
       </div>

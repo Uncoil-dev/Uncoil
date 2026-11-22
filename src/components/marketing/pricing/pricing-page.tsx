@@ -130,6 +130,7 @@ function Calculator({ value, onChange, interval, locale, t }: { value: EstimateS
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">{c.eyebrow}</p>
           <h2 id="calc-title" className="mt-5 font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">{c.title}</h2>
           <p className="mt-6 max-w-md text-base leading-7 text-white/70">{c.body}</p>
+          <Link href="/tools/ai-observability-cost-calculator" className="mt-6 inline-flex min-h-11 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4d44d] underline-offset-4 hover:underline">{c.compare}<ArrowRight className="size-4" aria-hidden="true" /></Link>
         </Reveal>
 
         <Reveal delay={0.1} className="border border-white/20 bg-[#090909]">

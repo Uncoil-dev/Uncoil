@@ -1,3 +1,4 @@
+import { EmptyNotice } from "./empty/empty-notice";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import type { DashboardSignal } from "./dashboard-contracts";
@@ -90,11 +91,5 @@ export function DashboardEmptyState({
   href?: string;
   action?: string;
 }) {
-  return (
-    <div className="border border-dashed border-black/15 bg-[#f3f2ed] px-6 py-14 text-center">
-      <p className="font-mono text-xs uppercase tracking-widest text-black">{title}</p>
-      <p className="mx-auto mt-2 max-w-md font-sans text-sm leading-relaxed text-black/55">{description}</p>
-      {href && action ? <Link href={href} className="mt-5 inline-flex border border-black/25 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-black/70 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">{action} <span className="ml-2" aria-hidden="true">→</span></Link> : null}
-    </div>
-  );
+  return <EmptyNotice tone="paper" title={title} description={description} href={href} action={action} />;
 }

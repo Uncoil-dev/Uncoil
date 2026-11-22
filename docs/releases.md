@@ -5,6 +5,7 @@ This is the canonical release record. The public `/changelog` page and GitHub Re
 ## [Unreleased]
 
 ### Features
+- The pricing page calculator now links to the tracing bill calculator, which compares the monthly bill across tools for the same traffic.
 - New Startups page with discounted plans for early-stage startups, students and educators, and open-source projects. See /startups.
 - RSS feed for the changelog at /changelog/rss.xml.
 - New Pro and Team subscriptions start with a 7-day free trial. A card is added at checkout and is charged when the trial ends; each project gets one trial.

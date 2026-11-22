@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Branded 404 for URLs that match no route at all (see src/app/global-not-found.tsx).
+  experimental: { globalNotFound: true },
   // Allow a second dev server to run alongside the first. Next refuses to start
   // two dev instances that share a build directory, which otherwise makes it
   // impossible to run the marketing host and a regional cloud host side by side

@@ -72,6 +72,7 @@ export type Copy = {
       custom: string;
       bestFit: string;
       annualNote: string;
+      compare: string;
       over: string;
       fitsFree: string;
       covers: (plan: string, spans: string) => string;

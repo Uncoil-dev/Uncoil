@@ -8,7 +8,7 @@ import Link from "next/link";
 import { captureAnalytics } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 
-import { CodeCopyBlock } from "@/components/onboarding/code-copy-block";
+import { QuickstartGuide } from "@/components/dashboard/quickstart-guide";
 import { ConnectionCheck, type ProbeState } from "@/components/onboarding/connection-check";
 import { FirstRunPanel } from "@/components/onboarding/first-run-panel";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
@@ -21,61 +21,8 @@ const PROJECT_NAME_STORAGE_KEY = "uncoil.onboarding.projectName";
 const INSTALL_READY_STORAGE_KEY = "uncoil.onboarding.installReady";
 const FALLBACK_PROJECT_NAME = "your-project";
 
-const snippets = {
-  python: {
-    label: "Python",
-    install: "pip install uncoil-sdk",
-    code: `from uncoil import trace_agent
-
-@trace_agent()
-async def research_agent(query):
-    return await run(query)`,
-  },
-  typescript: {
-    label: "TypeScript",
-    install: "npm install @uncoil.dev/sdk",
-    code: `import { traceAgent } from "@uncoil.dev/sdk"
-
-const researchAgent = traceAgent(async (query: string) => {
-  return await run(query)
-})`,
-  },
-  prompt: {
-    label: "AI setup prompt",
-    install: "",
-    code: `You are integrating Uncoil into this agent project.
-
-Goal:
-Instrument the main agent run function so every run sends spans to Uncoil.
-
-Rules:
-- Do not rewrite the agent.
-- Preserve existing behavior.
-- Add the smallest possible instrumentation change.
-- Use environment variable UNCOIL_API_KEY.
-- Do not hardcode secrets.
-
-Steps:
-1. Detect whether this project is Python or TypeScript.
-2. Install the Uncoil SDK with the correct command:
-   - Python: pip install uncoil-sdk
-   - TypeScript / Node.js: npm install @uncoil.dev/sdk
-3. Add UNCOIL_API_KEY to .env.example.
-4. Find the main agent function.
-5. If Python, import trace_agent from uncoil and add @trace_agent().
-6. If TypeScript, import traceAgent from @uncoil.dev/sdk and wrap the async agent function.
-7. Run the agent once.
-8. Confirm that a span was sent to Uncoil.
-
-Use this environment variable locally:
-UNCOIL_API_KEY=your_key_here`,
-  },
-};
-
 export function InstallStep() {
   const updateProgress = useMutation(api.projects.updateOnboardingProgress);
-  const [tab, setTab] = useState<keyof typeof snippets>("python");
-  const [showSetup, setShowSetup] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [probeState, setProbeState] = useState<ProbeState>("idle");
   const [projectId, setProjectId] = useState("");
@@ -84,7 +31,6 @@ export function InstallStep() {
   const capturedFirstTrace = useRef(false);
   const { data: session } = authClient.useSession();
   const region = getUncoilRegion(getDeploymentRegion());
-  const active = snippets[tab];
 
   // Session storage is only readable after mount.
   useEffect(() => {
@@ -139,12 +85,11 @@ export function InstallStep() {
 
   // Tell the server we reached this step, so the dashboard can send people back here.
   const savedStep = useRef(false);
-  const sdk = tab === "python" ? "python" : tab === "typescript" ? "typescript" : undefined;
   useEffect(() => {
     if (!projectId || !onboardingState || realFirstRun || onboardingState.onboardingStep === "success" || savedStep.current) return;
     savedStep.current = true;
-    void updateProgress({ projectId: projectId as Id<"projects">, step: "waiting", sdk });
-  }, [projectId, onboardingState, realFirstRun, sdk, updateProgress]);
+    void updateProgress({ projectId: projectId as Id<"projects">, step: "waiting" });
+  }, [projectId, onboardingState, realFirstRun, updateProgress]);
 
   const projectName = onboardingState?.projectName ?? fallbackName;
   const keyDisplay =
@@ -153,80 +98,21 @@ export function InstallStep() {
       : apiKey
         ? `uncoil_sk_live_...${apiKey.slice(-4)}`
         : "uncoil_sk_live_...";
-  const envLines = `UNCOIL_API_KEY=${apiKey || "paste_your_key_here"}\nUNCOIL_REGION=${region.id}`;
-  const envMasked = `UNCOIL_API_KEY=${apiKey ? keyDisplay : "paste_your_key_here"}\nUNCOIL_REGION=${region.id}`;
   const arrived = realFirstRun !== null;
   const projectReady = !projectId || onboardingState === null ? "fail" : onboardingState === undefined ? "checking" : "pass";
 
-  const setup = (
-    <>
-      <div className="mb-4 grid border border-black/15 sm:grid-cols-3">
-        {Object.entries(snippets).map(([key, snippet]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => { setTab(key as keyof typeof snippets); publishOnboardingDraft({ runtime: key }); }}
-            className={
-              key === tab
-                ? "h-12 flex-1 bg-[#f4d44d] font-mono text-[12px] uppercase tracking-[0.08em] text-black"
-                : "h-12 flex-1 bg-[#f3f2ed] font-mono text-[12px] uppercase tracking-[0.08em] text-black/55 transition-colors hover:bg-[#f3f2ed] hover:text-black/70"
-            }
-          >
-            {snippet.label}
-          </button>
-        ))}
-      </div>
-      <CodeCopyBlock label={apiKey ? "1 · Your key, ready to paste into .env" : "1 · Add to .env"} value={envLines} displayValue={envMasked} multiline copyLabel={apiKey ? "Copy with key" : "Copy"} />
-      {!apiKey ? (
-        <p className="mt-2 font-sans text-xs leading-5 text-black/55">
-          Keys are shown once, and this one is gone from this browser. Make a new one in <Link href={projectId ? `/dashboard/${projectId}/api-keys` : "/dashboard"} className="underline underline-offset-4 hover:text-black">API keys</Link>.
-        </p>
-      ) : (
-        <p className="mt-2 font-sans text-xs leading-5 text-black/55">Copy puts your real key in the clipboard. The screen only shows the last 4 characters.</p>
-      )}
-      {tab === "prompt" ? (
-        <div className="mt-4">
-          <div className="mb-3 border border-black/15 bg-[#f3f2ed] px-3 py-2 font-sans text-xs leading-5 text-[#92400E]">
-            Keep live API keys out of AI coding tools unless you trust them. The prompt has no key in it; the key stays in your .env.
-          </div>
-          <CodeCopyBlock label="2 · Paste into your AI coding tool" value={active.code} multiline collapsible copyLabel="Copy setup prompt" />
-        </div>
-      ) : (
-        <>
-          <div className="mt-4"><CodeCopyBlock label="2 · Install" value={active.install} /></div>
-          <div className="mt-4"><CodeCopyBlock label="3 · Wrap your agent" value={active.code} multiline /></div>
-        </>
-      )}
-      <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-black/50">Then run your agent once. Sends to Uncoil {region.shortName} · {region.origin}/api/ingest</p>
-    </>
-  );
-
   return (
     <div>
-      <OnboardingHeader
-        title={arrived ? "First run in." : "Send your first run."}
-        description={arrived ? "Uncoil heard your agent. Open the trace and see every step." : "Copy the lines below into your agent and run it once. The status box turns yellow the second it arrives."}
-      />
-      <FirstRunPanel
+      {arrived ? <OnboardingHeader title="First run in." description="Uncoil heard your agent. Open the trace and see every step." /> : null}
+      {arrived ? <FirstRunPanel
         projectName={projectName}
         projectId={projectId}
         keyDisplay={keyDisplay}
         elapsed={elapsed}
         run={realFirstRun}
         probeAccepted={probeState === "accepted"}
-      />
-      <div className="mt-6">
-        {arrived ? (
-          <>
-            <button type="button" onClick={() => setShowSetup((open) => !open)} aria-expanded={showSetup} className="font-mono text-[11px] uppercase tracking-[0.12em] text-black/55 underline underline-offset-4 hover:text-black">
-              {showSetup ? "Hide the setup code" : "Show the setup code again"}
-            </button>
-            {showSetup ? <div className="mt-4">{setup}</div> : null}
-          </>
-        ) : (
-          setup
-        )}
-      </div>
+      /> : null}
+      {arrived ? null : projectId ? <QuickstartGuide projectId={projectId} apiKey={apiKey} embedded /> : null}
       {!arrived ? (
         <>
           <div className="mt-6">

@@ -77,3 +77,11 @@ describe("debug-failing-ai-agent-run", () => {
     expect(a?.points.length).toBeGreaterThan(0);
   });
 });
+
+describe("what-is-ai-agent-observability", () => {
+  it("is listed with steps or points", () => {
+    const a = answers.find((x) => x.slug === "what-is-ai-agent-observability");
+    expect(a?.question.endsWith("?")).toBe(true);
+    expect(a?.points.length).toBeGreaterThan(0);
+  });
+});

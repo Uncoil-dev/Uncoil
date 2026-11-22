@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { compactNumber, formatCost, formatDuration } from "../tracing/format";
@@ -117,7 +118,7 @@ export function ComparisonsExplorer({ projectId }: { projectId: string }) {
   return (
     <div className="flex min-h-svh flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Comparisons</h1>
+        <PageTitle>Comparisons</PageTitle>
         <div role="group" aria-label="Period" className="flex max-w-full flex-wrap rounded-md border border-[#262C35] p-0.5 text-xs">
           {PERIODS.map((item) => (
             <button key={item.days} type="button" aria-pressed={item.days === days} onClick={() => choose(item.days)}

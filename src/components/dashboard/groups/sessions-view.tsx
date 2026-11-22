@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { compactNumber, formatCost, formatDuration, formatTime, relativeTime } from "../tracing/format";
 import { FilterChips, GroupControls, GroupFooter } from "./group-controls";
 import type { GroupView } from "./group-view";
@@ -17,10 +18,7 @@ export function SessionsView({ view }: { view: GroupView }) {
     <div className="flex min-h-svh min-w-0 flex-col bg-[#090909] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#eceae3]">
       <header className="border-b border-[#2A2A25] pb-4 pl-12 pr-5 pt-5">
         <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#f4d44d]">Conversations</p>
-            <h1 className={`${PAGE_FONT} !ml-0 mt-1 text-4xl leading-none`}>Sessions</h1>
-          </div>
+          <PageTitle>Sessions</PageTitle>
           <dl aria-label="Summary" className="flex flex-wrap gap-x-8 gap-y-2 font-mono">
             {([
               ["Sessions", stats ? compactNumber(stats.groups) : "–", ""],

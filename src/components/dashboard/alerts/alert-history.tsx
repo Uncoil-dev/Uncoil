@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -33,7 +34,7 @@ export function AlertHistory({ projectId }: { projectId: string }) {
   return (
     <div className="flex min-h-svh flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Alert history</h1>
+        <PageTitle>Alert history</PageTitle>
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter history">
           {FILTERS.map((item) => (
             <button key={item.id} type="button" aria-pressed={filter === item.id} onClick={() => setFilter(item.id)} className={`h-7 border px-2.5 text-[12px] ${filter === item.id ? "border-[#F4D44D] text-[#F4D44D]" : "border-[#262C35] text-[#8B93A1] hover:text-[#E6E9EE]"}`}>{item.label}</button>

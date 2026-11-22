@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
@@ -83,7 +84,7 @@ export function ExperimentsWorkspace({ projectId, initialQuery }: { projectId: s
   return (
     <div className="relative flex min-h-svh min-w-0 flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Experiments</h1>
+        <PageTitle>Experiments</PageTitle>
         {datasetIds.length > 1 ? <><label className="sr-only" htmlFor="exp-dataset">Dataset</label><select id="exp-dataset" className={button} value={datasetId ?? ""} onChange={(event) => update({ dataset: event.target.value, a: "", b: "", show: "" })}>{datasetIds.map((id) => <option key={id} value={id}>{datasetName(id)}</option>)}</select></> : datasetId ? <span className="font-mono text-xs text-[#8B93A1]">{datasetName(datasetId)}</span> : null}
         <Link href={`/dashboard/${projectId}/datasets`} className={`${button} ml-auto inline-flex items-center`}>Datasets</Link>
         <button type="button" onClick={() => setCreating(true)} className="h-7 rounded bg-[#F4D44D] px-3 text-xs font-medium text-[#090909] hover:bg-[#f7de70]">New experiment</button>

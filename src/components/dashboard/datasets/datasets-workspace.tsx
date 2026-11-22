@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
@@ -44,7 +45,7 @@ export function DatasetsWorkspace({ projectId, initialDataset }: { projectId: st
   return (
     <div className="flex h-svh min-w-0 flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Datasets</h1>
+        <PageTitle>Datasets</PageTitle>
         <span className="text-xs text-[#8B93A1]">Rows of inputs with the answer you expect. Experiments run them against a prompt.</span>
         <Link href={`/dashboard/${projectId}/experiments`} className={`${button} ml-auto inline-flex items-center`}>Experiments</Link>
       </header>

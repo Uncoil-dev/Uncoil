@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { compactCost, compactNumber, duration, errorShare, moveWidget, WIDGETS, widgetInfo } from "@/lib/widget-utils";
@@ -125,8 +126,8 @@ export function DashboardsBoard({ projectId, store, initialDashboard, demo = fal
           <header className="border-b border-[#1F242C] bg-[#07090B]/80 px-4 pb-4 pt-5 sm:px-6 lg:pl-6">
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
               <div className="min-w-0">
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#F4D44D]">Dashboards{current ? ` · ${widgets.length} ${widgets.length === 1 ? "widget" : "widgets"} · last ${days} days` : ""}</p>
-                <h1 className={`${PAGE_FONT} !ml-0 mt-1 break-words text-4xl leading-none`}>{current ? current.name : "Dashboards"}</h1>
+                <PageTitle className="break-words">{current ? current.name : "Dashboards"}</PageTitle>
+                {current ? <p className="mt-1.5 font-mono text-[11px] text-[#8B93A1]">{widgets.length} {widgets.length === 1 ? "widget" : "widgets"} · last {days} days</p> : null}
               </div>
               {current ? (
                 <div className="flex flex-wrap items-center gap-2">

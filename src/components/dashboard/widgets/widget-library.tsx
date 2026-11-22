@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
@@ -30,7 +31,7 @@ export function WidgetLibrary({ projectId }: { projectId: string }) {
   return (
     <div className="flex min-h-svh min-w-0 flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Widget library</h1>
+        <PageTitle>Widget library</PageTitle>
         <span className="text-xs text-[#8B93A1]">Every chart you can put on a dashboard.</span>
         <label className="ml-auto flex items-center gap-2 text-xs text-[#8B93A1]">Add to<select value={chosen?._id ?? ""} onChange={(e) => setTarget(e.target.value)} disabled={!dashboards?.length} className="h-7 rounded border border-[#262C35] bg-[#0E1115] px-2 text-xs text-[#E6E9EE]">{dashboards?.length ? dashboards.map((dashboard) => <option key={dashboard._id} value={dashboard._id}>{dashboard.name}</option>) : <option value="">No dashboards yet</option>}</select></label>
         <Link href={`/dashboard/${projectId}/dashboards`} className={`${button} inline-flex items-center`}>Dashboards</Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTitle } from "@/components/dashboard/page-title";
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -27,7 +28,7 @@ export function BudgetsPanel({ projectId }: { projectId: string }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#1F242C] px-4 py-2">
-        <h1 className="mr-2 text-base font-semibold tracking-tight">Cost budgets</h1>
+        <PageTitle>Cost budgets</PageTitle>
         <span className="text-[12px] text-[#8B93A1]">Get a warning before spending gets out of hand.</span>
         <button type="button" onClick={() => setCreating(true)} className="ml-auto h-7 bg-[#F4D44D] px-3 font-bold text-[#090909]">+ New budget</button>
       </header>

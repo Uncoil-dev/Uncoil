@@ -576,9 +576,9 @@ async def run_team(task: str):
     slug: "mastra",
     name: "Mastra",
     title: "Trace Mastra agents and workflows",
-    description: "Trace Mastra agents, tools and workflows in Uncoil with the TypeScript SDK or OpenTelemetry.",
-    answer: "To trace Mastra with Uncoil, wrap an agent call with traceAgent in the TypeScript SDK, or export Mastra's OpenTelemetry traces to Uncoil over OTLP.",
-    captures: ["One trace per agent or workflow run", "Tool calls and results", "Model calls with tokens and cost", "Errors and retries"],
+    description: "Trace Mastra agent runs and tool calls in Uncoil with the TypeScript SDK. Short setup with copy-paste code.",
+    answer: "To trace Mastra with Uncoil, wrap an agent call with traceAgent in the TypeScript SDK and wrap your tools with traceTools. The agent run and each tool call are recorded; model calls made inside Mastra are not.",
+    captures: ["One trace per agent run", "Tool calls wrapped with traceTools, with input and output", "Errors thrown inside the run"],
     language: "typescript",
     code: `import { traceAgent } from "@uncoil.dev/sdk";
 
@@ -586,15 +586,38 @@ const run = traceAgent(async (input: string) => {
   const result = await mastraAgent.generate(input);
   return result.text;
 }, { name: "mastra-agent" });`,
+    steps: [
+      { title: "Install", body: "The Uncoil SDK sits next to Mastra.", language: "bash", code: `npm install @uncoil.dev/sdk @mastra/core`, time: "1 min" },
+      KEY_STEP,
+      { title: "Wrap the agent call", body: "traceAgent turns one call into one run in Uncoil, with the run's timing, input, output and any error.", language: "typescript", code: `import { traceAgent } from "@uncoil.dev/sdk";
+
+export const ask = traceAgent(async (input: string) => {
+  const result = await mastraAgent.generate(input);
+  return result.text;
+}, { name: "mastra-agent" });`, time: "1 min" },
+      { title: "Trace your tools", body: "traceTools wraps the execute function of each tool, so every call is its own step with input, output and time.", language: "typescript", code: `import { createTool } from "@mastra/core/tools";
+import { traceTools } from "@uncoil.dev/sdk";
+
+const tools = traceTools({
+  getOrder: createTool({ id: "getOrder", description: "Look up an order", execute: async (args) => fetchOrder(args) }),
+});
+
+// Pass the traced tools to your agent, for example new Agent({ ..., tools })`, time: "1 min" },
+      verify("Your agent"),
+    ],
+    notes: [
+      { title: "What is recorded", body: "The agent run and each tool you wrap with traceTools are recorded. Model calls made inside Mastra are not recorded by these steps." },
+      { title: "OpenTelemetry is not covered here", body: "This page covers the TypeScript SDK only. Sending Mastra's own OpenTelemetry spans to Uncoil is not part of these steps." },
+    ],
     doc: "typescript",
-    faq: [{ q: "Does Mastra work with the Uncoil TypeScript SDK?", a: "Yes. Mastra runs as ordinary server-side TypeScript, so traceAgent can wrap its calls, and OTLP export works too." }],
+    faq: [{ q: "Does Mastra work with the Uncoil TypeScript SDK?", a: "Yes. Mastra runs as ordinary server-side TypeScript, so traceAgent can wrap its calls and traceTools can wrap its tools. Model calls made inside Mastra are not recorded by these steps." }],
   },
   {
     slug: "pydantic-ai",
     name: "Pydantic AI",
     title: "Trace Pydantic AI agents",
-    description: "Trace Pydantic AI agent runs, tool calls and model usage in Uncoil with the Python SDK or OpenTelemetry.",
-    answer: "To trace Pydantic AI with Uncoil, wrap the agent run in trace_agent and record tools as steps, or send Pydantic AI's OpenTelemetry spans to Uncoil over OTLP.",
+    description: "Trace Pydantic AI agent runs, tool calls and model usage in Uncoil with the Python SDK. Short setup with copy-paste code.",
+    answer: "To trace Pydantic AI with Uncoil, call uncoil.init() once at startup and wrap your agent run in trace_agent. Model calls made through the OpenAI or Anthropic libraries join one run, and trace_tools adds your tools as steps.",
     captures: ["One trace per agent run", "Tool calls and validation failures", "Model usage and cost", "Retries in order"],
     language: "python",
     code: `import uncoil
@@ -604,6 +627,37 @@ async def ask(question: str):
     with uncoil.span("agent-run", type="agent", input=question):
         result = await agent.run(question)
         return result.output`,
+    steps: [
+      { title: "Install", body: "The Uncoil SDK sits next to Pydantic AI.", language: "bash", code: `pip install uncoil-sdk pydantic-ai`, time: "1 min" },
+      KEY_STEP,
+      { title: "Switch tracing on", body: "Call init() once at startup, before you build your agent. Pydantic AI reaches OpenAI and Anthropic models through their official libraries, and init() records those calls with tokens, time and errors.", language: "python", code: `import uncoil
+
+uncoil.init()`, time: "1 min" },
+      { title: "Wrap the agent run", body: "trace_agent turns one agent run into one run in Uncoil. The model calls inside it appear as steps, in order.", language: "python", code: `import uncoil
+from pydantic_ai import Agent
+
+uncoil.init()
+
+agent = Agent("openai:gpt-4o-mini", instructions="Answer in one sentence.")
+
+@uncoil.trace_agent(name="pydantic-agent")
+async def ask(question: str):
+    result = await agent.run(question)
+    return result.output`, time: "1 min" },
+      { title: "Trace your tools", body: "Wrap the plain function with trace_tools, then pass it to the agent. Each call becomes its own step with its input, output and time. The signature and docstring are kept, so Pydantic AI builds the same tool schema.", language: "python", code: `import uncoil
+
+def get_order(order_id: str) -> str:
+    """Look up an order by id."""
+    return lookup(order_id)
+
+traced = uncoil.trace_tools({"get_order": get_order})
+agent = Agent("openai:gpt-4o-mini", tools=[traced["get_order"]])`, time: "1 min" },
+      verify("Your agent"),
+    ],
+    notes: [
+      { title: "Which model calls are recorded", body: "Calls that Pydantic AI sends through the OpenAI or Anthropic libraries are recorded. Other providers, such as Gemini or Groq, are not recorded by init(). The agent run and your tools still are." },
+      { title: "OpenTelemetry is not covered here", body: "This page covers the Python SDK only. Sending Pydantic AI's own OpenTelemetry spans to Uncoil is not part of these steps." },
+    ],
     doc: "python",
     faq: [{ q: "Will I see structured-output retries?", a: "Yes. Each retry is a separate step inside the run, so you can see why validation failed." }],
   },

@@ -86,6 +86,7 @@ export const no: Copy = {
     spanCounted: (n) => (n === 1 ? "span talt" : "spans talt"),
     runMeta: ["selve kjøringen", "412 tokens", "140 ms", "0 treff", "$0.0187", "502-feil"],
     calc: {
+      compare: "Sammenlign med regningene til andre verktøy",
       eyebrow: "Priskalkulator",
       title: "Dra til ditt volum. Se prisen din.",
       body: "En span er ett registrert steg i en kjøring: et modellkall, et verktøykall eller et oppslag. Si hvor mange kjøringer du har og hvor lange de er, så viser vi planen og prisen.",

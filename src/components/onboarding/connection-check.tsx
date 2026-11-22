@@ -88,7 +88,7 @@ export function ConnectionCheck({
           {probeState === "sending" ? <Loader2 className="size-3 animate-spin" /> : <Send className="size-3" />}
           {probeState === "sending" ? "Sending test span" : "Send test span"}
         </button>
-        {message ? <p className={`mt-3 text-sm leading-6 ${probeState === "failed" ? "text-[#f4d44d]" : "text-white/60"}`}>{message}</p> : null}
+        {message ? <p className={`mt-3 text-sm leading-6 ${probeState === "failed" ? "text-[#eceae3]" : "text-white/60"}`}>{message}</p> : null}
       </div>
     </details>
   );

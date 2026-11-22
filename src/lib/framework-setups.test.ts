@@ -36,6 +36,36 @@ describe("frameworkSetups data integrity", () => {
   });
 });
 
+describe("Pydantic AI setup", () => {
+  it("has every required field and a matching page with steps and a limits note", async () => {
+    const entry = frameworkSetup("pydantic-ai");
+    expect(entry).toBeDefined();
+    for (const field of ["name", "language", "line", "install"] as const) {
+      expect(entry![field].trim(), field).not.toBe("");
+    }
+    expect(entry!.install).toContain("uncoil-sdk");
+    const { integrationPages } = await import("./seo-pages");
+    const page = integrationPages.find((p) => p.slug === "pydantic-ai");
+    expect(page?.steps?.length).toBeGreaterThan(0);
+    expect(page?.notes?.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Mastra setup", () => {
+  it("has every required field and a matching page with steps and a limits note", async () => {
+    const entry = frameworkSetup("mastra");
+    expect(entry).toBeDefined();
+    for (const field of ["name", "language", "line", "install"] as const) {
+      expect(entry![field].trim(), field).not.toBe("");
+    }
+    expect(entry!.install).toContain("@uncoil.dev/sdk");
+    const { integrationPages } = await import("./seo-pages");
+    const page = integrationPages.find((p) => p.slug === "mastra");
+    expect(page?.steps?.length).toBeGreaterThan(0);
+    expect(page?.notes?.length).toBeGreaterThan(0);
+  });
+});
+
 describe("frameworkSetup", () => {
   it("returns the matching entry for every known slug", () => {
     for (const item of frameworkSetups) {

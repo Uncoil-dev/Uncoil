@@ -8,6 +8,7 @@ import { compactNumber, downloadFile, formatDuration, relativeTime, toCsv } from
 import { changePercent, costPerThousandTokens, cumulative, stackSeries, type StackedSeries } from "@/lib/cost-breakdown";
 import type { CostBreakdown, CostDimension, CostGroup } from "@/lib/tinybird";
 import { SampleCosts } from "../empty/samples";
+import { EmptyNotice } from "../empty/empty-notice";
 
 type Query = Record<string, string>;
 type Data = CostBreakdown;
@@ -209,12 +210,10 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
       ) : empty && !activeFilters.length ? (
         <FirstTraceEmpty projectId={projectId} sample={<SampleCosts />} eyebrow="Costs" showSnippet={false} title="See what your agent spends" description="Costs show up here as soon as your agent sends traces with model calls: spend per model, per day and per tool." />
       ) : empty ? (
-        <div className="m-4 border border-dashed border-[#262C35] p-10 text-center">
-          <p className="text-sm font-medium">No spend in this window</p>
-          <p className="mx-auto mt-1 max-w-md text-xs text-[#8B93A1]">{activeFilters.length ? "No recorded steps match these filters in this time range." : "Costs appear here as soon as your agent sends traces with model calls."}</p>
-          {activeFilters.length ? <button type="button" className="mt-4 rounded-md bg-[#F4D44D] px-4 py-2 text-sm font-medium text-[#0B0D10]" onClick={() => update({ ...Object.fromEntries(FILTER_PARAMS.map((param) => [param, ""])), range: "90d", from: "", to: "" })}>Clear filters and show 90 days</button>
-            : <a className="mt-4 inline-block rounded-md bg-[#F4D44D] px-4 py-2 text-sm font-medium text-[#0B0D10]" href={`/dashboard/${encodeURIComponent(projectId)}/quickstart`}>Open quickstart</a>}
-        </div>
+        <div className="m-4"><EmptyNotice art="filtered" title="No spend in this window" description={activeFilters.length ? "No recorded steps match these filters in this time range." : "Costs appear here as soon as your agent sends traces with model calls."}
+          {...(activeFilters.length
+            ? { action: "Clear filters and show 90 days", onClick: () => update({ ...Object.fromEntries(FILTER_PARAMS.map((param) => [param, ""])), range: "90d", from: "", to: "" }) }
+            : { action: "Open quickstart", href: `/dashboard/${encodeURIComponent(projectId)}/quickstart` })} /></div>
       ) : data && totals && series ? (
         <main className="grid grid-cols-[minmax(0,1fr)]">
           {/* Statement: the spend figure on the left, the running total on the right. */}

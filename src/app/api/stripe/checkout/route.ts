@@ -5,6 +5,7 @@ import { getAuthedConvexClient } from "@/lib/convex-server";
 import { getStripe, stripePriceIds } from "@/lib/stripe";
 import { getDeploymentRegion } from "@/lib/regions";
 import { getPublicOrigin } from "@/lib/public-origin";
+import { trialDaysFor } from "@/lib/checkout-trial";
 
 export async function POST(request: Request) {
   try {
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
   }
   const origin = getPublicOrigin(request);
   const plan = body.plan;
+  const trialDays = trialDaysFor(project);
   // Stripe shows its own promotion code box, so customers type codes (for example FOUNDING40) there.
   const session = await stripe.checkout.sessions.create(
     {
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
       allow_promotion_codes: true,
       ...(projectId ? { client_reference_id: projectId } : {}),
       metadata: { ...(projectId ? { projectId } : { guest: "1" }), plan, uncoilRegion: region },
-      subscription_data: { metadata: { ...(projectId ? { projectId } : { guest: "1" }), plan, uncoilRegion: region }, billing_mode: { type: "flexible" } },
+      subscription_data: { ...(trialDays ? { trial_period_days: trialDays, trial_settings: { end_behavior: { missing_payment_method: "cancel" as const } } } : {}), metadata: { ...(projectId ? { projectId } : { guest: "1" }), plan, uncoilRegion: region }, billing_mode: { type: "flexible" } },
       success_url: projectId ? `${origin}/dashboard/${projectId}/billing?checkout=success` : `${origin}/pricing/checkout/welcome?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: projectId ? `${origin}/dashboard/${projectId}/billing?checkout=cancelled` : `${origin}/pricing`,
       integration_identifier: "uncoil_checkout_qplmzvka",

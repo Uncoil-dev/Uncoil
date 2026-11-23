@@ -12,6 +12,7 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 ## Pull request rules
 
 - One task per PR, under about 200 changed lines. Open PRs against `main`.
+- When a PR resolves an issue, put `Closes: #<number>` on its own line in the PR description so the issue closes when the PR merges. Use `Refs: #<number>` when the PR only partly resolves it.
 - Code changes need tests. Content changes must pass the blog and docs validators.
 - Open every PR with auto-merge on (squash), except anything touching auth, billing, secrets, infra or data deletion, or visible UI changes. Leave those for owner review.
 - Run a separate review pass for bugs before enabling auto-merge, following `REVIEW.md`. Fix or flag what it finds.

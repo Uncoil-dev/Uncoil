@@ -38,6 +38,7 @@ jobs:
       pull-requests: read
     outputs:
       skipped: ${{ steps.plan.outputs.skipped }}
+      waiting: ${{ steps.plan.outputs.waiting }}
     steps:
       - name: Plan the run
         id: plan
@@ -52,6 +53,7 @@ jobs:
           HEAD_REF: ${{ github.event.merge_group.head_ref }}
         run: |
           skipped=","
+          waiting=0
           add() { skipped="${skipped}$1,"; }
           known=false
           files=""
@@ -91,6 +93,18 @@ jobs:
             fi
           fi
 
+          # Heavy jobs wait until every review thread on the pull request is
+          # resolved. The gate fails meanwhile, and resolving a thread reruns
+          # this workflow (see rerun-after-review.yml).
+          if [ "$EVENT" = "pull_request" ]; then
+            waiting=$(gh api graphql -F owner="${GH_REPO%/*}" -F name="${GH_REPO#*/}" -F number="$PR_NUMBER" \
+              -f query='query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){reviewThreads(first:100){nodes{isResolved}}}}}' \
+              --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not)] | length' || echo 0)
+            if [ "${waiting:-0}" -gt 0 ]; then
+              for j in build tests sdks; do add "$j"; done
+            fi
+          fi
+
           if [ "$known" = true ]; then
             other=$(grep -Ev '^(docs/|[^/]+\.md$|LICENSE$|packages/python-sdk/)' <<< "$files" | grep -v '^$' || true)
             if [ -z "$other" ]; then
@@ -101,6 +115,7 @@ jobs:
 
           echo "Skipped jobs: $skipped"
           echo "skipped=$skipped" >> "$GITHUB_OUTPUT"
+          echo "waiting=${waiting:-0}" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build (${{ matrix.site }})
@@ -271,7 +286,12 @@ jobs:
         env:
           NEEDS: ${{ toJSON(needs) }}
           SKIPPED: ${{ needs.precheck.outputs.skipped }}
+          WAITING: ${{ needs.precheck.outputs.waiting }}
         run: |
+          if [ "${WAITING:-0}" -gt 0 ]; then
+            echo "$WAITING review thread(s) are unresolved. Build and tests run once they are resolved."
+            exit 1
+          fi
           echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
           echo "Skipped on purpose: $SKIPPED"
           # Failed and cancelled never pass. Skipped passes only for a job the

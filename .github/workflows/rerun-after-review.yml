@@ -1,0 +1,31 @@
+name: Rerun checks after review
+
+# Heavy checks wait while review threads are open (see checks.yml). When a
+# thread is resolved, rerun the latest Checks run for that pull request so the
+# waiting jobs start.
+
+on:
+  pull_request_review_thread:
+    types: [resolved]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  rerun:
+    name: Rerun checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Rerun the latest Checks run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          run=$(gh run list --workflow checks.yml --event pull_request --commit "$HEAD_SHA" --limit 1 \
+            --json databaseId,status --jq '.[0] | select(.status == "completed") | .databaseId')
+          if [ -n "$run" ]; then
+            gh run rerun "$run"
+          fi

@@ -30,7 +30,7 @@ export function parseChangelogEntry(body) {
   if (ticked.length !== 1) return null;
 
   const line = /^Line:[ \t]*(.+)$/m.exec(text)?.[1].trim();
-  if (!line || NONE.test(line) || /<!--|-->/.test(line)) return null;
+  if (!line || NONE.test(line) || /[<>]/.test(line)) return null;
   return { category: ticked[0], line };
 }
 

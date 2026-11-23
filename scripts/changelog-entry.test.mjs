@@ -23,7 +23,7 @@ test("ignores empty, none and ambiguous entries", () => {
   assert.equal(parseChangelogEntry(body("Fixes", "")), null);
   assert.equal(parseChangelogEntry(body("Fixes", "None.")), null);
   assert.equal(parseChangelogEntry(body("", "A line")), null);
-  assert.equal(parseChangelogEntry(body("Fixes", "A <!-- hidden")), null);
+  assert.equal(parseChangelogEntry(body("Fixes", "A <b>bold</b>")), null);
   assert.equal(parseChangelogEntry("no section"), null);
   assert.equal(
     parseChangelogEntry(body("Fixes", "A line").replace("- [ ] Features", "- [x] Features")),

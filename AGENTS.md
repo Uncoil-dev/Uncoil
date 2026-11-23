@@ -120,6 +120,18 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 - **Marketing product feature pages** (`/product/[feature]`) have feature-specific content; update the relevant page and its metadata when changing a product surface.
 - **SDKs** (`packages/ts-sdk/`, `packages/python-sdk/`) are built but not yet published to npm/PyPI.
 
+## Agent delegation
+
+- Simple one-file edits: do them directly.
+- Multi-file features or refactors: delegate to the `project-manager` agent, which spawns `worker` agents and a `reviewer` (see `.claude/agents/`).
+- Keep the main context clean: delegate verbose test runs, long logs and wide searches to subagents.
+- Use quiet flags for shell commands (`--quiet`, `-q`, `--silent`, `--reporter=dot`).
+- When a task ends, run the `retrospective` skill, then start unrelated work in a fresh session.
+
+## Learned conventions and gotchas
+
+- Add short, factual bullets here via the `retrospective` skill.
+
 ## Finishing
 
 - End every task by quoting the summary line of each check you ran (lint, typecheck, tests).

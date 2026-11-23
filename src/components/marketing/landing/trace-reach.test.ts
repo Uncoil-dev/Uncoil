@@ -53,7 +53,9 @@ test("traceReachY never returns a negative offset", () => {
   assert.equal(traceReachY(item), 0);
 });
 
-const pages = Object.entries(SAMPLE_PAGES) as [string, any][];
+type SampleTable = { title: string; head: string[]; rows: string[][]; right?: number[] };
+type SamplePage = { title: string; intro: string; cta: string; tables: SampleTable[] };
+const pages = Object.entries(SAMPLE_PAGES) as unknown as [string, SamplePage][];
 const filled = (s: unknown) => typeof s === "string" && s.trim().length > 0;
 
 test("SAMPLE_PAGES is non-empty with unique, lowercase slug keys and titles", () => {

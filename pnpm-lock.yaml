@@ -16,7 +16,7 @@ importers:
         version: 0.3.7(@better-auth/core@1.6.26(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.3.7(zod@4.5.4))(jose@6.2.10)(kysely@0.29.5)(nanostores@1.5.2))(better-auth@1.6.26(@opentelemetry/api@1.9.1)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.51.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@20.19.43)(vite@8.2.2(@types/node@20.19.43)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0))))(zod@4.5.4)
       '@convex-dev/better-auth':
         specifier: ^0.12.5
-        version: 0.12.5(@standard-schema/spec@1.1.0)(better-auth@1.6.26(@opentelemetry/api@1.9.1)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.51.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@20.19.43)(vite@8.2.2(@types/node@20.19.43)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0))))(convex@1.45.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+        version: 0.12.5(@standard-schema/spec@1.1.0)(better-auth@1.6.26(@opentelemetry/api@1.9.1)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.51.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@20.19.43)(vite@8.2.2(@types/node@20.19.43)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0))))(convex@1.51.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       '@lit/react':
         specifier: ^1.0.8
         version: 1.0.8(@types/react@19.2.18)
@@ -48,8 +48,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       convex:
-        specifier: ^1.38.0
-        version: 1.45.0(react@19.2.4)
+        specifier: ^1.51.0
+        version: 1.51.0(react@19.2.4)
       elkjs:
         specifier: ^0.12.1
         version: 0.12.1
@@ -140,7 +140,7 @@ importers:
         version: 19.2.5(@types/react@19.2.18)
       convex-test:
         specifier: ^0.0.56
-        version: 0.0.56(convex@1.45.0(react@19.2.4))
+        version: 0.0.56(convex@1.51.0(react@19.2.4))
       eslint:
         specifier: ^9
         version: 9.39.5(jiti@2.7.0)
@@ -2829,9 +2829,9 @@ packages:
     peerDependencies:
       convex: ^1.43.0
 
-  convex@1.45.0:
-    resolution: {integrity: sha512-AV3B56Ptu/14d76g3urBJ50dwpiZa6uJaLT84OWox5aCwZIJiuAamdjv3lLHDzs8vv5kC31anEZohhUe3qJ2bA==}
-    engines: {node: '>=20.0.0', npm: '>=7.0.0'}
+  convex@1.51.0:
+    resolution: {integrity: sha512-Y5gS+JmT2JBq76S3CrQDrdL/Ijs4ZRKsvz3cu5EmHf/QxW18QrHunb5j9WC6lAbWbWc/gvmqpa5lvXzLXFQVJA==}
+    engines: {node: '>=22.0.0', npm: '>=7.0.0'}
     hasBin: true
     peerDependencies:
       '@auth0/auth0-react': ^2.0.1
@@ -5334,13 +5334,13 @@ snapshots:
 
   '@bufbuild/protobuf@2.14.1': {}
 
-  '@convex-dev/better-auth@0.12.5(@standard-schema/spec@1.1.0)(better-auth@1.6.26(@opentelemetry/api@1.9.1)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.51.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@20.19.43)(vite@8.2.2(@types/node@20.19.43)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0))))(convex@1.45.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)':
+  '@convex-dev/better-auth@0.12.5(@standard-schema/spec@1.1.0)(better-auth@1.6.26(@opentelemetry/api@1.9.1)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.51.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@20.19.43)(vite@8.2.2(@types/node@20.19.43)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0))))(convex@1.51.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)':
     dependencies:
       '@better-fetch/fetch': 1.3.1
       better-auth: 1.6.26(@opentelemetry/api@1.9.1)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.51.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@20.19.43)(vite@8.2.2(@types/node@20.19.43)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0)))
       common-tags: 1.8.2
-      convex: 1.45.0(react@19.2.4)
-      convex-helpers: 0.1.123(@standard-schema/spec@1.1.0)(convex@1.45.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(zod@4.5.4)
+      convex: 1.51.0(react@19.2.4)
+      convex-helpers: 0.1.123(@standard-schema/spec@1.1.0)(convex@1.51.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(zod@4.5.4)
       jose: 6.2.10
       react: 19.2.4
       remeda: 2.45.0
@@ -7683,20 +7683,20 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  convex-helpers@0.1.123(@standard-schema/spec@1.1.0)(convex@1.45.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(zod@4.5.4):
+  convex-helpers@0.1.123(@standard-schema/spec@1.1.0)(convex@1.51.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(zod@4.5.4):
     dependencies:
-      convex: 1.45.0(react@19.2.4)
+      convex: 1.51.0(react@19.2.4)
     optionalDependencies:
       '@standard-schema/spec': 1.1.0
       react: 19.2.4
       typescript: 5.9.3
       zod: 4.5.4
 
-  convex-test@0.0.56(convex@1.45.0(react@19.2.4)):
+  convex-test@0.0.56(convex@1.51.0(react@19.2.4)):
     dependencies:
-      convex: 1.45.0(react@19.2.4)
+      convex: 1.51.0(react@19.2.4)
 
-  convex@1.45.0(react@19.2.4):
+  convex@1.51.0(react@19.2.4):
     dependencies:
       esbuild: 0.27.0
       prettier: 3.9.6

@@ -1,10 +1,10 @@
 name: Scan unused code
 
-# Weekly report of unused files, exports and dependencies. Report only.
+# Nightly report of unused files, exports and dependencies. Report only.
 
 on:
   schedule:
-    - cron: "30 4 * * 1"
+    - cron: "30 4 * * *"
   workflow_dispatch:
 
 permissions:

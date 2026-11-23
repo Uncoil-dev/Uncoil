@@ -12,6 +12,7 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 ## Pull request rules
 
 - One task per PR, under about 200 changed lines. Open PRs against `main`.
+- When a PR resolves an issue, put `Closes: #<number>` on its own line in the PR description so the issue closes when the PR merges. Use `Refs: #<number>` when the PR only partly resolves it.
 - Code changes need tests. Content changes must pass the blog and docs validators.
 - Open every PR with auto-merge on (squash), except anything touching auth, billing, secrets, infra or data deletion, or visible UI changes. Leave those for owner review.
 - Run a separate review pass for bugs before enabling auto-merge, following `REVIEW.md`. Fix or flag what it finds.
@@ -119,6 +120,18 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 - **Turbopack may OOM** on Windows during `npm run build` (Rust panic in `globals.css`). This is a system memory issue, not a code problem — use `npm run dev` to verify compilation.
 - **Marketing product feature pages** (`/product/[feature]`) have feature-specific content; update the relevant page and its metadata when changing a product surface.
 - **SDKs** (`packages/ts-sdk/`, `packages/python-sdk/`) are built but not yet published to npm/PyPI.
+
+## Agent delegation
+
+- Simple one-file edits: do them directly.
+- Multi-file features or refactors: delegate to the `project-manager` agent, which spawns `worker` agents and a `reviewer` (see `.claude/agents/`).
+- Keep the main context clean: delegate verbose test runs, long logs and wide searches to subagents.
+- Use quiet flags for shell commands (`--quiet`, `-q`, `--silent`, `--reporter=dot`).
+- When a task ends, run the `retrospective` skill, then start unrelated work in a fresh session.
+
+## Learned conventions and gotchas
+
+- Add short, factual bullets here via the `retrospective` skill.
 
 ## Finishing
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
-import { parseChangelogEntry, renderReleaseNotes } from "./changelog-entry.mjs";
+import { test } from "vitest";
+import { parseChangelogEntry, renderReleaseNotes } from "../../scripts/changelog-entry.mjs";
 
 const body = (tick, line) => `## What changed\nx\n\n## Changelog\n\n<!-- hint -->\n${[
   "Features",

@@ -61,6 +61,17 @@ async def run_agent(question: str):
 
 Run it once. Your first trace shows up in the dashboard in seconds. Full guide: [docs/quickstart](https://www.uncoil.dev/docs/quickstart).
 
+### Claude Code plugin
+
+Let Claude Code set up and debug tracing for you:
+
+```text
+/plugin marketplace add Uncoil-dev/skill
+/plugin install uncoil@uncoil
+```
+
+See [Uncoil plugin for Claude Code](https://www.uncoil.dev/docs/claude-plugin).
+
 ## How it works
 
 ```text

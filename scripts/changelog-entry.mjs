@@ -22,7 +22,7 @@ const NONE = /^(none|n\/a|no user-facing change)\.?$/i;
 export function parseChangelogEntry(body) {
   const section = /^## Changelog\s*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(body ?? "");
   if (!section) return null;
-  const text = section[1].replace(/<!--[\s\S]*?-->/g, "");
+  const text = section[1];
 
   const ticked = CATEGORIES.filter((name) =>
     new RegExp(`^- \\[[xX]\\] ${name}\\s*$`, "m").test(text),
@@ -30,7 +30,7 @@ export function parseChangelogEntry(body) {
   if (ticked.length !== 1) return null;
 
   const line = /^Line:[ \t]*(.+)$/m.exec(text)?.[1].trim();
-  if (!line || NONE.test(line)) return null;
+  if (!line || NONE.test(line) || /<!--|-->/.test(line)) return null;
   return { category: ticked[0], line };
 }
 

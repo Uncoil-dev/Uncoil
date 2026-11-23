@@ -46,6 +46,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 - Code map: `docs/repository-map.md`. Dashboard standard: `docs/dashboard-page-standard.md`.
 - Unattended or scheduled runs follow `docs/agent-safety.md`.
 - Install with `npm ci`. CI uses pnpm (`pnpm-lock.yaml`); the Docker image uses `package-lock.json`. Keep both lockfiles in sync when dependencies change.
+- Checks listed in `.github/known-flaky.json` are known flaky: re-run them once instead of investigating. Add a check there only after it failed on unrelated PRs.
 - Before opening a PR run `npm run lint`, `npx tsc --noEmit` and the tests for the area you touched. Blog and docs changes run `npm run test:content`.
 - Do not break Clerk/Better Auth middleware or the ingest pipeline (`/api/ingest` → Inngest → ClickHouse + Convex).
 - Keep notes short, bulleted and factual. Record decisions in the PR description, not in new files at the repo root.

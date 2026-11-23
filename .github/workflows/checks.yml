@@ -209,6 +209,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:content
       - run: pnpm test:tools
+      - run: pnpm test:ci-scripts
       - run: pnpm test:ask-ai
       - run: pnpm test:activation
       - run: pnpm test:regions

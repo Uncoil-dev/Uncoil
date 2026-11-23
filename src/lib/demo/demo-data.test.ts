@@ -122,3 +122,12 @@ test("demoResults returns one deterministic result per model", () => {
   assert.deepEqual(a.map((r: { model: string }) => r.model), models);
   for (const r of a) assert.ok(filled(r.output) && Number.isFinite(r.latencyMs) && r.inputTokens >= 8 && r.outputTokens >= 8);
 });
+
+test("demoResults latency is always positive across many inputs", () => {
+  const models = ["gpt-4.1", "gpt-4o-mini", "claude-sonnet-5-5", "model-d", "model-e", "model-f"];
+  for (let i = 0; i < 3000; i++) {
+    for (const r of demoResults(models, `prompt-${i}-${(i * 7919).toString(36)}`)) {
+      assert.ok(r.latencyMs > 0, `latencyMs ${r.latencyMs} for input ${i}`);
+    }
+  }
+});

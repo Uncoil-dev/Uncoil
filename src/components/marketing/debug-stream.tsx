@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 
 type LogLine = {
@@ -57,7 +57,7 @@ export function DebugStream() {
   const [isRunning, setIsRunning] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  const allLogs = useMemo(() => generateLogs(), [iteration]);
+  const allLogs = useMemo(() => { void iteration; return generateLogs(); }, [iteration]);
 
   // Use requestAnimationFrame for smoother following
   useEffect(() => {

@@ -38,6 +38,7 @@ function ImageLightbox({
       >
         ✕
       </button>
+      {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary blog image URLs and sizes */}
       <img
         src={src}
         alt={alt}
@@ -63,6 +64,7 @@ export function BlogImage({
 
   return (
     <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary blog image URLs and sizes */}
       <img
         src={src}
         alt={alt}

@@ -108,8 +108,7 @@ type StepItemProps = {
   isError: boolean;
 };
 
-function StepItem({ step, index, currentIndex, dimOpacity, isLast, isError }: StepItemProps) {
-  const isActive = useTransform(currentIndex, (val: number) => val > index);
+function StepItem({ step, index, currentIndex, dimOpacity, isError }: StepItemProps) {
   const opacity = useTransform(currentIndex, [index, index + 0.5], [0, 1]);
   
   // Failure expansion logic

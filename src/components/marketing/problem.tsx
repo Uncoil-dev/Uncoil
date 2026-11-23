@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useInView } from "framer-motion";
 
 const PROBLEM_ITEMS = [
   {
@@ -128,7 +128,8 @@ function TerminalPanel() {
   useEffect(() => {
     if (!isInView) return;
     
-    loopStateRef.current.active = true;
+    const loopState = loopStateRef.current;
+    loopState.active = true;
     const timeouts: NodeJS.Timeout[] = [];
 
     const run = async () => {
@@ -139,26 +140,26 @@ function TerminalPanel() {
       setVisibleLines(0);
       setTargetCost(0);
       setDisplayCost(0);
-      loopStateRef.current.currentLine = 0;
+      loopState.currentLine = 0;
       
       await new Promise(r => timeouts.push(setTimeout(r, 1200)));
-      if (!loopStateRef.current.active) return;
+      if (!loopState.active) return;
 
       // 2. Log Streaming
       setStatus('running');
       
-      while (loopStateRef.current.currentLine < currentRun.lines.length) {
-        if (!loopStateRef.current.active) return;
+      while (loopState.currentLine < currentRun.lines.length) {
+        if (!loopState.active) return;
 
-        if (loopStateRef.current.isPaused) {
+        if (loopState.isPaused) {
           await new Promise(r => timeouts.push(setTimeout(r, 100)));
           continue;
         }
 
-        const line = currentRun.lines[loopStateRef.current.currentLine];
+        const line = currentRun.lines[loopState.currentLine];
         
         // Subtle status toggle
-        if (loopStateRef.current.currentLine % 3 === 0) {
+        if (loopState.currentLine % 3 === 0) {
           setStatus(Math.random() > 0.5 ? 'processing' : 'running');
         }
 
@@ -171,7 +172,7 @@ function TerminalPanel() {
         // Randomized printing delay
         const delay = Math.random() * 140 + 80;
         await new Promise(r => timeouts.push(setTimeout(r, delay)));
-        if (!loopStateRef.current.active) return;
+        if (!loopState.active) return;
 
         setVisibleLines(prev => prev + 1);
         
@@ -181,13 +182,13 @@ function TerminalPanel() {
           setTargetCost(lineTotal);
         }
 
-        loopStateRef.current.currentLine++;
+        loopState.currentLine++;
       }
 
       // 3. Terminated State
       setStatus('terminated');
       await new Promise(r => timeouts.push(setTimeout(r, 2500)));
-      if (!loopStateRef.current.active) return;
+      if (!loopState.active) return;
 
       // 4. Auto-restart
       setRunIndex((prev) => (prev + 1) % LOG_VARIANTS.length);
@@ -196,7 +197,7 @@ function TerminalPanel() {
     run();
 
     return () => {
-      loopStateRef.current.active = false;
+      loopState.active = false;
       timeouts.forEach(clearTimeout);
     };
   }, [isInView, runIndex]);

@@ -74,7 +74,7 @@ export const recordDelivery = mutation({
   },
   handler: async (ctx, args) => {
     if (!(process.env.UNCOIL_LEAD_DELIVERY_SECRET ?? process.env.TRACIFY_LEAD_DELIVERY_SECRET) || args.deliverySecret !== (process.env.UNCOIL_LEAD_DELIVERY_SECRET ?? process.env.TRACIFY_LEAD_DELIVERY_SECRET)) throw new Error("Invalid delivery secret");
-    const { deliverySecret: _deliverySecret, leadId, ...delivery } = args;
+    const { leadId, ...delivery } = args;
     await ctx.db.patch(leadId, delivery);
   },
 });

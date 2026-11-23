@@ -1,0 +1,39 @@
+name: Regression
+description: Something that used to work stopped working
+labels: [bug, regression]
+body:
+  - type: textarea
+    id: what-broke
+    attributes:
+      label: What stopped working?
+    validations:
+      required: true
+  - type: input
+    id: last-good
+    attributes:
+      label: Last working version
+      description: Release, commit or date when it still worked.
+    validations:
+      required: true
+  - type: input
+    id: first-bad
+    attributes:
+      label: First broken version
+      description: Release, commit or date when you first saw it fail.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Remove any secrets or API keys before pasting.

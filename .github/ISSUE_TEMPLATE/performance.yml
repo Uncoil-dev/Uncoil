@@ -1,0 +1,31 @@
+name: Performance problem
+description: Something is slow or uses too many resources
+labels: [performance]
+body:
+  - type: textarea
+    id: what-is-slow
+    attributes:
+      label: What is slow?
+      description: Name the page, call or action.
+    validations:
+      required: true
+  - type: textarea
+    id: measurements
+    attributes:
+      label: Measurements
+      description: Timings, request sizes or memory use, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: scale
+    attributes:
+      label: Data size
+      description: Roughly how many runs, spans or projects are involved.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.

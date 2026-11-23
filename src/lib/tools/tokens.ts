@@ -32,7 +32,7 @@ export const familyFactor: Record<TokenizerFamily, number> = {
 export function heuristicTokens(text: string): number {
   if (!text) return 0;
   let total = 0;
-  const pieces = text.match(/[\p{L}\p{M}]+|\p{N}+|[぀-ヿ㐀-鿿가-힯]|\p{Extended_Pictographic}|[^\s\p{L}\p{M}\p{N}]+/gu) ?? [];
+  const pieces = text.match(/[぀-ヿ㐀-鿿가-힯]|[\p{L}\p{M}]+|\p{N}+|\p{Extended_Pictographic}|[^\s\p{L}\p{M}\p{N}]+/gu) ?? [];
   for (const piece of pieces) {
     if (/^[぀-ヿ㐀-鿿가-힯]$/u.test(piece)) total += 1.3;
     else if (/^\p{Extended_Pictographic}$/u.test(piece)) total += 2;

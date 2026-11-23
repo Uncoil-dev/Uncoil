@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated Convex bindings carry their own disable header.
+    "convex/_generated/**",
+    "convex/betterAuth/_generated/**",
   ]),
 ]);
 

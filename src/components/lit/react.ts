@@ -5,7 +5,7 @@
 // from inside Next.js Client Components.
 import { createComponent } from "@lit/react";
 import * as React from "react";
-import { UncoilFilterBar, type FilterBarFilter } from "./uncoil-filter-bar";
+import { UncoilFilterBar } from "./uncoil-filter-bar";
 import { UncoilTraceMap } from "./uncoil-trace-map";
 import "./index";
 

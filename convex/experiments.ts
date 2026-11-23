@@ -85,7 +85,7 @@ export const create = mutation({
 export const setStatus = mutation({
   args: { projectId: v.id("projects"), experimentId: v.id("experiments"), status: v.union(v.literal("draft"), v.literal("running"), v.literal("completed"), v.literal("failed")) },
   handler: async (ctx, args) => {
-    const { identity } = await requireProject(ctx, args.projectId);
+    await requireProject(ctx, args.projectId);
     const experiment = await ctx.db.get(args.experimentId);
     if (!experiment || experiment.projectId !== args.projectId) throw new Error("Experiment not found");
     await ctx.db.patch(args.experimentId, { status: args.status, completedAt: args.status === "completed" || args.status === "failed" ? Date.now() : undefined });

@@ -40,8 +40,6 @@ export function useColumnVisibility(storageKey: string, columns: ColumnVisibilit
     } catch {
       // Ignore malformed/legacy stored values — fall back to all-visible.
     }
-    // Runs once per storageKey to hydrate from localStorage.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
   /* eslint-enable react-hooks/set-state-in-effect */
 

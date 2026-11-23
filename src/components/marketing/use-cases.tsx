@@ -105,7 +105,7 @@ const USE_CASES = [
   }
 ];
 
-function UseCaseItem({ item, isLast }: { item: typeof USE_CASES[0], isLast: boolean }) {
+function UseCaseItem({ item }: { item: typeof USE_CASES[0], isLast: boolean }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { amount: 0.6 });
 

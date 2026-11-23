@@ -165,7 +165,7 @@ jobs:
       - run: pnpm typecheck
       # Ratchet: 22 warnings exist today. New warnings fail the job; lower
       # this number as existing ones are fixed, and drop to 0 when clear.
-      - run: pnpm lint --max-warnings 22
+      - run: pnpm lint --max-warnings 0
 
   # Content, tool and unit tests share one install.
   tests:

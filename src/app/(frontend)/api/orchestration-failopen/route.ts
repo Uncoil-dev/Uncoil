@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFailOpenRate } from "@/lib/tinybird";
-import { hashApiKey } from "@/lib/api-keys";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");

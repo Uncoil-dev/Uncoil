@@ -43,6 +43,7 @@ function delta(metric: Metric) {
 /** Both periods drawn over each other, lined up by how far into the period each bucket is. */
 function CompareChart({ metric, data }: { metric: Metric; data: Response }) {
   const width = 320, height = 72;
+  const { current: currentPeriod, previous: previousPeriod } = data;
   const series = useMemo(() => {
     const build = (period: Period) => {
       const step = period.histogram.bucketSeconds * 1000;
@@ -54,8 +55,8 @@ function CompareChart({ metric, data }: { metric: Metric; data: Response }) {
       }
       return values;
     };
-    return { current: build(data.current), previous: build(data.previous) };
-  }, [data.current, data.previous, metric]);
+    return { current: build(currentPeriod), previous: build(previousPeriod) };
+  }, [currentPeriod, previousPeriod, metric]);
   const length = Math.max(series.current.length, series.previous.length);
   const max = Math.max(1e-9, ...series.current.map((v) => v ?? 0), ...series.previous.map((v) => v ?? 0));
   const slot = width / length;

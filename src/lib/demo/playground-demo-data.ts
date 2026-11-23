@@ -34,6 +34,6 @@ export function demoResults(models: string[], compiledPrompt: string) {
         : `${OPENERS[(seed + index) % OPENERS.length]}\n\n- Based on: ${tail.slice(0, 80)}\n- Next step: I will confirm and follow up.\n- Anything else I can do?`;
     const inputTokens = Math.max(8, Math.round(WORDS(compiledPrompt) * 1.4));
     const outputTokens = Math.max(8, Math.round(WORDS(output) * 1.4));
-    return { model, output, latencyMs: 600 + ((seed >> (index * 3)) % 1400) + (mini ? 0 : 500), inputTokens, outputTokens };
+    return { model, output, latencyMs: 600 + ((seed >>> (index * 3)) % 1400) + (mini ? 0 : 500), inputTokens, outputTokens };
   });
 }

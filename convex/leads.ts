@@ -74,7 +74,8 @@ export const recordDelivery = mutation({
   },
   handler: async (ctx, args) => {
     if (!(process.env.UNCOIL_LEAD_DELIVERY_SECRET ?? process.env.TRACIFY_LEAD_DELIVERY_SECRET) || args.deliverySecret !== (process.env.UNCOIL_LEAD_DELIVERY_SECRET ?? process.env.TRACIFY_LEAD_DELIVERY_SECRET)) throw new Error("Invalid delivery secret");
-    const { leadId, ...delivery } = args;
+    const { deliverySecret, leadId, ...delivery } = args;
+    void deliverySecret; // checked above; must not be stored on the lead
     await ctx.db.patch(leadId, delivery);
   },
 });

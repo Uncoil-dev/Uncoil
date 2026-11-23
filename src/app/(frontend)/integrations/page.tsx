@@ -39,6 +39,8 @@ const integrations: Integration[] = [
   { name: "Microsoft Teams", description: "Route alerts and failed-trace notifications into a Teams channel through an incoming webhook or Power Automate flow.", category: "Alerts" },
   { name: "PagerDuty", description: "Escalate high-severity agent failures into the on-call workflow.", category: "Alerts" },
   { name: "Webhooks", description: "Send spans, alerts, cost thresholds, and orchestration events to any HTTP endpoint.", category: "Alerts" },
+  { name: "Codex", description: "Send every Codex turn to Uncoil as a trace, with tool calls, errors and token use, through a hook-based plugin.", category: "Agent tooling" },
+  { name: "OpenCode", description: "Send every OpenCode reply and its tool calls to Uncoil as a trace through a single-file plugin.", category: "Agent tooling" },
   { name: "Docs MCP Server", description: "Give AI agents and MCP-compatible clients read access to Uncoil's documentation as structured resources.", badge: "Native", category: "Agent tooling" },
 ];
 

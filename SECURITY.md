@@ -2,9 +2,10 @@
 
 ## Reporting a vulnerability
 
-Please report vulnerabilities privately by email to
-[security@uncoil.dev](mailto:security@uncoil.dev), the same address listed on
-the public [security page](https://www.uncoil.dev/security).
+Please report vulnerabilities privately using GitHub's
+[private vulnerability reporting](https://github.com/Uncoil-dev/Uncoil/security/advisories/new),
+or by email to [security@uncoil.dev](mailto:security@uncoil.dev), the same
+address listed on the public [security page](https://www.uncoil.dev/security).
 
 Do not open a public issue or pull request for a security problem.
 
@@ -19,7 +20,8 @@ disclosing it publicly, and avoid accessing data that is not your own.
 
 ## What to expect
 
-- We review every report sent to the address above.
+- We acknowledge every report within 5 working days.
+- We keep you updated while we investigate and fix the issue.
 - If a report confirms that user data was affected, affected users are
   notified within 72 hours, as described on the security page.
 

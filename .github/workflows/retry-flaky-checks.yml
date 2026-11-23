@@ -1,0 +1,36 @@
+name: Retry flaky checks
+
+# Hourly: re-runs the failed jobs of a Checks run once when the failure looks
+# like an infrastructure hiccup (network reset, runner shutdown, registry outage).
+# Runs that show a real test, type or lint error are left alone.
+
+on:
+  schedule:
+    - cron: "11 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: retry-flaky-checks
+  cancel-in-progress: false
+
+jobs:
+  retry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Re-run infrastructure failures
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: node scripts/retry-flaky-checks.mjs

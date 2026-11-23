@@ -2,9 +2,21 @@
 // a short summary and at least one ticked "Type of change" box.
 import { pathToFileURL } from "node:url";
 
+function removeComments(text) {
+  let out = "";
+  let rest = text;
+  for (;;) {
+    const start = rest.indexOf("<!--");
+    if (start === -1) return out + rest;
+    out += rest.slice(0, start);
+    const end = rest.indexOf("-->", start + 4);
+    if (end === -1) return out;
+    rest = rest.slice(end + 3);
+  }
+}
+
 const stripNoise = (text) =>
-  text
-    .replace(/<!--[\s\S]*?-->/g, "")
+  removeComments(text)
     .split("\n")
     .filter((line) => !/^_Requested by /.test(line.trim()))
     .join("\n");

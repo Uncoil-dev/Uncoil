@@ -47,3 +47,9 @@ test("skips bot pull requests", () => {
   assert.equal(shouldSkip([], "dependabot[bot]"), true);
   assert.equal(shouldSkip(["agent"], "person"), false);
 });
+
+test("comments are removed even when markers are nested or unclosed", () => {
+  assert.ok(checkDescription("<!-- <!-- x --> -->").length > 0);
+  assert.equal(checkDescription("<!-- never closed").length, 1);
+  assert.deepEqual(checkDescription(good.replace("Adds a check", "<!-- hidden --> Adds a check")), []);
+});

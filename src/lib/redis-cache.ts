@@ -14,9 +14,21 @@ type CachedPayload = {
 
 const DEFAULT_STALE_TTL_SECONDS = 24 * 60 * 60;
 
+function buildRedisClient(url: string) {
+  return createClient({
+    url,
+    socket: {
+      // Fail fast instead of burning the whole serverless function budget on a
+      // connect that will never complete.
+      connectTimeout: 5_000,
+      reconnectStrategy: (retries) => (retries >= 1 ? false : 100),
+    },
+  });
+}
+
 declare global {
   var __uncoilRedisClient:
-    | ReturnType<typeof createClient>
+    | ReturnType<typeof buildRedisClient>
     | undefined;
   var __uncoilRedisConnectPromise: Promise<unknown> | undefined;
 }
@@ -26,15 +38,7 @@ function getRedisClient() {
   if (!url) return null;
 
   if (!globalThis.__uncoilRedisClient) {
-    const client = createClient({
-      url,
-      socket: {
-        // Fail fast instead of burning the whole serverless function budget on a
-        // connect that will never complete.
-        connectTimeout: 5_000,
-        reconnectStrategy: (retries) => (retries >= 1 ? false : 100),
-      },
-    });
+    const client = buildRedisClient(url);
     client.on("error", (error) => {
       console.error("Redis cache error:", error);
     });

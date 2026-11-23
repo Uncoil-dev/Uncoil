@@ -28,6 +28,10 @@ jobs:
               dashboard: '0e8a16',
               sdk: 'd93f0b',
               ci: '1d76db',
+              billing: 'c2e0c6',
+              ingest: 'bfd4f2',
+              auth: 'f9d0c4',
+              convex: 'fef2c0',
             };
 
             const wanted = new Set();
@@ -44,6 +48,10 @@ jobs:
               ['dashboard', /^(src\/components\/dashboard\/|src\/app\/dashboard\/|src\/app\/\(dashboard\)\/)/],
               ['sdk', /^packages\/[^/]+-sdk\//],
               ['ci', /^(\.github\/|scripts\/ci)/],
+              ['billing', /^(src\/app\/(\(frontend\)\/)?api\/stripe\/|src\/lib\/(stripe|billing|plan-limits|pricing-plans|free-plan-limits)|convex\/billing\.ts)/],
+              ['ingest', /^(src\/app\/(\(frontend\)\/)?api\/ingest\/|src\/lib\/(ingest|inngest|span-pipeline))/],
+              ['auth', /^(src\/proxy\.ts|src\/lib\/auth|convex\/(auth|betterAuth))/],
+              ['convex', /^convex\//],
             ];
 
             const files = await github.paginate(github.rest.pulls.listFiles, {

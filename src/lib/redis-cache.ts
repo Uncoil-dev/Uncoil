@@ -17,6 +17,8 @@ const DEFAULT_STALE_TTL_SECONDS = 24 * 60 * 60;
 function buildRedisClient(url: string) {
   return createClient({
     url,
+    // Keep the RESP2 protocol used before client 6, which made RESP3 the default.
+    RESP: 2,
     socket: {
       // Fail fast instead of burning the whole serverless function budget on a
       // connect that will never complete.

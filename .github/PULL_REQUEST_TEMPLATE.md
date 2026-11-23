@@ -17,6 +17,19 @@
 - [ ] Documentation
 - [ ] Tooling or CI
 
+## Changelog
+
+<!-- Tick one category and write one plain sentence a customer would understand.
+Write "Line: None" for changes users cannot see. -->
+
+- [ ] Features
+- [ ] Fixes
+- [ ] SDK changes
+- [ ] Breaking changes
+- [ ] Security and operations
+
+Line:
+
 ## Checklist
 
 - [ ] I reviewed my own diff

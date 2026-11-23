@@ -2,6 +2,8 @@
 
 This is the canonical release record. The public `/changelog` page and GitHub Releases use it as their source.
 
+Every pull request description has a Changelog section: one ticked category and one user-facing line. To draft release notes from merged pull requests, run `gh pr list --state merged --search "merged:>=YYYY-MM-DD" --json number,body | node scripts/changelog-from-prs.mjs` and review the output before adding it to the release entry.
+
 ## [Unreleased]
 
 ### Features

@@ -258,12 +258,42 @@ jobs:
       - run: pip install -e ".[test]" && python -m pytest tests -q
         working-directory: packages/python-sdk
 
+  # Code changes need a test. Pull requests only; other events pass at once.
+  # Add the no-tests-needed label (or write "No new test needed: <reason>" in
+  # the description) and re-run the job to skip it.
+  tests-required:
+    name: Code changes include a test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/require-tests.mjs
+      - name: Check for a test
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          PR_LABELS=$(gh api "repos/$GH_REPO/issues/$PR_NUMBER/labels" --jq '[.[].name] | join(",")')
+          export PR_LABELS
+          gh api --paginate "repos/$GH_REPO/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[] | .filename, (.previous_filename // empty)' | node scripts/require-tests.mjs
+
   # Single required check. The `needs` list below is the only place that
   # names the jobs to gate on; add any new job here.
   all-checks-passed:
     name: All checks passed
     if: always()
-    needs: [precheck, build, static, tests, hygiene, sdks]
+    needs: [precheck, build, static, tests, hygiene, sdks, tests-required]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

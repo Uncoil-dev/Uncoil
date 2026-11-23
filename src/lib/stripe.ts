@@ -6,7 +6,9 @@ let stripeClient: Stripe | undefined;
 export function getStripe() {
   const apiKey = process.env.STRIPE_SECRET_KEY;
   if (!apiKey) throw new Error("Stripe is not configured");
-  stripeClient ??= new Stripe(apiKey, { apiVersion: "2026-08-26.dahlia" });
+  // Keep requests pinned to the API version in use today. The SDK types only accept
+  // its own newest literal, so the cast is intentional and must not be "fixed" by bumping.
+  stripeClient ??= new Stripe(apiKey, { apiVersion: "2026-08-26.dahlia" as Stripe.LatestApiVersion });
   return stripeClient;
 }
 

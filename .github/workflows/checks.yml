@@ -24,7 +24,8 @@ jobs:
   # - Push to main: if the same commit already passed this gate (the merge queue
   #   tests the exact commit that lands on main), every job is skipped.
   # - Pull request or merge queue: jobs are skipped only when the changed files
-  #   cannot affect them (docs-only changes skip the app jobs; the SDK jobs run
+  #   cannot affect them (docs-only changes skip the app jobs, content-only changes skip
+  #   types and lint; the SDK jobs run
   #   only for SDK or workflow changes).
   # Any lookup failure, or a file list too long to trust, skips nothing.
   # The gate below accepts a skipped job only if it is named here.
@@ -96,6 +97,10 @@ jobs:
             if [ -z "$other" ]; then
               for j in build static tests; do add "$j"; done
             fi
+            # Blog and docs pointer bumps and media files hold no code, so types
+            # and lint cannot change; the build and content tests still run.
+            code=$(grep -Ev '^(docs/|content/|public/media/|[^/]+\.md$|LICENSE$|packages/python-sdk/)' <<< "$files" | grep -v '^$' || true)
+            [ -z "$code" ] && add static
             grep -Eq '^(packages/(ts|python)-sdk/|\.github/)' <<< "$files" || add sdks
           fi
 

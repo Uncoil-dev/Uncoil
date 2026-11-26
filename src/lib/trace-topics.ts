@@ -15,7 +15,8 @@ const STOPWORDS = new Set(("the and for you your are was were with that this hav
   + "will just from what when where which who how why all any some more most very into onto about over than then them "
   + "they their there here its please want need like make get got let me my mine our ours we us "
   + "him her his hers she he of to in on at by is be am an a or as do does did so if it no yes ok okay hi hello thanks thank "
-  + "dont didnt doesnt isnt wasnt wont cant couldnt wouldnt shouldnt ive youre theyre thats whats").split(" "));
+  + "don't didn't doesn't isn't wasn't won't can't couldn't wouldn't shouldn't i've you're they're that's what's")
+  .split(" ").map((word) => word.replace(/'/g, "")));
 
 export function normalizeTopicText(value: string) {
   return String(value ?? "").slice(0, 2000).toLowerCase()

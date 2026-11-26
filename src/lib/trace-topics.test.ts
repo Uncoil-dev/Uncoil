@@ -48,7 +48,8 @@ test("contractions keep their words and non-English inputs are kept", () => {
   ], { minSize: 2 });
   assert.equal(total, 6);
   assert.equal(topics.reduce((sum, x) => sum + x.count, 0), 6);
-  assert.ok(topics.every((x) => !x.terms.includes("don") && !x.terms.includes("statu")));
+  assert.ok(topics.every((x) => !x.terms.includes("don")));
+  assert.ok(topics.some((x) => x.terms.includes("status")));
 });
 
 test("groups 2,000 traces quickly", () => {

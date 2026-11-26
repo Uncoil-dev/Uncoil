@@ -4,8 +4,8 @@ import { getConvexClient } from "@/lib/convex";
 import { sendTransactionalEmail } from "@/lib/transactional-email";
 import { consumeRateLimit } from "@/lib/redis-cache";
 import { createHash } from "node:crypto";
+import { leadInputError } from "@/lib/lead-input";
 
-const limits: Record<string, number> = { name: 120, email: 200, company: 160, intent: 80, role: 120, useCase: 500, stack: 300, message: 4000, preferredTime: 120, sourcePath: 300, campaign: 160 };
 const clean = (value: unknown) => typeof value === "string" ? value.trim() : "";
 export async function POST(request: NextRequest) {
   let body: Record<string, unknown>;
@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
   } catch { return NextResponse.json({ error: "Invalid request" }, { status: 422 }); }
   if (JSON.stringify(body).length > 16_000) return browserForm ? NextResponse.redirect(new URL("/contact?submitted=error", request.url)) : NextResponse.json({ error: "Invalid request" }, { status: 422 });
   if (clean(body.website)) return NextResponse.json({ ok: true });
-  if (Object.entries(body).some(([key, value]) => key !== "website" && key !== "marketingConsent" && typeof value !== "string") || Object.entries(limits).some(([key, max]) => typeof body[key] === "string" && clean(body[key]).length > max)) return browserForm ? NextResponse.redirect(new URL("/contact?submitted=error", request.url)) : NextResponse.json({ error: "Invalid request" }, { status: 422 });
+  const inputError = leadInputError(body);
+  if (inputError) return browserForm ? NextResponse.redirect(new URL("/contact?submitted=error", request.url)) : NextResponse.json({ error: inputError }, { status: 422 });
   const name = clean(body.name) || "Newsletter subscriber", email = clean(body.email).toLowerCase(), message = clean(body.message) || (clean(body.intent) === "newsletter" ? "Newsletter subscription" : "Contact request");
-  if (!email || !/^\S+@\S+\.\S+$/.test(email) || (!clean(body.intent) && !clean(body.message))) return browserForm ? NextResponse.redirect(new URL("/contact?submitted=error", request.url)) : NextResponse.json({ error: "Invalid request" }, { status: 422 });
   const sourcePath = clean(body.sourcePath) || "/contact";
   const dedupeKey = createHash("sha256").update(`${email}|${sourcePath}|${message}`).digest("hex").slice(0, 32);
   try {

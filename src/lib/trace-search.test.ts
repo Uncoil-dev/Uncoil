@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { comparisonBound, parseCost, parseLatency, parseSearch, parseTokens, replaceToken, splitToken, tokenAt, tokenize } from "./trace-search";
+import { comparisonBound, fieldFor, parseCost, parseLatency, parseSearch, parseTokens, replaceToken, splitToken, tokenAt, tokenize } from "./trace-search";
 
 describe("tokenize", () => {
   it("splits on whitespace and keeps quoted runs together", () => {
@@ -9,6 +9,28 @@ describe("tokenize", () => {
     const [first, second] = tokenize('a  name:"my ag');
     expect([first!.start, first!.end]).toEqual([0, 1]);
     expect(second!.raw).toBe('name:"my ag');
+  });
+});
+
+describe("fieldFor", () => {
+  it("resolves every field from each of its aliases", () => {
+    const expected: Record<string, string> = {
+      name: "traceName", trace: "traceName", type: "spanType", step: "spanType", tool: "toolName", model: "modelId",
+      error: "errorType", errortype: "errorType", env: "environment", environment: "environment", release: "release",
+      version: "release", user: "endUserId", userid: "endUserId", session: "sessionId", tag: "tag", status: "status",
+      latency: "minLatencyMs", duration: "minLatencyMs", cost: "minCostUsd", tokens: "minTokens",
+    };
+    for (const [alias, key] of Object.entries(expected)) expect(fieldFor(alias)?.key, alias).toBe(key);
+  });
+  it("ignores case", () => {
+    expect(fieldFor("MODEL")?.key).toBe("modelId");
+    expect(fieldFor("ErrorType")?.key).toBe("errorType");
+    expect(fieldFor("Duration")?.token).toBe("latency");
+  });
+  it("returns undefined for unknown names", () => {
+    expect(fieldFor("foo")).toBeUndefined();
+    expect(fieldFor("")).toBeUndefined();
+    expect(fieldFor("model ")).toBeUndefined();
   });
 });
 

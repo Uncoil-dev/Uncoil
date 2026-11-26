@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { partialReply, partialThinking, buildAssistantPrompt, describeAction, findByName, parseAssistantReply, sanitizeContext, sanitizeTurns, TOOL_RISK, tracingHref, validateAction } from "./assistant.ts";
+import { ALERT_METRICS, failureReply, metricLabel, partialReply, partialThinking, buildAssistantPrompt, describeAction, findByName, parseAssistantReply, sanitizeContext, sanitizeTurns, TOOL_RISK, tracingHref, validateAction } from "./assistant.ts";
 
 test("reads a plain JSON reply with an action", () => {
   const out = parseAssistantReply('```json\n{"reply":"Making it.","action":{"tool":"create_project","args":{"name":"  Support bot "}}}\n```');
@@ -88,4 +88,19 @@ test("reads the reasoning and the reply from half-written output", () => {
   assert.equal(partialThinking('{"reply":"hi"}'), "");
   const parsed = parseAssistantReply('{"thinking":"Because.","reply":"Ok","action":null}');
   assert.equal(parsed.thinking, "Because.");
+});
+
+test("failure replies say plainly why the assistant could not answer", () => {
+  assert.equal(failureReply(true, true), "I'm busy right now. Try again in a minute.");
+  assert.equal(failureReply(true, false), "I'm busy right now. Try again in a minute.");
+  assert.equal(failureReply(false, true), "I couldn't reach the AI just now. Try again in a moment.");
+  assert.equal(failureReply(false, false), "The assistant isn't switched on for this workspace yet.");
+});
+
+test("every alert metric has its own plain label", () => {
+  const labels = ALERT_METRICS.map((metric) => metricLabel(metric));
+  for (const label of labels) assert.match(label ?? "", /^[a-z][a-z ()]+$/);
+  assert.equal(new Set(labels).size, ALERT_METRICS.length);
+  assert.equal(metricLabel("cost_usd"), "spend in dollars");
+  assert.match(describeAction({ tool: "create_alert", name: "Down", metric: "minutes_without_runs", threshold: 30, windowMinutes: 60, emailTo: [] }).detail, /^Fires when minutes without any run passes 30 within 60 minutes\./);
 });

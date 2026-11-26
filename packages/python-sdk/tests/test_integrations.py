@@ -124,3 +124,14 @@ def test_anthropic_cache_reads_and_writes_are_counted():
     row=llms(recorder)[0]
     assert row['inputTokens']==58 and row['metadata']['usage']['input_tokens']==8
     raw.close()
+
+def test_cut_off_answers_are_tagged_truncated():
+    recorder=Recorder(); recorder.tags=['prod']
+    chat=OpenAI(api_key='test',http_client=httpx.Client(transport=transport(dict(CHAT,choices=[dict(CHAT['choices'][0],finish_reason='length')]))))
+    message=Anthropic(api_key='test',http_client=httpx.Client(transport=transport(dict(MESSAGE,stop_reason='max_tokens'))))
+    full=OpenAI(api_key='test',http_client=httpx.Client(transport=transport(CHAT)))
+    uncoil.wrap_openai(chat,client=recorder).chat.completions.create(model='test-model',messages=[])
+    uncoil.wrap_anthropic(message,client=recorder).messages.create(model='test-model',max_tokens=5,messages=[])
+    uncoil.wrap_openai(full,client=recorder).chat.completions.create(model='test-model',messages=[])
+    assert [s['tags'] for s in llms(recorder)]==[['prod','truncated'],['prod','truncated'],['prod']]
+    for raw in (chat,message,full): raw.close()

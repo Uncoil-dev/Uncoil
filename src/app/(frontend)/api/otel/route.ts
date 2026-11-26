@@ -376,7 +376,12 @@ export async function POST(request: NextRequest) {
     for (const scopeSpans of resourceSpans.scopeSpans) {
       for (const otelSpan of scopeSpans.spans) {
         const attrs = mapSpanAttributes(otelSpan.attributes);
-        const spanType = attrs.spanType ?? spanTypeFromKind(otelSpan.kind);
+        // Run status is read from spanType alone, so a failed span (status code 2) is sent
+        // as "error" and its original type is kept in metadata.
+        const mappedSpanType = attrs.spanType ?? spanTypeFromKind(otelSpan.kind);
+        const isErrorSpan = otelSpan.status?.code === 2;
+        if (isErrorSpan && mappedSpanType !== "error") attrs.metadata.otelSpanType = mappedSpanType;
+        const spanType = isErrorSpan ? "error" : mappedSpanType;
 
         const input = attrs.input ?? "";
         const output = attrs.output ?? (otelSpan.status?.code === 2

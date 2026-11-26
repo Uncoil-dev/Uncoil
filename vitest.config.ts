@@ -18,7 +18,13 @@ function nodeTestFiles(dir: string): string[] {
 const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
-  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+  resolve: {
+    alias: [
+      { find: /^@\//, replacement: fileURLToPath(new URL("./src/", import.meta.url)) },
+      // Mirrors the tsconfig `convex/*` path so route handlers can import generated bindings.
+      { find: /^convex\/_generated\//, replacement: fileURLToPath(new URL("./convex/_generated/", import.meta.url)) },
+    ],
+  },
   test: {
     environment: "edge-runtime",
     retry: process.env.CI ? 1 : 0,

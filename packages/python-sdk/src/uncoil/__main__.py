@@ -1,6 +1,14 @@
 import sys
+from typing import List, Optional
 
-from .doctor import main
+from . import doctor
 
-# `python -m uncoil` and `python -m uncoil doctor` both run the setup checker.
-sys.exit(main(sys.argv[2:] if sys.argv[1:2] == ["doctor"] else sys.argv[1:]))
+
+def main(argv: Optional[List[str]] = None) -> int:
+    """`uncoil doctor`, `uncoil` and `python -m uncoil` all run the setup checker."""
+    args = sys.argv[1:] if argv is None else list(argv)
+    return doctor.main(args[1:] if args[:1] == ["doctor"] else args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

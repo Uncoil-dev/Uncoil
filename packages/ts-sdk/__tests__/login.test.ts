@@ -95,6 +95,16 @@ describe("login flow", () => {
       expect(fs.existsSync(path.join(dir, ".env.local"))).toBe(false);
     }
   });
+  it("suggests the region or host when the server cannot be reached", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("getaddrinfo ENOTFOUND"); }));
+    const { result } = await run(tmp(), { region: "us" });
+    expect(result.message).toBe("Could not reach https://us.cloud.uncoil.dev (getaddrinfo ENOTFOUND). Check your internet connection, then try --region eu or us, or --host <url>.");
+  });
+  it("suggests --no-browser when the browser sign-in times out", async () => {
+    server("approved");
+    const { result } = await run(tmp(), { now: () => Date.now() + 1_000_000 });
+    expect(result.message).toBe("Timed out waiting for the browser. Run the command again with --no-browser and open the printed address yourself.");
+  });
   it("prints JSON events with --json", async () => {
     server("approved");
     const { lines } = await run(tmp(), { json: true });

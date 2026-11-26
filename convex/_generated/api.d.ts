@@ -48,6 +48,7 @@ import type * as resilience from "../resilience.js";
 import type * as retention from "../retention.js";
 import type * as sandbox from "../sandbox.js";
 import type * as savedViews from "../savedViews.js";
+import type * as topics from "../topics.js";
 import type * as sharedTraces from "../sharedTraces.js";
 import type * as sessions from "../sessions.js";
 import type * as batchActions from "../batchActions.js";
@@ -110,6 +111,7 @@ declare const fullApi: ApiFromModules<{
   retention: typeof retention;
   sandbox: typeof sandbox;
   savedViews: typeof savedViews;
+  topics: typeof topics;
   sharedTraces: typeof sharedTraces;
   sessions: typeof sessions;
   batchActions: typeof batchActions;

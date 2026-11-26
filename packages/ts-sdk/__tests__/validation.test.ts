@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { UncoilClient, UncoilError, buildRedactor, sampleBucket } from "../src/index";
 
@@ -38,6 +41,39 @@ describe("client config validation", () => {
       if (savedLegacy !== undefined) process.env.TRACIFY_API_KEY = savedLegacy;
     }
     expect(seen).toEqual(["missing_key"]);
+  });
+
+  function missingKeyMessage(envLocal?: string) {
+    const dir = mkdtempSync(join(tmpdir(), "uncoil-env-"));
+    if (envLocal !== undefined) writeFileSync(join(dir, ".env.local"), envLocal);
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue(dir);
+    const saved = process.env.UNCOIL_API_KEY;
+    const savedLegacy = process.env.TRACIFY_API_KEY;
+    delete process.env.UNCOIL_API_KEY;
+    delete process.env.TRACIFY_API_KEY;
+    const seen: UncoilError[] = [];
+    try {
+      new UncoilClient({ onError: (e) => seen.push(e) });
+    } finally {
+      cwd.mockRestore();
+      rmSync(dir, { recursive: true, force: true });
+      if (saved !== undefined) process.env.UNCOIL_API_KEY = saved;
+      if (savedLegacy !== undefined) process.env.TRACIFY_API_KEY = savedLegacy;
+    }
+    return seen[0];
+  }
+
+  it("names .env.local when that file sets the key but the app did not load it", () => {
+    const error = missingKeyMessage("UNCOIL_PROJECT_ID=p1\nUNCOIL_API_KEY=uncoil_sk_live_eu_abc\n");
+    expect(error.code).toBe("missing_key");
+    expect(error.message).toContain(".env.local");
+    expect(error.message).toContain("node --env-file=.env.local");
+  });
+
+  it("keeps the plain missing-key message when .env.local does not set the key", () => {
+    const plain = missingKeyMessage().message;
+    expect(plain).not.toContain(".env.local");
+    expect(missingKeyMessage("OTHER=1\n").message).toBe(plain);
   });
 
   it("reports an unrecognised key format", () => {

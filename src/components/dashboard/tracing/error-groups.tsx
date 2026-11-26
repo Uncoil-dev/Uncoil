@@ -8,6 +8,9 @@ export type ErrorGroup = {
 };
 export type ErrorGroups = { total: number; groups: ErrorGroup[] };
 
+// Groups first seen within this window get a "New" tag, so fresh regressions stand out.
+const NEW_GROUP_MS = 24 * 60 * 60 * 1000;
+
 export function errorGroupLabel(group: Pick<ErrorGroup, "tool" | "errorType">) {
   return [group.tool, group.errorType].filter(Boolean).join(" · ") || "Error";
 }
@@ -50,7 +53,8 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle,
                   className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-0.5 px-3 py-1.5 text-left sm:grid-cols-[auto_minmax(0,1fr)_auto] ${selected ? "bg-[#161B22] shadow-[inset_3px_0_0_#F4D44D]" : "hover:bg-[#12161C]"}`}>
                   <span className="rounded bg-[#3A1C1F] px-2 py-0.5 font-mono text-xs text-[#FF8A8A]" aria-label={`${group.count} errors`}>{compactNumber(group.count)}</span>
                   <span className="min-w-0">
-                    <span className="block truncate text-[13px]"><span className="text-[#8AB4FF]">{group.tool || "—"}</span>{group.errorType ? <span className="text-[#8B93A1]"> · {group.errorType}</span> : null}</span>
+                    <span className="block truncate text-[13px]"><span className="text-[#8AB4FF]">{group.tool || "—"}</span>{group.errorType ? <span className="text-[#8B93A1]"> · {group.errorType}</span> : null}
+                      {clock - parseTime(group.firstSeen) < NEW_GROUP_MS ? <span className="ml-2 rounded bg-[#F4D44D] px-1.5 py-px font-mono text-[10px] font-medium text-[#0B0D10]" title="First seen in the last 24 hours">New</span> : null}</span>
                     <span className="block truncate font-mono text-[11px] text-[#C9CED6]">{group.message || "No message recorded"}</span>
                   </span>
                   <span className="col-start-2 flex flex-wrap gap-x-3 font-mono text-[11px] text-[#8B93A1] sm:col-start-3 sm:row-start-1 sm:flex-col sm:items-end">

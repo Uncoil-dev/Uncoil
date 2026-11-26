@@ -52,6 +52,12 @@ export class UncoilError extends Error {
   }
 }
 
+function promptError(name: string, environment: string, status: number, reason?: string) {
+  if (status === 401) return new UncoilError("bad_key", "Uncoil rejected the API key while resolving a prompt (401).", "Check UNCOIL_API_KEY, or create a new key on the API keys page if this one was revoked.", status);
+  if (status === 404) return new UncoilError("prompt_not_found", `Prompt "${name}" has no version deployed to "${environment}" (404).`, "Check that the prompt name and environment label exist on the Prompts page.", status);
+  return new UncoilError("prompt_failed", `Prompt resolution failed (${status})${reason ? `: ${reason}` : ""}.`, "Try again shortly; if it keeps happening, check the status page.", status);
+}
+
 export type UncoilRegion = "eu" | "us";
 
 export const UNCOIL_REGION_HOSTS: Record<UncoilRegion, string> = {
@@ -395,14 +401,14 @@ export class UncoilClient {
 
   /** Resolve a prompt version labeled for an environment without redeploying application code. */
   async getPrompt(name: string, environment = "production", options: PromptResolutionOptions = {}): Promise<PromptResolution> {
-    if (!this.apiKey) throw new Error("An Uncoil API key is required to resolve prompts");
+    if (!this.apiKey) throw new UncoilError("missing_key", "An Uncoil API key is required to resolve prompts.", "Set UNCOIL_API_KEY or pass apiKey to UncoilClient.");
     const key = `${name}:${environment}`;
     const cached = this.promptCache.get(key);
     if (cached && cached.expiresAt > Date.now()) return cached.value;
     try {
       const response = await fetch(`${this.host}/api/prompts/${encodeURIComponent(name)}?environment=${encodeURIComponent(environment)}`, { headers: { Authorization: `Bearer ${this.apiKey}` } });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error || `Prompt resolution failed (${response.status})`);
+      if (!response.ok) throw promptError(name, environment, response.status, data?.error);
       const value = data as PromptResolution;
       this.promptCache.set(key, { value, expiresAt: Date.now() + (options.cacheTtlMs ?? 60_000) });
       return value;

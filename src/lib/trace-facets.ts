@@ -33,7 +33,7 @@ function clip(value: string | undefined) {
 const CLAIMS: [RegExp, RegExp][] = [
   [/\brefund(ed|s)?\b/i, /refund/i],
   [/\bcancel(l?ed|s)?\b/i, /cancel/i],
-  [/\b(booked|reserved|rescheduled)\b/i, /book|reserv|schedul/i],
+  [/\b(booked|reserved|rescheduled)\b/i, /book|reserve|reservation|schedule|scheduling/i],
   [/\b(sent|emailed|delivered)\b/i, /send|mail|message|notify|deliver/i],
 ];
 const CLAIM_VERB = /\b(refunded|cancel(l?ed)|booked|reserved|rescheduled|sent|emailed|delivered)\b/i;
@@ -44,7 +44,7 @@ function unconfirmed(output: string, spans: AskSpan[]) {
     && !spans.some((s) => !failed(s) && toolWord.test(s.toolName ?? "")));
 }
 
-const NEGATIVE = /\b(not working|doesn'?t work|didn'?t work|still|wrong|useless|terrible|awful|angry|frustrat\w*|broken|ridiculous|worst|hate)\b/i;
+const NEGATIVE = /\b(not working|(?:doesn't|didn't|does not|did not) work|still|wrong|useless|terrible|awful|angry|frustrat\w*|broken|ridiculous|worst|hate)\b/i;
 const POSITIVE = /\b(thanks|thank you|great|perfect|awesome|works|helpful|love)\b/i;
 
 function sentiment(later: string[]): TraceFacets["sentiment"] {

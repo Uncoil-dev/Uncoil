@@ -5,12 +5,20 @@ const clean = (value: unknown) => (typeof value === "string" ? value.trim() : ""
 // "useCase" -> "Use case", so the message names the field the way the form does.
 const label = (key: string) => key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`).replace(/^./, (first) => first.toUpperCase());
 
+// Text before an @, then a dot with text on both sides after it, and no spaces.
+// Index checks instead of a regex keep the cost linear on long hostile input.
+const looksLikeEmail = (email: string) => {
+  const at = email.indexOf("@");
+  const dot = email.lastIndexOf(".");
+  return at > 0 && dot > at + 1 && dot < email.length - 1 && !/\s/.test(email);
+};
+
 /** Explains what is wrong with a lead submission, or returns null when it can be stored. */
 export function leadInputError(body: Record<string, unknown>): string | null {
   if (Object.entries(body).some(([key, value]) => key !== "website" && key !== "marketingConsent" && typeof value !== "string")) return "Invalid request";
   const tooLong = Object.entries(LEAD_FIELD_LIMITS).find(([key, max]) => clean(body[key]).length > max);
   if (tooLong) return `${label(tooLong[0])} is too long (${tooLong[1]} characters max)`;
-  if (!/^\S+@\S+\.\S+$/.test(clean(body.email))) return "Enter a valid email address";
+  if (!looksLikeEmail(clean(body.email))) return "Enter a valid email address";
   if (!clean(body.intent) && !clean(body.message)) return "Add a message";
   return null;
 }

@@ -10,6 +10,10 @@ describe("leadInputError", () => {
   it("asks for a valid email address", () => {
     expect(leadInputError({ email: "ada@", message: "Hi" })).toBe("Enter a valid email address");
     expect(leadInputError({ message: "Hi" })).toBe("Enter a valid email address");
+    for (const email of ["ada@example", "@example.com", "ada@.com", "ada@example.", "ada lovelace@example.com"]) {
+      expect(leadInputError({ email, message: "Hi" }), email).toBe("Enter a valid email address");
+    }
+    expect(leadInputError({ email: "ada@mail.example.com", message: "Hi" })).toBeNull();
   });
 
   it("asks for a message when there is no message or intent", () => {

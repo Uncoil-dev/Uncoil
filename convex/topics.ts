@@ -6,6 +6,7 @@ import {
   type QueryCtx,
 } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { canAccessProject } from "./projects";
 
 const MAX_TOPICS = 200;
 const MAX_RUNS = 200;
@@ -14,7 +15,11 @@ const mapFields = {
   filters: v.record(v.string(), v.string()),
   facets: v.array(v.string()),
   sampleRate: v.number(),
-  status: v.union(v.literal("building"), v.literal("ready"), v.literal("failed")),
+  status: v.union(
+    v.literal("building"),
+    v.literal("ready"),
+    v.literal("failed"),
+  ),
   builtAt: v.number(),
 };
 const topicFields = {
@@ -39,17 +44,20 @@ const topicRow = v.object({
   ...topicFields,
 });
 
-// True when the signed-in user owns the project or belongs to its organization.
 async function canRead(ctx: QueryCtx, projectId: Id<"projects">) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return false;
   const project = await ctx.db.get(projectId);
-  const org = identity.orgId ?? identity.org_id;
-  return (
-    !!project &&
-    (project.clerkUserId === identity.subject ||
-      (typeof org === "string" && !!org && project.clerkOrgId === org))
-  );
+  return !!project && canAccessProject(project, identity);
+}
+
+function findSummary(ctx: QueryCtx, projectId: Id<"projects">, runId: string) {
+  return ctx.db
+    .query("traceSummaries")
+    .withIndex("by_projectId_and_runId", (q) =>
+      q.eq("projectId", projectId).eq("runId", runId),
+    )
+    .unique();
 }
 
 export const getMap = query({
@@ -97,14 +105,9 @@ export const getSummaries = query({
   handler: async (ctx, { projectId, runIds }) => {
     if (!(await canRead(ctx, projectId))) return [];
     const rows = await Promise.all(
-      runIds.slice(0, MAX_RUNS).map((runId) =>
-        ctx.db
-          .query("traceSummaries")
-          .withIndex("by_projectId_and_runId", (q) =>
-            q.eq("projectId", projectId).eq("runId", runId),
-          )
-          .unique(),
-      ),
+      runIds
+        .slice(0, MAX_RUNS)
+        .map((runId) => findSummary(ctx, projectId, runId)),
     );
     return rows.filter((row) => row !== null);
   },
@@ -117,13 +120,7 @@ export const missingRunIds = internalQuery({
   handler: async (ctx, { projectId, runIds }) => {
     const missing: string[] = [];
     for (const runId of new Set(runIds.slice(0, MAX_RUNS))) {
-      const row = await ctx.db
-        .query("traceSummaries")
-        .withIndex("by_projectId_and_runId", (q) =>
-          q.eq("projectId", projectId).eq("runId", runId),
-        )
-        .unique();
-      if (!row) missing.push(runId);
+      if (!(await findSummary(ctx, projectId, runId))) missing.push(runId);
     }
     return missing;
   },
@@ -169,12 +166,7 @@ export const upsertSummaries = internalMutation({
   returns: v.null(),
   handler: async (ctx, { projectId, summaries }) => {
     for (const summary of summaries) {
-      const existing = await ctx.db
-        .query("traceSummaries")
-        .withIndex("by_projectId_and_runId", (q) =>
-          q.eq("projectId", projectId).eq("runId", summary.runId),
-        )
-        .unique();
+      const existing = await findSummary(ctx, projectId, summary.runId);
       if (existing) await ctx.db.patch(existing._id, summary);
       else await ctx.db.insert("traceSummaries", { projectId, ...summary });
     }

@@ -166,3 +166,12 @@ test("demoCostStats returns ordered breakdowns and empty ones for zero days", ()
   for (let i = 1; i < stats.userCosts.length; i++) assert.ok(stats.userCosts[i - 1]!.totalCostUsd >= stats.userCosts[i]!.totalCostUsd);
   assert.deepEqual(queries.demoCostStats(0, NOW), { dailyCosts: [], modelCosts: [], toolCosts: [], userCosts: [] });
 });
+
+test("demoTopics groups the filtered demo runs and is empty without runs", () => {
+  const runs = queries.demoFilter(WEEK, undefined, NOW);
+  const { total, sampled, topics } = queries.demoTopics(runs);
+  assert.equal(sampled, runs.length > 2000);
+  assert.ok(total > 0 && topics.length > 0);
+  assert.ok(topics.reduce((sum, topic) => sum + topic.count, 0) <= runs.length);
+  assert.deepEqual(queries.demoTopics([]), { total: 0, topics: [], sampled: false });
+});

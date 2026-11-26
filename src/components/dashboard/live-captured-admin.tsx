@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -33,5 +34,9 @@ export function LiveCapturedAdmin({ projectId, section }: { projectId: string; s
   async function changeAlertState(input: { alertId: string; state: "active" | "resolved" | "muted" }) {
     await updateAlertState({ alertId: input.alertId as Id<"alerts">, state: input.state });
   }
-  return <CapturedWorkspace workspace={workspace} segments={[section]} onAlertCreate={section === "alerts" ? saveAlert : undefined} onAlertStateChange={section === "alerts" ? changeAlertState : undefined} onProjectSettingsSave={section === "settings" ? saveSettings : undefined} dataPanel={section === "settings" ? <ProjectDataControls projectId={projectId} projectName={project.name} /> : undefined} tabPanels={section === "settings" ? { "LLM Connections": <UncoilLlmConnections projectId={projectId} />, "Model Definitions": <UncoilModelDefinitions projectId={projectId} />, "MCP & CLI": <UncoilMcpCli projectId={projectId} />, Scores: <UncoilScoreConfigs projectId={projectId} />, "Batch Actions": <UncoilBatchActions projectId={projectId} />, Integrations: <UncoilIntegrations projectId={projectId} />, Notifications: <ProjectNotifications projectId={projectId} />, "Audit log": <UncoilAuditLogs projectId={projectId} /> } : undefined} />;
+  return <CapturedWorkspace workspace={workspace} segments={[section]} onAlertCreate={section === "alerts" ? saveAlert : undefined} onAlertStateChange={section === "alerts" ? changeAlertState : undefined} onProjectSettingsSave={section === "settings" ? saveSettings : undefined} dataPanel={section === "settings" ? <ProjectDataControls projectId={projectId} projectName={project.name} /> : undefined} tabPanels={section === "settings" ? { Members: <SettingsLinkPanel text="Invite people and manage roles in organization settings." href="/dashboard/organization-settings" label="Open organization settings" />, "API Keys": <SettingsLinkPanel text="Create, copy and revoke this project's API keys." href={`/dashboard/${projectId}/api-keys`} label="Open API keys" />, "LLM Connections": <UncoilLlmConnections projectId={projectId} />, "Model Definitions": <UncoilModelDefinitions projectId={projectId} />, "MCP & CLI": <UncoilMcpCli projectId={projectId} />, Scores: <UncoilScoreConfigs projectId={projectId} />, "Batch Actions": <UncoilBatchActions projectId={projectId} />, Integrations: <UncoilIntegrations projectId={projectId} />, Notifications: <ProjectNotifications projectId={projectId} />, "Audit log": <UncoilAuditLogs projectId={projectId} /> } : undefined} />;
+}
+
+function SettingsLinkPanel({ text, href, label }: { text: string; href: string; label: string }) {
+  return <p className="captured-settings-placeholder">{text} <Link className="underline underline-offset-4 hover:text-[#f4d44d]" href={href}>{label}</Link></p>;
 }

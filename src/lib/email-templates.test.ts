@@ -12,6 +12,15 @@ test("welcome email escapes names and stays in the palette", () => {
   assert.ok(email.text.includes(`${origin}/onboarding`));
 });
 
+test("welcome email shows the one-line init() setup for both SDKs", () => {
+  const email = renderWelcomeEmail({ origin });
+  for (const body of [email.html, email.text]) {
+    assert.ok(body.includes("uncoil.init()"), "Python init");
+    assert.ok(body.includes("init();"), "TypeScript init");
+    assert.ok(!body.includes("traceAgent") && !body.includes("trace_agent"), "no wrapper code");
+  }
+});
+
 test("no-trace email links to the project quickstart and escapes the project name", () => {
   const email = renderNoTraceEmail({ name: "Kris Bon", projectName: "<b>x</b>", projectId: "abc123", origin });
   assert.ok(email.html.includes(`${origin}/dashboard/abc123/quickstart`));

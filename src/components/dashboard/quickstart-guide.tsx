@@ -17,7 +17,7 @@ type Lang = "python" | "typescript";
 type StepId = "method" | "prompt" | "install" | "instrument" | "key" | "verify";
 
 const STEP_INFO: Record<StepId, { label: string; title: string; hint: string }> = {
-  method: { label: "Start", title: "How do you want to connect?", hint: "Both take about five minutes. Pick what suits you." },
+  method: { label: "Start", title: "How do you want to connect?", hint: "Both take about two minutes. Pick what suits you." },
   prompt: { label: "Paste", title: "Paste this into your coding agent", hint: "Claude Code, Cursor or Codex will install, wire up and send the first trace." },
   install: { label: "Install", title: "Install the library", hint: "One package, no config files." },
   instrument: { label: "Instrument", title: "Instrument your agent", hint: "Wrap the function that runs your agent and record each model call." },
@@ -117,7 +117,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
       {/* Progress */}
       <div className="mb-3 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8a84]">
         <span>Setup · step {Math.min(step + 1, steps.length)} of {steps.length}</span>
-        <span>{arrived ? "Connected" : "About 5 minutes"}</span>
+        <span>{arrived ? "Connected" : "About 2 minutes"}</span>
       </div>
       <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }} aria-label="Setup progress">
         {steps.map((id, i) => (

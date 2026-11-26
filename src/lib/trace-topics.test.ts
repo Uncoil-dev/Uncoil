@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { groupTraceTopics, normalizeTopicText, type TopicTrace } from "./trace-topics.ts";
+import { groupTraceTopics, isTopicId, normalizeTopicText, topicRunIds, type TopicTrace } from "./trace-topics.ts";
 
 const t = (runId: string, input: string, hasError = false): TopicTrace => ({ runId, input, hasError });
 
@@ -95,4 +95,20 @@ test("a trace with no error and an empty final output is a silent failure", () =
   const { topics } = groupTraceTopics([ok("a", "Done"), ok("b", ""), ok("c", "   "), ok("d"), { ...ok("e", ""), hasError: true }], { minSize: 2 });
   assert.equal(topics[0].silentFailures, 2);
   assert.equal(topics[0].outcome.succeeded, 4);
+});
+
+test("a topic id selects exactly that topic's runs and an unknown id selects none", () => {
+  const traces = [
+    ...Array.from({ length: 3 }, (_, i) => t(`r${i}`, "refund the order please")),
+    ...Array.from({ length: 3 }, (_, i) => t(`w${i}`, "summarize the weather forecast")),
+  ];
+  const { topics } = groupTraceTopics(traces, { minSize: 2 });
+  assert.ok(topics.length >= 2);
+  for (const topic of topics) assert.deepEqual(topicRunIds(traces, topic.id, { minSize: 2 }), topic.runIds);
+  assert.deepEqual(topicRunIds(traces, "deadbeef", { minSize: 2 }), []);
+});
+
+test("topic ids are only accepted in the shape groupTraceTopics produces", () => {
+  for (const ok of ["0a1b2c3d", "0a1b2c3d-2", "other"]) assert.ok(isTopicId(ok), ok);
+  for (const bad of ["", "OTHER", "0a1b2c3", "0a1b2c3d-", "x'; DROP", "0a1b2c3d-1-2"]) assert.ok(!isTopicId(bad), bad);
 });

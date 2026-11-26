@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { buildSpanTree, type SpanTreeNode } from "@/lib/uncoil-ports/treeBuilding";
 import { chatMessages, compactNumber, downloadFile, formatCost, formatDuration, formatTime, parsePayload } from "./format";
 import { AskAiPanel } from "./ask-ai-panel";
+import { escapeSearch } from "./search-escape";
 import { ScoreRunButton } from "../scores/score-run-button";
 import { ShareTraceButton } from "../share-trace-button";
 import { stepKind, TraceGraph, TraceTimeline, TypeIcon } from "./trace-views";
@@ -262,7 +263,7 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
                 ))}
               </div>
               <label htmlFor="step-search" className="sr-only">Search steps</label>
-              <input id="step-search" value={stepSearch} onChange={(event) => setStepSearch(event.target.value)} placeholder="Search steps"
+              <input id="step-search" value={stepSearch} onChange={(event) => setStepSearch(event.target.value)} onKeyDown={(event) => escapeSearch(event, () => setStepSearch(""))} placeholder="Search steps"
                 className="h-7 min-w-[90px] flex-1 rounded-md border border-[#262C35] bg-[#111418] px-2 text-xs outline-none placeholder:text-[#6B7380] focus:border-[#4A5260]" />
               <div role="group" aria-label="Step type" className="flex rounded-md border border-[#262C35] p-0.5 text-xs">
                 {STEP_FILTERS.map((filter) => (

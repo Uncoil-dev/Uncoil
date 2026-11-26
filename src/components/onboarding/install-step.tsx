@@ -4,13 +4,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
-import Link from "next/link";
 import { captureAnalytics } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 
 import { QuickstartGuide } from "@/components/dashboard/quickstart-guide";
 import { ConnectionCheck, type ProbeState } from "@/components/onboarding/connection-check";
 import { FirstRunPanel } from "@/components/onboarding/first-run-panel";
+import { WaitingLinks } from "@/components/onboarding/waiting-links";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { clearOneTimeApiKey, getOneTimeApiKey } from "@/lib/onboarding-client-state";
@@ -123,15 +123,7 @@ export function InstallStep() {
               Project context is no longer available in this browser session. Create a project again to listen for your first run.
             </div>
           ) : null}
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-            {elapsed >= 30 ? (
-              <Link href="/demo" className="text-sm text-black/60 underline underline-offset-4 transition-colors hover:text-black">Explore a sample trace while you wait</Link>
-            ) : null}
-            <Link href={projectId ? `/dashboard/${projectId}/tracing` : "/dashboard"} className="font-mono text-[11px] uppercase tracking-[0.12em] text-black/55 underline underline-offset-4 hover:text-black">Skip for now, I&apos;ll connect later</Link>
-            {elapsed >= 120 ? (
-              <a href="mailto:support@uncoil.dev" className="text-sm text-black/60 underline underline-offset-4 transition-colors hover:text-black">Still stuck? Email support</a>
-            ) : null}
-          </div>
+          <WaitingLinks elapsed={elapsed} projectId={projectId} />
         </>
       ) : null}
     </div>

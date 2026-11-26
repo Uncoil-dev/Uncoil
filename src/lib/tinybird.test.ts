@@ -24,8 +24,10 @@ process.env.CLICKHOUSE_URL = "https://ch.example.test/";
 process.env.CLICKHOUSE_USER = "reader";
 process.env.CLICKHOUSE_PASSWORD = "pw" + "-" + "fake";
 
-const { sqlString, IS_ERROR, tinybirdRows, checkTinybirdHealth, analyticsBackend, exportAnalyticsPage, deleteProjectAnalytics, purgeExpiredAnalytics, getSpansForRun } =
+const { sqlString, IS_ERROR, tinybirdRows, checkTinybirdHealth, analyticsBackend, exportAnalyticsPage, deleteProjectAnalytics, purgeExpiredAnalytics, getSpansForRun, resolveTraceFlowFilters, listTraces } =
   await import("./tinybird.ts");
+
+import { groupTraceTopics } from "./trace-topics.ts";
 
 type Call = { url: string; init: RequestInit };
 const realFetch = globalThis.fetch;
@@ -143,4 +145,28 @@ test("purgeExpiredAnalytics validates input and builds an IN list", async () => 
   assert.match(String(calls[0].init.body), /projectId IN \('a','b''c'\) AND createdAt < now\(\) - INTERVAL 30 DAY/);
   reply = () => new Response("", { status: 502 });
   await assert.rejects(purgeExpiredAnalytics(["a"], 7), /Could not purge spans: 502/);
+});
+
+test("a topic filter limits the list to that topic's runs and an unknown topic matches none", async () => {
+  const row = (runId: string, firstInput: string) => ({ runId, firstInput, errorCount: 0, timeoutCount: 0, matched: 6 });
+  reply = () => Response.json({ data: [
+    ...["a1", "a2", "a3"].map((id) => row(id, "refund the order please")),
+    ...["b1", "b2", "b3"].map((id) => row(id, "summarize the weather forecast")),
+  ] });
+  const base = { fromMs: 0, toMs: 60_000 };
+  const { topics } = groupTraceTopics(
+    ["a1", "a2", "a3"].map((runId) => ({ runId, input: "refund the order please", hasError: false }))
+      .concat(["b1", "b2", "b3"].map((runId) => ({ runId, input: "summarize the weather forecast", hasError: false }))),
+  );
+  const refunds = topics.find((topic) => topic.runIds.includes("a1"))!;
+  const resolved = await resolveTraceFlowFilters("p1", { ...base, topic: refunds.id });
+  assert.deepEqual(resolved.topicRunIds, ["a1", "a2", "a3"]);
+
+  reply = () => Response.json({ data: [] });
+  calls = [];
+  await listTraces("p1", resolved);
+  assert.ok(calls.some((call) => String(call.init.body).includes("runId IN ('a1','a2','a3')")));
+  calls = [];
+  await listTraces("p1", await resolveTraceFlowFilters("p1", { ...base, topic: "deadbeef" }));
+  assert.ok(calls.every((call) => !String(call.init.body).includes("runId IN ('")) && calls.some((call) => /AND 0\b/.test(String(call.init.body))));
 });

@@ -39,6 +39,7 @@ const KEYS = new Set([
   "node",
   "edge",
   "errorGroup",
+  "topic",
 ]);
 export function savedViewQuery(query: Record<string, string>) {
   return Object.fromEntries(

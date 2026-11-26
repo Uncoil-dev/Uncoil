@@ -67,6 +67,8 @@ Any page that lists records with errors shows an "Error groups" panel (`tracing/
 - A group is the same tool (or model) + error type + the first 120 characters of the error message with
   ids, paths and numbers replaced (`ERROR_MESSAGE_KEY` in `src/lib/tinybird.ts`). Its id is a hash of the
   three, so it can live in the URL (`?errorGroup=`).
+- Topics filter the same way (`?topic=`): the topic id is resolved to its run ids (grouped over the traces matching
+  every other filter, newest 2000) and the list shows `runId IN (...)`; an unknown topic matches nothing.
 - A failed step uses the same rule as the record's error count (`IS_ERROR`), so the numbers agree.
 - Each group shows count, records affected, first and last seen (relative, absolute on hover) and the tool.
   Sorted by count, top 20, with "top 20 of N" when there are more.

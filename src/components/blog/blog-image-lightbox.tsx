@@ -60,7 +60,22 @@ export function BlogImage({
   const handleClick = useCallback(() => setIsOpen(true), []);
   const handleClose = useCallback(() => setIsOpen(false), []);
 
-  const isStringUrl = typeof src === "string";
+  const canOpen = typeof src === "string" && typeof alt === "string";
+  const buttonProps = canOpen
+    ? {
+        onClick: handleClick,
+        role: "button",
+        tabIndex: 0,
+        "aria-label": alt ? `Enlarge image: ${alt}` : "Enlarge image",
+        "aria-haspopup": "dialog" as const,
+        onKeyDown: (e: React.KeyboardEvent<HTMLImageElement>) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick();
+          }
+        },
+      }
+    : {};
 
   return (
     <>
@@ -71,20 +86,10 @@ export function BlogImage({
         loading="lazy"
         decoding="async"
         {...props}
-        onClick={handleClick}
+        {...buttonProps}
         className="w-full cursor-pointer border border-black hover:opacity-75"
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleClick();
-          }
-        }}
       />
-      {isOpen && isStringUrl && typeof alt === "string" && (
-        <ImageLightbox src={src} alt={alt} onClose={handleClose} />
-      )}
+      {isOpen && canOpen && <ImageLightbox src={src} alt={alt} onClose={handleClose} />}
     </>
   );
 }

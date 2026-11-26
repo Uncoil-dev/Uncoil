@@ -25,6 +25,8 @@ On Windows PowerShell:
 $env:UNCOIL_API_KEY="uncoil_sk_live_..."
 ```
 
+The SDK sends to the region your key belongs to, so a US key needs no extra setting. Set `region` (or `UNCOIL_REGION`) only to pin a region; a key from the other region then fails with `region_mismatch`.
+
 3. Instrument your agent:
 
 ```python

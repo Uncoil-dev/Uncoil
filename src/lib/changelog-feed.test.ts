@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildChangelogRss, escapeXml, parseReleases } from "./changelog-feed";
 
@@ -38,5 +40,14 @@ describe("changelog feed", () => {
 
   it("escapes xml characters", () => {
     expect(escapeXml(`a&b<'">`)).toBe("a&amp;b&lt;&apos;&quot;&gt;");
+  });
+
+  it("lists each entry once per release in the release log", () => {
+    const source = readFileSync(resolve(process.cwd(), "docs/releases.md"), "utf8");
+    for (const release of source.split(/^## /m).slice(1)) {
+      const entries = [...release.matchAll(/^- (.+)$/gm)].map((m) => m[1]).filter((t) => !/^none\.?$/i.test(t));
+      const repeated = entries.filter((entry, i) => entries.indexOf(entry) !== i);
+      expect(repeated, release.split("\n")[0]).toEqual([]);
+    }
   });
 });

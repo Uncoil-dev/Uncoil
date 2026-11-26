@@ -25,16 +25,16 @@ describe("keeping art out from under the heading", () => {
   it("flattens the hills so their crests stay below the text", () => {
     const h = 150;
     const groundY = 120;
-    const clearY = 70;
-    const relief = reliefUnder(groundY, h, clearY, 0.8);
-    expect(groundY - 0.34 * h * relief).toBeGreaterThan(clearY);
+    const skyRows = 70;
+    const relief = reliefUnder(groundY, h, skyRows, 0.8);
+    expect(groundY - 0.34 * h * relief).toBeGreaterThan(skyRows);
     expect(reliefUnder(groundY, h, null, 0.8)).toBe(0.8);
   });
 
   it("shrinks the sun so its top stays below the text", () => {
-    const [w, h, groundY, clearY] = [200, 150, 120, 50];
-    const r = sunRadius(w, h, groundY, clearY);
-    expect(groundY - h * 0.2 - 1.6 * r).toBeGreaterThan(clearY);
+    const [w, h, groundY, skyRows] = [200, 150, 120, 50];
+    const r = sunRadius(w, h, groundY, skyRows);
+    expect(groundY - h * 0.2 - 1.6 * r).toBeGreaterThan(skyRows);
     expect(sunRadius(w, h, groundY, null)).toBe(22);
   });
 });

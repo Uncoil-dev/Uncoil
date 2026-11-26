@@ -47,12 +47,12 @@ export function signInBeat(seconds: number, still: boolean) {
 
 /**
  * How tall the hills may grow (0..1) so their crests stay below the heading block.
- * `clearY` is the lowest row the text uses, in scene pixels; null means no text to avoid.
+ * `skyRows` is the lowest row the text uses, in scene pixels; null means no text to avoid.
  */
-export function reliefUnder(groundY: number, h: number, clearY: number | null, wanted: number) {
-  if (clearY === null) return wanted;
+export function reliefUnder(groundY: number, h: number, skyRows: number | null, wanted: number) {
+  if (skyRows === null) return wanted;
   // Ridge crests reach at most 0.34 * h * relief above the ground line.
-  const room = groundY - clearY - 4;
+  const room = groundY - skyRows - 4;
   return Math.max(0.15, Math.min(wanted, room / (0.34 * h)));
 }
 
@@ -60,8 +60,8 @@ export function reliefUnder(groundY: number, h: number, clearY: number | null, w
  * Sun radius that keeps the top of the sun below the heading block when they share columns.
  * The sun's centre sits at groundY - 0.2h - 0.6r, so its top edge is groundY - 0.2h - 1.6r.
  */
-export function sunRadius(w: number, h: number, groundY: number, clearY: number | null) {
+export function sunRadius(w: number, h: number, groundY: number, skyRows: number | null) {
   const r = Math.round(Math.min(w * 0.11, h * 0.2));
-  if (clearY === null) return r;
-  return Math.max(0, Math.min(r, Math.floor((groundY - h * 0.2 - clearY - 3) / 1.6)));
+  if (skyRows === null) return r;
+  return Math.max(0, Math.min(r, Math.floor((groundY - h * 0.2 - skyRows - 3) / 1.6)));
 }

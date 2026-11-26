@@ -111,6 +111,13 @@ describe("onboarding client state", () => {
       expect(getReturnPath()).toBe("");
     });
 
+    it("keeps only in-app paths and falls back to the dashboard for outside addresses", () => {
+      setReturnPath("https://example.com");
+      expect(getReturnPath()).toBe("/dashboard");
+      setReturnPath("//example.com/x");
+      expect(getReturnPath()).toBe("/dashboard");
+    });
+
     it("normalizes the no-project dashboard path", () => {
       setReturnPath("/dashboard/no-project");
       expect(getReturnPath()).toBe("/dashboard");

@@ -78,7 +78,7 @@ export function VolumeStrip({ days }: { days: DayPoint[] }) {
 export function Histogram({ buckets, format }: { buckets: Bucket[]; format: Format }) {
   const max = Math.max(1, ...buckets.map((bucket) => bucket.count));
   const [hover, setHover] = useState<number | null>(null);
-  if (!buckets.length) return <p className="text-xs text-[#6B7380]">No numbers yet.</p>;
+  if (!buckets.length) return <p className="text-xs text-[#6B7380]">No scores yet. They show up here after an evaluator runs or feedback is sent.</p>;
   return (
     <div>
       <div className="flex h-24 items-end gap-0.5" onMouseLeave={() => setHover(null)} role="img" aria-label="How the scores are spread">
@@ -92,7 +92,7 @@ export function Histogram({ buckets, format }: { buckets: Bucket[]; format: Form
 /** Part-to-whole as a single bar with a 2px gap between parts. */
 export function SplitBar({ parts }: { parts: Array<{ label: string; value: number; color: string }> }) {
   const total = parts.reduce((sum, part) => sum + part.value, 0);
-  if (!total) return <p className="text-xs text-[#6B7380]">Nothing yet.</p>;
+  if (!total) return <p className="text-xs text-[#6B7380]">No scores yet. They show up here after an evaluator runs or feedback is sent.</p>;
   return (
     <div>
       <div className="flex h-3 gap-0.5 overflow-hidden rounded" role="img" aria-label={parts.map((part) => `${part.label} ${part.value}`).join(", ")}>

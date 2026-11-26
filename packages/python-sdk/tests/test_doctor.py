@@ -106,3 +106,10 @@ def test_cli_exit_codes(calls, capsys):
     calls.fake()
     assert doctor.main(["--key", KEY, "--json"]) == 0
     assert doctor.main([]) == 1
+
+
+def test_uncoil_command_runs_doctor_without_a_key(calls, capsys):
+    from uncoil.__main__ import main
+
+    assert main(["doctor", "--no-send"]) == 1
+    assert "UNCOIL_API_KEY" in capsys.readouterr().out

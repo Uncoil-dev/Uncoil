@@ -29,6 +29,21 @@ describe("setup checker", () => {
     expect(typeof body.latencyMs).toBe("number");
     expect(formatReport(report)).toContain("All good");
   });
+  it("links to the test trace in the dashboard when the key's project is known", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) =>
+      url.endsWith("/api/sdk/whoami") ? Response.json({ projectId: "proj 1", projectName: "My agent" })
+        : url.endsWith("/api/ingest") ? new Response("{}", { status: 202 })
+          : new Response("<html>")));
+    const report = await runDoctor({ apiKey: KEY });
+    expect(report.traceUrl).toBe(`https://eu.cloud.uncoil.dev/dashboard/proj%201/runs/${report.runId}`);
+    expect(formatReport(report)).toContain(report.traceUrl);
+  });
+  it("leaves the trace link out when the project is unknown", async () => {
+    mockFetch();
+    const report = await runDoctor({ apiKey: KEY });
+    expect(report.traceUrl).toBeUndefined();
+    expect(formatReport(report)).toContain("Uncoil setup check");
+  });
   it("reads the key from the environment", async () => {
     mockFetch();
     process.env.UNCOIL_API_KEY = KEY;

@@ -193,8 +193,10 @@ function wrap<T extends object>(
           provider === "openai"
             ? [
                 "chat.completions.create",
+                "chat.completions.parse",
                 "chat.completions.stream",
                 "responses.create",
+                "responses.parse",
                 "responses.stream",
               ]
             : [

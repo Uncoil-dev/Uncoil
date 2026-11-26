@@ -15,7 +15,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   const isOnboarding = pathname.startsWith("/onboarding");
   const isCloudDirectory = pathname.startsWith("/cloud");
   const isCheckout = pathname.startsWith("/pricing/checkout") || pathname.startsWith("/health-report/r/");
-  const isAuth = ["/sign-in", "/sign-up", "/forgot-password", "/reset-password", "/accept-invitation", "/auth/error", "/share"].some((route) => pathname.startsWith(route));
+  const isAuth = ["/sign-in", "/sign-up", "/forgot-password", "/reset-password", "/accept-invitation", "/auth/error", "/share", "/lab/sign-in", "/lab/sign-up"].some((route) => pathname.startsWith(route));
 
   if (isDashboard || isPlayground || isOnboarding || isCheckout || isAuth || isCloudDirectory) return <>{children}</>;
 

@@ -14,11 +14,22 @@ yarn add @uncoil.dev/sdk
 
 ## Quickstart
 
-1. Get your API Key from the [Uncoil Dashboard](https://www.uncoil.dev).
-2. Set it as an environment variable:
+1. Get an API key. The fastest way is to [sign in from the terminal](#sign-in-from-the-terminal), which saves the key to `.env.local` for you:
 
 ```bash
-export UNCOIL_API_KEY=your_sk_live_...
+npx @uncoil.dev/sdk login
+```
+
+2. Or copy a key from the [API keys page](https://www.uncoil.dev/dashboard/api-keys) and set it as an environment variable:
+
+```bash
+# macOS / Linux
+export UNCOIL_API_KEY=uncoil_sk_live_...
+```
+
+```powershell
+# Windows PowerShell
+$env:UNCOIL_API_KEY="uncoil_sk_live_..."
 ```
 
 3. Instrument your agent:
@@ -47,6 +58,8 @@ const agent = traceAgent(async (query: string) => {
   return "Final Answer";
 }, { environment: "development", release: "quickstart" });
 ```
+
+4. Run `npx @uncoil.dev/sdk doctor` to [check your setup](#setup-checker).
 
 ## Steps
 

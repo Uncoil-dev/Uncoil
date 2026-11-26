@@ -11,6 +11,7 @@ import {
   hasOneTimeApiKey,
   subscribeToOneTimeApiKey,
 } from "@/lib/onboarding-client-state";
+import { continueSetupHref } from "@/lib/onboarding-navigation";
 
 const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
 const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
@@ -130,7 +131,7 @@ export function DashboardStartState({ projectId }: { projectId?: string }) {
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link
-              href={hasProject ? (persistedStep === "api-key" ? "/onboarding/api-key" : persistedStep === "install" ? "/onboarding/install" : persistedStep === "waiting" ? "/onboarding/waiting" : `/dashboard/${effectiveProjectId}/quickstart`) : "/onboarding/project"}
+              href={continueSetupHref(effectiveProjectId, persistedStep)}
               className={buttonVariants({
                 variant: "default",
                 className: "h-9 px-4 uppercase",

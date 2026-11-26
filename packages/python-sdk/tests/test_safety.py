@@ -180,3 +180,26 @@ def test_feedback_uses_the_project_id_from_the_environment(monkeypatch):
     client.feedback("trace-1", True)
     assert sent[0]["projectId"] == "proj_from_env"
     assert UncoilClient(api_key=KEY, project_id="proj_given").project_id == "proj_given"
+
+
+def test_prompt_and_feedback_errors_say_how_to_fix_them(capsys):
+    class NotFound:
+        status_code = 404
+        text = "not found"
+
+    class Http:
+        def get(self, *a, **k):
+            return NotFound()
+
+    client = UncoilClient(api_key=KEY)
+    client._http = Http()
+    with pytest.raises(RuntimeError) as caught:
+        client.get_prompt("support-reply", environment="staging")
+    assert "404" in str(caught.value)
+    assert "'support-reply'" in str(caught.value) and "'staging'" in str(caught.value)
+    assert "Prompts page" in str(caught.value)
+
+    client.feedback("trace-1", True)
+    warning = capsys.readouterr().out
+    assert "project_id=" in warning and "UncoilClient" in warning
+    assert "dashboard URL" in warning and "project settings" in warning

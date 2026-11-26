@@ -6,3 +6,8 @@ export async function readJson<T extends object>(response: Response): Promise<T 
     return {} as T & { error?: string };
   }
 }
+
+/** Error text for a failed load: the server's own message, or the page name and status code when the body had none. */
+export function loadErrorMessage(body: { error?: string }, status: number, page: string) {
+  return body.error || `${page} couldn't load (error ${status}). Try again.`;
+}

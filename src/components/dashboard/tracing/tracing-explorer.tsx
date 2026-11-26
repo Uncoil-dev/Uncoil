@@ -19,6 +19,7 @@ import { FACETS, FacetGroup, decodeValues, encodeValues, type FacetCounts } from
 import { TRACE_VIEWS, TracePanel, type TraceView } from "./trace-panel";
 import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime } from "./format";
 import { EmptyNotice } from "../empty/empty-notice";
+import { loadErrorMessage, readJson } from "@/lib/safe-json";
 
 type TraceRow = TraceRowExtras & {
   runId: string; traceName: string; startedAt: string; durationMs: number; spanCount: number; errorCount: number;
@@ -156,8 +157,9 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
     params.set("facets", "1");
     fetch(`/api/projects/${encodeURIComponent(projectId)}/traces?${params}`, { cache: "no-store" })
       .then(async (response) => {
-        const body = (await response.json()) as ListResponse;
-        if (!response.ok) throw new Error(body.error ?? `Request failed (${response.status})`);
+        const body = await readJson<ListResponse>(response);
+        // A proxy error page or an empty body has no rows; report its status instead of a JSON parse error.
+        if (!response.ok || !Array.isArray(body.rows)) throw new Error(loadErrorMessage(body, response.status, "Tracing"));
         return body;
       })
       .then((body) => {

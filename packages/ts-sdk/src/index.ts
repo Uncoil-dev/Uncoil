@@ -373,7 +373,7 @@ export class UncoilClient {
       output: this.clean(data.output),
       release: data.release ?? this.release,
       environment: data.environment ?? this.environment,
-      deploymentId: data.metadata?.deploymentId ?? this.deploymentId,
+      deploymentId: data.deploymentId ?? data.metadata?.deploymentId ?? this.deploymentId,
       sessionId: data.sessionId ?? this.sessionId,
       endUserId: data.endUserId ?? this.endUserId,
       tags: data.tags ?? this.tags,

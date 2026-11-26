@@ -61,6 +61,16 @@ def test_missing_or_odd_key_makes_no_request(calls):
     assert not calls
 
 
+def test_missing_key_points_at_unloaded_env_file(calls, monkeypatch, tmp_path):
+    calls.fake()
+    monkeypatch.chdir(tmp_path)
+    assert ".env" not in doctor.run_doctor()["checks"][-1]["hint"]
+    (tmp_path / ".env.local").write_text(f"OTHER=1\nexport UNCOIL_API_KEY={KEY}\n")
+    report = doctor.format_report(doctor.run_doctor())
+    assert ".env.local" in report and "python-dotenv" in report
+    assert KEY not in report and "abcdefghijklmnop" not in report
+
+
 def test_region_mismatch_is_caught(calls):
     calls.fake()
     assert status(doctor.run_doctor(api_key=KEY, region="us"), "region") == "fail"

@@ -350,11 +350,24 @@ export class UncoilClient {
     return sampleBucket(runId) >= this.sampleRate;
   }
 
+  /** A 429 with a plan or daily limit code means the project ran out of spans, which a lower sampleRate does not fix. */
+  private async reportPlanLimit(response: Response) {
+    const body = await response.json().catch(() => null) as { code?: string; limit?: number; retryAfterSeconds?: number; upgradeUrl?: string } | null;
+    if (body?.code !== "plan_limit_reached" && body?.code !== "daily_limit_reached") return false;
+    const period = body.code === "daily_limit_reached" ? "daily" : "monthly";
+    const limit = typeof body.limit === "number" ? ` of ${body.limit.toLocaleString("en-US")} spans` : "";
+    const resets = typeof body.retryAfterSeconds === "number" ? `from ${new Date(Date.now() + body.retryAfterSeconds * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC` : `when the ${period === "daily" ? "day" : "month"} resets`;
+    const upgradeUrl = body.upgradeUrl || "https://www.uncoil.dev/pricing";
+    this.report(new UncoilError(body.code, `This project reached its ${period} plan limit${limit}, so new spans are not saved (429).`, `Data is saved again ${resets}. To keep recording now, upgrade the plan: ${upgradeUrl}`, 429));
+    return true;
+  }
+
   private async checkIngestResponse(response: Response) {
     if (response.ok) return;
     const status = response.status;
     if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
     else if (status === 403) this.report(new UncoilError("forbidden", "This API key is not allowed to send data (403).", "Check that the key belongs to the project you expect and has not been disabled.", status));
+    else if (status === 429 && (await this.reportPlanLimit(response))) return;
     else if (status === 429) this.report(new UncoilError("rate_limited", "Uncoil is receiving too much data from this app (429).", "Lower the volume with sampleRate (for example 0.2), or upgrade your plan.", status));
     else if (status >= 500) this.report(new UncoilError("server_error", `Uncoil had a problem on its side (${status}).`, "Your app is not affected; data from this moment may be missing. Check the status page if it keeps happening.", status));
     else this.report(new UncoilError("rejected", `Uncoil did not accept a span (${status}).`, "Update the SDK to the latest version; if it still happens, contact support.", status));

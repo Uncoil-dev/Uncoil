@@ -209,6 +209,8 @@ const uncoil = new UncoilClient({
 
 Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, set `redact: { pii: false }`.
 
+When a project reaches its monthly or daily plan limit, `onError` gets a `plan_limit_reached` or `daily_limit_reached` error that says when data is saved again and links to the plans page. A lower `sampleRate` does not lift a plan limit.
+
 ### Sign in from the terminal
 
 ```bash

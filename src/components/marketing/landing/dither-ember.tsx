@@ -17,9 +17,11 @@ export function loopWhileVisible(el: Element, frame: (ms: number) => void) {
     frame(ms);
     raf = requestAnimationFrame(tick);
   };
-  const io = new IntersectionObserver(([entry]) => {
-    if (entry.isIntersecting && !raf) raf = requestAnimationFrame(tick);
-    if (!entry.isIntersecting && raf) {
+  // A batch can hold several changes for the same element; the last one is its current state.
+  const io = new IntersectionObserver((entries) => {
+    const visible = entries[entries.length - 1].isIntersecting;
+    if (visible && !raf) raf = requestAnimationFrame(tick);
+    if (!visible && raf) {
       cancelAnimationFrame(raf);
       raf = 0;
     }

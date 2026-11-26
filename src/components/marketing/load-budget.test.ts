@@ -21,14 +21,14 @@ describe("page load budget", () => {
 
   describe("dither glow animation", () => {
     let frames: FrameRequestCallback[] = [];
-    let report: (visible: boolean) => void = () => {};
+    let report: (...visible: boolean[]) => void = () => {};
 
     function stubBrowser() {
       frames = [];
       vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => frames.push(cb));
       vi.stubGlobal("cancelAnimationFrame", (id: number) => { frames[id - 1] = () => {}; });
       vi.stubGlobal("IntersectionObserver", class {
-        constructor(cb: (entries: { isIntersecting: boolean }[]) => void) { report = (visible) => cb([{ isIntersecting: visible }]); }
+        constructor(cb: (entries: { isIntersecting: boolean }[]) => void) { report = (...visible) => cb(visible.map((isIntersecting) => ({ isIntersecting }))); }
         observe() {}
         disconnect() {}
       });
@@ -62,6 +62,15 @@ describe("page load budget", () => {
       report(false);
       runFrames(3);
       expect(draw).toHaveBeenCalledTimes(3);
+    });
+
+    it("follows the latest visibility when changes arrive together", () => {
+      stubBrowser();
+      const draw = vi.fn();
+      loopWhileVisible({} as Element, draw);
+      report(false, true);
+      runFrames(2);
+      expect(draw).toHaveBeenCalledTimes(2);
     });
   });
 });

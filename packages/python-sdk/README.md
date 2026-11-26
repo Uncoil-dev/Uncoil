@@ -193,6 +193,8 @@ client = uncoil.UncoilClient(
 )
 ```
 
+If no API key is set, the client prints one warning and records nothing; decorated functions still run and return as usual.
+
 Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, pass `redact={"pii": False}`.
 
 ## Setup checker

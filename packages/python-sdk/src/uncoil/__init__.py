@@ -307,8 +307,9 @@ class UncoilClient:
         self._warned: set = set()
         self.api_key = (api_key or (os.environ.get("UNCOIL_API_KEY") or os.environ.get("TRACIFY_API_KEY")) or "").strip()
         if not self.api_key:
-            raise UncoilError("missing_key", "No Uncoil API key was found.", "Pass api_key=... to UncoilClient or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard.")
-        if not re.match(r"^(uncoil|tracify)_sk_", self.api_key):
+            # Without a key the client records nothing, so tracing never stops the app from running.
+            self._report(UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", "Pass api_key=... to UncoilClient or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard."))
+        elif not re.match(r"^(uncoil|tracify)_sk_", self.api_key):
             self._report(UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."))
         if not isinstance(sample_rate, (int, float)) or isinstance(sample_rate, bool) or not 0 <= sample_rate <= 1:
             raise UncoilError("bad_sample_rate", f"sample_rate must be a number from 0 to 1, but got {sample_rate!r}.", "Use 1 to record every run, 0.1 to record about one in ten.")
@@ -397,6 +398,8 @@ class UncoilClient:
             self._report(UncoilError("network", f"Could not reach Uncoil ({e}).", "Check your internet connection and the host setting. Your app keeps running; these spans are dropped."))
 
     def ingest(self, **kwargs):
+        if not self.api_key:
+            return
         span = {
             "spanId": str(uuid.uuid4()),
             "createdAt": datetime.utcnow().isoformat() + "Z",
@@ -448,6 +451,8 @@ class UncoilClient:
             raise
 
     def _send_feedback(self, payload: Dict[str, Any]):
+        if not self.api_key:
+            return
         if not self.project_id:
             print("Uncoil Warning: project_id is required for feedback and score helpers")
             return

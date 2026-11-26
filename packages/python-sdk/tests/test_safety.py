@@ -22,11 +22,29 @@ class FakeResponse:
 
 def test_missing_key_explains_the_fix(monkeypatch):
     monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
-    with pytest.raises(UncoilError) as caught:
-        UncoilClient()
-    assert caught.value.code == "missing_key"
-    assert "UNCOIL_API_KEY" in str(caught.value)
-    assert isinstance(caught.value, ValueError)  # older code catching ValueError keeps working
+    monkeypatch.delenv("TRACIFY_API_KEY", raising=False)
+    seen = []
+    UncoilClient(on_error=seen.append)
+    assert seen[0].code == "missing_key"
+    assert "UNCOIL_API_KEY" in str(seen[0])
+    assert isinstance(seen[0], ValueError)  # older code catching ValueError keeps working
+
+
+def test_traced_function_runs_without_a_key(monkeypatch, capsys):
+    monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
+    monkeypatch.delenv("TRACIFY_API_KEY", raising=False)
+    posts = []
+    monkeypatch.setattr("httpx.Client.post", lambda self, *args, **kwargs: posts.append(args))
+
+    @uncoil.trace_agent()
+    def agent(question):
+        uncoil.llm_call("hi", "hello", "gpt-4o", 0, 5)
+        return f"answer to {question}"
+
+    assert agent("a") == "answer to a"
+    assert agent("b") == "answer to b"
+    assert posts == []
+    assert capsys.readouterr().out.count("No Uncoil API key") == 1
 
 
 def test_odd_key_is_flagged_without_failing():

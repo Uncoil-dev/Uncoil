@@ -62,12 +62,31 @@ export function useGroupDetail(projectId: string, kind: GroupKind, id: string, l
   return { detail, runs, error, retry: () => void load(false), row: detail?.row ?? listRow, loaded: detail !== null, runRows: runs?.rows ?? [], field, encoded };
 }
 
+type CopyResult = { label: string; ok: boolean } | null;
+
+/** Writes text to the clipboard and reports whether it worked; a blocked or missing clipboard is a failure. */
+export async function writeClipboard(clipboard: Pick<Clipboard, "writeText"> | undefined, value: string) {
+  try {
+    if (!clipboard) return false;
+    await clipboard.writeText(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Button text: "Copied" or "Copy failed" on the button just pressed, its idle text everywhere else. */
+export function copyLabel(result: CopyResult, label: string, idle: string) {
+  if (result?.label !== label) return idle;
+  return result.ok ? "Copied" : "Copy failed";
+}
+
 export function useCopy() {
-  const [copied, setCopied] = useState("");
+  const [result, setResult] = useState<CopyResult>(null);
   return {
-    copied,
+    label: (label: string, idle: string) => copyLabel(result, label, idle),
     copy(label: string, value: string) {
-      void navigator.clipboard?.writeText(value).then(() => { setCopied(label); setTimeout(() => setCopied(""), 1500); }).catch(() => {});
+      void writeClipboard(navigator.clipboard, value).then((ok) => { setResult({ label, ok }); setTimeout(() => setResult(null), ok ? 1500 : 3000); });
     },
   };
 }

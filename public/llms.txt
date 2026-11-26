@@ -8,7 +8,7 @@ Use the documentation for implementation details and the blog for explanatory gu
 
 - [Documentation overview](https://www.uncoil.dev/docs): Start here to install Uncoil and send an agent trace.
 - [Start with your first trace](https://www.uncoil.dev/docs/quickstart): Install Uncoil, send one real agent run, and verify it in the trace viewer.
-- [Choose an Uncoil Cloud region](https://www.uncoil.dev/docs/data-regions): Select the EU or US cloud and the matching SDK endpoint.
+- [Choose an Uncoil Cloud region](https://www.uncoil.dev/docs/data-regions): Pick a cloud region and the matching SDK endpoint.
 - [CLI workflows](https://www.uncoil.dev/docs/cli): Sign in from a terminal and check your Uncoil setup with the login and doctor commands.
 - [TypeScript SDK](https://www.uncoil.dev/docs/typescript): TypeScript installation and instrumentation guidance.
 - [Python SDK](https://www.uncoil.dev/docs/python): Python installation and instrumentation guidance.

@@ -5,9 +5,17 @@
  * only, so the same traces always give the same topics.
  */
 
-export type TopicTrace = { runId: string; input: string; hasError: boolean; timedOut?: boolean };
+import { errorSignature } from "./trace-diff.ts";
+
+/** `output` is the final output when known; an empty string or null on a trace without an error marks a silent failure. */
+export type TopicTrace = {
+  runId: string; input: string; hasError: boolean; timedOut?: boolean; errorMessage?: string; output?: string | null;
+};
+export type TopicOutcome = { succeeded: number; failed: number; timedOut: number };
+export type TopicIssue = { id: string; message: string; count: number };
 export type TraceTopic = {
   id: string; name: string; terms: string[]; count: number; errorRate: number; sampleRunIds: string[]; runIds: string[];
+  outcome: TopicOutcome; issues: TopicIssue[]; silentFailures: number;
 };
 export type TopicOptions = { threshold?: number; minSize?: number; samples?: number };
 
@@ -54,6 +62,29 @@ function hash(value: string) {
   return (h >>> 0).toString(16).padStart(8, "0");
 }
 
+// Every trace lands in exactly one outcome bucket (timed out, then failed, then succeeded). Issues are the three most
+// common error groups, using the same message normalization as the run comparison; ties sort by message.
+function summarize(traces: TopicTrace[]) {
+  const outcome: TopicOutcome = { succeeded: 0, failed: 0, timedOut: 0 };
+  const groups = new Map<string, TopicIssue>();
+  let silentFailures = 0;
+  for (const trace of traces) {
+    if (trace.timedOut) outcome.timedOut++;
+    else if (trace.hasError) outcome.failed++;
+    else outcome.succeeded++;
+    if (trace.hasError) {
+      const message = errorSignature({ errorMessage: trace.errorMessage }).message;
+      const issue = groups.get(message) ?? { id: hash(message), message, count: 0 };
+      issue.count++;
+      groups.set(message, issue);
+    } else if (!trace.timedOut && trace.output !== undefined && (trace.output === null || String(trace.output).trim() === "")) {
+      silentFailures++;
+    }
+  }
+  const issues = [...groups.values()].sort((a, b) => b.count - a.count || (a.message < b.message ? -1 : a.message > b.message ? 1 : 0)).slice(0, 3);
+  return { outcome, issues, silentFailures };
+}
+
 export function groupTraceTopics(traces: TopicTrace[], options: TopicOptions = {}) {
   const threshold = options.threshold ?? 0.35;
   const minSize = options.minSize ?? 3;
@@ -98,7 +129,10 @@ export function groupTraceTopics(traces: TopicTrace[], options: TopicOptions = {
   const toTopic = (id: string, name: string, terms: string[], members: typeof docs): TraceTopic => {
     const runIds = members.map((m) => m.trace.runId);
     const failed = members.filter((m) => m.trace.hasError || m.trace.timedOut).length;
-    return { id, name, terms, count: members.length, errorRate: failed / members.length, sampleRunIds: runIds.slice(0, samples), runIds };
+    return {
+      id, name, terms, count: members.length, errorRate: failed / members.length, sampleRunIds: runIds.slice(0, samples), runIds,
+      ...summarize(members.map((m) => m.trace)),
+    };
   };
 
   const topics: TraceTopic[] = [];

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { compactNumber, formatTime, parseTime, relativeTime } from "./format";
 
 export type ErrorGroup = {
@@ -17,6 +18,24 @@ export function errorGroupLabel(group: Pick<ErrorGroup, "tool" | "errorType">) {
 export function fixQuestion(group: Pick<ErrorGroup, "tool" | "errorType" | "message">) {
   const what = [group.tool, group.errorType, group.message].filter(Boolean).join(": ").slice(0, 300);
   return `This trace is an example of a repeated error (${what}). What is the likely cause, and what should I change to fix it?`;
+}
+
+/** Text the Copy message button puts on the clipboard: the full sample error, or the grouped message when no sample was kept. */
+export function groupCopyText(group: Pick<ErrorGroup, "sample" | "message">) {
+  return group.sample || group.message;
+}
+
+function CopyMessage({ text }: { text: string }) {
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+  async function copy() {
+    try { await navigator.clipboard.writeText(text); setState("copied"); } catch { setState("failed"); }
+    setTimeout(() => setState("idle"), 1500);
+  }
+  return (
+    <button type="button" onClick={() => void copy()} className="mb-1.5 ml-2 rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#C9CED6] hover:border-[#4A5260]">
+      {state === "copied" ? "Copied" : state === "failed" ? "Copy failed" : "Copy message"}
+    </button>
+  );
 }
 
 export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle, onSelect, onSuggest }: {
@@ -62,8 +81,13 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle,
                     </span>
                   </span>
                 </button>
-                {onSuggest && group.sampleRunId ? (
-                  <button type="button" onClick={() => onSuggest(group)} className="mb-1.5 ml-[3.25rem] rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#F4D44D] hover:border-[#F4D44D]">Suggest a fix</button>
+                {(onSuggest && group.sampleRunId) || groupCopyText(group) ? (
+                  <div className="ml-[3.25rem] flex">
+                    {onSuggest && group.sampleRunId ? (
+                      <button type="button" onClick={() => onSuggest(group)} className="mb-1.5 rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#F4D44D] hover:border-[#F4D44D]">Suggest a fix</button>
+                    ) : null}
+                    {groupCopyText(group) ? <CopyMessage text={groupCopyText(group)} /> : null}
+                  </div>
                 ) : null}
               </li>
             );

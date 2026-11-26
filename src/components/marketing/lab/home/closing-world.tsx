@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
-import { useInView, useReducedMotion } from "framer-motion";
+import { useInView } from "framer-motion";
 import { appHref } from "@/lib/app-links";
 import { YELLOW, bridge, flag, ground, landscape, pines, robot, type Scene } from "../pixel-world/pixels";
 import { usePixelCanvas } from "../pixel-world/use-pixel-canvas";
 import { clamp01, ease } from "../pixel-world/world";
+import { useCalm } from "./use-calm";
 
 const closingPixel = (w: number) => (w < 640 ? 4 : w < 1100 ? 5 : 6);
 
@@ -16,7 +17,7 @@ const closingPixel = (w: number) => (w < 640 ? 4 : w < 1100 ? 5 : 6);
  * walks across it and the flag goes up. It plays once when the scene comes into view.
  */
 export function ClosingWorld() {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useCalm();
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.35 });
@@ -54,7 +55,7 @@ export function ClosingWorld() {
       <div className="absolute inset-0 -z-10" aria-hidden="true">
         <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
       </div>
-      <div className="mx-auto w-full max-w-[1320px] px-5 pt-16 md:px-10 md:pt-20">
+      <div className="mx-auto w-full max-w-[1400px] px-5 pt-16 md:px-10 md:pt-20">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#eceae3]/60">Run passed · 6 / 6 · example</p>
         <h2 id="mix-close-title" className="mt-6 max-w-[22ch] text-balance font-pixel text-[clamp(3rem,8vw,7.5rem)] leading-[0.86] tracking-[-0.08em]">
           Know which step.

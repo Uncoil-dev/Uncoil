@@ -2,10 +2,11 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { ArrowDown } from "lucide-react";
-import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, type MotionValue } from "framer-motion";
+import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring, type MotionValue } from "framer-motion";
 import { usePixelCanvas } from "../pixel-world/use-pixel-canvas";
 import { drawJourney, journeyPixel } from "./journey-scene";
 import { SPAN_COUNT, hud, stopAt } from "./story";
+import { useCalm } from "./use-calm";
 
 type Hud = ReturnType<typeof hud>;
 
@@ -19,9 +20,9 @@ const SPANS = [
 ] as const;
 
 const STOPS: { kicker: string; title: string; body: string }[] = [
-  { kicker: "Set up", title: "Paste one prompt.", body: "Copy the setup prompt into Claude Code, Cursor or Codex. It installs the SDK, signs you in, connects the project and sends a test trace." },
+  { kicker: "Paste", title: "Paste one prompt.", body: "Drop the setup prompt into Claude Code, Cursor or Codex. Your coding agent does the install, the sign-in and a test run. You watch." },
   { kicker: "First trace", title: "Every step lands.", body: "Run your agent once. Each model call, tool call, token and cent drops in as one run you can open and walk through." },
-  { kicker: "Find it", title: "Not where it crashed.", body: "Uncoil walks the run back from the failure and marks the step that started it: which tool, what it returned and how long it took." },
+  { kicker: "Next failure", title: "It comes marked.", body: "When a run fails, Uncoil walks it back from the error and marks the step that started it: which tool, what it returned and how long it took." },
 ];
 
 // Scroll positions shown as stills when motion is reduced.
@@ -32,7 +33,7 @@ function Dialog({ index, h, pinned = false, children }: { index: number; h: Hud;
   return (
     <div className="relative w-full max-w-[30rem] border-2 border-[#eceae3] bg-[#090909] p-4 text-[#eceae3] shadow-[inset_0_0_0_4px_#090909,inset_0_0_0_6px_#eceae3] sm:p-5 md:p-8">
       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#eceae3]/60">
-        Stop 0{index + 1} / 03 · {stop.kicker}
+        05 · Setup · 0{index + 1} / 03 · {stop.kicker}
       </p>
       <h3 className="mt-3 font-pixel text-[clamp(2rem,4.2vw,3.4rem)] leading-[0.9] tracking-[-0.07em]">{stop.title}</h3>
       <p className="mt-3 text-[14px] leading-6 text-[#eceae3]/80 sm:mt-4 sm:text-[15px] sm:leading-7 md:text-base">{stop.body}</p>
@@ -106,7 +107,7 @@ function PinnedJourney() {
   usePixelCanvas(canvasRef, ({ px, seconds }) => drawJourney(px, p.get(), seconds, prevX), { pixel: journeyPixel, still: false });
 
   return (
-    <div ref={ref} className="relative h-[400svh]">
+    <div ref={ref} className="relative h-[330svh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         <div className="absolute inset-0" aria-hidden="true">
           <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
@@ -119,7 +120,7 @@ function PinnedJourney() {
             </li>
           ))}
         </ol>
-        <div aria-hidden="true" className="relative mx-auto flex h-full max-w-[1320px] flex-col px-4 pb-6 pt-[4.5rem] sm:px-5 md:px-10 md:pt-24">
+        <div aria-hidden="true" className="relative mx-auto flex h-full max-w-[1400px] flex-col px-4 pb-6 pt-[4.5rem] sm:px-5 md:px-10 md:pt-24">
           <div className="flex justify-end">
             <HudBar h={h} />
           </div>
@@ -148,7 +149,7 @@ function StillStop({ index }: { index: number }) {
       <div className="absolute inset-0" aria-hidden="true">
         <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
       </div>
-      <div className="relative mx-auto max-w-[1320px] px-5 pt-8 md:px-10">
+      <div className="relative mx-auto max-w-[1400px] px-5 pt-8 md:px-10">
         <Dialog index={index} h={hud(STILL_P[index])} />
       </div>
     </div>
@@ -156,9 +157,9 @@ function StillStop({ index }: { index: number }) {
 }
 
 export function ShortJourney() {
-  const reduce = useReducedMotion();
+  const reduce = useCalm();
   return (
-    <section id="walk" aria-label="How Uncoil works, in three stops" className="relative bg-[#090909]">
+    <section id="walk" aria-label="Setting up Uncoil, in three stops" className="relative bg-[#090909]">
       {reduce ? STOPS.map((_, i) => <StillStop key={i} index={i} />) : <PinnedJourney />}
     </section>
   );

@@ -1,47 +1,56 @@
-import { AgentSetup } from "@/components/marketing/landing/agent-setup";
+"use client";
+
+import { MotionConfig } from "framer-motion";
 import { SmoothScroll } from "@/components/marketing/landing/smooth-scroll";
-import { Anatomy } from "../editorial/anatomy";
-import { Cost } from "../editorial/cost";
-import { Fix } from "../editorial/fix";
-import { Price } from "../editorial/price";
-import { HeroWorld } from "../pixel-world/hero-world";
 import { ClosingWorld } from "./closing-world";
+import { Cost } from "./cost";
+import { Faq } from "./faq";
+import { Fix } from "./fix";
+import { HeroWorld } from "./hero";
+import { Inventory } from "./inventory";
 import { ShortJourney } from "./journey";
 import { PixelEdge } from "./pixel-edge";
+import { Price } from "./price";
+import { Setup } from "./setup";
+import { Tools } from "./tools";
+import { Where } from "./where";
+import { Why } from "./why";
 
 const INK = "#090909";
 const CREAM = "#eceae3";
-const YELLOW = "#f4d44d";
 
 /**
- * Combined homepage concept: the pixel-world night scene tells the failure, cream editorial
- * spreads explain it, and the page closes back in the pixel world with the step repaired.
- * Every colour change is a pixel seam rather than a hard cut.
+ * Combined homepage concept. The story runs top to bottom without repeating itself: the agent
+ * breaks (hero), where it broke, why, what it cost, the fix, how setup works, what you get,
+ * the price, quick answers, and the pixel world again with the step repaired. Night sections
+ * carry the pixel art, cream sections explain it, and every colour change is a pixel seam.
  */
 export function LabHomePage() {
   return (
-    <div className="overflow-x-clip bg-[#eceae3]">
-      <SmoothScroll />
-      <HeroWorld />
-      <PixelEdge from={INK} to={CREAM} seed={3} sparks />
-      <div className="[&>section]:pt-12 md:[&>section]:pt-16">
-        <Anatomy />
-      </div>
-      <PixelEdge from={CREAM} to={INK} shape="flat" seed={5} />
-      <ShortJourney />
-      <PixelEdge from={INK} to={CREAM} seed={8} />
-      <Cost />
-      <PixelEdge from={CREAM} to={INK} shape="flat" seed={11} />
-      <Fix />
-      <PixelEdge from={INK} to={YELLOW} shape="flat" seed={13} />
-      <div id="pw-setup" className="scroll-mt-16">
-        <AgentSetup />
-      </div>
-      <div className="[&>section]:pt-16 md:[&>section]:pt-24">
+    <MotionConfig reducedMotion="user">
+      <div className="overflow-x-clip bg-[#eceae3]">
+        <SmoothScroll />
+        <HeroWorld />
+        <PixelEdge from={INK} to={CREAM} seed={3} sparks />
+        <Where />
+        <PixelEdge from={CREAM} to={INK} shape="flat" seed={5} />
+        <Why />
+        <PixelEdge from={INK} to={CREAM} seed={8} />
+        <Cost />
+        <PixelEdge from={CREAM} to={INK} shape="flat" seed={11} />
+        <Fix />
+        <ShortJourney />
+        <PixelEdge from={INK} to={CREAM} seed={13} />
+        <Setup />
+        <PixelEdge from={CREAM} to={INK} shape="flat" seed={15} />
+        <Tools />
+        <Inventory />
+        <PixelEdge from={INK} to={CREAM} seed={17} />
         <Price />
+        <Faq />
+        <PixelEdge from={CREAM} to={INK} seed={19} />
+        <ClosingWorld />
       </div>
-      <PixelEdge from={CREAM} to={INK} seed={17} />
-      <ClosingWorld />
-    </div>
+    </MotionConfig>
   );
 }

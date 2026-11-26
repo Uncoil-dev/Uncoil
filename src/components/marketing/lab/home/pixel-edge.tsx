@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { EDGE, cellsPath, edgeCells, type EdgeShape } from "./story";
+import { useCalm } from "./use-calm";
 
 type Props = {
   /** Colour of the section above. */
@@ -24,7 +25,7 @@ type Props = {
  */
 export function PixelEdge({ from, to, shape = "hills", seed = 1, sparks = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
+  const reduce = useCalm();
   const { solid, dither, loose, spark } = useMemo(() => {
     const cells = edgeCells(shape, seed);
     // Sparks sit on the three highest fringe cells, the way the hero's sun catches the ridge.
@@ -33,20 +34,20 @@ export function PixelEdge({ from, to, shape = "hills", seed = 1, sparks = false 
   }, [shape, seed]);
 
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const looseY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [36, -28]);
-  const fringeY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [10, -6]);
+  const looseY = useTransform(scrollYProgress, [0, 1], [36, -28]);
+  const fringeY = useTransform(scrollYProgress, [0, 1], [10, -6]);
   const w = EDGE.cols * EDGE.cell;
   const h = EDGE.rows * EDGE.cell;
 
   return (
     <div ref={ref} aria-hidden="true" data-edge className="relative -my-px h-[clamp(112px,13.4vw,192px)] overflow-hidden" style={{ backgroundColor: from }}>
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges" className="absolute inset-0 size-full">
-        <motion.path d={loose} fill={to} style={{ y: looseY }} />
-        <motion.path d={dither} fill={to} style={{ y: fringeY }} />
+        <motion.path d={loose} fill={to} style={{ y: reduce ? 0 : looseY }} />
+        <motion.path d={dither} fill={to} style={{ y: reduce ? 0 : fringeY }} />
         <path d={solid} fill={to} />
         {/* Covers any sub-pixel gap where the fringe drifts above the solid ground. */}
         <rect x="0" y={h - EDGE.cell} width={w} height={EDGE.cell} fill={to} />
-        {sparks && <motion.path d={spark} fill="#f4d44d" style={{ y: fringeY }} />}
+        {sparks && <motion.path d={spark} fill="#f4d44d" style={{ y: reduce ? 0 : fringeY }} />}
       </svg>
     </div>
   );

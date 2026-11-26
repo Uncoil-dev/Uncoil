@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { EDGE, GAP, cellsPath, edgeCells, horizonRow, hud, robotAt, stopAt } from "./story.ts";
+import { KIT, SPRITE, spritePaths } from "./kit.ts";
 
 test("the short journey walks three stops in order and ends with the step found, not repaired", () => {
   assert.deepEqual([0, 0.4, 0.8].map(stopAt), [0, 1, 2]);
@@ -30,4 +31,20 @@ test("a section edge is solid at the bottom, open at the top and thins out as it
 
 test("cell paths merge horizontal runs into one rectangle", () => {
   assert.equal(cellsPath([[0, 0], [1, 0], [2, 0], [5, 1]], 8), "M0 0h24v8h-24zM40 8h8v8h-8z");
+});
+
+test("every inventory item has a square 12-cell sprite drawn only in cream and yellow", () => {
+  assert.equal(new Set(KIT.map((k) => k.id)).size, KIT.length);
+  for (const item of KIT) {
+    assert.equal(item.sprite.length, SPRITE, `${item.id}: row count`);
+    for (const row of item.sprite) assert.match(row, /^[.#y]{12}$/, `${item.id}: ${row}`);
+    const { cream, yellow } = spritePaths(item.sprite);
+    assert.ok(cream.length > 0 && yellow.length > 0, `${item.id} needs both colours`);
+  }
+});
+
+test("sprite paths merge runs of one colour and skip empty cells", () => {
+  const { cream, yellow } = spritePaths(["##.y", "y..#"]);
+  assert.equal(cream, "M0 0h2v1h-2zM3 1h1v1h-1z");
+  assert.equal(yellow, "M3 0h1v1h-1zM0 1h1v1h-1z");
 });

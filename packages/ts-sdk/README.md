@@ -59,6 +59,9 @@ const agent = traceAgent(async (query: string) => {
 }, { environment: "development", release: "quickstart" });
 ```
 
+`llmCall`, `toolCall` and `decision` made inside a `traceAgent` function are sent with that agent's settings,
+such as an `apiKey` passed to it. Outside one, they use `UNCOIL_API_KEY`.
+
 4. Run `npx @uncoil.dev/sdk doctor` to [check your setup](#setup-checker).
 
 ## Steps
@@ -233,7 +236,7 @@ When a project reaches its monthly or daily plan limit, `onError` gets a `plan_l
 npx @uncoil.dev/sdk login
 ```
 
-Opens your browser so you can sign in (or create a free account), pick or create a project, and confirm the code shown in your terminal. The key is then saved to `.env.local` as `UNCOIL_API_KEY`, with `UNCOIL_PROJECT_ID` next to it (and `UNCOIL_REGION` for the US region). In a git repo the file is added to `.gitignore` if it is not already ignored. The key travels encrypted to your machine and is never printed. Options: `--region eu|us`, `--new <name>` (create a project with this name), `--no-browser` (only print the address and code), `--env-file <path>` and `--json`. Picking a project that already sends data replaces its key, and the browser asks you to confirm that first. Plain Node does not read `.env.local` by itself; run `node --env-file=.env.local app.js` or load it with dotenv.
+Opens your browser so you can sign in (or create a free account), pick or create a project, and confirm the code shown in your terminal. The key is then saved to `.env.local` as `UNCOIL_API_KEY`, with `UNCOIL_PROJECT_ID` next to it (and `UNCOIL_REGION` for the US region). In a git repo the file is added to `.gitignore` if it is not already ignored. The key travels encrypted to your machine and is never printed. Options: `--region eu|us`, `--new <name>` (create a project with this name), `--no-browser` (only print the address and code), `--env-file <path>` and `--json`. Picking a project that already sends data replaces its key, and the browser asks you to confirm that first. Plain Node does not read `.env.local` by itself; run `node --env-file=.env.local app.js` or load it with dotenv. If `.env.local` sets the key but your app did not load it, the client's missing-key warning says so and shows that command.
 
 `npx @uncoil.dev/sdk <command>` runs the package's CLI directly. Once the package is installed, the same CLI is also available as `uncoil` and `uncoil-doctor`.
 

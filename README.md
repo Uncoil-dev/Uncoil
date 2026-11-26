@@ -59,6 +59,16 @@ async def run_agent(question: str):
     return "Done"
 ```
 
+### OpenTelemetry
+
+Any OTLP HTTP exporter can send traces with the standard variables:
+
+```bash
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://eu.cloud.uncoil.dev/api/otel
+export OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20uncoil_sk_live_...
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/json
+```
+
 Run it once. Your first trace shows up in the dashboard in seconds. Full guide: [docs/quickstart](https://www.uncoil.dev/docs/quickstart).
 
 ## How it works

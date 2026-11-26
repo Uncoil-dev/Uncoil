@@ -7,17 +7,7 @@ import { motion, useInView, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Copy } from "lucide-react";
 import { DitherEmber } from "./dither-ember";
 import { Reveal } from "./reveal";
-
-// PLACEHOLDER prompt: swap in the tested text from the "Write the agent setup prompt" work when it lands.
-const STEPS = [
-  "Install the Uncoil SDK: `@uncoil.dev/sdk` for a JavaScript or TypeScript project, `uncoil-sdk` for a Python project.",
-  "Run `npx @uncoil.dev/sdk login` so I can sign in or sign up in the browser and pick this project.",
-  "Add the one-line init() call at the start of the app.",
-  "Run `npx @uncoil.dev/sdk doctor` (JavaScript or TypeScript) or `python -m uncoil doctor` (Python), then send one test trace and tell me where to see it.",
-];
-
-const AGENTS = ["Claude Code", "Cursor", "Codex"] as const;
-type Agent = (typeof AGENTS)[number];
+import { AGENTS, promptFor, type Agent } from "./setup-prompt";
 
 const PM = [
   { id: "npm", cmd: "npm install @uncoil.dev/sdk" },
@@ -30,10 +20,6 @@ const WHY = [
   ["0", "keys to copy"],
   ["30s", "to first trace"],
 ] as const;
-
-function promptFor(agent: Agent) {
-  return `Set up Uncoil tracing in this project (${agent}).\n\n${STEPS.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\nDo not invent an API key. Never print or commit the key.`;
-}
 
 function useCopy() {
   const [done, setDone] = useState<string | null>(null);

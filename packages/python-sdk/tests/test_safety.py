@@ -64,6 +64,7 @@ def test_network_failure_does_not_raise(monkeypatch):
     client._http = None
     monkeypatch.setattr("uncoil._requests_fallback.post", boom)
     client.ingest(spanType="llm_call", runId="r1")
+    client.flush()
     assert seen[0].code == "network"
 
 

@@ -27,19 +27,19 @@ export function DocsActions({ markdown, installUrl }: DocsActionsProps) {
     <div>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={copyMarkdown} className="inline-flex min-h-9 items-center gap-2 border border-black px-3 font-mono text-[9px] uppercase tracking-[.1em] transition-colors hover:bg-[#f4d44d]">
-          {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {copied ? "Copied" : "Copy Markdown"}
+          {copied ? <Check className="size-3" aria-hidden="true" /> : <Copy className="size-3" aria-hidden="true" />}
+          <span aria-live="polite">{copied ? "Copied" : "Copy Markdown"}</span>
         </button>
         <div className="relative">
           <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="inline-flex min-h-9 items-center gap-2 border border-black px-3 font-mono text-[9px] uppercase tracking-[.1em] transition-colors hover:bg-[#f4d44d]">
-            <Send className="size-3" />Send to<ChevronDown className="size-3" />
+            <Send className="size-3" aria-hidden="true" />Send to<ChevronDown className="size-3" aria-hidden="true" />
           </button>
           {open ? (
             <div className="absolute right-0 z-20 mt-1 w-52 border border-black bg-[#f3f2ed] p-1 shadow-[5px_5px_0_#000]">
-              <button type="button" onClick={copyMarkdown} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-[#f4d44d]"><Copy className="size-3" />Copy Markdown</button>
+              <button type="button" onClick={copyMarkdown} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-[#f4d44d]"><Copy className="size-3" aria-hidden="true" />Copy Markdown</button>
               <button type="button" onClick={() => send("chatgpt")} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-[#f4d44d]">Send to ChatGPT</button>
               <button type="button" onClick={() => send("claude")} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-[#f4d44d]">Send to Claude</button>
-              <a href={installUrl} className="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[#f4d44d]"><Download className="size-3" />Install Docs MCP</a>
+              <a href={installUrl} className="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[#f4d44d]"><Download className="size-3" aria-hidden="true" />Install Docs MCP</a>
             </div>
           ) : null}
         </div>

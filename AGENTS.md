@@ -82,7 +82,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 ### Marketing (public)
 `/` — Landing (Hero → Problem → DebugStream → FirstTrace → WhatYouGet → UseCases → PricingTeaser → FinalCTA)
 `/pricing` — Free/Pro/Team/Enterprise
-`/product/[feature]` — Static feature pages (trace-viewer, cost-dashboard, tool-calls, llm-calls, failures — all placeholder)
+`/product/[feature]` — Feature pages with demos, setup code and FAQs (trace-viewer, cost-dashboard, tool-calls, llm-calls, failures, runtime-control, evaluation-engine)
 `/use-cases/[slug]` — Use case pages (research, support, automation, tool-calling)
 `/blog`, `/blog/[slug]`, `/blog/rss.xml` — Repository-backed Markdoc blog
 `/changelog` — Product updates

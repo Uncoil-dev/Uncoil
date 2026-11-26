@@ -270,6 +270,28 @@ function isRetryableError(error: unknown, retryableErrors: string[]): boolean {
   return false;
 }
 
+const pendingSends = new Set<Promise<unknown>>();
+
+async function waitFor(sends: Set<Promise<unknown>>, timeoutMs: number): Promise<boolean> {
+  if (sends.size === 0) return true;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<false>((resolve) => { timer = setTimeout(() => resolve(false), timeoutMs); });
+  try {
+    return await Promise.race([Promise.allSettled([...sends]).then(() => true), timedOut]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Wait until every span sent by any Uncoil client so far has finished sending.
+ * Call it before a short script or serverless request handler returns.
+ * Resolves to false if sends are still in flight after `timeoutMs`.
+ */
+export function flush(timeoutMs = 5_000): Promise<boolean> {
+  return waitFor(pendingSends, timeoutMs);
+}
+
 function isLatencyAbort(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
@@ -293,6 +315,7 @@ export class UncoilClient {
   private redactor?: (text: string) => string;
   private onError?: (error: UncoilError) => void;
   private warned = new Set<string>();
+  private pending = new Set<Promise<unknown>>();
 
   constructor(config: UncoilConfig = {}) {
     this.apiKey = (config.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || '').trim();
@@ -399,7 +422,7 @@ export class UncoilClient {
     };
 
     try {
-      fetch(this.ingestUrl, {
+      const send = fetch(this.ingestUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
@@ -407,9 +430,20 @@ export class UncoilClient {
         },
         body: JSON.stringify(span),
       }).then((response) => this.checkIngestResponse(response)).catch((err) => this.report(new UncoilError("network", `Could not reach Uncoil (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
+      this.pending.add(send);
+      pendingSends.add(send);
+      send.finally(() => { this.pending.delete(send); pendingSends.delete(send); });
     } catch {
       // Ignore errors in telemetry
     }
+  }
+
+  /**
+   * Wait until the spans this client has sent have finished sending.
+   * Resolves to false if sends are still in flight after `timeoutMs`.
+   */
+  flush(timeoutMs = 5_000): Promise<boolean> {
+    return waitFor(this.pending, timeoutMs);
   }
 
   /** Resolve a prompt version labeled for an environment without redeploying application code. */

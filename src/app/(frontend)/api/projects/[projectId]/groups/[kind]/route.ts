@@ -6,7 +6,7 @@ import { groupDetail, listGroups } from "@/lib/tinybird-groups";
 /** Sessions (`kind=session`) or end users (`kind=user`) of a project; `?id=` returns one of them instead of the list. */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ projectId: string; kind: string }> }) {
   const { projectId, kind } = await params;
-  if (!isGroupKind(kind)) return NextResponse.json({ error: "Unknown kind" }, { status: 404 });
+  if (!isGroupKind(kind)) return NextResponse.json({ error: "Unknown group kind. Use session or user." }, { status: 404 });
   // The list polls every few seconds, so access is checked once and remembered.
   const denied = await denyProjectAccess(request, projectId);
   if (denied) return denied;

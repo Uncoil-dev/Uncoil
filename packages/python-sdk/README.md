@@ -12,11 +12,17 @@ pip install uncoil-sdk
 
 ## Quickstart
 
-1. Get your API Key from the [Uncoil Dashboard](https://www.uncoil.dev).
+1. Create an API key on the [API keys page](https://www.uncoil.dev/dashboard/api-keys) of the dashboard. New to Uncoil? [Sign up](https://www.uncoil.dev/sign-up) first.
 2. Set it as an environment variable:
 
 ```bash
-export UNCOIL_API_KEY=your_sk_live_...
+export UNCOIL_API_KEY=uncoil_sk_live_...
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:UNCOIL_API_KEY="uncoil_sk_live_..."
 ```
 
 3. Instrument your agent:
@@ -45,6 +51,8 @@ async def my_agent(query: str):
     
     return "Final Answer"
 ```
+
+4. Run `python -m uncoil doctor` to [check your setup](#setup-checker).
 
 ## Steps
 

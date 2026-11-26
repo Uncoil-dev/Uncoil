@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UncoilClient, UncoilError, buildRedactor, sampleBucket, uncoilMiddleware, traceTools } from "../src/index";
 
@@ -149,5 +151,14 @@ describe("framework helpers", () => {
     expect(llm.find((s) => s.output === "hello")).toMatchObject({ modelId: "gpt-test", inputTokens: 5, outputTokens: 2 });
     expect(llm.find((s) => s.output === "ab")).toMatchObject({ inputTokens: 3, outputTokens: 4 });
     expect(llm.some((s) => s.errorMessage?.includes("rate limit"))).toBe(true);
+  });
+});
+
+describe("templates", () => {
+  it("lists every template in the templates README", () => {
+    const folder = join(__dirname, "..", "templates");
+    const readme = readFileSync(join(folder, "README.md"), "utf8");
+    const missing = readdirSync(folder).filter((name) => name.endsWith(".ts") && !readme.includes(`\`${name}\``));
+    expect(missing).toEqual([]);
   });
 });

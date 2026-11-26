@@ -7,5 +7,6 @@ Copy one file into your project, set `UNCOIL_API_KEY`, and run it.
 | `openai-agent.ts` | An OpenAI chat call with one tool, traced end to end |
 | `anthropic-agent.ts` | The same with Anthropic |
 | `vercel-ai.ts` | The Vercel AI SDK with one line of setup |
+| `vercel-ai-agent.ts` | A Vercel AI SDK agent with one tool, traced as one run |
 | `langgraph-agent.ts` | A small LangGraph graph |
 | `private-by-default.ts` | Sampling and redaction turned on |

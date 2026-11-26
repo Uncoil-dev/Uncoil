@@ -40,7 +40,7 @@ export function PixelEdge({ from, to, shape = "hills", seed = 1, sparks = false 
   const h = EDGE.rows * EDGE.cell;
 
   return (
-    <div ref={ref} aria-hidden="true" data-edge className="relative -my-px h-[clamp(112px,13.4vw,192px)] overflow-hidden" style={{ backgroundColor: from }}>
+    <div ref={ref} aria-hidden="true" data-edge className="relative -my-px h-[clamp(80px,8vw,120px)] overflow-hidden" style={{ backgroundColor: from }}>
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges" className="absolute inset-0 size-full">
         <motion.path d={loose} fill={to} style={{ y: reduce ? 0 : looseY }} />
         <motion.path d={dither} fill={to} style={{ y: reduce ? 0 : fringeY }} />

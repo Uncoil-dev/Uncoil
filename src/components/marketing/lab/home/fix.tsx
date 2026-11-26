@@ -1,71 +1,77 @@
 "use client";
 
-import Image from "next/image";
-import { useRef, useState } from "react";
-import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
-import { Eyebrow } from "./eyebrow";
-import { BODY, EASE, H3, LABEL, WRAP } from "./ui";
+import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
+import { SUGGESTED_QUESTIONS } from "@/lib/ask-ai";
+import { Eyebrow, NextStep } from "./eyebrow";
+import { AFTER_EYEBROW, AFTER_HEADLINE, BODY, DUR, EASE, H2, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
-import { segment } from "../editorial/art";
 
-const START = 6;
+const CompareWindow = dynamic(() => import("./product-view").then((m) => m.CompareWindow));
 
+/**
+ * The fix loop as the product runs it: ask Ask AI about the run (its ready-made questions), change
+ * the one thing in your code, run the agent again and put both runs side by side in Compare.
+ */
 export function Fix() {
-  const ref = useRef<HTMLElement>(null);
-  const reduce = useCalm();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const [scrolled, setCount] = useState(START);
-  const count = reduce ? 0 : scrolled;
-  useMotionValueEvent(scrollYProgress, "change", (p) => {
-    if (!reduce) setCount(Math.max(0, START - Math.floor(segment(p, 0.1, 0.7) * (START + 0.999))));
+  const calm = useCalm();
+  const reveal = (i: number) => ({
+    initial: calm ? false : { opacity: 0, y: 16 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.4 },
+    transition: { duration: DUR.base, delay: i * 0.08, ease: EASE },
   });
-  const clip = useTransform(scrollYProgress, [0, 0.45], ["inset(0% 0% 0% 100%)", "inset(0% 0% 0% 0%)"]);
-
   return (
-    <section ref={ref} id="fix" className="relative h-[160svh] bg-[#090909] text-[#eceae3]" aria-labelledby="ed-fix-title">
-      <div className="sticky top-16 flex h-[calc(100svh-4rem)] flex-col overflow-hidden px-5 pb-10 pt-10 md:px-10 md:pb-12 md:pt-14">
-        <div className={`${WRAP} relative flex flex-1 flex-col`}>
-          <Eyebrow n="04" on="ink">Fix and verify</Eyebrow>
+    <section id="fix" className={`scroll-mt-16 bg-[#090909] text-[#eceae3] ${SECTION}`} aria-labelledby="ed-fix-title">
+      <div className={WRAP}>
+        <Eyebrow n="04" on="ink">Fix and verify</Eyebrow>
+        <h2 id="ed-fix-title" className={`${AFTER_EYEBROW} max-w-[20ch] ${H2}`}>
+          Ask why, fix it, then compare the two runs.
+        </h2>
 
-          <p className={`mt-8 text-[#eceae3]/55 md:mt-10 ${LABEL}`}>Failed steps · same agent, after each fix</p>
-          <div className="relative flex flex-1 items-center pb-6 pt-3">
-            {/* The art stays inside the figure band and fades out at every edge, so it never runs behind the copy. */}
-            <motion.div className="absolute inset-y-0 -right-5 w-[64%] md:-right-10 md:w-[60%]" style={{ clipPath: reduce ? "none" : clip }} aria-hidden="true">
-              <Image src="/images/landing/failure-shatter.png" alt="" fill unoptimized sizes="60vw" className="object-cover object-center opacity-70 [image-rendering:pixelated] md:opacity-100" />
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#090909,transparent_30%),linear-gradient(to_top,#090909,transparent_22%),linear-gradient(to_bottom,#090909,transparent_14%)]" />
-            </motion.div>
-            <div className="relative">
-              <div className="flex items-end font-pixel text-[clamp(9rem,min(30vw,44svh),26rem)] leading-[0.78] tracking-[-0.08em]" aria-live="off">
-                <span className="relative inline-block h-[0.78em] w-[0.62em] overflow-hidden">
-                  <AnimatePresence initial={false} mode="popLayout">
-                    <motion.span
-                      key={count}
-                      initial={{ y: "-100%" }}
-                      animate={{ y: "0%" }}
-                      exit={{ y: "100%" }}
-                      transition={{ duration: 0.35, ease: EASE }}
-                      className="absolute inset-0"
-                    >
-                      {count}
-                    </motion.span>
-                  </AnimatePresence>
-                </span>
-                {/* A full stop in the same pixel face; it lights up once the count reaches zero. */}
-                <span aria-hidden="true" className={`transition-colors duration-500 ${count === 0 ? "text-[#f4d44d]" : "text-[#eceae3]/20"}`}>.</span>
+        <div className={`${AFTER_HEADLINE} grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-12`}>
+          <div className="flex flex-col gap-8">
+            <motion.div {...reveal(0)} className="border-2 border-[#eceae3] p-4 md:p-5">
+              <p className={`text-[#eceae3]/60 ${LABEL}`}>Ask AI · on run_9f3a</p>
+              <ul className="mt-4 flex flex-wrap gap-2 font-mono text-[11px]" aria-label="Ready-made questions in the trace view">
+                {SUGGESTED_QUESTIONS.map((q, i) => (
+                  <li key={q} className={i === 0 ? "bg-[#f4d44d] px-2 py-1 text-black" : "border border-[#eceae3]/35 px-2 py-1 text-[#eceae3]/75"}>
+                    {q}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-5 border-l-4 border-[#f4d44d] pl-4">
+                <p className={`text-[#eceae3]/50 ${LABEL}`}>Example answer</p>
+                <p className="mt-2 text-[15px] leading-7 text-[#eceae3]/90">
+                  refund.issue failed at step 06, but the run went wrong at step 04: docs.search returned 0 results, so the model retried seven times without the refund policy and guessed. Fix the search first.
+                </p>
               </div>
-              <p className="sr-only">Failed steps went from 6 to 0 in this example.</p>
-            </div>
+            </motion.div>
+            <motion.div {...reveal(1)}>
+              <p className={`text-[#eceae3]/60 ${LABEL}`}>Then, in your code</p>
+              <p className={`mt-3 text-[#eceae3]/85 ${BODY}`}>
+                Change one thing you can point at: here, the search query. Run the agent again, open Compare and pick both runs. Same request: two model calls instead of eight, and no failed step.
+              </p>
+              <dl className="mt-6 grid grid-cols-3 border-y border-[#eceae3]">
+                {[
+                  ["Cost", "$0.42 → $0.06"],
+                  ["Time", "11.2s → 2.4s"],
+                  ["Failed", "1 → 0"],
+                ].map(([k, v], i) => (
+                  <div key={k} className={`py-3 ${i ? "border-l border-[#eceae3]/25 pl-4" : ""}`}>
+                    <dt className={`text-[#eceae3]/55 ${LABEL}`}>{k}</dt>
+                    <dd className="mt-1 font-mono text-sm tabular-nums">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className={`mt-2 text-[#eceae3]/45 ${LABEL}`}>Example run</p>
+            </motion.div>
           </div>
-
-          <div className="relative grid gap-6 border-t border-[#eceae3] pt-6 md:grid-cols-[1.1fr_1fr] md:gap-16 md:pt-8">
-            <h2 id="ed-fix-title" className={H3}>
-              Fix the step. Run it again. Watch it come back clean.
-            </h2>
-            <p className={`max-w-xl text-[#eceae3]/80 ${BODY}`}>
-              Each fix is one change you can point at: a prompt, a tool, a retry rule. Run the agent again and read the new trace, so you know the failure is gone instead of hoping it is.
-            </p>
+          <div className="min-h-[29rem]">
+            <CompareWindow />
           </div>
         </div>
+        <NextStep href="#pw-setup" on="ink">Set it up on your agent</NextStep>
       </div>
     </section>
   );

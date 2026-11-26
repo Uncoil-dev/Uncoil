@@ -1,58 +1,7 @@
-// Pure timing and shape logic for the combined homepage concept, shared by the canvas, the SVG
-// section edges and the tests. The journey here is the short version: set up, first trace, and
-// Uncoil marking the step that broke. The repair itself is shown later by the fix section and
-// the closing scene, so the broken step is never acted out a third time.
+// Pure logic for the combined homepage concept, shared by the components and the tests: the
+// setup prompt's line numbers and the pixel seams between sections.
 
-import { clamp01, hash, keyframe, noise } from "../pixel-world/world.ts";
-
-// ── Journey ──────────────────────────────────────────────────────────────────────────────────
-
-export const WORLD_W = 1400;
-export const GAP = { x0: 1100, x1: 1136 } as const;
-/** World x of the missing plank Uncoil points at. */
-export const HOLE_X = GAP.x0 + 12;
-export const STOP_X = [300, 720, GAP.x0] as const;
-
-const ROBOT_FRAMES = [
-  [0, 40],
-  [0.08, 270],
-  [0.2, 300],
-  [0.3, 660],
-  [0.46, 720],
-  [0.6, GAP.x0 - 10],
-  [1, GAP.x0 - 10],
-] as const;
-
-export const robotAt = (p: number) => keyframe(ROBOT_FRAMES, clamp01(p));
-
-/** Which of the three stops (0-2) the dialog shows at scroll progress `p`. */
-export function stopAt(p: number) {
-  if (p < 0.26) return 0;
-  if (p < 0.56) return 1;
-  return 2;
-}
-
-/** Scene beats along the journey, each 0..1. */
-export function beats(p: number) {
-  return {
-    prompt: clamp01((p - 0.06) / 0.12),
-    drop: clamp01((p - 0.3) / 0.04),
-    tower: clamp01((p - 0.34) / 0.14),
-    scan: clamp01((p - 0.62) / 0.2),
-  };
-}
-
-export const SPAN_COUNT = 6;
-
-export type JourneyStatus = "idle" | "recording" | "found";
-
-/** What the in-game HUD shows for the example run at scroll progress `p`. */
-export function hud(p: number) {
-  const b = beats(p);
-  const spans = b.drop < 1 ? 0 : Math.max(1, Math.ceil(b.tower * SPAN_COUNT));
-  const status: JourneyStatus = b.scan >= 1 ? "found" : spans > 0 ? "recording" : "idle";
-  return { spans, status };
-}
+import { hash, noise } from "../pixel-world/world.ts";
 
 // ── Setup prompt ─────────────────────────────────────────────────────────────────────────────
 

@@ -27,7 +27,7 @@ function href(plan: Plan) {
 export function Price() {
   const reduce = useCalm();
   return (
-    <section id="price" className="overflow-hidden bg-[#eceae3] px-5 pt-10 text-[#090909] md:px-10 md:pt-14" aria-labelledby="ed-price-title">
+    <section id="price" className="scroll-mt-16 overflow-hidden bg-[#eceae3] px-5 pt-8 text-[#090909] md:px-10 md:pt-12" aria-labelledby="ed-price-title">
       <svg width="0" height="0" className="absolute" aria-hidden="true">
         <defs>
           {TONES.map((t) => (
@@ -42,7 +42,7 @@ export function Price() {
       <div className={WRAP}>
         <Eyebrow n="07" on="cream">The price</Eyebrow>
         <h2 id="ed-price-title" className={`${AFTER_EYEBROW} max-w-[16ch] ${H2}`}>
-          Start at nothing. Climb when it pays.
+          Free to start. Pro is $19 a month.
         </h2>
 
         {/* The plans line up; the staircase under them climbs, so the step up is drawn, not implied by misalignment. */}
@@ -68,10 +68,12 @@ export function Price() {
                     </li>
                   ))}
                 </ul>
-                <p className={`mt-5 leading-6 text-black/60 ${LABEL}`}>
-                  {plan.spans} spans · {plan.retention} · {plan.members} {plan.members === "1" ? "member" : "members"}
-                  {plan.monthly > 0 && <><br />or ${monthlyPrice(plan, "annual")} / mo billed yearly</>}
-                </p>
+                <ul className={`mt-5 grid gap-1 text-black/60 ${LABEL}`}>
+                  <li>{plan.spans} spans a month</li>
+                  <li>Kept {plan.retention}</li>
+                  <li>{plan.members} {plan.members === "1" ? "member" : "members"}</li>
+                  {plan.monthly > 0 && <li>or ${monthlyPrice(plan, "annual")} / mo billed yearly</li>}
+                </ul>
                 <div className="mt-auto pt-7">
                   <Link href={href(plan)} className={featured ? primary("cream") : secondary("cream")}>
                     {plan.monthly === 0 ? "Start free" : `Get ${plan.name}`}
@@ -105,8 +107,8 @@ export function Price() {
       <div className={`${WRAP} h-4 bg-[#090909]`} aria-hidden="true" />
       <p className={`${WRAP} py-6 text-black/60 ${LABEL}`}>
         No card for Free. Bigger rollout?{" "}
-        <Link href="/contact" className="underline underline-offset-4 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#090909]">Enterprise is custom</Link> ·{" "}
-        <Link href="/pricing" className="underline underline-offset-4 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#090909]">Compare every plan</Link>
+        <Link href="/contact" className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#090909]">Enterprise is custom</Link> ·{" "}
+        <Link href="/pricing" className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#090909]">Compare every plan</Link>
       </p>
     </section>
   );

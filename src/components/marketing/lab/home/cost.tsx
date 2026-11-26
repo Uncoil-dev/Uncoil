@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useMotionValue, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
-import { Eyebrow } from "./eyebrow";
-import { BODY, H3, LABEL, WRAP } from "./ui";
+import { Eyebrow, NextStep } from "./eyebrow";
+import { AFTER_EYEBROW, BODY, H2, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
 import { segment, type Pt } from "../editorial/art";
 import { DissolveCanvas, textPoints } from "../editorial/dissolve-canvas";
@@ -18,8 +18,9 @@ function buildCost(family: string): { from: Pt[]; to: Pt[] } {
 export function Cost() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useCalm();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const scrolled = useTransform(scrollYProgress, (p) => segment(p, 0.12, 0.72));
+  // The figure dissolves from before to after as it scrolls up into the middle of the screen; no pinning.
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "center 0.45"] });
+  const scrolled = useTransform(scrollYProgress, (p) => segment(p, 0.25, 0.95));
   const done = useMotionValue(1);
   const t = reduce ? done : scrolled;
   const [passed, setAfter] = useState(false);
@@ -27,28 +28,30 @@ export function Cost() {
   useMotionValueEvent(scrolled, "change", (v) => setAfter(v > 0.6));
 
   return (
-    <section ref={ref} id="cost" className="relative h-[170svh] bg-[#eceae3] text-[#090909]" aria-labelledby="ed-cost-title">
-      <div className="sticky top-16 flex h-[calc(100svh-4rem)] flex-col px-5 pb-10 pt-10 md:px-10 md:pb-12 md:pt-14">
-        <div className={`${WRAP} flex flex-1 flex-col`}>
-          <Eyebrow n="03" on="cream">What it cost</Eyebrow>
+    <section ref={ref} id="cost" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="ed-cost-title">
+      <div className={WRAP}>
+        <Eyebrow n="03" on="cream">What it cost</Eyebrow>
+        <h2 id="ed-cost-title" className={`${AFTER_EYEBROW} max-w-[18ch] ${H2}`}>
+          Every model call shows its price.
+        </h2>
 
-          <div className="flex flex-1 flex-col justify-center py-6">
-            <div className={`flex items-baseline justify-between gap-4 text-black/60 ${LABEL}`}>
-              <span>Cost per run · example support agent</span>
-              <span className="text-right tabular-nums">{after ? "after: one model call" : "before: retry loop × 7"}</span>
-            </div>
-            <DissolveCanvas width={W} height={H} build={buildCost} progress={t} label="Cost per run fell from $0.42 to $0.06 in this example." className="mt-2" />
+        <div className="mt-10 md:mt-14">
+          <div className={`flex items-baseline justify-between gap-4 text-black/60 ${LABEL}`}>
+            <span>Cost per run · example support agent</span>
+            <span className="text-right tabular-nums">{after ? "after the fix: no retry loop" : "before: retry loop × 7"}</span>
           </div>
-
-          <div className="grid gap-6 border-t border-[#090909] pt-6 md:grid-cols-[1.1fr_1fr] md:gap-16 md:pt-8">
-            <h2 id="ed-cost-title" className={H3}>
-              Same answer. A seventh of the price.
-            </h2>
-            <p className={`max-w-xl text-black/75 ${BODY}`}>
-              With nothing to go on, the model was asked the same question again and again inside a retry loop. Every call in the trace carries its tokens and its price, so the expensive step is obvious. Fix the search and the run makes a single call.
-            </p>
-          </div>
+          <DissolveCanvas width={W} height={H} build={buildCost} progress={t} label="Cost per run fell from $0.42 to $0.06 in this example." className="mt-2" />
         </div>
+
+        <div className="mt-6 grid gap-6 border-t border-[#090909] pt-6 md:grid-cols-[1.1fr_1fr] md:gap-16 md:pt-8">
+          <p className="font-pixel text-[clamp(1.9rem,3.4vw,3.25rem)] leading-[0.92] tracking-[-0.06em] text-balance">
+            The broken run cost seven times what the fixed one does.
+          </p>
+          <p className={`max-w-xl text-black/75 ${BODY}`}>
+            With no policy to read, the model was asked the same question seven times. Each call in the trace carries its tokens and price, so the expensive step is the first thing you see, not a line on next month&apos;s bill.
+          </p>
+        </div>
+        <NextStep href="#fix" on="cream">How the fix is checked</NextStep>
       </div>
     </section>
   );

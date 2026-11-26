@@ -1,18 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EDGE, GAP, cellsPath, edgeCells, horizonRow, hud, numberLines, robotAt, stopAt } from "./story.ts";
+import { EDGE, cellsPath, edgeCells, horizonRow, numberLines } from "./story.ts";
+import { RUN_A, RUN_B, totalCost } from "./run-data.ts";
+import { chapterAt } from "./rail-logic.ts";
+import { BREAK_AT, FIXED_AT, breakTarget } from "./hero-clock.ts";
+import { HERO_LOOP, heroState } from "../pixel-world/world.ts";
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
-
-test("the short journey walks three stops in order and ends with the step found, not repaired", () => {
-  assert.deepEqual([0, 0.4, 0.8].map(stopAt), [0, 1, 2]);
-  for (let p = 0; p <= 1; p += 0.005) assert.ok(robotAt(p) < GAP.x0, `robot stepped into the gap at p=${p.toFixed(3)}`);
-  assert.equal(hud(0).status, "idle");
-  assert.equal(hud(0.5).status, "recording");
-  const end = hud(1);
-  assert.equal(end.status, "found");
-  assert.equal(end.spans, 6);
-});
 
 test("a section edge is solid at the bottom, open at the top and thins out as it rises", () => {
   for (const shape of ["hills", "flat"] as const) {
@@ -53,4 +47,37 @@ test("the setup prompt numbers its written lines and leaves blank lines unnumber
   const lines = numberLines("Set up.\n\n1. Install.\n2. Run.\n\nDo not invent a key.");
   assert.deepEqual(lines.map((l) => l.n), ["01", "", "02", "03", "", "04"]);
   assert.equal(lines[5].line, "Do not invent a key.");
+});
+
+test("the example runs add up to the cost figures the page shows", () => {
+  assert.equal(totalCost(RUN_A).toFixed(2), "0.42");
+  assert.equal(totalCost(RUN_B).toFixed(2), "0.06");
+  assert.deepEqual(RUN_A.filter((s) => s.errorType).map((s) => s.name), ["refund.issue"]);
+  assert.equal(RUN_B.some((s) => s.errorType), false);
+  // Every child starts and ends inside its parent, so the timeline draws a real nesting.
+  for (const run of [RUN_A, RUN_B]) {
+    const byId = new Map(run.map((s) => [s.spanId, s]));
+    for (const s of run) {
+      const parent = byId.get(s.parentSpanId);
+      if (!parent) continue;
+      const start = Date.parse(s.createdAt);
+      const pStart = Date.parse(parent.createdAt);
+      assert.ok(start >= pStart && start + s.latencyMs <= pStart + parent.latencyMs, `${s.spanId} spills out of ${parent.spanId}`);
+    }
+  }
+});
+
+test("the rail marks the last chapter whose top has passed the reading line", () => {
+  assert.equal(chapterAt([500, 900, 1300], 360), -1);
+  assert.equal(chapterAt([-400, 120, 900], 360), 1);
+  assert.equal(chapterAt([-900, -500, -100], 360), 2);
+});
+
+test("breaking the hero step hurries to the next break and never interrupts one in progress", () => {
+  assert.equal(heroState(breakTarget(0.5)).phase, "break");
+  assert.equal(breakTarget(0.5), BREAK_AT);
+  assert.equal(breakTarget(BREAK_AT + 0.5), -1);
+  const late = FIXED_AT + 0.3;
+  assert.ok(Math.abs(breakTarget(late) - (HERO_LOOP + BREAK_AT)) < 1e-9);
+  assert.equal(heroState(breakTarget(late) + 0.001).phase, "break");
 });

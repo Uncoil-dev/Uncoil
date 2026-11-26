@@ -2,9 +2,9 @@
 
 import { useId } from "react";
 import { motion } from "framer-motion";
-import { Eyebrow } from "./eyebrow";
+import { Eyebrow, NextStep } from "./eyebrow";
 import { cellsPath } from "./story";
-import { AFTER_EYEBROW, AFTER_HEADLINE, BODY, DUR, EASE, H2, H3, LABEL, SECTION, WRAP } from "./ui";
+import { AFTER_EYEBROW, AFTER_HEADLINE, BODY, DUR, EASE, H2, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
 import { inked } from "../editorial/art";
 
@@ -176,10 +176,11 @@ function Plate({ l, className }: { l: Layout; className: string }) {
 
 export function Where() {
   return (
-    <section id="break" className={`bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="ed-break-title">
+    <section id="break" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="ed-break-title">
       <div className={WRAP}>
         <Eyebrow n="01" on="cream">Where it broke</Eyebrow>
-        <h2 id="ed-break-title" className={`${AFTER_EYEBROW} ${H2}`}>
+        <div className={`${AFTER_EYEBROW} grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-end lg:gap-16`}>
+        <h2 id="ed-break-title" className={H2}>
           It failed at step 6.
           <br />
           It broke at{" "}
@@ -188,6 +189,10 @@ export function Where() {
             <span className="relative">step 4.</span>
           </span>
         </h2>
+          <p className={`max-w-xl text-black/75 ${BODY}`}>
+            Agent bugs rarely happen where they show up. Logs stop at the crash, so they point at the refund call. A trace keeps every step, so you can read the run backwards and land two steps earlier, where it went wrong.
+          </p>
+        </div>
 
         <figure className={AFTER_HEADLINE}>
           <Plate l={HORIZONTAL} className="hidden h-auto w-full md:block" />
@@ -197,14 +202,7 @@ export function Where() {
           </figcaption>
         </figure>
 
-        <div className="mt-14 grid gap-10 md:mt-20 md:grid-cols-[1.2fr_1fr] md:gap-16 lg:grid-cols-[1fr_1fr]">
-          <p className={`max-w-xl text-black/80 first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:font-pixel first-letter:text-[5.2rem] first-letter:leading-[0.8] first-letter:text-[#090909] ${BODY}`}>
-            Agent bugs rarely happen where they show up. Logs stop at the crash, so they point at the refund call. A trace keeps every step, so you can read the run backwards and land two steps earlier, where it actually went wrong.
-          </p>
-          <blockquote className="self-end border-l-4 border-[#090909] pl-6">
-            <p className={H3}>“The error is the symptom. The trace is the story.”</p>
-          </blockquote>
-        </div>
+        <NextStep href="#trace" on="cream">Open the run in the trace view</NextStep>
       </div>
     </section>
   );

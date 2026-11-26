@@ -7,35 +7,16 @@ import { ArrowRight, Check, Copy } from "lucide-react";
 import { appHref } from "@/lib/app-links";
 import { Eyebrow } from "./eyebrow";
 import { numberLines } from "./story";
+import { AGENTS, BY_HAND, promptFor, type Agent } from "./prompt";
 import { AFTER_EYEBROW, BODY, DUR, EASE, H2, LABEL, SECTION, WRAP, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
 
 // The same setup prompt the live homepage hands out, so both pages give identical instructions.
-const STEPS = [
-  "Install the Uncoil SDK: `@uncoil.dev/sdk` for a JavaScript or TypeScript project, `uncoil-sdk` for a Python project.",
-  "Run `npx @uncoil.dev/sdk login` so I can sign in or sign up in the browser and pick this project.",
-  "Add the one-line init() call at the start of the app.",
-  "Run `npx @uncoil.dev/sdk doctor` (JavaScript or TypeScript) or `python -m uncoil doctor` (Python), then send one test trace and tell me where to see it.",
-];
-
-const AGENTS = ["Claude Code", "Cursor", "Codex"] as const;
-type Agent = (typeof AGENTS)[number];
-
-const PM = [
-  { id: "npm", cmd: "npm install @uncoil.dev/sdk" },
-  { id: "pnpm", cmd: "pnpm add @uncoil.dev/sdk" },
-  { id: "pip", cmd: "pip install uncoil-sdk" },
-] as const;
-
 const WHY = [
   ["0", "docs to read"],
   ["0", "keys to copy"],
   ["30s", "to first trace"],
 ] as const;
-
-function promptFor(agent: Agent) {
-  return `Set up Uncoil tracing in this project (${agent}).\n\n${STEPS.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\nDo not invent an API key. Never print or commit the key.`;
-}
 
 type Line = { k: "you" | "run" | "ok"; text: string; meta?: string };
 
@@ -136,10 +117,10 @@ function Replay({ agent }: { agent: Agent }) {
 
 export function Setup() {
   const [agent, setAgent] = useState<Agent>("Claude Code");
-  const [pm, setPm] = useState<(typeof PM)[number]["id"]>("npm");
+  const [lang, setLang] = useState<(typeof BY_HAND)[number]["id"]>("ts");
   const { done, copy } = useCopy();
   const prompt = promptFor(agent);
-  const install = PM.find((p) => p.id === pm)!.cmd;
+  const manual = BY_HAND.find((b) => b.id === lang)!;
 
   return (
     <section id="pw-setup" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="mix-setup-title">
@@ -148,9 +129,7 @@ export function Setup() {
 
         <div className={`${AFTER_EYEBROW} grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-end`}>
           <h2 id="mix-setup-title" className={H2}>
-            One paste.
-            <br />
-            First trace.
+            One prompt sets it up.
           </h2>
           <div>
             <p className={`max-w-md text-black/75 ${BODY}`}>Copy it into your coding agent. It installs Uncoil, signs you in, connects this project and sends your first trace while you watch.</p>
@@ -214,24 +193,35 @@ export function Setup() {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
-          <div className="min-w-0 max-w-xl">
-            <p className={`text-black/65 ${LABEL}`}>Prefer doing it yourself?</p>
-            <div className="mt-3 flex flex-wrap border-2 border-black bg-[#090909] text-[#eceae3]">
-              <div role="tablist" aria-label="Package manager" className="flex w-full shrink-0 border-b border-[#eceae3]/15 font-mono text-[10px] uppercase tracking-[0.12em] sm:w-auto sm:border-b-0 sm:border-r">
-                {PM.map((p) => (
-                  <button key={p.id} type="button" role="tab" aria-selected={pm === p.id} onClick={() => setPm(p.id)} className={`min-h-11 px-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#f4d44d] ${pm === p.id ? "text-[#f4d44d]" : "text-[#eceae3]/45 hover:text-[#eceae3]"}`}>
-                    {p.id}
+        <div className="mt-14 grid gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
+          <div className="min-w-0">
+            <p className={`text-black/65 ${LABEL}`}>No coding agent? Do it by hand</p>
+            <div className="mt-3 border-2 border-black bg-[#090909] text-[#eceae3]">
+              <div role="tablist" aria-label="Language" className={`flex border-b border-[#eceae3]/15 ${LABEL}`}>
+                {BY_HAND.map((b) => (
+                  <button key={b.id} type="button" role="tab" aria-selected={lang === b.id} onClick={() => setLang(b.id)} className={`min-h-11 px-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#f4d44d] ${lang === b.id ? "bg-[#eceae3] text-black" : "text-[#eceae3]/55 hover:text-[#eceae3]"}`}>
+                    {b.label}
                   </button>
                 ))}
+                <span className="ml-auto hidden items-center px-4 text-[#eceae3]/45 sm:flex">{manual.note}</span>
               </div>
-              <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap px-4 py-4 font-mono text-[13px]">{install}</code>
-              <button type="button" onClick={() => copy("install", install)} aria-label="Copy install command" className="grid min-h-12 w-14 shrink-0 place-items-center border-l border-[#eceae3]/15 hover:bg-[#f4d44d] hover:text-black focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#f4d44d]">
-                {done === "install" ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
-              </button>
+              <div className="grid">
+                <div className="relative border-b border-[#eceae3]/15">
+                  <pre className="overflow-x-auto p-4 pr-14 font-mono text-[12px] leading-6"><code>{manual.shell.split("\n").map((l) => <span key={l} className="block"><span className="select-none text-[#f4d44d]/70">$ </span>{l}</span>)}</code></pre>
+                  <button type="button" onClick={() => copy("shell", manual.shell)} aria-label="Copy install commands" className="absolute right-0 top-0 grid size-12 place-items-center hover:bg-[#f4d44d] hover:text-black focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#f4d44d]">
+                    {done === "shell" ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <pre className="overflow-x-auto p-4 pr-14 font-mono text-[12px] leading-6"><code>{manual.code}</code></pre>
+                  <button type="button" onClick={() => copy("code", manual.code)} aria-label="Copy code" className="absolute right-0 top-0 grid size-12 place-items-center hover:bg-[#f4d44d] hover:text-black focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#f4d44d]">
+                    {done === "code" ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 lg:justify-end">
             <Link href={appHref("/sign-up")} className={primary("cream")}>
               Start free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>

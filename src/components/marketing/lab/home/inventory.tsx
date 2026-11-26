@@ -1,12 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useInView } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
-import { appHref } from "@/lib/app-links";
 import { KIT, SPRITE, spritePaths, type KitItem } from "./kit";
-import { Eyebrow } from "./eyebrow";
+import { Eyebrow, NextStep } from "./eyebrow";
 import { AFTER_EYEBROW, AFTER_HEADLINE, DUR, EASE, H2, H3, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
 
@@ -45,11 +42,11 @@ export function Inventory() {
   };
 
   return (
-    <section id="kit" className={`bg-[#090909] text-[#eceae3] ${SECTION}`} aria-labelledby="mix-kit-title">
+    <section id="kit" className={`scroll-mt-16 bg-[#090909] text-[#eceae3] ${SECTION}`} aria-labelledby="mix-kit-title">
       <div className={WRAP}>
         <Eyebrow n="06" on="ink">What you get</Eyebrow>
-        <h2 id="mix-kit-title" className={`${AFTER_EYEBROW} max-w-[14ch] ${H2}`}>
-          Pack for the 2am incident.
+        <h2 id="mix-kit-title" className={`${AFTER_EYEBROW} max-w-[18ch] ${H2}`}>
+          Built for reading agent runs, not log files.
         </h2>
 
         <div ref={ref} className={`${AFTER_HEADLINE} grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10`}>
@@ -112,19 +109,7 @@ export function Inventory() {
           </div>
         </div>
 
-        <Link
-          href={appHref("/demo/project")}
-          className="group mt-14 flex flex-col gap-4 border-y border-[#eceae3] px-5 py-6 transition-colors duration-200 hover:bg-[#eceae3] hover:text-black md:px-6 focus-visible:bg-[#eceae3] focus-visible:text-black focus-visible:outline-none sm:flex-row sm:items-end sm:justify-between md:mt-20 md:py-8"
-        >
-          <span>
-            <span className={`block opacity-60 ${LABEL}`}>Check it yourself · no sign-up</span>
-            <span className={`mt-3 block ${H3}`}>Open the live demo</span>
-          </span>
-          <span className={`flex items-center gap-3 ${LABEL}`}>
-            A sample project with a week of example runs
-            <ArrowUpRight className="size-5 shrink-0 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" aria-hidden="true" />
-          </span>
-        </Link>
+        <NextStep href="#price" on="ink">What each plan includes</NextStep>
       </div>
     </section>
   );

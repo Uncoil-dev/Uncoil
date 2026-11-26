@@ -51,7 +51,7 @@ function AskingRobot() {
 
 export function Faq() {
   return (
-    <section id="faq" className="bg-[#eceae3] px-5 pb-20 pt-16 text-[#090909] md:px-10 md:pb-28 md:pt-24" aria-labelledby="mix-faq-title">
+    <section id="faq" className="scroll-mt-16 bg-[#eceae3] px-5 pb-16 pt-12 text-[#090909] md:px-10 md:pb-20 md:pt-16" aria-labelledby="mix-faq-title">
       <div className={WRAP}>
         <Eyebrow n="08" on="cream">Questions</Eyebrow>
         <div className={`${AFTER_EYEBROW} grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16`}>

@@ -8,6 +8,7 @@ import { appHref } from "@/lib/app-links";
 import { YELLOW, bridge, flag, ground, landscape, pines, robot, type Scene } from "../pixel-world/pixels";
 import { usePixelCanvas } from "../pixel-world/use-pixel-canvas";
 import { clamp01, ease } from "../pixel-world/world";
+import { CopyPromptButton } from "./copy-prompt";
 import { clearStars, toBuffer, useCopyBoxes } from "./sky";
 import { BODY, HERO, LABEL, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
@@ -41,8 +42,14 @@ export function ClosingWorld() {
       const rx = Math.round(start + (goal - 8 - start) * walk);
       const s: Scene = { px, cam: 0, groundY, t: seconds };
 
-      landscape(s, narrow ? 0.78 : 0.8, 0.7);
-      clearStars(px, toBuffer(copy.current, scale, 4));
+      // The sun sits to the right of the copy, never behind a word.
+      const words = toBuffer(copy.current, scale, 4);
+      const r = Math.round(Math.min(px.w * 0.11, px.h * 0.2));
+      const sunTop = groundY - px.h * 0.2 - r * 1.6;
+      const right = Math.max(0, ...words.filter((b) => b.y + b.h > sunTop).map((b) => b.x + b.w));
+      const sunX = Math.min(0.9, Math.max(narrow ? 0.78 : 0.8, (right + r + 4) / px.w));
+      landscape(s, sunX, 0.7);
+      clearStars(px, words);
       pines(s, [[gap0 - 14, gap1 + 4], [goal - 14, goal + 30]], 1);
       ground(s, [[gap0, gap1]], rx + 6, start);
       bridge(s, gap0, gap1, -1);
@@ -55,27 +62,25 @@ export function ClosingWorld() {
   );
 
   return (
-    <section ref={sectionRef} className="relative isolate flex min-h-[max(44rem,100svh)] flex-col overflow-hidden bg-[#090909] text-[#eceae3]" aria-labelledby="mix-close-title">
+    <section ref={sectionRef} id="close" className="relative isolate flex min-h-[max(40rem,84svh)] flex-col overflow-hidden bg-[#090909] text-[#eceae3]" aria-labelledby="mix-close-title">
       <div className="absolute inset-0 -z-10" aria-hidden="true">
         <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
       </div>
       <div className="mx-auto w-full max-w-[1400px] px-5 pt-14 md:px-10 md:pt-16">
-        <p data-clear className={`w-fit text-[#eceae3]/60 ${LABEL}`}>Run passed · 6 / 6 · example</p>
+        <p data-clear className={`w-fit text-[#eceae3]/60 ${LABEL}`}>Run passed · 6 / 6 · your turn</p>
         <h2 id="mix-close-title" className={`mt-6 ${HERO}`}>
-          <span data-clear className="inline-block max-w-[16ch]">
-            Know which step.
+          <span data-clear className="inline-block max-w-[18ch]">
+            Know which step broke.
             <br className="hidden md:block" />{" "}
             Before your users do.
           </span>
         </h2>
-        <p data-clear className={`mt-6 max-w-xl text-[#eceae3]/85 ${BODY}`}>Paste the prompt, run your agent, open the trace. The free plan needs no card.</p>
+        <p data-clear className={`mt-6 max-w-xl text-[#eceae3]/85 ${BODY}`}>Copy the prompt into Claude Code, Cursor or Codex. It installs Uncoil, signs you in and sends your first trace. The free plan needs no card.</p>
         <div data-clear className="mt-8 flex w-fit flex-wrap gap-4">
           <Link href={appHref("/sign-up")} className={primary("ink")}>
             Start tracing free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
-          <Link href="/docs" className={secondary("ink")}>
-            Read the docs
-          </Link>
+          <CopyPromptButton className={secondary("ink")} done="Copied · paste it in your agent" />
         </div>
       </div>
     </section>

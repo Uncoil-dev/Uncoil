@@ -48,8 +48,8 @@ export function toBuffer(boxes: readonly { x: number; y: number; w: number; h: n
 }
 
 /**
- * Removes stars behind copy. Stars are the only isolated lit pixels in the sky, so a lit pixel
- * whose eight neighbours are all dark is cleared; ridge lines and the sun stay untouched.
+ * Removes stars behind copy. Stars are single pixels or pairs, so a lit pixel with at most one lit
+ * neighbour is cleared; ridge lines (at least two lit neighbours) and the sun stay untouched.
  */
 export function clearStars(px: Px, boxes: readonly Box[]) {
   const { w, h, buf } = px;
@@ -60,9 +60,9 @@ export function clearStars(px: Px, boxes: readonly Box[]) {
       for (let x = Math.max(1, b.x); x < x1; x++) {
         const i = y * w + x;
         if (buf[i] === DARK) continue;
-        let alone = true;
-        for (let dy = -1; dy <= 1 && alone; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && buf[i + dy * w + dx] !== DARK) { alone = false; break; }
-        if (alone) buf[i] = INK;
+        let lit = 0;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && buf[i + dy * w + dx] !== DARK) lit++;
+        if (lit <= 1) buf[i] = INK;
       }
     }
   }
@@ -93,24 +93,6 @@ export function placeCallout(px: Px, stemX: number, below: number, size: { w: nu
     if (box.y >= 2 && !avoid.some((a) => overlaps(a, box))) return box;
   }
   return null;
-}
-
-/**
- * A scene's opening band: no stars above row `from`, then stars dither in until row `to`, so a
- * night scene starts as clean black under the section marker and the sky fills in below it.
- */
-export function fadeStarsIn(px: Px, from: number, to: number) {
-  const span = Math.max(1, to - from);
-  clearStars(px, [{ x: 0, y: 0, w: px.w, h: Math.max(0, from) }]);
-  const { w, buf } = px;
-  for (let y = Math.max(1, from); y < Math.min(px.h - 1, to); y++) {
-    const keep = (y - from) / span;
-    for (let x = 1; x < w - 1; x++) {
-      const i = y * w + x;
-      if (buf[i] === DARK || dith(x, y, keep)) continue;
-      if (buf[i - 1] === DARK && buf[i + 1] === DARK && buf[i - w] === DARK && buf[i + w] === DARK) buf[i] = INK;
-    }
-  }
 }
 
 /**

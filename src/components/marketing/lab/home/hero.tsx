@@ -3,11 +3,13 @@
 import { appHref } from "@/lib/app-links";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowRight, RotateCcw, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CREAM, YELLOW, brokenStep, bridge, flag, ground, pines, rebuild, reticle, robot, type Scene } from "../pixel-world/pixels";
 import { heroState, heroTrack, type HeroPhase } from "../pixel-world/world";
+import { HURRY, breakTarget } from "./hero-clock";
 import { usePixelCanvas, type Frame } from "../pixel-world/use-pixel-canvas";
+import { CopyPromptButton } from "./copy-prompt";
 import { clearStars, landscapeUnder, placeCallout, toBuffer, useCopyBoxes } from "./sky";
 import { DUR, EASE, HERO, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
@@ -21,6 +23,8 @@ function layout(w: number, h: number) {
   const gap0 = Math.round(w * (w < 200 ? 0.5 : 0.58));
   return { groundY, gap0, gap1: gap0 + 36, start: Math.round(w * 0.05), goal: Math.round(w * 0.93) };
 }
+
+const STATUS_SHORT: Record<HeroPhase, string> = { walk: "Step 05", break: "Failed · 06", scan: "Tracing · 06", rebuild: "Fixed · 04", cross: "Passed · 06", goal: "Passed · 6/6" };
 
 const STATUS: Record<HeroPhase, string> = {
   walk: "Recording · step 05",
@@ -44,11 +48,26 @@ export function HeroWorld() {
   const [tag, setTag] = useState({ x: -999, y: 0, stemX: 0, stemY: 0, stemH: 0 });
   const lastTag = useRef("");
   const lastPhase = useRef<HeroPhase>(phase);
+  // The scene's own clock: it runs in real time, and hurries ahead when the visitor breaks the step.
+  const clock = useRef({ v: 0, last: -1, target: -1 });
+  const breakIt = () => {
+    const c = clock.current;
+    if (c.target < 0) c.target = breakTarget(c.v);
+  };
 
   usePixelCanvas(
     canvasRef,
     ({ px, scale, seconds }: Frame) => {
-      const st = reduce ? { phase: "goal" as const, local: 1 } : heroState(seconds);
+      const c = clock.current;
+      const dt = c.last < 0 ? 0 : Math.min(0.1, seconds - c.last);
+      c.last = seconds;
+      c.v += dt * (c.target >= 0 ? HURRY : 1);
+      if (c.target >= 0 && c.v >= c.target) {
+        c.v = c.target;
+        c.target = -1;
+      }
+      const vt = c.v;
+      const st = reduce ? { phase: "goal" as const, local: 1 } : heroState(vt);
       const { groundY, gap0, gap1, start, goal } = layout(px.w, px.h);
       const plankX = gap0 + 12;
       const s: Scene = { px, cam: 0, groundY, t: seconds };
@@ -59,7 +78,7 @@ export function HeroWorld() {
       const sunX = px.w < 200 ? 0.78 : 0.8;
       // No star ever sits behind a word, and the far ridge never climbs into the copy: if it
       // would, the hills are drawn a little lower.
-      const words = toBuffer(copy.current, scale, 4);
+      const words = toBuffer(copy.current, scale, 6);
       landscapeUnder(s, sunX, px.w < 200 ? 0.8 : 0.6, words);
       clearStars(px, words);
       pines(s, [[gap0 - 14, gap1 + 4], [goal - 10, goal + 30]], 1);
@@ -70,7 +89,7 @@ export function HeroWorld() {
       if (st.phase === "walk") px.rect(plankX, groundY - 2, 11, 3, CREAM);
       if (st.phase === "break") {
         const shake = st.local < 0.45;
-        brokenStep({ ...s, groundY: groundY + (shake && Math.floor(seconds * 30) % 2 ? 1 : 0) }, plankX, 11, shake ? 0 : (st.local - 0.45) / 0.55);
+        brokenStep({ ...s, groundY: groundY + (shake && Math.floor(vt * 30) % 2 ? 1 : 0) }, plankX, 11, shake ? 0 : (st.local - 0.45) / 0.55);
       }
       if (st.phase === "scan") {
         brokenStep(s, plankX, 11, 1);
@@ -87,7 +106,7 @@ export function HeroWorld() {
 
       flag(px, goal, groundY - 3, st.phase === "goal" ? Math.min(1, st.local * 2.5) : 0);
       const walking = st.phase === "walk" || st.phase === "cross";
-      robot(px, rx, groundY - 3, walking ? Math.floor(seconds * 8) : 0, st.phase === "break" || st.phase === "scan");
+      robot(px, rx, groundY - 3, walking ? Math.floor(vt * 8) : 0, st.phase === "break" || st.phase === "scan");
 
       if (st.phase !== lastPhase.current) {
         lastPhase.current = st.phase;
@@ -123,19 +142,21 @@ export function HeroWorld() {
     { pixel: heroPixel, still: reduce },
   );
 
-  const showTag = phase !== "walk" && tag.x > -9999;
+  const showTag = tag.x > -9999 && !(reduce && phase === "walk");
   const broken = phase === "break" || phase === "scan";
+  const waiting = phase === "walk";
+  const playing = phase === "break" || phase === "scan" || phase === "rebuild";
 
   return (
     <section ref={sectionRef} data-phase={phase} className="relative isolate flex min-h-[calc(100svh-4rem)] flex-col md:min-h-[max(40rem,calc(100svh-4rem))] overflow-hidden bg-[#090909] text-[#eceae3]" aria-labelledby="pw-hero-title">
-      <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div className={`absolute inset-0 -z-10 overflow-hidden ${reduce ? "" : "cursor-pointer"}`} aria-hidden="true" onClick={reduce ? undefined : breakIt}>
         <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
       </div>
 
       <AnimatePresence>
         {showTag && (
           <motion.div
-            key={broken ? "broken" : "fixed"}
+            key={waiting ? "waiting" : broken ? "broken" : "fixed"}
             aria-hidden="true"
             initial={reduce ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -143,11 +164,24 @@ export function HeroWorld() {
             transition={{ duration: DUR.fast, ease: EASE }}
             className="pointer-events-none absolute inset-0 z-10"
           >
-            <div ref={tagRef} className={`absolute border-2 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] md:text-[11px] ${broken ? "border-[#eceae3] bg-[#090909] text-[#eceae3]" : "border-[#f4d44d] bg-[#f4d44d] text-black"}`} style={{ left: tag.x, top: tag.y }}>
+            <div
+              ref={tagRef}
+              onClick={waiting ? breakIt : undefined}
+              className={`absolute border-2 px-3 py-2 text-left font-mono text-[10px] uppercase tracking-[0.12em] md:text-[11px] ${
+                waiting
+                  ? "pointer-events-auto cursor-pointer border-dashed border-[#eceae3] bg-[#090909] text-[#eceae3] hover:border-solid hover:border-[#f4d44d]"
+                  : broken || playing
+                    ? "border-[#eceae3] bg-[#090909] text-[#eceae3]"
+                    : "border-[#f4d44d] bg-[#f4d44d] text-black"
+              }`}
+              style={{ left: tag.x, top: tag.y }}
+            >
               <p className="whitespace-nowrap">Step 06 · refund.issue</p>
-              <p className={`mt-1 whitespace-nowrap ${broken ? "text-[#eceae3]/70" : "text-black/70"}`}>{broken ? "502 · hung 5000 ms" : "passing again"}</p>
+              <p className={`mt-1 whitespace-nowrap ${waiting ? "text-[#f4d44d]" : broken || playing ? "text-[#eceae3]/70" : "text-black/70"}`}>
+                {waiting ? "Click to break it" : broken ? "502 · hung 5000 ms" : playing ? "cause found at step 04" : "passing again"}
+              </p>
             </div>
-            <div className={`absolute w-[2px] ${broken ? "bg-[#eceae3]" : "bg-[#f4d44d]"}`} style={{ left: tag.stemX, top: tag.stemY, height: Math.max(0, tag.stemH) }} />
+            <div className={`absolute w-[2px] ${waiting ? "bg-[repeating-linear-gradient(to_bottom,#eceae3_0_4px,transparent_4px_8px)]" : broken || playing ? "bg-[#eceae3]" : "bg-[#f4d44d]"}`} style={{ left: tag.stemX, top: tag.stemY, height: Math.max(0, tag.stemH) }} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -168,19 +202,31 @@ export function HeroWorld() {
           <Link href={appHref("/sign-up")} className={primary("ink")}>
             Start free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
-          <a href="#pw-setup" className={secondary("ink")}>
-            Get the prompt <ArrowDown className="size-4 transition-transform group-hover:translate-y-0.5" aria-hidden="true" />
-          </a>
+          <CopyPromptButton className={secondary("ink")} done="Copied · paste it in your agent" />
         </div>
         {/* Keeps the pixel ground clear of the copy on phones. */}
         <div className="h-[clamp(9rem,30svh,16rem)] sm:h-[34svh] md:hidden" aria-hidden="true" />
       </div>
 
-      <div className="relative mt-auto flex items-center justify-between gap-4 border-t-2 border-[#eceae3] bg-[#090909] py-3 pl-5 pr-20 font-mono text-[10px] uppercase tracking-[0.14em] md:pl-10 md:pr-24">
-        <span className="text-[#eceae3]/60">Example run<span className="hidden sm:inline"> · support-agent</span></span>
-        <span className="flex items-center gap-2" aria-live="off">
+      <div className="relative mt-auto flex min-h-12 items-center justify-between gap-4 border-t-2 border-[#eceae3] bg-[#090909] pl-5 pr-20 font-mono text-[10px] uppercase tracking-[0.14em] md:pl-10 md:pr-24">
+        {reduce ? (
+          <span className="text-[#eceae3]/60">Example run<span className="hidden sm:inline"> · support-agent</span></span>
+        ) : (
+          <button
+            type="button"
+            onClick={breakIt}
+            disabled={playing}
+            className="group -ml-2 inline-flex min-h-11 items-center gap-2 px-2 text-[#eceae3] transition-colors hover:text-[#f4d44d] focus-visible:outline-2 focus-visible:outline-[#f4d44d] disabled:cursor-default disabled:text-[#eceae3]/50"
+          >
+            {phase === "cross" || phase === "goal" ? <RotateCcw className="size-3.5" aria-hidden="true" /> : <Zap className="size-3.5" aria-hidden="true" />}
+            <span className="sm:hidden">{playing ? "Tracing back" : phase === "cross" || phase === "goal" ? "Break again" : "Break it"}</span>
+            <span className="hidden sm:inline">{playing ? "Walking back to the cause" : phase === "cross" || phase === "goal" ? "Break it again" : "Break step 06 yourself"}</span>
+          </button>
+        )}
+        <span className="flex items-center gap-2 whitespace-nowrap" aria-live="off">
           <span className={`size-2 ${phase === "cross" || phase === "goal" || phase === "rebuild" || phase === "scan" ? "bg-[#f4d44d]" : "bg-[#eceae3]"}`} />
-          {STATUS[phase]}
+          <span className="sm:hidden">{STATUS_SHORT[phase]}</span>
+          <span className="hidden sm:inline">{STATUS[phase]}</span>
         </span>
       </div>
     </section>

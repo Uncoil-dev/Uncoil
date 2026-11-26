@@ -75,7 +75,7 @@ describe("steps", () => {
   });
 
   describe("outside a step", () => {
-    const keys = ["UNCOIL_CURRENT_RUN_ID", "TRACIFY_CURRENT_RUN_ID"] as const;
+    const keys = ["UNCOIL_CURRENT_RUN_ID"] as const;
     const saved = Object.fromEntries(keys.map((k) => [k, process.env[k]]));
     afterEach(() => {
       for (const k of keys) {

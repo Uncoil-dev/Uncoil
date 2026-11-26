@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { UncoilClient, span, observe, traceAgent, type SpanData } from "../src/index";
+import { describe, it, expect, afterEach } from "vitest";
+import { UncoilClient, span, observe, traceAgent, currentRunId, currentSpanId, type SpanData } from "../src/index";
 
 class Recorder extends UncoilClient {
   sent: Array<Record<string, any>> = [];
@@ -72,5 +72,32 @@ describe("steps", () => {
     expect(sent.input).not.toContain("x".repeat(40));
     expect(sent.output.length).toBeLessThan(10_100);
     expect(sent.output).toContain("truncated");
+  });
+
+  describe("outside a step", () => {
+    const keys = ["UNCOIL_CURRENT_RUN_ID"] as const;
+    const saved = Object.fromEntries(keys.map((k) => [k, process.env[k]]));
+    afterEach(() => {
+      for (const k of keys) {
+        if (saved[k] === undefined) delete process.env[k];
+        else process.env[k] = saved[k];
+      }
+    });
+    const clear = () => { for (const k of keys) delete process.env[k]; };
+
+    it("uses the run id passed down from a parent process", () => {
+      clear();
+      process.env.UNCOIL_CURRENT_RUN_ID = "parent-run";
+      expect(currentRunId()).toBe("parent-run");
+    });
+
+    it("reports an unknown run when nothing is set", () => {
+      clear();
+      expect(currentRunId()).toBe("unknown");
+    });
+
+    it("has no current span", () => {
+      expect(currentSpanId()).toBeUndefined();
+    });
   });
 });

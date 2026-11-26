@@ -383,7 +383,11 @@ export async function POST(request: NextRequest) {
           ? otelSpan.status.message ?? "error"
           : "");
 
-        if (!input && !output) continue; // skip empty spans
+        // A root span (no parent) closes its trace, so it is kept even when empty and
+        // sent as run_end, or error when it failed, so the run stops showing as running.
+        const isRootSpan = !otelSpan.parentSpanId;
+        if (!input && !output && !isRootSpan) continue; // skip empty child spans
+        if (isRootSpan) attrs.metadata.otelSpanType = spanType;
 
         // Use traceId as runId (or a custom attribute override)
         const runId = getAttr(otelSpan.attributes, "ai.run.id")
@@ -394,7 +398,7 @@ export async function POST(request: NextRequest) {
           runId,
           projectId: projectDocId,
           projectDocId,
-          spanType,
+          spanType: isRootSpan ? (otelSpan.status?.code === 2 ? "error" : "run_end") : spanType,
           input: redactionEnabled ? redactPayload(input, redactionRules) : jsonString(input),
           output: redactionEnabled ? redactPayload(output, redactionRules) : jsonString(output),
           latencyMs: nanoToMs(otelSpan.endTimeUnixNano) - nanoToMs(otelSpan.startTimeUnixNano),
@@ -422,7 +426,8 @@ export async function POST(request: NextRequest) {
           stackTrace: attrs.stackTrace ?? "",
           timedOut: attrs.timedOut ?? false,
           timeoutMs: attrs.timeoutMs ?? 0,
-          createdAt: nanoToIso(otelSpan.startTimeUnixNano),
+          // The root span is stamped with its end time, which becomes the run's finish time.
+          createdAt: nanoToIso(isRootSpan ? otelSpan.endTimeUnixNano : otelSpan.startTimeUnixNano),
         };
 
         try {

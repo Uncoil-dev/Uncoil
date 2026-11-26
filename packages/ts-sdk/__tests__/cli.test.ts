@@ -108,4 +108,24 @@ describe("topics command", () => {
     const result = await runTopics({ apiKey: key, host: "https://example.test" });
     expect(!result.ok && result.message).toContain("ECONNREFUSED");
   });
+
+  it("rejects a reply with an unexpected shape instead of throwing", async () => {
+    for (const body of [{ total: 1, topics: [] }, null, [], { projectId: "p", map: null, facets: [] }, { projectId: "p", map: "x", facets: {} }]) {
+      vi.stubGlobal("fetch", reply(200, body));
+      const result = await runTopics({ apiKey: key, host: "https://example.test" });
+      expect(result).toEqual({ ok: false, message: "Uncoil sent an unexpected topics reply." });
+    }
+  });
+
+  it("reports a 500 and never prints the key", async () => {
+    vi.stubGlobal("fetch", reply(500, {}));
+    const failed = await runTopics({ apiKey: key, host: "https://example.test" });
+    expect(!failed.ok && failed.message).toContain("HTTP 500");
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError(`fetch failed for ${key}`); }));
+    const unreachable = await runTopics({ apiKey: key, host: "https://example.test" });
+    vi.stubGlobal("fetch", reply(200, payload));
+    const ok = await runTopics({ apiKey: key, host: "https://example.test" });
+    const printed = [failed, unreachable, ok.ok ? formatTopics(ok.data) : ""].map((r) => (typeof r === "string" ? r : JSON.stringify(r)));
+    for (const text of printed) expect(text).not.toContain(key);
+  });
 });

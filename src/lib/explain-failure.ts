@@ -116,7 +116,8 @@ export function explainFailure(spans: ExplainSpan[], run?: { totalCostUsd?: numb
   } else if (/max(imum)?[\s_-]?(steps|iterations)|step limit|iteration limit/i.test(error)) {
     sentence1 = "The agent hit its step limit without finishing.";
   } else {
-    const text = redactString(error || "unknown error").slice(0, 80);
+    // Cut before redacting: the patterns are slow on very long text, and only 80 characters are shown.
+    const text = redactString((error || "unknown error").slice(0, 400)).slice(0, 80);
     sentence1 = `Step ${n} (\`${name}\`) failed with "${text}", and every step after it depended on it.`;
   }
 

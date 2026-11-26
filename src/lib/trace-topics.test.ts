@@ -60,3 +60,39 @@ test("groups 2,000 traces quickly", () => {
   assert.ok(performance.now() - start < 3000);
   assert.equal(topics.reduce((sum, x) => sum + x.count, 0), 2000);
 });
+
+test("counts succeeded, failed and timed out traces per topic", () => {
+  const { topics } = groupTraceTopics([
+    t("a", "refund order 1"), t("b", "refund order 2"), t("c", "refund order 3", true),
+    { runId: "d", input: "refund order 4", hasError: false, timedOut: true },
+    { runId: "e", input: "refund order 5", hasError: true, timedOut: true },
+  ], { minSize: 2 });
+  assert.equal(topics.length, 1);
+  assert.deepEqual(topics[0].outcome, { succeeded: 2, failed: 1, timedOut: 2 });
+  assert.equal(topics[0].silentFailures, 0);
+});
+
+test("lists the three most common error groups per topic, most frequent first", () => {
+  const fail = (id: string, topic: string, errorMessage: string): TopicTrace => ({ runId: id, input: `${topic} request`, hasError: true, errorMessage });
+  const { topics } = groupTraceTopics([
+    fail("a1", "refund", "Card 4111 declined"), fail("a2", "refund", "Card 9999 declined"), fail("a3", "refund", "Card 1234 declined"),
+    fail("b1", "refund", "Order 17 not found"), fail("b2", "refund", "Order 18 not found"),
+    fail("c1", "refund", "Gateway timeout"),
+    fail("d1", "refund", "Rate limited"),
+    fail("s1", "seat", "Seat map unavailable"), fail("s2", "seat", "Seat map unavailable"), fail("s3", "seat", "Seat map unavailable"),
+  ], { minSize: 2 });
+  const refund = topics.find((x) => x.runIds.includes("a1"));
+  const seat = topics.find((x) => x.runIds.includes("s1"));
+  assert.ok(refund && seat);
+  assert.deepEqual(refund.issues.map((i) => [i.message, i.count]), [["Card <n> declined", 3], ["Order <n> not found", 2], ["Gateway timeout", 1]]);
+  assert.equal(refund.issues.length, 3);
+  assert.deepEqual(seat.issues.map((i) => i.count), [3]);
+  assert.notEqual(refund.issues[0].id, refund.issues[1].id);
+});
+
+test("a trace with no error and an empty final output is a silent failure", () => {
+  const ok = (runId: string, output?: string): TopicTrace => ({ runId, input: "refund order 1", hasError: false, output });
+  const { topics } = groupTraceTopics([ok("a", "Done"), ok("b", ""), ok("c", "   "), ok("d"), { ...ok("e", ""), hasError: true }], { minSize: 2 });
+  assert.equal(topics[0].silentFailures, 2);
+  assert.equal(topics[0].outcome.succeeded, 4);
+});

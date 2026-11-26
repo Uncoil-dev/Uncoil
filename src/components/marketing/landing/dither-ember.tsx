@@ -10,6 +10,27 @@ const BAYER = [
 ];
 const CELL = 4;
 
+/** Calls `frame` on every animation frame while `el` is on screen, and not at all while it is off screen. Returns a cleanup. */
+export function loopWhileVisible(el: Element, frame: (ms: number) => void) {
+  let raf = 0;
+  const tick = (ms: number) => {
+    frame(ms);
+    raf = requestAnimationFrame(tick);
+  };
+  const io = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting && !raf) raf = requestAnimationFrame(tick);
+    if (!entry.isIntersecting && raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+  });
+  io.observe(el);
+  return () => {
+    io.disconnect();
+    cancelAnimationFrame(raf);
+  };
+}
+
 /** Yellow ordered-dither glow that rises from the bottom-left and drifts slowly. */
 export function DitherEmber({ className = "", rgb = [244, 212, 77] }: { className?: string; rgb?: readonly [number, number, number] }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -21,7 +42,6 @@ export function DitherEmber({ className = "", rgb = [244, 212, 77] }: { classNam
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let w = 0;
     let h = 0;
-    let raf = 0;
     let img: ImageData;
     const [r, g, b] = rgb;
 
@@ -54,17 +74,13 @@ export function DitherEmber({ className = "", rgb = [244, 212, 77] }: { classNam
       draw(0);
     };
 
-    const loop = (ms: number) => {
-      draw(ms / 1800);
-      raf = requestAnimationFrame(loop);
-    };
-
     resize();
     window.addEventListener("resize", resize);
-    if (!still) raf = requestAnimationFrame(loop);
+    // Off-screen glows keep their last frame and skip the per-pixel work until they scroll back into view.
+    const stop = still ? undefined : loopWhileVisible(canvas, (ms) => draw(ms / 1800));
     return () => {
       window.removeEventListener("resize", resize);
-      cancelAnimationFrame(raf);
+      stop?.();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- colour is fixed for the life of the canvas
   }, []);

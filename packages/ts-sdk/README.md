@@ -207,6 +207,22 @@ const uncoil = new UncoilClient({
 });
 ```
 
+### Short scripts and serverless functions
+
+Spans are sent in the background so tracing never slows your app down. A serverless function or short script can end before those sends finish, which drops the last spans of a run. Wait for them before returning:
+
+```ts
+import { flush } from "@uncoil.dev/sdk";
+
+export async function POST(request: Request) {
+  const answer = await runAgent(await request.json());
+  await flush(); // waits for every pending span, up to 5 seconds by default
+  return Response.json(answer);
+}
+```
+
+`flush(timeoutMs)` resolves to `true` once every pending span is delivered, or `false` if some are still in flight when the timeout passes. A single client has the same method: `await uncoil.flush()`.
+
 Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, set `redact: { pii: false }`.
 
 ### Sign in from the terminal

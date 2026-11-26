@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { UncoilClient, UncoilError, buildRedactor, sampleBucket, uncoilMiddleware, traceTools } from "../src/index";
+import { UncoilClient, UncoilError, buildRedactor, sampleBucket, uncoilMiddleware, traceTools, traceAgent, flush as flushAll } from "../src/index";
 
 const KEY = "uncoil_sk_live_eu_abcdefghijklmnop";
 let sent: any[] = [];
@@ -149,5 +149,39 @@ describe("framework helpers", () => {
     expect(llm.find((s) => s.output === "hello")).toMatchObject({ modelId: "gpt-test", inputTokens: 5, outputTokens: 2 });
     expect(llm.find((s) => s.output === "ab")).toMatchObject({ inputTokens: 3, outputTokens: 4 });
     expect(llm.some((s) => s.errorMessage?.includes("rate limit"))).toBe(true);
+  });
+});
+
+describe("flush", () => {
+  function slowFetch(ms: number) {
+    const done: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
+      await new Promise((resolve) => setTimeout(resolve, ms));
+      done.push(JSON.parse(String(init.body)).spanType);
+      return new Response("{}", { status: 202 });
+    }));
+    return done;
+  }
+  it("waits for a delayed send to settle", async () => {
+    const done = slowFetch(30);
+    const client = new UncoilClient({ apiKey: KEY });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    expect(done).toEqual([]);
+    await expect(client.flush()).resolves.toBe(true);
+    expect(done).toEqual(["llm_call"]);
+  });
+  it("waits for spans sent by traceAgent from the top-level flush", async () => {
+    const done = slowFetch(30);
+    const run = traceAgent(async () => "ok", { apiKey: KEY, name: "short-job" });
+    await expect(run()).resolves.toBe("ok");
+    expect(done).toEqual([]);
+    await flushAll();
+    expect(done).toEqual(["run_end"]);
+  });
+  it("gives up after the timeout when a send hangs", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
+    const client = new UncoilClient({ apiKey: KEY });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await expect(client.flush(20)).resolves.toBe(false);
   });
 });

@@ -66,7 +66,7 @@ export async function buildTopicMap(job: TopicMapJob, deps: TopicMapDeps): Promi
     for (const runId of await deps.missingRunIds(runIds)) {
       const facets = await summarizeTrace(await deps.loadSpans(runId), { callModel });
       if (providerFailed) break;
-      fresh.push({ runId, intent: facets.intent, sentiment: facets.sentiment, outcome: facets.outcome, issues: facets.issue ? [facets.issue] : [] });
+      fresh.push({ runId, intent: facets.intent, sentiment: facets.sentiment, outcome: facets.outcome, issues: /^(none)?$/i.test(facets.issue.trim()) ? [] : [facets.issue] });
     }
     if (fresh.length) await deps.saveSummaries(fresh);
     if (providerFailed) return await fail(deps, "The model connection returned an error, so this map is paused. Check the connection and refresh the map.");
@@ -75,8 +75,9 @@ export async function buildTopicMap(job: TopicMapJob, deps: TopicMapDeps): Promi
     const topics: TopicRow[] = [];
     const shortfall: Record<string, number> = {};
     for (const facet of job.facets) {
-      if (summaries.length < MIN_TRACES_PER_FACET) { shortfall[facet] = MIN_TRACES_PER_FACET - summaries.length; continue; }
-      const { total, topics: grouped } = groupTraceTopics(summaries.map((row) => ({ runId: row.runId, input: facetText(row, facet), hasError: false })));
+      const withValue = summaries.filter((row) => facetText(row, facet).trim() !== "");
+      if (withValue.length < MIN_TRACES_PER_FACET) { shortfall[facet] = MIN_TRACES_PER_FACET - withValue.length; continue; }
+      const { total, topics: grouped } = groupTraceTopics(withValue.map((row) => ({ runId: row.runId, input: facetText(row, facet), hasError: false })));
       for (const topic of grouped) {
         topics.push({ facet, name: topic.name, description: topic.terms.join(", "), count: topic.count, share: total ? topic.count / total : 0, sampleRunIds: topic.sampleRunIds });
       }

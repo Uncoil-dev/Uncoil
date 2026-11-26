@@ -16,7 +16,7 @@ function setup(options: { runs?: number; stored?: Summary[]; modelFails?: boolea
     callModel: async () => {
       calls.model++;
       if (options.modelFails) throw new Error("provider down");
-      return options.modelText ?? JSON.stringify({ intent: "Refund an order", sentiment: "Neutral", outcome: "Completed", issues: [] });
+      return JSON.stringify({ intent: "Refund an order", sentiment: "Neutral", outcome: "Completed", issue: "none" });
     },
     saveSummaries: async (rows) => { for (const row of rows) stored.set(row.runId, row); },
     loadSummaries: async (ids) => ids.flatMap((id) => (stored.has(id) ? [stored.get(id)!] : [])),
@@ -30,7 +30,7 @@ const job = { projectId: "p1", filters: {}, facets: ["intent"], sampleRate: 1 };
 describe("buildTopicMap", () => {
   it("summarizes only missing traces, groups them per facet and marks the map ready", async () => {
     const existing: Summary = { runId: "run-0", intent: "Refund an order", sentiment: "Neutral", outcome: "Completed", issues: [] };
-    const { deps, calls } = setup({ stored: [existing] });
+    const { deps, calls, stored } = setup({ stored: [existing] });
     const result = await buildTopicMap(job, deps);
     expect(calls.spans).not.toContain("run-0");
     expect(calls.spans).toHaveLength(11);
@@ -39,6 +39,7 @@ describe("buildTopicMap", () => {
     expect(calls.topics.every((t) => t.facet === "intent")).toBe(true);
     expect(calls.map.at(-1)?.status).toBe("ready");
     expect(result.status).toBe("ready");
+    expect(stored.get("run-5")).toEqual({ runId: "run-5", intent: "Refund an order", sentiment: "Neutral", outcome: "Completed", issues: [] });
   });
 
   it("keeps a facet without topics and reports how many more traces it needs", async () => {
@@ -47,6 +48,13 @@ describe("buildTopicMap", () => {
     expect(calls.topics).toEqual([]);
     expect(result).toMatchObject({ status: "ready" });
     expect(result.status === "ready" && result.shortfall).toEqual({ intent: MIN_TRACES_PER_FACET - 4 });
+  });
+
+  it("counts only traces that have a value for the facet", async () => {
+    const { deps, calls } = setup({ runs: 12 });
+    const result = await buildTopicMap({ ...job, facets: ["issues"] }, deps);
+    expect(calls.topics).toEqual([]);
+    expect(result.status === "ready" && result.shortfall).toEqual({ issues: MIN_TRACES_PER_FACET });
   });
 
   it("samples a share of the matching traces", async () => {

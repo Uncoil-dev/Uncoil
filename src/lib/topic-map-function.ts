@@ -30,7 +30,13 @@ export function createTopicMapFunction(getSource: () => TopicMapSource) {
     async ({ event, step }) => {
       const requested = (event.data as { projectId?: unknown } | undefined)?.projectId;
       const projectId = typeof requested === "string" ? requested : undefined;
-      return step.run("build", () => refreshTopicMaps(getSource(), projectId));
+      const source = getSource();
+      const jobs = projectId ? [await step.run("find-map", () => source.mapFor(projectId))] : await step.run("find-live-maps", () => source.liveMaps());
+      const results = [];
+      for (const job of jobs) {
+        if (job) results.push(await step.run(`build-${job.projectId}`, () => buildTopicMap(job, source.depsFor(job))));
+      }
+      return results;
     },
   );
 }

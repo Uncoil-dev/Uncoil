@@ -27,15 +27,6 @@ describe("UncoilLangGraphHandler", () => {
     expect(records[2]).toMatchObject({ spanType: "run_end", toolName: "graph" });
   });
 
-  it("keeps cache details from usage_metadata", () => {
-    const h = make();
-    h.handleLLMStart({}, ["hi"], "l1", undefined, { invocation_params: { model: "m-1" } });
-    const usage_metadata = { input_tokens: 20, output_tokens: 3, total_tokens: 23, input_token_details: { cache_read: 15 } };
-    h.handleLLMEnd({ generations: [[{ text: "ok", message: { usage_metadata } }]] }, "l1");
-    expect(records[0]).toMatchObject({ inputTokens: 20, outputTokens: 3 });
-    expect(records[0].metadata.usage).toMatchObject({ total_tokens: 23, input_token_details: { cache_read: 15 } });
-  });
-
   it("records errors with their type and message", () => {
     const h = make();
     h.handleChainStart({}, {}, "c1");
@@ -65,6 +56,15 @@ describe("UncoilLangGraphHandler", () => {
     h.handleChainEnd({}, "c1");
     expect(records[0]).toMatchObject({ toolName: "model", inputTokens: 3, outputTokens: 1 });
     expect(records[1].toolName).toBe("graph");
+  });
+
+  it("keeps cache details from usage_metadata", () => {
+    const h = make();
+    h.handleLLMStart({}, ["hi"], "l1", undefined, { invocation_params: { model: "m-1" } });
+    const usage_metadata = { input_tokens: 20, output_tokens: 3, total_tokens: 23, input_token_details: { cache_read: 15 } };
+    h.handleLLMEnd({ generations: [[{ text: "ok", message: { usage_metadata } }]] }, "l1");
+    expect(records[0]).toMatchObject({ inputTokens: 20, outputTokens: 3 });
+    expect(records[0].metadata.usage).toMatchObject({ total_tokens: 23, input_token_details: { cache_read: 15 } });
   });
 
   it("honors captureInput and captureOutput", () => {

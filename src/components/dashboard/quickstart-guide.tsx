@@ -9,6 +9,7 @@ import { ArrowRight, BookOpen, Check, Copy } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { DitherEmber } from "@/components/marketing/landing/dither-ember";
+import { keyEnvLines } from "@/lib/quickstart-env";
 import { scoreSnippet } from "@/lib/score-snippets";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
@@ -106,8 +107,8 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
     return () => window.clearInterval(id);
   }, [arrived, current]);
 
-  const keyLine = `UNCOIL_API_KEY=${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}\nUNCOIL_REGION=${region.id}`;
-  const envCopy = `UNCOIL_API_KEY=${apiKey || "YOUR_API_KEY"}\nUNCOIL_REGION=${region.id}`;
+  const shownEnv = keyEnvLines(`${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}`, region.id);
+  const copyEnv = keyEnvLines(apiKey || "YOUR_API_KEY", region.id);
   const agentPrompt = `Set up Uncoil tracing in this project.\n\n1. Install: ${snippet.install}\n2. Wrap the main agent function with the Uncoil tracing helper and record each model call.\n3. Read UNCOIL_API_KEY and UNCOIL_REGION=${region.id} from the environment. Never print or commit the key.\n4. Run the agent once and tell me where to see the trace.`;
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const ss = String(elapsed % 60).padStart(2, "0");
@@ -172,7 +173,12 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
               ) : null}
               {current === "install" ? <Code code={snippet.install} id="install" file="terminal" copied={done === "install"} onCopy={() => copy("install", snippet.install)} /> : null}
               {current === "instrument" ? <Code code={snippet.code} id="code" file={snippet.file} copied={done === "code"} onCopy={() => copy("code", snippet.code)} /> : null}
-              {current === "key" ? <Code code={keyLine} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", envCopy)} /> : null}
+              {current === "key" ? (
+                <div className="space-y-4">
+                  <Code code={shownEnv.dotenv} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", copyEnv.dotenv)} />
+                  <Code code={shownEnv.powershell} id="powershell" file="Windows PowerShell" copied={done === "powershell"} onCopy={() => copy("powershell", copyEnv.powershell)} />
+                </div>
+              ) : null}
               {current === "verify" ? (
                 <div className="max-w-[560px] border border-[#3a3a3a] bg-[#000000cc] font-mono" role="status" aria-live="polite">
                   <div className="flex items-center justify-between border-b border-[#2a2a2a] px-4 py-3 text-[10px] uppercase tracking-[0.16em]">

@@ -193,7 +193,7 @@ export function TraceArchive({ posts, categories }: { posts: JournalPost[]; cate
           <label className="flex min-h-11 items-center gap-3 border border-black bg-white px-3 md:w-72">
             <span className="sr-only">Search articles</span>
             <span aria-hidden="true" className="font-mono text-xs text-black/55">/</span>
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search articles" className="min-w-0 flex-1 bg-transparent font-mono text-xs outline-none placeholder:text-black/50" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search articles" placeholder="Search articles" className="min-w-0 flex-1 bg-transparent font-mono text-xs outline-none placeholder:text-black/50" />
             <span className="font-mono text-[10px] text-black/55">{shown.length}</span>
           </label>
         </div>

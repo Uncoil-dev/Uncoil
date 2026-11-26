@@ -28,6 +28,7 @@
     "test:leads": "playwright test tests/e2e/leads.spec.ts",
     "test:convex:leads": "vitest run convex/leads.test.ts",
     "test:convex:settings": "vitest run convex/settingsPanels.test.ts",
+    "test:convex:webhooks": "vitest run convex/projectWebhooks.test.ts",
     "verify:regions": "node scripts/verify-regional-cloud.mjs",
     "test:sdk:ts": "npm test --prefix packages/ts-sdk",
     "test:sdk:python": "python -m pytest packages/python-sdk/tests -q",

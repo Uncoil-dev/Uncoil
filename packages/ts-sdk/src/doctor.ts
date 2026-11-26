@@ -75,7 +75,7 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
   add({ id: "runtime", title: "Runtime", status: "ok", message: `Node ${process.versions.node}` });
 
   if (!apiKey) {
-    add({ id: "key", title: "API key", status: "fail", message: "No API key was found.", hint: "Set the UNCOIL_API_KEY environment variable, or run with --key. Create a key on the API keys page of your dashboard." });
+    add({ id: "key", title: "API key", status: "fail", message: "No API key was found.", hint: "Run `npx @uncoil.dev/sdk login` in this folder to save your key, or set the UNCOIL_API_KEY environment variable, or run with --key. Create a key on the API keys page of your dashboard." });
     return report();
   }
   if (!/^(uncoil|tracify)_sk_/.test(apiKey)) {
@@ -158,7 +158,7 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
     } else if (status >= 500) {
       add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil had a problem on its side (${status}).`, hint: "Your app is not affected. Check the status page and try again in a minute." });
     } else {
-      add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil did not accept the test trace (${status}).`, hint: "Update uncoil to the latest version; if it still happens, contact support." });
+      add({ id: "trace", title: "Test trace", status: "fail", message: `Uncoil did not accept the test trace (${status}).`, hint: "Update @uncoil.dev/sdk to the latest version; if it still happens, contact support." });
     }
   } catch (error) {
     add({ id: "trace", title: "Test trace", status: "fail", message: `The test trace could not be sent (${errorText(error)}).`, hint: `Check your connection and try again.${proxyNote}` });

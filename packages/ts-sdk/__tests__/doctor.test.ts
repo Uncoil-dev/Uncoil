@@ -36,7 +36,9 @@ describe("setup checker", () => {
   });
   it("fails clearly on a missing or wrong-shaped key without any network call", async () => {
     mockFetch();
-    expect(status(await runDoctor({}), "key")).toBe("fail");
+    const missing = (await runDoctor({})).checks.find((c) => c.id === "key");
+    expect(missing?.status).toBe("fail");
+    expect(missing?.hint).toMatch(/^Run `npx @uncoil\.dev\/sdk login`.*UNCOIL_API_KEY.*--key/);
     const odd = await runDoctor({ apiKey: "sk-openai-1234567890123" });
     expect(odd.checks.find((c) => c.id === "key")?.hint).toContain("API keys page");
     expect(calls).toHaveLength(0);
@@ -54,7 +56,7 @@ describe("setup checker", () => {
     expect(report.checks.find((c) => c.id === "network")?.message).toContain("ENOTFOUND");
     expect(report.checks.find((c) => c.id === "trace")).toBeUndefined();
   });
-  it.each([[401, "revoked"], [403, "disabled"], [429, "limit"], [503, "status page"], [422, "latest version"]])("explains HTTP %i", async (code, word) => {
+  it.each([[401, "revoked"], [403, "disabled"], [429, "limit"], [503, "status page"], [422, "Update @uncoil.dev/sdk to the latest version"]])("explains HTTP %i", async (code, word) => {
     mockFetch(code);
     const report = await runDoctor({ apiKey: KEY });
     expect(report.ok).toBe(false);

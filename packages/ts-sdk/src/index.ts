@@ -681,7 +681,8 @@ export interface StepOptions {
 }
 
 let defaultClientInstance: UncoilClient | undefined;
-function defaultClient() {
+/** The shared client used when no client is passed and no trace is active, so setup warnings print once. */
+export function defaultClient() {
   return (defaultClientInstance ??= new UncoilClient());
 }
 

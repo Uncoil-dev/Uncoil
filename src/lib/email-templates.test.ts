@@ -25,7 +25,7 @@ test("no-trace email falls back to onboarding without a project", () => {
 
 test("first-trace email links the trace, suggests a next step and escapes the name", () => {
   const email = renderFirstTraceEmail({ name: "<i>Eve</i> Doe", projectId: "p 1", runId: "run/2", origin });
-  const trace = `${origin}/dashboard/p%201/runs/run%2F2`;
+  const trace = `${origin}/dashboard/p%201/tracing/run%2F2`;
   assert.ok(email.html.includes(trace));
   assert.ok(email.text.includes(trace));
   assert.ok(email.html.includes(`${origin}/dashboard/p%201/costs`));

@@ -73,7 +73,7 @@ export function renderNoTraceEmail(args: { name?: string; projectName?: string; 
 export function renderFirstTraceEmail(args: { name?: string; projectId: string; runId: string; origin: string; assets?: string }): RenderedEmail {
   const hi = `Hi ${firstName(args.name)},`;
   const project = `${args.origin}/dashboard/${encodeURIComponent(args.projectId)}`;
-  const trace = `${project}/runs/${encodeURIComponent(args.runId)}`;
+  const trace = `${project}/tracing/${encodeURIComponent(args.runId)}`;
   const costs = `${project}/costs`;
   const content = `${button("Open your trace", trace)}<p style="margin:28px 0 0;font-family:${SANS};font-size:15px;line-height:25px;color:#33332f;"><strong>One next step:</strong> run your agent a few more times with real inputs, then open <a href="${escapeHtml(costs)}" style="color:${INK};font-weight:700;">Costs</a> to see which step spends the most.</p><p style="margin:16px 0 0;font-family:${SANS};font-size:15px;line-height:25px;color:#33332f;">Something look wrong in the trace? Reply to this email and I'll take a look.</p>${signoff()}`;
   const html = shell({ tag: "First trace", hero: "welcome-hero.png", heroAlt: "A trace waterfall: spans cascading across the screen, the first trace arriving in yellow.", assets: args.assets ?? args.origin, greeting: hi.replace(/,$/, ""), heading: `Your first trace is ${mark("in.")}`, intro: "Uncoil just received your agent's first run. Open it to see every step, model call, tool call, cost and error in order.", content, footer: `You're getting this once because your project received its first trace. Questions? <a href="mailto:kb@uncoil.dev" style="color:${YELLOW};">kb@uncoil.dev</a>.` });

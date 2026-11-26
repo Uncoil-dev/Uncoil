@@ -231,6 +231,9 @@ function createId() {
   return `span_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
 }
 
+/** Longest an ingest, feedback or score request may take, so a hung network cannot hold sockets open. */
+const REQUEST_TIMEOUT_MS = 10_000;
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -382,6 +385,7 @@ export class UncoilClient {
     try {
       fetch(this.ingestUrl, {
         method: 'POST',
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
@@ -416,13 +420,13 @@ export class UncoilClient {
   /** Attach end-user feedback to a trace or span. The request is fire-and-forget like span ingestion. */
   feedback(traceId: string, value: boolean | number | string, options: { kind?: 'thumb' | 'star' | 'text'; spanId?: string; reason?: string; comment?: string; endUserId?: string; dedupeKey?: string; projectId?: string } = {}) {
     if (!this.apiKey || !(options.projectId || this.projectId)) return;
-    fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
+    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
   }
 
   /** Attach a typed score to a trace or span through the feedback API. */
   score(traceId: string, name: string, value: boolean | number | string, options: { dataType?: 'numeric' | 'boolean' | 'categorical' | 'text'; spanId?: string; comment?: string; projectId?: string } = {}) {
     if (!this.apiKey || !(options.projectId || this.projectId)) return;
-    fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
+    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
   }
 
   /**

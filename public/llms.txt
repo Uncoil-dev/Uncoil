@@ -39,7 +39,7 @@ Use the documentation for implementation details and the blog for explanatory gu
 - [Free AI agent cost estimator](https://www.uncoil.dev/tools/ai-cost-estimator): Estimate cost per run, per finished task and per month from traffic and token counts.
 - [Best LLM observability tools](https://www.uncoil.dev/best-llm-observability-tools): How to choose a tool, and who each option fits.
 - [Use cases](https://www.uncoil.dev/use-cases/coding): Coding, RAG, voice, browser, multi-agent, MCP, chatbot, sales, SQL, document, cost control, release testing and internal copilot use cases, plus support, research, automation and tool-calling agents.
-- [Questions answered](https://www.uncoil.dev/answers): Short answers on prompt tracing, request-lifecycle tracing, catching agent failures, OpenTelemetry ingestion and best practices.
+- [Questions answered](https://www.uncoil.dev/answers): Short answers on prompt tracing, request-lifecycle tracing, catching agent failures and low-overhead production tracing.
 - [Tracking AI agent costs](https://www.uncoil.dev/answers/track-ai-agent-costs): Record tokens, retries and tool calls per run, then rank spend by model and tool.
 - [Debugging a failing AI agent run](https://www.uncoil.dev/answers/debug-failing-ai-agent-run): Find the first failing step, inspect tool inputs and compare with a passing run.
 - [What is AI agent observability?](https://www.uncoil.dev/answers/what-is-ai-agent-observability): Two-sentence definition, how it differs from logging, and the signals it covers.

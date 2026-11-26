@@ -31,7 +31,18 @@ export function searchDocs(docs: SearchableDoc[], query: string, limit = 8): Doc
   }).filter((result) => result.score > 0).sort((a, b) => b.score - a.score || a.title.localeCompare(b.title)).slice(0, limit);
 }
 
-/** The search bar only needs these fields. Sending full markdown bodies would add every guide to each docs page payload. */
+/** What the docs search bar renders before its full index loads: public guides only, no headings or body text. */
+export type DockLink = Pick<DocArticle, "slug" | "title" | "description" | "section">;
+export function toDockLinks(docs: DocArticle[]): DockLink[] {
+  return docs.filter((doc) => !doc.noindex).map(({ slug, title, description, section }) => ({ slug, title, description, section }));
+}
+
+/** Searches titles and descriptions only, so the search bar can answer while the full index is still loading. */
+export function searchDockLinks(links: DockLink[], query: string, limit = 8): DocsSearchResult[] {
+  return searchDocs(links.map((link) => ({ ...link, headings: [], bodyText: link.description, noindex: false })), query, limit);
+}
+
+/** The full search index, served as JSON so the search bar can fetch it on first use instead of every docs page carrying it. */
 export function toDockDocs(docs: DocArticle[]): SearchableDoc[] {
   return docs.map(({ slug, title, description, section, headings, bodyText, noindex }) => ({ slug, title, description, section, headings, bodyText, noindex }));
 }

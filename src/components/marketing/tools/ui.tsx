@@ -164,7 +164,7 @@ export function CopyButton({ text, label = "Copy", disabled }: { text: string; l
         window.setTimeout(() => setState("idle"), 2000);
       }}
     >
-      {state === "done" ? "Copied" : state === "failed" ? "Select and copy by hand" : label}
+      <span aria-live="polite">{state === "done" ? "Copied" : state === "failed" ? "Select and copy by hand" : label}</span>
     </button>
   );
 }

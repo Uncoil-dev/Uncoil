@@ -4,7 +4,13 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { blogMarkdocConfig, createBlogRepository, extractBlogFaqItems } from "./markdoc-blog.ts";
+import {
+  blogMarkdocConfig,
+  createBlogRepository,
+  extractBlogFaqItems,
+  extractBlogHeadings,
+  slugifyBlogHeading,
+} from "./markdoc-blog.ts";
 
 function withContentDirectory(files: Record<string, string>, run: (directory: string) => void) {
   const directory = mkdtempSync(path.join(tmpdir(), "uncoil-markdoc-"));
@@ -141,6 +147,30 @@ test("decorative title punctuation does not change heading anchors", () => {
       const post = createBlogRepository(directory).getPublishedPost("first-post");
       assert.equal(post?.headings[0]?.id, "section-evidence-action");
     },
+  );
+});
+
+test("slugifyBlogHeading strips accents and punctuation and collapses spaces and dashes", () => {
+  assert.equal(slugifyBlogHeading("Café Résumé Naïveté"), "cafe-resume-naivete");
+  assert.equal(slugifyBlogHeading("What's new? (2026) & more!"), "whats-new-2026-more");
+  assert.equal(slugifyBlogHeading("  Spans    and   traces  "), "spans-and-traces");
+  assert.equal(slugifyBlogHeading("Cost -- per --- run"), "cost-per-run");
+});
+
+test("extractBlogHeadings ignores headings inside code fences", () => {
+  const fence = "`".repeat(3);
+  const body = ["## Before code", fence + "bash", "## Not a heading", "### Also not", fence, "### After code"].join("\n");
+  assert.deepEqual(extractBlogHeadings(body), [
+    { level: 2, text: "Before code", id: "before-code" },
+    { level: 3, text: "After code", id: "after-code" },
+  ]);
+});
+
+test("extractBlogHeadings gives duplicate headings unique ids", () => {
+  const body = ["## Setup", "### Setup", "## Setup!", "## ???"].join("\n");
+  assert.deepEqual(
+    extractBlogHeadings(body).map((heading) => heading.id),
+    ["setup", "setup-2", "setup-3", "section"],
   );
 });
 

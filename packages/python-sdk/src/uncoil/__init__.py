@@ -436,7 +436,7 @@ class UncoilClient:
         try:
             response = (self._http.get if self._http else _requests_fallback.get)(f"{self.host}/api/prompts/{name}", headers={"Authorization": f"Bearer {self.api_key}"}, params={"environment": environment}, timeout=10)
             if response.status_code >= 400:
-                raise RuntimeError(f"Prompt resolution failed ({response.status_code}): {response.text[:300]}")
+                raise RuntimeError(f"Prompt resolution failed ({response.status_code}): {response.text[:300]}. Check that a prompt named {name!r} with the label {environment!r} exists on the Prompts page.")
             value = response.json()
             self._prompt_cache[key] = {"value": value, "expires_at": now + cache_ttl_seconds}
             return value
@@ -449,7 +449,7 @@ class UncoilClient:
 
     def _send_feedback(self, payload: Dict[str, Any]):
         if not self.project_id:
-            print("Uncoil Warning: project_id is required for feedback and score helpers")
+            print("Uncoil Warning: project_id is required for feedback and score helpers. Pass project_id= to UncoilClient; the id is in the dashboard URL and in project settings.")
             return
         try:
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}

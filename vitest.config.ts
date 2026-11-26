@@ -21,7 +21,7 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: /^@\//, replacement: fileURLToPath(new URL("./src/", import.meta.url)) },
-      // Matches the tsconfig `convex/*` path so route modules can load the committed Convex bindings.
+      // Mirrors the tsconfig `convex/*` path so route handlers can import generated bindings.
       { find: /^convex\/_generated\//, replacement: fileURLToPath(new URL("./convex/_generated/", import.meta.url)) },
     ],
   },

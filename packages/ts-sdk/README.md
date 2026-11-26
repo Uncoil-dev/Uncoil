@@ -245,4 +245,4 @@ Not seeing traces? One command checks your key, region and network, then sends a
 npx @uncoil.dev/sdk doctor
 ```
 
-It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.
+It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan. When the key's project is known, the report links straight to the test trace in your dashboard (`traceUrl` in `--json` output).

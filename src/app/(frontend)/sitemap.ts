@@ -1,5 +1,5 @@
 import { getPostDate, getPublishedPosts } from "@/lib/markdoc-blog";
-import { getDocs } from "@/lib/markdoc-docs";
+import { getPublicDocs } from "@/lib/markdoc-docs";
 import { comparisons, integrationPages } from "@/lib/seo-pages";
 import { answers } from "@/lib/answers";
 import { glossaryTerms } from "@/lib/glossary";
@@ -34,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productFeatures = ["trace-viewer", "cost-dashboard", "tool-calls", "llm-calls", "failures", "reports", "runtime-control", "evaluation-engine", "lifecycle"];
   const useCases = ["research", "support", "automation", "tool-calling", "coding", "rag", "voice", "browser", "multi-agent", "mcp", "chatbot", "sales", "sql", "documents", "cost-control", "release", "copilot"];
-  const documentation = getDocs().map((doc) => doc.slug);
+  const documentation = getPublicDocs().map((doc) => doc.slug);
 
   return [
     { url: baseUrl, lastModified: pageLastModified("/"), changeFrequency: "weekly", priority: 1.0 },

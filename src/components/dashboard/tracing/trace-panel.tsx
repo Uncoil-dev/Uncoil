@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildSpanTree, type SpanTreeNode } from "@/lib/uncoil-ports/treeBuilding";
+import { slowestStep } from "@/lib/trace-critical-path";
 import { chatMessages, compactNumber, downloadFile, formatCost, formatDuration, formatTime, parsePayload } from "./format";
 import { AskAiPanel } from "./ask-ai-panel";
 import { ScoreRunButton } from "../scores/score-run-button";
@@ -150,6 +151,7 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
         .some((value) => typeof value === "string" && value.toLowerCase().includes(needle));
     });
   }, [filtering, rows, tree, bySpanId, stepFilter, stepSearch]);
+  const slowest = useMemo(() => slowestStep(spans ?? []), [spans]);
   const counts = useMemo(() => Object.fromEntries(STEP_FILTERS.map((filter) => [filter.id, (spans ?? []).filter((span) => matchesFilter(span, filter.id)).length])) as Record<StepFilter, number>, [spans]);
   // Earliest failing step by start time.
   const firstErrorId = useMemo(() => earliestFailedId(spans ?? []), [spans]);
@@ -179,8 +181,10 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
   }
 
   function jumpToError() {
-    const target = firstErrorId;
-    if (!target) return;
+    if (firstErrorId) jumpToStep(firstErrorId);
+  }
+
+  function jumpToStep(target: string) {
     setCollapsed(new Set());
     setStepFilter("all");
     setStepSearch("");
@@ -225,6 +229,11 @@ export function TracePanel({ projectId, runId, summary, view, onView, onClose, o
         <span>{compactNumber(tokens)} tokens</span>
         {spans ? <span>{spans.length} step{spans.length === 1 ? "" : "s"}</span> : null}
         {counts.error ? <button type="button" onClick={jumpToError} className="rounded bg-[#3A1C1F] px-1.5 py-0.5 text-[#FF8A8A] hover:bg-[#4A2226]">{counts.error} error{counts.error === 1 ? "" : "s"} · jump</button> : null}
+        {slowest && bySpanId.get(slowest.spanId) ? (
+          <button type="button" onClick={() => jumpToStep(slowest.spanId)} title="The longest step on the path that set this trace's duration" className="rounded bg-[#1A1F27] px-1.5 py-0.5 hover:bg-[#232A34]">
+            Slowest: {spanName(bySpanId.get(slowest.spanId)!)} · {formatDuration(slowest.latencyMs)}
+          </button>
+        ) : null}
         {user ? <button type="button" className="text-[#8AB4FF] hover:underline" onClick={() => onFilter("endUserId", user)}>user: {user}</button> : null}
         {session ? <button type="button" className="text-[#8AB4FF] hover:underline" onClick={() => onFilter("sessionId", session)}>session: {session}</button> : null}
         {(summary?.tags ?? []).map((tag) => <button key={tag} type="button" className="rounded bg-[#1A1F27] px-1.5 py-0.5 hover:bg-[#232A34]" onClick={() => onFilter("tag", tag)}>{tag}</button>)}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { criticalPath, type CriticalPathSpan } from "./trace-critical-path";
+import { criticalPath, slowestStep, type CriticalPathSpan } from "./trace-critical-path";
 
 const span = (spanId: string, startMs: number, latencyMs: number, parentSpanId = ""): CriticalPathSpan => ({
   spanId, parentSpanId, spanType: "tool_call", label: spanId, startMs, latencyMs, costUsd: 0,
@@ -33,5 +33,24 @@ describe("criticalPath", () => {
   it("ranks bottlenecks by duration with their share of the run", () => {
     const result = criticalPath([span("a", 0, 100), span("b", 100, 300), span("c", 400, 100)]);
     expect(result.bottlenecks[0]).toMatchObject({ spanId: "b", share: 0.6 });
+  });
+});
+
+describe("slowestStep", () => {
+  const step = (spanId: string, createdAt: string, latencyMs: number, parentSpanId = "") => ({ spanId, parentSpanId, spanType: "tool_call", createdAt, latencyMs, costUsd: 0 });
+
+  it("picks the longest step on the critical path from stored timestamps, never the wrapping root", () => {
+    const result = slowestStep([
+      step("root", "2026-11-26 10:00:00", 9000),
+      step("plan", "2026-11-26 10:00:00", 1000, "root"),
+      step("search", "2026-11-26 10:00:01", 6500, "root"),
+      step("answer", "2026-11-26T10:00:07.500Z", 1500, "root"),
+    ]);
+    expect(result).toEqual({ spanId: "search", latencyMs: 6500 });
+  });
+
+  it("returns null when there is nothing to compare", () => {
+    expect(slowestStep([])).toBeNull();
+    expect(slowestStep([step("only", "2026-11-26 10:00:00", 400)])).toBeNull();
   });
 });

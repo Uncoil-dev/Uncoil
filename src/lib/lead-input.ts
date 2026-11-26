@@ -5,12 +5,14 @@ const clean = (value: unknown) => (typeof value === "string" ? value.trim() : ""
 // "useCase" -> "Use case", so the message names the field the way the form does.
 const label = (key: string) => key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`).replace(/^./, (first) => first.toUpperCase());
 
-// Text before an @, then a dot with text on both sides after it, and no spaces.
-// Index checks instead of a regex keep the cost linear on long hostile input.
-const looksLikeEmail = (email: string) => {
-  const at = email.indexOf("@");
-  const dot = email.lastIndexOf(".");
-  return at > 0 && dot > at + 1 && dot < email.length - 1 && !/\s/.test(email);
+// Exactly one @, text before it, and a domain with a dot that has text on both sides; no spaces.
+// Plain string checks instead of a regex keep the cost linear on long hostile input.
+export const looksLikeEmail = (email: string) => {
+  const parts = email.split("@");
+  if (parts.length !== 2 || /\s/.test(email)) return false;
+  const [local, domain] = parts;
+  const dot = domain.lastIndexOf(".");
+  return local.length > 0 && dot > 0 && dot < domain.length - 1;
 };
 
 /** Explains what is wrong with a lead submission, or returns null when it can be stored. */

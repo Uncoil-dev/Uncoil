@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { leadInputError } from "./lead-input";
+import { leadInputError, looksLikeEmail } from "./lead-input";
 
 describe("leadInputError", () => {
   it("accepts a contact request and a newsletter signup", () => {
@@ -10,10 +10,18 @@ describe("leadInputError", () => {
   it("asks for a valid email address", () => {
     expect(leadInputError({ email: "ada@", message: "Hi" })).toBe("Enter a valid email address");
     expect(leadInputError({ message: "Hi" })).toBe("Enter a valid email address");
-    for (const email of ["ada@example", "@example.com", "ada@.com", "ada@example.", "ada lovelace@example.com"]) {
+    for (const email of ["ada@example", "@example.com", "ada@.com", "ada@example.", "ada lovelace@example.com", "ada@b@example.com"]) {
       expect(leadInputError({ email, message: "Hi" }), email).toBe("Enter a valid email address");
     }
     expect(leadInputError({ email: "ada@mail.example.com", message: "Hi" })).toBeNull();
+  });
+
+  it("rejects a long run of repeated @ signs quickly", () => {
+    const started = performance.now();
+    expect(leadInputError({ email: "!@".repeat(100), message: "Hi" })).toBe("Enter a valid email address");
+    expect(leadInputError({ email: "!@".repeat(8000), message: "Hi" })).toBe("Email is too long (200 characters max)");
+    expect(looksLikeEmail("!@".repeat(50_000) + ".com")).toBe(false);
+    expect(performance.now() - started).toBeLessThan(100);
   });
 
   it("asks for a message when there is no message or intent", () => {

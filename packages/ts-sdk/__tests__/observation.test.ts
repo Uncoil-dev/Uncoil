@@ -93,7 +93,6 @@ describe("observation", () => {
   it("warns about a missing key once across calls made without a client", async () => {
     vi.resetModules();
     vi.stubEnv("UNCOIL_API_KEY", "");
-    vi.stubEnv("TRACIFY_API_KEY", "");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
       const fresh = await import("../src/integrations/observation");

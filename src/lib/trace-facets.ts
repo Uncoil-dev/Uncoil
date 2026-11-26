@@ -5,6 +5,7 @@
  */
 import { neutralizeTags, redactSecrets, stepName, type AskSpan } from "./ask-ai.ts";
 import { redactString } from "./redaction.ts";
+import { errorSignature } from "./trace-diff.ts";
 import { normalizeTopicText } from "./trace-topics.ts";
 
 export const SENTIMENTS = ["Negative", "Positive", "Mixed", "Neutral"] as const;
@@ -52,22 +53,11 @@ function sentiment(later: string[]): TraceFacets["sentiment"] {
   return neg && pos ? "Mixed" : neg ? "Negative" : pos ? "Positive" : "Neutral";
 }
 
-function fnv(value: string) {
-  let h = 2166136261;
-  for (let i = 0; i < value.length; i++) h = Math.imul(h ^ value.charCodeAt(i), 16777619);
-  return (h >>> 0).toString(16).padStart(8, "0");
-}
-
-/** Same grouping key as error groups: tool, error type and the normalized start of the message. */
-const groupId = (tool: string, type: string, message: string) => fnv(`${tool}|${type}|${message}`) + fnv(`${message}|${type}|${tool}`);
-
 function topIssue(errors: AskSpan[]) {
   const groups = new Map<string, { count: number; label: string }>();
   for (const s of errors) {
-    const tool = s.toolName || s.modelId || "";
-    const type = s.errorType || (s.timedOut ? "Timeout" : "Error");
-    const message = normalizeTopicText(s.errorMessage ?? "").slice(0, 120);
-    const id = groupId(tool, type, message);
+    const { tool, type, message } = errorSignature({ ...s, errorType: s.errorType || (s.timedOut ? "Timeout" : "Error") });
+    const id = JSON.stringify([tool, type, message]);
     const group = groups.get(id) ?? { count: 0, label: `${tool || "step"}: ${type}${message ? ` - ${message}` : ""}` };
     group.count++;
     groups.set(id, group);
@@ -104,7 +94,7 @@ const INSTRUCTIONS = [
 
 export function buildFacetPrompt(input: AskSpan[]) {
   const steps = ordered(input).slice(0, MAX_STEPS).map((s, i) => {
-    const parts = [`s${i + 1} ${s.spanType ?? "step"} ${stepName(s)}`];
+    const parts = [`s${i + 1} ${clip(s.spanType ?? "step")} ${clip(stepName(s))}`];
     if (s.input) parts.push(`input: ${clip(s.input)}`);
     if (s.output) parts.push(`output: ${clip(s.output)}`);
     if (failed(s)) parts.push(`error: ${clip(s.errorType || "timeout")} ${clip(s.errorMessage)}`);

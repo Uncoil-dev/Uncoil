@@ -38,7 +38,7 @@ test("rules: issue is the most common error group, ignoring ids in messages", ()
   const f = ruleFacets([user("x", 1), e(11, 2, "500 for order N"), e(22, 3, "500 for order N"), tool("send", 4, { errorType: "Auth", errorMessage: "denied" })]);
   assert.match(f.issue, /search/);
   assert.match(f.issue, /<n> for order <n>/);
-  assert.match(f.issueGroupId ?? "", /^[0-9a-f]{16}$/);
+  assert.match(f.issueGroupId ?? "", /^\[".*"\]$/);
 });
 
 test("rules: sentiment from later user messages", () => {

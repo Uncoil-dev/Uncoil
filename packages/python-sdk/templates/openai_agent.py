@@ -1,3 +1,7 @@
+# Install: pip install "uncoil-sdk[openai]"
+# Keys: set UNCOIL_API_KEY and OPENAI_API_KEY
+# Run: python openai_agent.py
+
 from openai import OpenAI
 import uncoil
 

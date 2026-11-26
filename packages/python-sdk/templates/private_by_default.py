@@ -1,3 +1,7 @@
+# Install: pip install uncoil-sdk
+# Keys: set UNCOIL_API_KEY
+# Run: import `client` from this file in your own code; running it alone sends nothing
+
 import re
 import uncoil
 

@@ -1,3 +1,4 @@
+import { explainFailure } from "./explain-failure.ts";
 import { redactString } from "./redaction";
 import { isFailed, stepName } from "./trace-diff";
 import type { SpanRow } from "./tinybird";
@@ -36,8 +37,11 @@ export function buildFixPrompt(spans: FixPromptSpan[]): string | null {
   const tools = unique(ordered.map((s) => s.toolName));
   const error = [failing.errorType, failing.errorMessage].filter(Boolean).join(": ") || "The step was marked as an error without a message.";
 
+  const whatBroke = explainFailure(ordered)?.sentence1;
+
   const sections = [
     "An AI agent run failed. Find the cause in this codebase and fix it.",
+    whatBroke ? `What broke: ${clean(whatBroke)}` : "",
     `## What the agent was asked\n${task}`,
     `## First failing step\n${stepName(failing)} (${failing.spanType})`,
     `## Error\n${clean(error)}`,

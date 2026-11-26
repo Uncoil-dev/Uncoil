@@ -17,6 +17,10 @@ const run = [
 ];
 
 describe("buildFixPrompt", () => {
+  it("opens with a plain-language What broke line", () => {
+    expect(buildFixPrompt(run)!).toContain('What broke: Step 3 (`search_docs`) failed with "404 Not Found for /v1/docs/refunds"');
+  });
+
   it("names the first failing step, its error and input, with models and tools", () => {
     const prompt = buildFixPrompt(run)!;
     expect(prompt).toContain("## First failing step\nsearch_docs (tool_call)");

@@ -10,7 +10,8 @@ export type ProbeState = "idle" | "sending" | "accepted" | "failed";
 /** Turns a rejected test span into a plain next step instead of a raw status code. */
 export function probeFailureMessage(status: number, reason?: string): string {
   if (status === 401) return "Uncoil did not recognise this key. Copy the key again or make a new one in API keys.";
-  if (status === 403) return "This key is for another project. Use a key from this project's API keys page.";
+  // Ingest answers 403 only for a key paused after repeated rate-limit errors.
+  if (status === 403) return "This key was paused after too many rate-limit errors. Make a new one in API keys.";
   if (status === 429) return "Too many requests from this key right now. Wait a minute, then send the test span again.";
   if (status >= 500) return "Something went wrong on our side. Your setup is fine; try again in a moment.";
   return reason ? `The test span was not accepted: ${reason}` : "The test span was not accepted. Try again, or contact support if it keeps happening.";

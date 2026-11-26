@@ -6,8 +6,8 @@ describe("probeFailureMessage", () => {
     expect(probeFailureMessage(401)).toMatch(/copy the key again or make a new one/i);
   });
 
-  it("explains that a 403 key belongs to another project", () => {
-    expect(probeFailureMessage(403)).toMatch(/another project/i);
+  it("explains that a 403 key was paused and needs replacing", () => {
+    expect(probeFailureMessage(403)).toMatch(/paused.*make a new one/i);
   });
 
   it("asks people to wait on 429", () => {

@@ -67,6 +67,23 @@ def test_network_failure_does_not_raise(monkeypatch):
     assert seen[0].code == "network"
 
 
+def test_us_key_without_region_sends_to_the_us_host(monkeypatch):
+    for name in ("UNCOIL_REGION", "TRACIFY_REGION", "UNCOIL_HOST", "TRACIFY_HOST"):
+        monkeypatch.delenv(name, raising=False)
+    urls = []
+    monkeypatch.setattr("uncoil._requests_fallback.post", lambda url, **k: urls.append(url) or FakeResponse(200))
+    client = UncoilClient(api_key="uncoil_sk_live_us_abcdefghijklmnop", on_error=lambda e: None)
+    client._http = None
+    client.ingest(spanType="llm_call", runId="r1")
+    assert urls == ["https://us.cloud.uncoil.dev/api/ingest"]
+
+
+def test_key_from_another_region_than_the_configured_one_is_rejected():
+    with pytest.raises(UncoilError) as caught:
+        UncoilClient(api_key="uncoil_sk_live_us_abcdefghijklmnop", region="eu")
+    assert caught.value.code == "region_mismatch"
+
+
 def test_status_codes_map_to_helpful_messages():
     seen = []
     client = UncoilClient(api_key=KEY, on_error=seen.append)

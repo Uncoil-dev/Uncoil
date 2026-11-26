@@ -315,14 +315,15 @@ class UncoilClient:
         self.sample_rate = float(sample_rate)
         self.keep_errors = keep_errors
         self._redactor = build_redactor(**(redact or {}))
-        selected_region = (region or (os.environ.get("UNCOIL_REGION") or os.environ.get("TRACIFY_REGION")) or "eu").strip().lower()
+        key_region = self._api_key_region(self.api_key)
+        # With no region set, the key's own region picks the host, so a US key works without extra config.
+        selected_region = (region or (os.environ.get("UNCOIL_REGION") or os.environ.get("TRACIFY_REGION")) or key_region or "eu").strip().lower()
         if selected_region not in self.REGION_HOSTS:
             raise UncoilError("bad_region", f"The region {selected_region!r} is not one Uncoil offers.", "Use region='eu' or region='us' (or set UNCOIL_REGION to one of them).")
         self.host = (host or (os.environ.get("UNCOIL_HOST") or os.environ.get("TRACIFY_HOST")) or self.REGION_HOSTS[selected_region]).rstrip("/")
         if not self.host.startswith(("http://", "https://")):
             raise UncoilError("bad_host", f"The host {self.host!r} is not a valid web address.", "Use a full address such as 'https://eu.cloud.uncoil.dev', or drop the host option and use region='eu' or 'us'.")
         host_region = next((key for key, value in self.REGION_HOSTS.items() if value == self.host), None)
-        key_region = self._api_key_region(self.api_key)
         if key_region and host_region and key_region != host_region:
             raise UncoilError("region_mismatch", f"Uncoil API key region mismatch: this key belongs to {key_region.upper()}, but the client is configured for {host_region.upper()}.", f"Set region='{key_region}' (or UNCOIL_REGION={key_region}), or create a key in the {host_region.upper()} region.")
         self.project_id = project_id

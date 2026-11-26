@@ -8,6 +8,7 @@ import { SpanRow } from "@/lib/tinybird";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDuration, formatRelativeTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NoStepsNotice } from "@/components/dashboard/no-steps-notice";
 import { useMutation } from "convex/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -285,14 +286,7 @@ export function TraceViewer({ projectId, runId }: TraceViewerProps) {
       {/* Timeline */}
       <div className="relative pl-8 space-y-6 before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-border">
         {safeSpans.length === 0 && run.status !== "running" ? (
-          <div className="border border-dashed border-border p-8 text-center">
-            <div className="font-mono text-[11px] uppercase tracking-widest text-black/55">
-              No spans found for this run
-            </div>
-            <p className="mt-2 text-xs text-black/55">
-              The run summary exists, but no span timeline is available yet.
-            </p>
-          </div>
+          <NoStepsNotice />
         ) : null}
 
         {safeSpans.map((span, index) => (

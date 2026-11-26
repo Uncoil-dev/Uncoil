@@ -1,10 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { llmCall, toolCall, decision } from "../src/index";
 
 // The helpers use the shared default client, which reads its key from the environment on first use.
-beforeAll(() => { vi.stubEnv("UNCOIL_API_KEY", "uncoil_sk_live_eu_test"); });
-afterAll(() => { vi.unstubAllEnvs(); });
-afterEach(() => { vi.unstubAllGlobals(); });
+beforeEach(() => { vi.stubEnv("UNCOIL_API_KEY", "uncoil_sk_live_eu_test"); });
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 function recordFetch() {
   const sent: Array<Record<string, unknown>> = [];

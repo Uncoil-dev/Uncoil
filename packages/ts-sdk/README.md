@@ -221,7 +221,7 @@ export async function POST(request: Request) {
 }
 ```
 
-`flush(timeoutMs)` resolves to `true` once every pending span is delivered, or `false` if some are still in flight when the timeout passes. A single client has the same method: `await uncoil.flush()`.
+`flush(timeoutMs)` resolves to `true` once every pending span has finished sending, or `false` if some are still in flight when the timeout passes. A single client has the same method: `await uncoil.flush()`.
 
 Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, set `redact: { pii: false }`.
 

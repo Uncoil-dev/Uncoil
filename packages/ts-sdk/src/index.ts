@@ -278,8 +278,8 @@ async function waitFor(sends: Set<Promise<unknown>>, timeoutMs: number): Promise
 }
 
 /**
- * Wait until every span sent by any Uncoil client so far has been delivered.
- * Call it before a short script, serverless function or edge-of-request handler returns.
+ * Wait until every span sent by any Uncoil client so far has finished sending.
+ * Call it before a short script or serverless request handler returns.
  * Resolves to false if sends are still in flight after `timeoutMs`.
  */
 export function flush(timeoutMs = 5_000): Promise<boolean> {
@@ -420,7 +420,7 @@ export class UncoilClient {
   }
 
   /**
-   * Wait until the spans this client has sent are delivered.
+   * Wait until the spans this client has sent have finished sending.
    * Resolves to false if sends are still in flight after `timeoutMs`.
    */
   flush(timeoutMs = 5_000): Promise<boolean> {

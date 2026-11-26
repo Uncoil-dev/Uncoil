@@ -12,15 +12,18 @@ describe("integrationPayload", () => {
   });
 
   it("masks bearer tokens", () => {
-    expect(integrationPayload("Authorization: Bearer abcdef1234567890xyz")).toBe("Authorization: [redacted]");
+    const token = "t".repeat(24);
+    expect(integrationPayload(`Authorization: Bearer ${token}`)).toBe("Authorization: [redacted]");
   });
 
   it("masks sk- style keys", () => {
-    expect(integrationPayload("key sk-proj-ABCDEFGHIJKLMNOPqrstuv done")).toBe("key [redacted] done");
+    const key = ["sk", "proj", "x".repeat(22)].join("-");
+    expect(integrationPayload(`key ${key} done`)).toBe("key [redacted] done");
   });
 
   it("masks JWT-like strings", () => {
-    const jwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcdefghijklmnop";
+    // Built at runtime so no token-shaped literal sits in the source.
+    const jwt = ["eyJ" + "a".repeat(17), "eyJ" + "b".repeat(30), "c".repeat(16)].join(".");
     expect(integrationPayload(`token=${jwt}`)).not.toContain("eyJ");
     expect(integrationPayload(`jwt ${jwt} end`)).toBe("jwt [redacted] end");
   });

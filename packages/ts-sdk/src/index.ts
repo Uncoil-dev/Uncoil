@@ -751,16 +751,19 @@ export function traceAgent<T extends (...args: any[]) => Promise<any>>(
   return ((...args: any[]) => span(name, () => func(...args), { type: 'agent', client, runId: createId(), root: true })) as T;
 }
 
+/** The client of the active trace (for example the one traceAgent was given), or the shared default. */
+const currentClient = () => currentTraceContext()?.client ?? defaultClient();
+
 /** Record a finished model call. It is attached to the step it was made in. */
 export const llmCall = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'llm_call' });
+  currentClient().ingest({ ...data, spanType: 'llm_call' });
 
 /** Record a finished tool call. It is attached to the step it was made in. */
 export const toolCall = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'tool_call' });
+  currentClient().ingest({ ...data, spanType: 'tool_call' });
 
 export const decision = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'decision' });
+  currentClient().ingest({ ...data, spanType: 'decision' });
 
 export { wrapOpenAI, wrapAnthropic, type IntegrationOptions } from "./integrations/providers";
 export { UncoilLangGraphHandler } from "./integrations/langgraph";

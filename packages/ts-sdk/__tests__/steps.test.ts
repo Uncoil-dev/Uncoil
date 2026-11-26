@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { UncoilClient, span, observe, traceAgent, type SpanData } from "../src/index";
+import { describe, it, expect, vi } from "vitest";
+import { UncoilClient, span, observe, traceAgent, llmCall, type SpanData } from "../src/index";
 
 class Recorder extends UncoilClient {
   sent: Array<Record<string, any>> = [];
@@ -15,6 +15,26 @@ class Recorder extends UncoilClient {
 const byName = (spans: Array<Record<string, any>>) => Object.fromEntries(spans.map((s) => [s.toolName ?? s.modelId, s]));
 
 describe("steps", () => {
+  it("sends llmCall inside traceAgent with the agent's API key", async () => {
+    vi.stubEnv("UNCOIL_API_KEY", "uncoil_sk_live_eu_fromenv");
+    const requests: Array<{ auth: string; body: Record<string, any> }> = [];
+    vi.stubGlobal("fetch", async (_url: string, init: { headers: Record<string, string>; body: string }) => {
+      requests.push({ auth: init.headers.Authorization, body: JSON.parse(init.body) });
+      return new Response("{}");
+    });
+    try {
+      const agent = traceAgent(async () => {
+        await llmCall({ modelId: "m1", input: "q", output: "a" });
+      }, { apiKey: "uncoil_sk_live_eu_explicit" });
+      await agent();
+      const call = requests.find((r) => r.body.spanType === "llm_call");
+      expect(call?.auth).toBe("Bearer uncoil_sk_live_eu_explicit");
+    } finally {
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("links nested steps to their parent and root", async () => {
     const client = new Recorder();
     const answer = traceAgent(async (question: string) => {

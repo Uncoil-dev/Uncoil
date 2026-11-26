@@ -101,7 +101,7 @@ avoid sending anything else you would not want stored.
 - **traceAgent Wrapper:** Automatically captures run lifecycle and errors.
 - **Granular Spans:** Manually record LLMs, tools, and custom decisions.
 - **Environment Aware:** Automatically picks up API keys from `process.env`.
-- **Lightweight:** Minimal dependencies, optimized for Node.js and Edge runtimes.
+- **Lightweight:** Minimal dependencies. Runs on Node.js (it uses async context to keep concurrent runs apart), so use the Node.js runtime rather than the edge runtime.
 - **Session context:** Add `sessionId`, `endUserId`, `environment`, `release`, and `tags` to connect related traces.
 
 ## Feedback and evaluation scores
@@ -158,10 +158,10 @@ await graph.invoke(input, { callbacks: [new UncoilLangGraphHandler()] });
 Use `UNCOIL_API_KEY` and the existing region/host configuration. Pass `{ client }` for a custom
 `UncoilClient`. Calls inside `traceAgent`/`span` inherit the current run and parent; standalone provider
 calls get a completed root, so unrelated requests never share an `unknown` run. LangGraph callbacks
-record graph/node/tool/model parent relationships. Use either framework model callbacks or a wrapped
+record graph/node/tool/retriever/model parent relationships; retriever steps keep the query and the documents found. Use either framework model callbacks or a wrapped
 provider for each model call to avoid recording that call twice.
 
-Supported APIs: OpenAI `chat.completions.create`, `responses.create`, and their `.stream()` helpers;
+Supported APIs: OpenAI `chat.completions.create`, `responses.create`, their structured-output `.parse()` and `.stream()` helpers;
 Anthropic `messages.create`, `messages.stream`, and beta messages equivalents. Async iteration and
 helper event/final-result APIs are observed. OpenAI `.withResponse()` retains headers/request IDs;
 `.asResponse()` remains unparsed and records request timing only. Stream conversion helpers such as
@@ -210,7 +210,25 @@ const uncoil = new UncoilClient({
 });
 ```
 
+### Short scripts and serverless functions
+
+Spans are sent in the background so tracing never slows your app down. A serverless function or short script can end before those sends finish, which drops the last spans of a run. Wait for them before returning:
+
+```ts
+import { flush } from "@uncoil.dev/sdk";
+
+export async function POST(request: Request) {
+  const answer = await runAgent(await request.json());
+  await flush(); // waits for every pending span, up to 5 seconds by default
+  return Response.json(answer);
+}
+```
+
+`flush(timeoutMs)` resolves to `true` once every pending span has finished sending, or `false` if some are still in flight when the timeout passes. A single client has the same method: `await uncoil.flush()`.
+
 Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, set `redact: { pii: false }`.
+
+When a project reaches its monthly or daily plan limit, `onError` gets a `plan_limit_reached` or `daily_limit_reached` error that says when data is saved again and links to the plans page. A lower `sampleRate` does not lift a plan limit.
 
 ### Sign in from the terminal
 
@@ -219,6 +237,8 @@ npx @uncoil.dev/sdk login
 ```
 
 Opens your browser so you can sign in (or create a free account), pick or create a project, and confirm the code shown in your terminal. The key is then saved to `.env.local` as `UNCOIL_API_KEY`, with `UNCOIL_PROJECT_ID` next to it (and `UNCOIL_REGION` for the US region). In a git repo the file is added to `.gitignore` if it is not already ignored. The key travels encrypted to your machine and is never printed. Options: `--region eu|us`, `--new <name>` (create a project with this name), `--no-browser` (only print the address and code), `--env-file <path>` and `--json`. Picking a project that already sends data replaces its key, and the browser asks you to confirm that first. Plain Node does not read `.env.local` by itself; run `node --env-file=.env.local app.js` or load it with dotenv.
+
+`npx @uncoil.dev/sdk <command>` runs the package's CLI directly. Once the package is installed, the same CLI is also available as `uncoil` and `uncoil-doctor`.
 
 `npx @uncoil.dev/sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
 
@@ -230,4 +250,4 @@ Not seeing traces? One command checks your key, region and network, then sends a
 npx @uncoil.dev/sdk doctor
 ```
 
-It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.
+It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. You can also call `runDoctor()` from code. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan. When the key's project is known, the report links straight to the test trace in your dashboard (`traceUrl` in `--json` output).

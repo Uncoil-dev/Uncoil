@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { formatDuration } from "@/lib/utils";
+import { tracingHref } from "@/lib/tracing-href";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   LineChart,
@@ -179,13 +180,11 @@ export function DashboardOverview({ projectId }: DashboardOverviewProps) {
   const runTrend = buildRunTrendSeries(range, recentRuns);
   const qualityTrend = buildQualityTrendSeries(range, evaluationOverview?.recentResults ?? []);
 
-  const runsWindow = `days=${range}`;
-
   const launchPlan = [
     {
       label: "Capture a first trace",
       complete: recentRuns.length > 0,
-      href: `/dashboard/${projectId}/runs?${runsWindow}`,
+      href: tracingHref(projectId, range),
     },
     {
       label: "Review runtime cost",
@@ -276,7 +275,7 @@ export function DashboardOverview({ projectId }: DashboardOverviewProps) {
           value={totalSpans.toLocaleString()}
           icon={Zap}
           detail={`Observed in last ${range} days`}
-          href={`/dashboard/${projectId}/runs?${runsWindow}`}
+          href={tracingHref(projectId, range)}
         />
         <DashboardMetric
           label="Tokens"
@@ -291,7 +290,7 @@ export function DashboardOverview({ projectId }: DashboardOverviewProps) {
           icon={Activity}
           signal="info"
           detail="Currently running"
-          href={`/dashboard/${projectId}/runs?status=running&${runsWindow}`}
+          href={tracingHref(projectId, range)}
         />
         <DashboardMetric
           label="Failed Runs"
@@ -299,7 +298,7 @@ export function DashboardOverview({ projectId }: DashboardOverviewProps) {
           icon={AlertTriangle}
           signal={failedRuns > 0 ? "danger" : "success"}
           detail={failedRuns > 0 ? "Needs attention" : "No failures detected"}
-          href={`/dashboard/${projectId}/runs?status=failed&${runsWindow}`}
+          href={tracingHref(projectId, range, { status: "error" })}
         />
         <DashboardMetric
           label="Failure Rate"
@@ -307,7 +306,7 @@ export function DashboardOverview({ projectId }: DashboardOverviewProps) {
           icon={Percent}
           signal={recentFailureRate > 0 ? "warning" : "success"}
           detail={recentRuns.length ? `Recent ${recentRuns.length}-run sample` : "No recent runs"}
-          href={`/dashboard/${projectId}/runs?status=failed&${runsWindow}`}
+          href={tracingHref(projectId, range, { status: "error" })}
         />
         <DashboardMetric
           label="p95 Latency"
@@ -315,7 +314,7 @@ export function DashboardOverview({ projectId }: DashboardOverviewProps) {
           icon={Gauge}
           signal={p95Duration > 10000 ? "warning" : "neutral"}
           detail={recentDurations.length ? "Recent completed runs" : "No completed runs"}
-          href={`/dashboard/${projectId}/runs?sort=duration&${runsWindow}`}
+          href={tracingHref(projectId, range, { sort: "latency", dir: "desc" })}
         />
         <DashboardMetric
           label="Evaluation Quality"

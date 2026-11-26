@@ -18,6 +18,15 @@ export function compilePrompt(content: string, values: Record<string, string>): 
   return { text, missing: [...missing] };
 }
 
+/** Decodes a prompt name from a URL path segment, or null when it is not valid percent-encoding. */
+export function decodePromptName(raw: string): string | null {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return null;
+  }
+}
+
 export type DiffLine = { kind: "same" | "add" | "remove"; text: string; oldLine: number | null; newLine: number | null };
 
 const MAX_DIFF_LINES = 2000;

@@ -1,13 +1,17 @@
-import { pageMetadata } from "@/lib/seo";
+import { noIndex, pageMetadata } from "@/lib/seo";
 import { PageHeader } from "@/components/marketing/page-header";
 import { CreamBand, Eyebrow, SectionTitle } from "@/components/marketing/company/blocks";
 import { ReferralLinkBuilder } from "@/components/marketing/referral-link-builder";
 
-export const metadata = pageMetadata({
-  title: "Share Uncoil",
-  description: "Make your own Uncoil link to share with a teammate or a friend who runs AI agents.",
-  path: "/refer",
-});
+// A link-maker page with little content of its own, so it stays out of search results.
+export const metadata = {
+  ...pageMetadata({
+    title: "Share Uncoil",
+    description: "Make your own Uncoil link to share with a teammate or a friend who runs AI agents.",
+    path: "/refer",
+  }),
+  ...noIndex,
+};
 
 export default function ReferPage() {
   return (

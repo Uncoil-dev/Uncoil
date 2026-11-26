@@ -12,7 +12,8 @@ function compilePrompt(prompt: string, input: string) {
 export async function POST(request: NextRequest) {
   let body: Body;
   try { body = await request.json() as Body; } catch { return Response.json({ error: "Invalid JSON body" }, { status: 422 }); }
-  if (!body.projectId || !body.experimentId) return Response.json({ error: "projectId and experimentId are required" }, { status: 422 });
+  const invalid = (["projectId", "experimentId"] as const).find((field) => typeof body?.[field] !== "string" || !body[field]);
+  if (invalid) return Response.json({ error: `${invalid} must be a non-empty string` }, { status: 422 });
   let convex;
   try { convex = await getAuthedConvexClient(); } catch (error) { console.error("Experiment auth/configuration failed:", error); return Response.json({ error: "Authentication or Convex configuration is unavailable" }, { status: 503 }); }
   const own = await getProjectLlm(convex, body.projectId);

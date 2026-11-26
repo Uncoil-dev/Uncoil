@@ -29,6 +29,8 @@ export interface DoctorReport {
   checks: DoctorCheck[];
   /** Set when the test trace was accepted. Search for it in your dashboard. */
   runId?: string;
+  /** Dashboard link to the test trace, when the key's project is known. */
+  traceUrl?: string;
 }
 
 function keyRegion(apiKey: string): UncoilRegion | undefined {
@@ -64,8 +66,10 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
   const wanted = (options.region || (envRegion === "eu" || envRegion === "us" ? envRegion : undefined)) as UncoilRegion | undefined;
   const found = keyRegion(apiKey);
   const host = (options.host || (process.env.UNCOIL_HOST ?? process.env.TRACIFY_HOST) || UNCOIL_REGION_HOSTS[wanted ?? found ?? "eu"]).replace(/\/$/, "");
-  const report = (): DoctorReport => ({ ok: !checks.some((c) => c.status === "fail"), host, checks, runId });
+  const report = (): DoctorReport => ({ ok: !checks.some((c) => c.status === "fail"), host, checks, runId, traceUrl });
   let runId: string | undefined;
+  let traceUrl: string | undefined;
+  let projectId: string | undefined;
 
   const nodeMajor = Number(process.versions?.node?.split(".")[0]);
   if (typeof fetch !== "function" || nodeMajor < 18) {
@@ -114,6 +118,7 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
         add({ id: "project", title: "Project", status: "fail", message: `UNCOIL_PROJECT_ID points at a different project than this key ("${data.projectName ?? data.projectId}").`, hint: "Run `npx @uncoil.dev/sdk login` in this folder again so the key and project are saved together." });
         return report();
       }
+      projectId = data.projectId;
       add({ id: "project", title: "Project", status: "ok", message: `Traces will land in: ${data.projectName ?? data.projectId}` });
     }
   } catch { /* the trace check below reports connection problems */ }
@@ -148,7 +153,8 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
     const status = response.status;
     if (response.ok) {
       runId = spanRunId;
-      add({ id: "trace", title: "Test trace", status: "ok", message: `Accepted. Look for "Uncoil setup check" (run ${spanRunId}) in your dashboard.` });
+      if (projectId) traceUrl = `${host}/dashboard/${encodeURIComponent(projectId)}/runs/${encodeURIComponent(spanRunId)}`;
+      add({ id: "trace", title: "Test trace", status: "ok", message: traceUrl ? `Accepted. Open it: ${traceUrl}` : `Accepted. Look for "Uncoil setup check" (run ${spanRunId}) in your dashboard.` });
     } else if (status === 401) {
       add({ id: "trace", title: "Test trace", status: "fail", message: "Uncoil rejected the API key (401).", hint: "The key is wrong, was revoked, or belongs to another region. Create a fresh one on the API keys page." });
     } else if (status === 403) {

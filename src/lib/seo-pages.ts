@@ -405,11 +405,10 @@ await graph.invoke(input, { callbacks: [new UncoilLangGraphHandler()] });`,
     answer: "Uncoil accepts traces over the standard OTLP HTTP protocol. Point your OpenTelemetry exporter at the Uncoil endpoint with your project key and spans from any instrumented library appear as traces.",
     captures: ["Any OTLP-compatible span", "LLM semantic attributes such as model and tokens", "Parent and child relationships", "Errors and timing"],
     language: "bash",
-    code: `# Send OTLP HTTP JSON to the /api/otel endpoint, authenticated with a project API key.
-curl -X POST https://eu.cloud.uncoil.dev/api/otel \\
-  -H "Authorization: Bearer uncoil_sk_live_..." \\
-  -H "Content-Type: application/json" \\
-  -d @otlp-traces.json`,
+    code: `# Standard OpenTelemetry exporter settings: OTLP over HTTP with JSON, authenticated with a project API key.
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://eu.cloud.uncoil.dev/api/otel
+export OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20uncoil_sk_live_...
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/json`,
     doc: "api",
     faq: [{ q: "Which OpenTelemetry protocol does Uncoil support?", a: "OTLP over HTTP with JSON." }],
   },

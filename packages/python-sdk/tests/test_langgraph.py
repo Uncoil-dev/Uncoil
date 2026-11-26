@@ -105,3 +105,30 @@ def test_capture_input_option_redacts_input(module):
     handler.on_tool_start({}, "secret", run_id=run)
     handler.on_tool_end("ok", run_id=run)
     assert recorder.sent[0]["input"] == "[not captured]"
+
+
+def test_real_graph_interrupt_ends_the_run_as_paused_not_failed():
+    from typing import TypedDict
+
+    from langgraph.checkpoint.memory import InMemorySaver
+    from langgraph.graph import END, START, StateGraph
+    from langgraph.types import interrupt
+
+    sys.modules.pop("uncoil.langgraph", None)
+    from uncoil.langgraph import UncoilCallbackHandler
+
+    class State(TypedDict):
+        answer: str
+
+    graph = StateGraph(State)
+    graph.add_node("ask", lambda state: {"answer": interrupt("approve?")})
+    graph.add_edge(START, "ask")
+    graph.add_edge("ask", END)
+    recorder = Recorder()
+    config = {"callbacks": [UncoilCallbackHandler(client=recorder)], "configurable": {"thread_id": "t1"}}
+    graph.compile(checkpointer=InMemorySaver()).invoke({"answer": ""}, config=config)
+
+    assert spans(recorder, "error") == [] and all("errorType" not in s for s in recorder.sent)
+    root, = spans(recorder, "run_end")
+    node, = spans(recorder, "agent")
+    assert root["metadata"]["interrupted"] is True and node["metadata"]["interrupted"] is True

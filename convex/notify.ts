@@ -47,10 +47,13 @@ export async function postJson(kind: string, url: string, body: unknown): Promis
   return last;
 }
 
-/** Sends through Resend. Without RESEND_API_KEY it logs and skips, so nothing breaks before the key is added. */
-export async function sendEmail(args: { to: string[]; subject: string; text: string; html: string; idempotencyKey: string }) {
+/**
+ * Sends through Resend and says how it went. Never throws.
+ * Without RESEND_API_KEY it logs and skips, so nothing breaks before the key is added.
+ */
+export async function sendEmail(args: { to: string[]; subject: string; text: string; html: string; idempotencyKey: string }): Promise<DeliveryResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) { console.info("[alerts] no RESEND_API_KEY set, email skipped:", args.subject); return; }
+  if (!apiKey) { console.info("[alerts] no RESEND_API_KEY set, email skipped:", args.subject); return { ok: false, error: "Email is not set up" }; }
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -58,8 +61,11 @@ export async function sendEmail(args: { to: string[]; subject: string; text: str
       body: JSON.stringify({ from: process.env.EMAIL_FROM || "Uncoil <alerts@uncoil.dev>", to: args.to, subject: args.subject, text: args.text, html: args.html }),
       signal: AbortSignal.timeout(10_000),
     });
-    if (!response.ok) console.error("[alerts] email provider returned", response.status);
+    if (response.ok) return { ok: true, status: response.status };
+    console.error("[alerts] email provider returned", response.status);
+    return { ok: false, status: response.status, error: `The email provider replied ${response.status}.` };
   } catch (error) {
     console.error("[alerts] email failed", error);
+    return { ok: false, error: "Could not reach the email provider." };
   }
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fitDescription, fitTitle, fitTitleText } from "./seo.ts";
+import { breadcrumbJsonLd, fitDescription, fitTitle, fitTitleText, jsonLdString, kickerForPath } from "./seo.ts";
 
 test("short titles keep the brand suffix", () => {
   assert.equal(fitTitle("Pricing"), "Pricing");
@@ -27,4 +27,33 @@ test("descriptions land between 110 and 160 characters", () => {
   const sentence = fitDescription("First sentence that explains the page in plain words and goes on for a while longer. Second sentence that keeps going and going past the limit for descriptions.");
   assert.ok(sentence.endsWith("."));
   assert.ok(sentence.length <= 160 && sentence.length >= 110);
+});
+
+test("breadcrumb positions start at 1 and item URLs are absolute", () => {
+  const crumbs = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+  ]);
+  assert.equal(crumbs["@type"], "BreadcrumbList");
+  assert.deepEqual(crumbs.itemListElement, [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://www.uncoil.dev/" },
+    { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.uncoil.dev/blog" },
+  ]);
+});
+
+test("JSON-LD output cannot close the surrounding script tag", () => {
+  const out = jsonLdString({ name: "</script><script>alert(1)</script>" });
+  assert.ok(!out.includes("</script"), out);
+  assert.ok(!out.includes("<"), out);
+  assert.deepEqual(JSON.parse(out), { name: "</script><script>alert(1)</script>" });
+});
+
+test("share-card kicker follows the route prefix", () => {
+  assert.equal(kickerForPath("/blog/agent-tracing"), "Blog");
+  assert.equal(kickerForPath("/docs/quickstart"), "Documentation");
+  assert.equal(kickerForPath("/product/trace-viewer"), "Product");
+  assert.equal(kickerForPath("/use-cases/support"), "Use case");
+  assert.equal(kickerForPath("/pricing"), "Pricing");
+  assert.equal(kickerForPath("/"), "AI agent observability");
+  assert.equal(kickerForPath("/security"), "AI agent observability");
 });

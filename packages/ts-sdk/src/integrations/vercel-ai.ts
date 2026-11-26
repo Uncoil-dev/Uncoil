@@ -2,10 +2,13 @@ import { observation, type IntegrationOptions } from "./observation";
 
 type Value = Record<string, any>; // The AI SDK changes its result shapes between versions, so these are read defensively.
 
+// AI SDK v6+ models report each count as an object ({ total, ... }); older versions report a number.
+const countOf = (value: unknown) => (value && typeof value === "object" ? (value as Value).total : value);
+
 function usageOf(usage: Value = {}) {
   return {
-    input_tokens: usage.inputTokens ?? usage.promptTokens ?? 0,
-    output_tokens: usage.outputTokens ?? usage.completionTokens ?? 0,
+    input_tokens: countOf(usage.inputTokens) ?? usage.promptTokens ?? 0,
+    output_tokens: countOf(usage.outputTokens) ?? usage.completionTokens ?? 0,
   };
 }
 

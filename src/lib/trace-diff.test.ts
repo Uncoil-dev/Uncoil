@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { alignSteps, bundleErrors, pickWinners, totals, type DiffSpan, type GroupRow } from "./trace-diff";
+import { alignSteps, bundleErrors, errorSignature, pickWinners, totals, type DiffSpan, type GroupRow } from "./trace-diff";
 
 let n = 0;
 const span = (spanType: string, name: string, extra: Partial<DiffSpan> = {}): DiffSpan => ({
@@ -24,6 +24,22 @@ describe("bundleErrors", () => {
     const bundles = bundleErrors([bad("11"), bad("22")], [bad("33"), span("tool", "x", { errorType: "Boom", errorMessage: "boom" })]);
     expect(bundles[0]).toMatchObject({ tool: "db", countA: 2, countB: 1, where: "both" });
     expect(bundles[1]).toMatchObject({ where: "onlyB" });
+  });
+});
+
+describe("errorSignature", () => {
+  it("replaces uuids, hex ids, paths and numbers and collapses whitespace", () => {
+    const sig = errorSignature({
+      toolName: "db", errorType: "NotFound",
+      errorMessage: "row 3f2b8c1e-9a4d-4e7f-b1c2-0123456789ab   missing in\n /srv/app/data.json (trace deadbeefcafe01) after 30.5s",
+    });
+    expect(sig).toEqual({ tool: "db", type: "NotFound", message: "row <id> missing in <path> (trace <id>) after <n>s" });
+  });
+  it("caps the message at 120 characters", () => {
+    expect(errorSignature({ errorMessage: "x".repeat(300) }).message).toBe("x".repeat(120));
+  });
+  it("falls back to the model id when there is no tool name", () => {
+    expect(errorSignature({ toolName: "", modelId: "gpt-4o", errorMessage: "rate limited" })).toEqual({ tool: "gpt-4o", type: "", message: "rate limited" });
   });
 });
 

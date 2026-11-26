@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NoResilienceRuns } from "@/components/dashboard/no-resilience-runs";
 import { AlertCircle, Play } from "lucide-react";
 
 const DEFAULT_FAILURE_MIX = {
@@ -156,7 +157,7 @@ export function ResilienceTestingDashboard({ projectId }: ResilienceTestingDashb
           {runs === undefined ? (
             <Skeleton className="h-40 w-full rounded-none" />
           ) : runs.length === 0 ? (
-            <p className="text-[11px] font-mono text-black/55 uppercase">No runs yet</p>
+            <NoResilienceRuns />
           ) : (
             <div className="space-y-2">
               {runs.map((run) => (

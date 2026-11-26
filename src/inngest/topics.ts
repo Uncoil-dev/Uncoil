@@ -7,7 +7,7 @@ import { decryptIntegrationSecret } from "@/lib/integration-crypto";
 import { chatUrl, connectionKey } from "@/lib/project-llm";
 import { finishedTraceRunIds, getSpansForRun } from "@/lib/tinybird";
 import { parseTraceFilters } from "@/lib/trace-filters";
-import { DEFAULT_FACETS, ProviderError, providerMessage, runTopicBuild, type BuildDeps } from "./topic-build";
+import { chunk, BATCH, DEFAULT_FACETS, DEFAULT_MODEL, ProviderError, failedMap, finishTopicBuild, planTopicBuild, providerMessage, summarizeBatch, type BuildDeps } from "./topic-build";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** A live map looks at the last week of finished traces. */
@@ -27,15 +27,23 @@ async function projectModel(projectId: Id<"projects">, secret: string): Promise<
   if (!connection) return undefined;
   const apiKey = await decryptIntegrationSecret(connection.ciphertext, key);
   return async (prompt) => {
-    const response = await fetch(chatUrl(connection.baseUrl), {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ model: connection.defaultModel ?? "gpt-4o-mini", temperature: 0, response_format: { type: "json_object" }, messages: [{ role: "user", content: prompt }] }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(chatUrl(connection.baseUrl), {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({ model: connection.defaultModel ?? DEFAULT_MODEL, temperature: 0, response_format: { type: "json_object" }, messages: [{ role: "user", content: prompt }] }),
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch {
+      throw new ProviderError("The model provider could not be reached or took too long. The map is paused; refresh it to try again.");
+    }
     // The provider's own error text is not kept: it can echo parts of the key.
     if (!response.ok) throw new ProviderError(providerMessage(response.status));
-    const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    return data.choices?.[0]?.message?.content ?? "";
+    const data = (await response.json().catch(() => null)) as { choices?: Array<{ message?: { content?: string } }> } | null;
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) throw new ProviderError("The model provider sent an empty answer. The map is paused; refresh it to try again.");
+    return content;
   };
 }
 
@@ -45,6 +53,7 @@ export const buildTopicMap = inngest.createFunction(
     id: "build-topic-map",
     name: "Build topic map",
     retries: 2,
+    debounce: { key: "event.data.projectId", period: "1m" },
     concurrency: { limit: 1, key: "event.data.projectId" },
     triggers: [{ event: TOPIC_BUILD_EVENT }],
   },
@@ -52,7 +61,8 @@ export const buildTopicMap = inngest.createFunction(
     const projectId = event.data.projectId as Id<"projects">;
     const secret = jobSecret();
     if (!secret) return { skipped: true, reason: "job secret is not set" };
-    return step.run("build", async () => {
+    // Each step rebuilds the services it needs; the saved summaries carry the work between steps.
+    const deps = async (): Promise<BuildDeps> => {
       const convex = getConvexClient();
       const existing = await convex.query(api.topics.jobGetMap, { jobSecret: secret, projectId });
       const filters: Record<string, string> = (event.data.filters as Record<string, string> | undefined) ?? existing?.filters ?? {};
@@ -61,20 +71,31 @@ export const buildTopicMap = inngest.createFunction(
       params.set("from", String(now - WINDOW_DAYS * DAY_MS));
       params.set("to", String(now));
       const traceFilters = parseTraceFilters(params, now);
-      const callModel = await projectModel(projectId, secret);
-      return runTopicBuild({
+      return {
         map: { filters, facets: existing?.facets ?? DEFAULT_FACETS, sampleRate: existing?.sampleRate ?? 1, live: existing?.live ?? true },
         finishedRunIds: (limit) => finishedTraceRunIds(projectId, traceFilters, limit),
         missingRunIds: (runIds) => convex.query(api.topics.jobMissingRunIds, { jobSecret: secret, projectId, runIds }),
         spans: (runId) => getSpansForRun(runId, projectId),
-        callModel,
+        callModel: await projectModel(projectId, secret),
         saveSummaries: (summaries) => convex.mutation(api.topics.jobSaveSummaries, { jobSecret: secret, projectId, summaries }),
         getSummaries: (runIds) => convex.query(api.topics.jobGetSummaries, { jobSecret: secret, projectId, runIds }),
         replaceTopics: (topics) => convex.mutation(api.topics.jobReplaceTopics, { jobSecret: secret, projectId, topics }),
         saveMap: (fields) => convex.mutation(api.topics.jobSaveMap, { jobSecret: secret, projectId, ...fields }),
         now: Date.now,
-      });
-    });
+      };
+    };
+    try {
+      const { sampled, missing } = await step.run("list-missing", async () => planTopicBuild(await deps()));
+      const batches = chunk(missing, BATCH);
+      for (let i = 0; i < batches.length; i++) {
+        const paused = await step.run(`summarize-${i}`, async () => (await summarizeBatch(await deps(), batches[i])) ?? null);
+        if (paused) return { status: "paused", message: paused };
+      }
+      return await step.run("finish", async () => finishTopicBuild(await deps(), sampled));
+    } catch (error) {
+      await step.run("mark-failed", async () => { await failedMap(await deps()); });
+      throw error;
+    }
   },
 );
 

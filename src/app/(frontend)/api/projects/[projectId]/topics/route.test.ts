@@ -6,9 +6,9 @@ import test, { beforeEach } from "node:test";
 // external services (session, Convex, ClickHouse) are stubbed.
 const stubs: Record<string, string> = {
   "next/server": `export const NextResponse = { json: (body, init) => ({ body, status: init?.status ?? 200 }) };`,
-  "convex/_generated/api": `export const api = { projects: { getProjectById: "getProjectById" }, topics: { getMap: "getMap" }, modelDefinitions: { get: "prices" } };`,
+  "convex/_generated/api": `export const api = { projects: { getProjectById: "getProjectById" }, topics: { getMap: "getMap", canRefresh: "canRefresh" }, modelDefinitions: { get: "prices" } };`,
   "@/lib/auth-server": `export const isAuthenticated = async () => globalThis.__topics.authed;`,
-  "@/lib/convex-server": `export const getAuthedConvexClient = async () => ({ query: async (fn) => fn === "getMap" ? globalThis.__topics.map : fn === "prices" ? { prices: [{ pattern: "gpt-4o-mini", inputPerM: 1, outputPerM: 1 }] } : globalThis.__topics.project });`,
+  "@/lib/convex-server": `export const getAuthedConvexClient = async () => ({ query: async (fn) => fn === "canRefresh" ? globalThis.__topics.admin : fn === "getMap" ? globalThis.__topics.map : fn === "prices" ? { prices: [{ pattern: "gpt-4o-mini", inputPerM: 1, outputPerM: 1 }] } : globalThis.__topics.project });`,
   "@/lib/crash-report": `export const reportHandledError = async () => undefined;`,
   "@/lib/tinybird": `
     export const FACET_KEYS = ["traceName"];
@@ -34,7 +34,7 @@ const hooks = `
   }`;
 register("data:text/javascript," + encodeURIComponent(hooks));
 
-type State = { map: unknown; finished: string[]; sent: unknown[]; authed: boolean; project: unknown; fail: boolean; calls: Array<{ projectId: string; filters: { fromMs?: number } }>; inputs: unknown };
+type State = { admin: boolean; map: unknown; finished: string[]; sent: unknown[]; authed: boolean; project: unknown; fail: boolean; calls: Array<{ projectId: string; filters: { fromMs?: number } }>; inputs: unknown };
 const g = globalThis as unknown as { __topics: State };
 const { GET, POST } = await import("./route.ts");
 
@@ -43,7 +43,7 @@ const request = (query = "") => ({ nextUrl: new URL(`http://localhost/api/projec
 const call = (query?: string) => GET(request(query), { params: Promise.resolve({ projectId: "p1" }) }) as unknown as Promise<{ body: Record<string, unknown>; status: number }>;
 
 beforeEach(() => {
-  g.__topics = { map: null, finished: Array.from({ length: 20 }, (_, i) => `r${i}`), sent: [], authed: true, project: { _id: "p1" }, fail: false, calls: [], inputs: { total: 4, traces: refunds } };
+  g.__topics = { admin: true, map: null, finished: Array.from({ length: 20 }, (_, i) => `r${i}`), sent: [], authed: true, project: { _id: "p1" }, fail: false, calls: [], inputs: { total: 4, traces: refunds } };
 });
 
 test("signed-out requests are rejected before any query runs", async () => {
@@ -110,4 +110,25 @@ test("estimate only returns the cost and queues nothing", async () => {
   assert.equal(status, 200);
   assert.ok(body.estimate);
   assert.equal(g.__topics.sent.length, 0);
+});
+
+test("only project administrators can refresh, but anyone with access can read the estimate", async () => {
+  g.__topics.admin = false;
+  assert.equal((await post({ action: "refresh", confirmed: true })).status, 403);
+  assert.equal(g.__topics.sent.length, 0);
+  assert.equal((await post({ action: "estimate" })).status, 200);
+});
+
+test("refresh is refused while the map is building, unless the build looks stuck", async () => {
+  g.__topics.map = { status: "building", builtAt: Date.now() };
+  assert.equal((await post({ action: "refresh" })).status, 409);
+  g.__topics.map = { status: "building", builtAt: Date.now() - 20 * 60 * 1000 };
+  assert.equal((await post({ action: "refresh" })).status, 202);
+});
+
+test("the estimate says daily rebuilds stay on and what a day costs", async () => {
+  const { body } = await post({ action: "estimate" });
+  const estimate = body.estimate as { dailyRebuilds: boolean; dailyRebuildCostUsd: number; costUsd: number };
+  assert.equal(estimate.dailyRebuilds, true);
+  assert.ok(Math.abs(estimate.dailyRebuildCostUsd - estimate.costUsd / 7) < 1e-12);
 });

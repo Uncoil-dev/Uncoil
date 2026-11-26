@@ -3,7 +3,7 @@ import type { Id } from "convex/_generated/dataModel";
 import { NextResponse, type NextRequest } from "next/server";
 import { reportHandledError } from "@/lib/crash-report";
 import { TOPIC_BUILD_EVENT } from "@/inngest/topics";
-import { estimateBuildCost, MAX_TRACES } from "@/inngest/topic-build";
+import { DEFAULT_MODEL, estimateBuildCost, MAX_TRACES } from "@/inngest/topic-build";
 import { getAuthedConvexClient } from "@/lib/convex-server";
 import { inngest } from "@/lib/inngest";
 import { getProjectLlm } from "@/lib/project-llm";
@@ -29,6 +29,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
+const WINDOW_DAYS = 7;
+const BUILD_STALE_MS = 15 * 60 * 1000;
 const FILTER_PARAMS_TO_SKIP = new Set(["from", "to", "page", "pageSize", "sort", "dir"]);
 
 /**
@@ -51,24 +53,30 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (action !== "estimate" && action !== "refresh") return NextResponse.json({ error: "Unknown action." }, { status: 422 });
 
   try {
+    const now = Date.now();
     const convex = await getAuthedConvexClient();
     const id = projectId as Id<"projects">;
-    const [map, project, connection] = await Promise.all([
+    const [map, project, connection, mayRefresh] = await Promise.all([
       convex.query(api.topics.getMap, { projectId: id }),
       convex.query(api.modelDefinitions.get, { projectId: id }),
       getProjectLlm(convex, projectId),
+      convex.query(api.topics.canRefresh, { projectId: id }),
     ]);
+    if (action === "refresh" && !mayRefresh) return NextResponse.json({ error: "Only project administrators can refresh the map." }, { status: 403 });
+    // A build that has not reported back in 15 minutes is treated as stuck, so a crashed build cannot block refreshes.
+    if (action === "refresh" && map?.status === "building" && now - map.builtAt < BUILD_STALE_MS) {
+      return NextResponse.json({ error: "The map is already being built." }, { status: 409 });
+    }
     const filters = Object.fromEntries([...request.nextUrl.searchParams].filter(([key, value]) => !FILTER_PARAMS_TO_SKIP.has(key) && key.length <= 60 && value.length <= 500).slice(0, 40));
-    const now = Date.now();
-    const traceFilters = parseTraceFilters(new URLSearchParams({ ...filters, from: String(now - 7 * 24 * 60 * 60 * 1000), to: String(now) }), now);
+    const traceFilters = parseTraceFilters(new URLSearchParams({ ...filters, from: String(now - WINDOW_DAYS * 24 * 60 * 60 * 1000), to: String(now) }), now);
     const needsEstimate = action === "estimate" || !map;
-    const estimate = needsEstimate
-      ? {
-          ...estimateBuildCost({ traces: (await finishedTraceRunIds(projectId, traceFilters, MAX_TRACES)).length, model: connection?.model, prices: project?.prices }),
-          model: connection?.model ?? null,
-          usesModelConnection: Boolean(connection),
-        }
-      : undefined;
+    let estimate;
+    if (needsEstimate) {
+      const model = connection ? (connection.model ?? DEFAULT_MODEL) : null;
+      const cost = estimateBuildCost({ traces: (await finishedTraceRunIds(projectId, traceFilters, MAX_TRACES)).length, model, prices: project?.prices });
+      // Later daily rebuilds only summarize traces that are new, so one day costs about a seventh of the first week.
+      estimate = { ...cost, model, usesModelConnection: Boolean(connection), dailyRebuilds: true, dailyRebuildCostUsd: cost.costUsd === null ? null : cost.costUsd / WINDOW_DAYS };
+    }
     if (action === "estimate") return NextResponse.json({ estimate });
     if (!map && !body.confirmed) return NextResponse.json({ error: "Confirm the estimated cost to build the first map.", estimate }, { status: 409 });
 

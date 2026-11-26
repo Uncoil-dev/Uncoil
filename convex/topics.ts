@@ -8,7 +8,7 @@ import {
   type MutationCtx,
 } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import { canAccessProject } from "./projects";
+import { canAccessProject, canAdminProject } from "./projects";
 import { isJobAuthorized } from "./retention";
 
 const MAX_TOPICS = 200;
@@ -83,6 +83,18 @@ export const getMap = query({
       .query("topicMaps")
       .withIndex("by_projectId", (q) => q.eq("projectId", projectId))
       .unique();
+  },
+});
+
+// Refreshing a map spends the project's model budget, so it is limited to project administrators.
+export const canRefresh = query({
+  args: { projectId: v.id("projects") },
+  returns: v.boolean(),
+  handler: async (ctx, { projectId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+    const project = await ctx.db.get(projectId);
+    return !!project && canAdminProject(project, identity);
   },
 });
 
@@ -223,6 +235,7 @@ export const jobListLiveMaps = query({
 
 export const jobGetMap = query({
   args: { jobSecret: v.string(), projectId: v.id("projects") },
+  returns: v.union(v.object({ _id: v.id("topicMaps"), _creationTime: v.number(), projectId: v.id("projects"), ...mapFields }), v.null()),
   handler: async (ctx, { jobSecret, projectId }) => {
     requireJob(jobSecret);
     return await ctx.db
@@ -235,6 +248,10 @@ export const jobGetMap = query({
 // The encrypted default model connection. Only the web server holds the key that opens it.
 export const jobGetConnection = query({
   args: { jobSecret: v.string(), projectId: v.id("projects") },
+  returns: v.union(
+    v.object({ ciphertext: v.string(), baseUrl: v.string(), defaultModel: v.union(v.string(), v.null()), provider: v.string() }),
+    v.null(),
+  ),
   handler: async (ctx, { jobSecret, projectId }) => {
     requireJob(jobSecret);
     const rows = await ctx.db
@@ -250,6 +267,7 @@ export const jobGetConnection = query({
 
 export const jobMissingRunIds = query({
   args: { jobSecret: v.string(), projectId: v.id("projects"), runIds: v.array(v.string()) },
+  returns: v.array(v.string()),
   handler: async (ctx, { jobSecret, projectId, runIds }) => {
     requireJob(jobSecret);
     const missing: string[] = [];
@@ -262,6 +280,7 @@ export const jobMissingRunIds = query({
 
 export const jobGetSummaries = query({
   args: { jobSecret: v.string(), projectId: v.id("projects"), runIds: v.array(v.string()) },
+  returns: v.array(v.object(summaryFields)),
   handler: async (ctx, { jobSecret, projectId, runIds }) => {
     requireJob(jobSecret);
     const rows = await Promise.all(runIds.slice(0, MAX_RUNS).map((runId) => findSummary(ctx, projectId, runId)));
@@ -271,24 +290,30 @@ export const jobGetSummaries = query({
 
 export const jobSaveSummaries = mutation({
   args: { jobSecret: v.string(), projectId: v.id("projects"), summaries: v.array(v.object(summaryFields)) },
+  returns: v.null(),
   handler: async (ctx, { jobSecret, projectId, summaries }) => {
     requireJob(jobSecret);
     await writeSummaries(ctx, projectId, summaries);
+    return null;
   },
 });
 
 export const jobSaveMap = mutation({
   args: { jobSecret: v.string(), projectId: v.id("projects"), ...mapFields },
+  returns: v.null(),
   handler: async (ctx, { jobSecret, projectId, ...fields }) => {
     requireJob(jobSecret);
     await writeMap(ctx, projectId, fields);
+    return null;
   },
 });
 
 export const jobReplaceTopics = mutation({
   args: { jobSecret: v.string(), projectId: v.id("projects"), topics: v.array(v.object(topicFields)) },
+  returns: v.null(),
   handler: async (ctx, { jobSecret, projectId, topics }) => {
     requireJob(jobSecret);
     await swapTopics(ctx, projectId, topics);
+    return null;
   },
 });

@@ -14,6 +14,8 @@ export const BATCH = 100;
 /** Rough size of one summary request: the trace text plus the instructions, and the short JSON answer. */
 export const AVG_INPUT_TOKENS = 2000;
 export const AVG_OUTPUT_TOKENS = 100;
+/** Model used for summaries when the connection names none; the cost estimate uses the same one. */
+export const DEFAULT_MODEL = "gpt-4o-mini";
 export const DEFAULT_FACETS = ["intent", "sentiment", "outcome", "issues"];
 
 export type Summary = { runId: string; intent: string; sentiment: string; outcome: string; issues: string[] };
@@ -47,7 +49,7 @@ export function providerMessage(status: number) {
   return `The model provider returned an error (${status}). The map is paused; refresh it to try again.`;
 }
 
-const chunk = <T>(items: T[], size: number) => Array.from({ length: Math.ceil(items.length / size) }, (_, i) => items.slice(i * size, i * size + size));
+export const chunk = <T>(items: T[], size: number) => Array.from({ length: Math.ceil(items.length / size) }, (_, i) => items.slice(i * size, i * size + size));
 
 /** A stable pick: the same trace is always in or out for a given rate, so rebuilds do not reshuffle the sample. */
 export function inSample(runId: string, rate: number) {
@@ -91,15 +93,17 @@ export function buildTopicRows(summaries: Summary[], facets: string[]): TopicRow
   return rows;
 }
 
-/**
- * One build. Returns what happened: `ready`, `waiting` (fewer than 10 summarized traces) or `paused` (the provider failed).
- * A provider failure stops the build at once and keeps the topics from the last good build.
- */
-export async function runTopicBuild(deps: BuildDeps) {
-  const { map } = deps;
-  const base = { filters: map.filters, facets: map.facets, sampleRate: map.sampleRate, live: map.live };
-  await deps.saveMap({ ...base, status: "building", builtAt: deps.now() });
+const mapBase = (deps: BuildDeps) => ({ filters: deps.map.filters, facets: deps.map.facets, sampleRate: deps.map.sampleRate, live: deps.map.live });
 
+/** Marks the map as building and lists the sampled finished traces and which of them still need a summary. */
+export async function planTopicBuild(deps: BuildDeps) {
+  await deps.saveMap({ ...mapBase(deps), status: "building", builtAt: deps.now() });
+  const sampled = (await deps.finishedRunIds(MAX_TRACES)).filter((id) => inSample(id, deps.map.sampleRate));
+  return { sampled, missing: await deps.missingRunIds(sampled) };
+}
+
+/** Summarizes one batch and saves it. Returns the pause message when the provider failed, after pausing the map. */
+export async function summarizeBatch(deps: BuildDeps, runIds: string[]) {
   let providerFailure: string | undefined;
   const callModel = deps.callModel && (async (prompt: string) => {
     try {
@@ -109,35 +113,45 @@ export async function runTopicBuild(deps: BuildDeps) {
       throw error;
     }
   });
+  const rows: Summary[] = [];
+  for (const runId of runIds) {
+    const facets = await summarizeTrace(await deps.spans(runId), { callModel });
+    // With a model connection, a failed call must stop the build; rule-based summaries never stand in for model ones.
+    if (providerFailure) break;
+    rows.push({ runId, intent: facets.intent, sentiment: facets.sentiment, outcome: facets.outcome, issues: facets.issue.toLowerCase() === "none" ? [] : [facets.issue] });
+  }
+  if (rows.length) await deps.saveSummaries(rows);
+  if (providerFailure) await deps.saveMap({ ...mapBase(deps), status: "paused", message: providerFailure, builtAt: deps.now() });
+  return providerFailure;
+}
 
+/** Groups the summaries into topics and saves the map; below the minimum it saves how many more traces are needed. */
+export async function finishTopicBuild(deps: BuildDeps, sampled: string[]) {
+  const summaries = (await Promise.all(chunk(sampled, BATCH).map((ids) => deps.getSummaries(ids)))).flat();
+  if (summaries.length < MIN_TRACES) {
+    const message = `Needs ${MIN_TRACES - summaries.length} more finished traces before topics can be shown.`;
+    await deps.saveMap({ ...mapBase(deps), status: "ready", message, builtAt: deps.now() });
+    return { status: "waiting" as const, message };
+  }
+  await deps.replaceTopics(buildTopicRows(summaries, deps.map.facets));
+  await deps.saveMap({ ...mapBase(deps), status: "ready", builtAt: deps.now() });
+  return { status: "ready" as const, summarized: summaries.length };
+}
+
+export const failedMap = (deps: BuildDeps) =>
+  deps.saveMap({ ...mapBase(deps), status: "failed", message: "The build stopped on an unexpected error. Refresh the map to try again.", builtAt: deps.now() });
+
+/** The three stages in one go; the Inngest function runs the same stages as separate steps. */
+export async function runTopicBuild(deps: BuildDeps) {
   try {
-    const sampled = (await deps.finishedRunIds(MAX_TRACES)).filter((id) => inSample(id, map.sampleRate));
-    const missing = await deps.missingRunIds(sampled);
+    const { sampled, missing } = await planTopicBuild(deps);
     for (const group of chunk(missing, BATCH)) {
-      const rows: Summary[] = [];
-      for (const runId of group) {
-        const facets = await summarizeTrace(await deps.spans(runId), { callModel });
-        if (providerFailure) break;
-        rows.push({ runId, intent: facets.intent, sentiment: facets.sentiment, outcome: facets.outcome, issues: facets.issue.toLowerCase() === "none" ? [] : [facets.issue] });
-      }
-      if (rows.length) await deps.saveSummaries(rows);
-      if (providerFailure) {
-        await deps.saveMap({ ...base, status: "paused", message: providerFailure, builtAt: deps.now() });
-        return { status: "paused" as const, message: providerFailure };
-      }
+      const message = await summarizeBatch(deps, group);
+      if (message) return { status: "paused" as const, message };
     }
-
-    const summaries = (await Promise.all(chunk(sampled, BATCH).map((ids) => deps.getSummaries(ids)))).flat();
-    if (summaries.length < MIN_TRACES) {
-      const message = `Needs ${MIN_TRACES - summaries.length} more finished traces before topics can be shown.`;
-      await deps.saveMap({ ...base, status: "ready", message, builtAt: deps.now() });
-      return { status: "waiting" as const, message };
-    }
-    await deps.replaceTopics(buildTopicRows(summaries, map.facets));
-    await deps.saveMap({ ...base, status: "ready", builtAt: deps.now() });
-    return { status: "ready" as const, summarized: summaries.length };
+    return await finishTopicBuild(deps, sampled);
   } catch (error) {
-    await deps.saveMap({ ...base, status: "failed", message: "The build stopped on an unexpected error. Refresh the map to try again.", builtAt: deps.now() });
+    await failedMap(deps);
     throw error;
   }
 }

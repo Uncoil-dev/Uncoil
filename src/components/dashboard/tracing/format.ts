@@ -112,3 +112,8 @@ export function stepKind(type: string) {
   const lower = (type || "").toLowerCase();
   return TYPE_ALIASES[lower] ?? lower;
 }
+
+/** Accessible name for a trace row: its name (or short run id), whether it failed, and when it started. */
+export function traceRowLabel(row: { traceName: string; runId: string; errorCount: number; startedAt: string }) {
+  return `${row.traceName || row.runId.slice(0, 12)}, ${Number(row.errorCount) > 0 ? "failed" : "succeeded"}, ${formatTime(row.startedAt)}`;
+}

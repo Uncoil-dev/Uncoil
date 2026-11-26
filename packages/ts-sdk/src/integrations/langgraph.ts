@@ -89,6 +89,29 @@ export class UncoilLangGraphHandler {
   handleToolError(error: unknown, id: string) {
     this.end(id, undefined, error);
   }
+  handleRetrieverStart(
+    retriever: any,
+    query: string,
+    id: string,
+    parent?: string,
+    _tags?: string[],
+    _metadata?: any,
+    name?: string,
+  ) {
+    this.start(
+      "retrieval",
+      name ?? retriever?.name ?? retriever?.id?.at(-1) ?? "retriever",
+      query,
+      id,
+      parent,
+    );
+  }
+  handleRetrieverEnd(documents: unknown, id: string) {
+    this.end(id, documents);
+  }
+  handleRetrieverError(error: unknown, id: string) {
+    this.end(id, undefined, error);
+  }
   handleLLMStart(
     llm: any,
     input: unknown,

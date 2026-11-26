@@ -26,11 +26,11 @@ export type TopicsResult = { ok: true; data: TopicsResponse } | { ok: false; mes
 
 /** Fetches the project's current topics with the project API key. Never throws. */
 export async function runTopics(options: TopicsOptions = {}): Promise<TopicsResult> {
-  const apiKey = (options.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || "").trim();
+  const apiKey = (options.apiKey || process.env.UNCOIL_API_KEY || "").trim();
   if (!apiKey) return { ok: false, message: "No API key found. Set UNCOIL_API_KEY, pass --key, or run `npx @uncoil.dev/sdk login`." };
-  const envRegion = (process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)?.trim().toLowerCase();
+  const envRegion = process.env.UNCOIL_REGION?.trim().toLowerCase();
   const wanted = options.region || (envRegion === "eu" || envRegion === "us" ? envRegion : undefined);
-  const host = (options.host || (process.env.UNCOIL_HOST ?? process.env.TRACIFY_HOST) || UNCOIL_REGION_HOSTS[wanted ?? keyRegion(apiKey) ?? "eu"]).replace(/\/$/, "");
+  const host = (options.host || process.env.UNCOIL_HOST || UNCOIL_REGION_HOSTS[wanted ?? keyRegion(apiKey) ?? "eu"]).replace(/\/$/, "");
   let response: Response;
   try {
     response = await fetch(`${host}/api/sdk/topics`, { headers: { Authorization: `Bearer ${apiKey}` }, signal: AbortSignal.timeout(options.timeoutMs ?? 15_000) });

@@ -84,16 +84,13 @@ describe("topics command", () => {
     const fetchMock = reply(200, payload);
     vi.stubGlobal("fetch", fetchMock);
     const saved = process.env.UNCOIL_API_KEY;
-    const savedOld = process.env.TRACIFY_API_KEY;
     delete process.env.UNCOIL_API_KEY;
-    delete process.env.TRACIFY_API_KEY;
     try {
       const result = await runTopics({});
       expect(!result.ok && result.message).toContain("API key");
       expect(fetchMock).not.toHaveBeenCalled();
     } finally {
       if (saved !== undefined) process.env.UNCOIL_API_KEY = saved;
-      if (savedOld !== undefined) process.env.TRACIFY_API_KEY = savedOld;
     }
   });
 

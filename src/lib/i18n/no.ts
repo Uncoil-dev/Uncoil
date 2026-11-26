@@ -119,7 +119,7 @@ export const no: Copy = {
         ["Spans per måned", "10 000", "500 000", "2 000 000", "En span er ett steg agenten din tar. Tellerne nullstilles hver måned (UTC)."],
         ["Spans per dag", "2 000", "Ingen dagsgrense", "Ingen dagsgrense", "På Gratis kan én løkke som går løpsk ikke bruke opp hele måneden på én dag."],
         ["Ved månedsgrensen", "Nye data stopper til neste måned", "10 % buffer, så stopp", "10 % buffer, så stopp", "Du får aldri ekstra regning. Data som allerede er lagret blir liggende."],
-        ["Forespørsler per minutt", "600", "6 000", "6 000", "Per prosjekt."],
+        ["Forespørsler per minutt", "300", "6 000", "6 000", "Per prosjekt."],
         ["Span-størrelse", "256 KB, lengre tekst kortes ned", "1 MB per forespørsel", "1 MB per forespørsel", "Forkortede spans vises fortsatt, bare kortere."]
       ] },
       { title: "Folk og data", rows: [

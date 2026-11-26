@@ -83,3 +83,14 @@ test("de and no define exactly the keys of en", () => {
     assert.deepEqual(extra, [], `${name} has extra keys`);
   }
 });
+
+test("pricing table Free requests per minute matches the enforced ingest limit", async () => {
+  const { ingestLimitPerMinute } = await import("../plan-limits.ts");
+  const enforced = ingestLimitPerMinute("free", 6_000);
+  for (const dict of [en, de, no]) {
+    const rows = dict.pricing.compareGroups.flatMap((group) => [...group.rows]);
+    const row = rows.find((r) => /minute|minutt/i.test(r[0]));
+    assert.ok(row, "requests per minute row exists");
+    assert.equal(Number(row[1].replace(/\D/g, "")), enforced);
+  }
+});

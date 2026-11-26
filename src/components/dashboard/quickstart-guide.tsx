@@ -80,6 +80,11 @@ function useCopy() {
   return { done, copy };
 }
 
+/** Where the last setup step leads: the run that just arrived, or the tracing list while waiting. */
+export function lastStepHref(projectId: string, runId?: string) {
+  return runId ? `/dashboard/${projectId}/runs/${encodeURIComponent(runId)}` : `/dashboard/${projectId}/tracing`;
+}
+
 export function QuickstartGuide({ projectId, apiKey, embedded = false }: { projectId: string; apiKey?: string; embedded?: boolean }) {
   const reduce = useReducedMotion();
   const region = getUncoilRegion(getDeploymentRegion());
@@ -177,7 +182,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
                 <div className="max-w-[560px] border border-[#3a3a3a] bg-[#000000cc] font-mono" role="status" aria-live="polite">
                   <div className="flex items-center justify-between border-b border-[#2a2a2a] px-4 py-3 text-[10px] uppercase tracking-[0.16em]">
                     <span className="flex items-center gap-2 text-[#eceae3]">
-                      <span className={`size-2 ${arrived ? "bg-[#5be3a0]" : "animate-pulse bg-[#f4d44d]"}`} />
+                      <span className={`size-2 bg-[#f4d44d] ${arrived ? "" : "animate-pulse"}`} />
                       {arrived ? "Trace received" : "Waiting for first trace"}
                     </span>
                     <span className="text-[#8a8a84]">{arrived ? "connected" : `${mm}:${ss}`}</span>
@@ -209,7 +214,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
             {!isLast ? (
               <button type="button" onClick={() => setStep((v) => v + 1)} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">Next <ArrowRight className="size-4" /></button>
             ) : (
-              <Link href={`/dashboard/${projectId}/tracing`} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">{arrived ? "Open your trace" : "Open tracing"} <ArrowRight className="size-4" /></Link>
+              <Link href={lastStepHref(projectId, firstRun?.runId)} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">{arrived ? "Open your trace" : "Open tracing"} <ArrowRight className="size-4" /></Link>
             )}
           </div>
         </motion.div>

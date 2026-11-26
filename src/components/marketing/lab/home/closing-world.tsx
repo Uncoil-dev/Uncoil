@@ -8,6 +8,8 @@ import { appHref } from "@/lib/app-links";
 import { YELLOW, bridge, flag, ground, landscape, pines, robot, type Scene } from "../pixel-world/pixels";
 import { usePixelCanvas } from "../pixel-world/use-pixel-canvas";
 import { clamp01, ease } from "../pixel-world/world";
+import { clearStars, toBuffer, useCopyBoxes } from "./sky";
+import { BODY, HERO, LABEL, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
 
 const closingPixel = (w: number) => (w < 640 ? 4 : w < 1100 ? 5 : 6);
@@ -22,10 +24,11 @@ export function ClosingWorld() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.35 });
   const startedAt = useRef<number | null>(null);
+  const copy = useCopyBoxes(sectionRef);
 
   usePixelCanvas(
     canvasRef,
-    ({ px, seconds }) => {
+    ({ px, scale, seconds }) => {
       if (inView && startedAt.current === null) startedAt.current = seconds;
       const t = reduce ? 99 : startedAt.current === null ? 0 : seconds - startedAt.current;
       const narrow = px.w < 140;
@@ -39,6 +42,7 @@ export function ClosingWorld() {
       const s: Scene = { px, cam: 0, groundY, t: seconds };
 
       landscape(s, narrow ? 0.78 : 0.8, 0.7);
+      clearStars(px, toBuffer(copy.current, scale, 4));
       pines(s, [[gap0 - 14, gap1 + 4], [goal - 14, goal + 30]], 1);
       ground(s, [[gap0, gap1]], rx + 6, start);
       bridge(s, gap0, gap1, -1);
@@ -55,19 +59,21 @@ export function ClosingWorld() {
       <div className="absolute inset-0 -z-10" aria-hidden="true">
         <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
       </div>
-      <div className="mx-auto w-full max-w-[1400px] px-5 pt-16 md:px-10 md:pt-20">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#eceae3]/60">Run passed · 6 / 6 · example</p>
-        <h2 id="mix-close-title" className="mt-6 max-w-[22ch] text-balance font-pixel text-[clamp(3rem,8vw,7.5rem)] leading-[0.86] tracking-[-0.08em]">
-          Know which step.
-          <br className="hidden md:block" />{" "}
-          Before your users do.
+      <div className="mx-auto w-full max-w-[1400px] px-5 pt-14 md:px-10 md:pt-16">
+        <p data-clear className={`w-fit text-[#eceae3]/60 ${LABEL}`}>Run passed · 6 / 6 · example</p>
+        <h2 id="mix-close-title" className={`mt-6 ${HERO}`}>
+          <span data-clear className="inline-block max-w-[16ch]">
+            Know which step.
+            <br className="hidden md:block" />{" "}
+            Before your users do.
+          </span>
         </h2>
-        <p className="mt-6 max-w-xl text-lg leading-8 text-[#eceae3]/85">Paste the prompt, run your agent, open the trace. The free plan needs no card.</p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link href={appHref("/sign-up")} className="group inline-flex items-center gap-3 bg-[#f4d44d] px-8 py-5 font-mono text-xs font-medium uppercase tracking-[0.14em] text-black shadow-[6px_6px_0_0_#eceae3] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[8px_8px_0_0_#eceae3]">
+        <p data-clear className={`mt-6 max-w-xl text-[#eceae3]/85 ${BODY}`}>Paste the prompt, run your agent, open the trace. The free plan needs no card.</p>
+        <div data-clear className="mt-8 flex w-fit flex-wrap gap-4">
+          <Link href={appHref("/sign-up")} className={primary("ink")}>
             Start tracing free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
-          <Link href="/docs" className="inline-flex items-center border-2 border-[#eceae3] bg-[#090909] px-8 py-5 font-mono text-xs font-medium uppercase tracking-[0.14em] hover:bg-[#eceae3] hover:text-black">
+          <Link href="/docs" className={secondary("ink")}>
             Read the docs
           </Link>
         </div>

@@ -1,6 +1,10 @@
 import { CREAM, INK, PALE, YELLOW, bridge, ground, landscape, pines, reticle, robot, signpost, type Px, type Scene } from "../pixel-world/pixels";
 import { hash } from "../pixel-world/world";
+import { clearStars, fadeStarsIn, type Box } from "./sky";
 import { GAP, HOLE_X, STOP_X, WORLD_W, beats, robotAt } from "./story";
+
+/** Copy that sits on the scene, in buffer pixels, and the row where the sky may start. */
+export type SkyCopy = { boxes: readonly Box[]; band: number };
 
 export const journeyPixel = (w: number, h: number) => (w < 640 ? 3 : Math.max(3, Math.round(h / 175)));
 
@@ -9,7 +13,7 @@ export const journeyPixel = (w: number, h: number) => (w < 640 ? 3 : Math.max(3,
  * Uncoil locks onto the missing plank. The plank stays an empty slot here (no red): the failure
  * was already shown in the hero and the break section, and the repair comes at the end.
  */
-export function drawJourney(px: Px, p: number, seconds: number, prevX: { current: number }) {
+export function drawJourney(px: Px, p: number, seconds: number, prevX: { current: number }, sky?: SkyCopy) {
   const b = beats(p);
   const rx = robotAt(p);
   const groundY = Math.round(px.h * (px.w < 160 ? 0.8 : 0.72));
@@ -19,6 +23,10 @@ export function drawJourney(px: Px, p: number, seconds: number, prevX: { current
   const X = (wx: number) => wx - cam;
 
   landscape(s, 0.86);
+  if (sky) {
+    fadeStarsIn(px, sky.band, sky.band + Math.round(px.h * 0.12));
+    clearStars(px, sky.boxes);
+  }
   pines(s, [[STOP_X[0] - 30, STOP_X[0] + 70], [STOP_X[1] - 40, STOP_X[1] + 90], [GAP.x0 - 40, GAP.x1 + 10], [WORLD_W - 90, WORLD_W]]);
   ground(s, [[GAP.x0, GAP.x1]], b.prompt >= 1 ? rx + 6 : -1, STOP_X[0] + 20);
   bridge(s, GAP.x0, GAP.x1, 1);

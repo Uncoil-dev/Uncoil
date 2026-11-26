@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EDGE, GAP, cellsPath, edgeCells, horizonRow, hud, robotAt, stopAt } from "./story.ts";
+import { EDGE, GAP, cellsPath, edgeCells, horizonRow, hud, numberLines, robotAt, stopAt } from "./story.ts";
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
 
 test("the short journey walks three stops in order and ends with the step found, not repaired", () => {
@@ -47,4 +47,10 @@ test("sprite paths merge runs of one colour and skip empty cells", () => {
   const { cream, yellow } = spritePaths(["##.y", "y..#"]);
   assert.equal(cream, "M0 0h2v1h-2zM3 1h1v1h-1z");
   assert.equal(yellow, "M3 0h1v1h-1zM0 1h1v1h-1z");
+});
+
+test("the setup prompt numbers its written lines and leaves blank lines unnumbered", () => {
+  const lines = numberLines("Set up.\n\n1. Install.\n2. Run.\n\nDo not invent a key.");
+  assert.deepEqual(lines.map((l) => l.n), ["01", "", "02", "03", "", "04"]);
+  assert.equal(lines[5].line, "Do not invent a key.");
 });

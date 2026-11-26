@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CREAM, YELLOW, brokenStep, bridge, flag, ground, landscape, pines, rebuild, reticle, robot, type Scene } from "../pixel-world/pixels";
+import { CREAM, YELLOW, brokenStep, bridge, flag, ground, pines, rebuild, reticle, robot, type Scene } from "../pixel-world/pixels";
 import { heroState, heroTrack, type HeroPhase } from "../pixel-world/world";
 import { usePixelCanvas, type Frame } from "../pixel-world/use-pixel-canvas";
+import { clearStars, landscapeUnder, placeCallout, toBuffer, useCopyBoxes } from "./sky";
+import { DUR, EASE, HERO, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
 
 const heroPixel = (w: number) => (w < 640 ? 4 : w < 1100 ? 5 : 6);
@@ -15,7 +17,7 @@ const heroPixel = (w: number) => (w < 640 ? 4 : w < 1100 ? 5 : 6);
 function layout(w: number, h: number) {
   // On phones the copy fills the top of the screen, so the ground sits low and the scene
   // still lands inside the first screen.
-  const groundY = Math.round(h * (w < 200 ? 0.87 : 0.76));
+  const groundY = Math.round(h * (w < 200 ? 0.87 : 0.79));
   const gap0 = Math.round(w * (w < 200 ? 0.5 : 0.58));
   return { groundY, gap0, gap1: gap0 + 36, start: Math.round(w * 0.05), goal: Math.round(w * 0.93) };
 }
@@ -35,12 +37,17 @@ export function HeroWorld() {
   // Server and first client render agree on "walk"; the first drawn frame reports the real
   // phase, which is "goal" when motion is reduced.
   const [phase, setPhase] = useState<HeroPhase>("walk");
-  const [label, setLabel] = useState({ left: 60, top: 60 });
+  const sectionRef = useRef<HTMLElement>(null);
+  const tagRef = useRef<HTMLDivElement>(null);
+  const copy = useCopyBoxes(sectionRef);
+  // The callout box and its stem, in CSS pixels relative to the section.
+  const [tag, setTag] = useState({ x: -999, y: 0, stemX: 0, stemY: 0, stemH: 0 });
+  const lastTag = useRef("");
   const lastPhase = useRef<HeroPhase>(phase);
 
   usePixelCanvas(
     canvasRef,
-    ({ px, seconds }: Frame) => {
+    ({ px, scale, seconds }: Frame) => {
       const st = reduce ? { phase: "goal" as const, local: 1 } : heroState(seconds);
       const { groundY, gap0, gap1, start, goal } = layout(px.w, px.h);
       const plankX = gap0 + 12;
@@ -49,7 +56,12 @@ export function HeroWorld() {
       const pos = heroTrack(st, edge);
       const rx = Math.round(start + pos * (goal - 8 - start));
 
-      landscape(s, px.w < 200 ? 0.78 : 0.8, px.w < 200 ? 0.8 : 0.6);
+      const sunX = px.w < 200 ? 0.78 : 0.8;
+      // No star ever sits behind a word, and the far ridge never climbs into the copy: if it
+      // would, the hills are drawn a little lower.
+      const words = toBuffer(copy.current, scale, 4);
+      landscapeUnder(s, sunX, px.w < 200 ? 0.8 : 0.6, words);
+      clearStars(px, words);
       pines(s, [[gap0 - 14, gap1 + 4], [goal - 10, goal + 30]], 1);
       const fixed = st.phase === "cross" || st.phase === "goal";
       ground(s, [[gap0, gap1]], fixed ? rx + 6 : -1, gap1);
@@ -80,17 +92,42 @@ export function HeroWorld() {
       if (st.phase !== lastPhase.current) {
         lastPhase.current = st.phase;
         setPhase(st.phase);
-        setLabel({ left: ((plankX + 5) / px.w) * 100, top: ((groundY - 14) / px.h) * 100 });
+      }
+
+      // The step callout sits in clear sky above the ridge, beside its stem, away from the copy
+      // and the sun. Placed from the drawn frame so it follows the ridge at every width.
+      const el = tagRef.current;
+      const size = { w: Math.ceil((el?.offsetWidth ?? (px.w < 200 ? 196 : 216)) / scale) + 1, h: Math.ceil((el?.offsetHeight ?? 60) / scale) + 1 };
+      const r = Math.round(Math.min(px.w * 0.11, px.h * 0.2));
+      const sun = { x: Math.round(px.w * sunX) - r - 3, y: Math.round(groundY - px.h * 0.2 - r * 0.6) - r - 3, w: 2 * r + 6, h: 2 * r + 6 };
+      const stemX = plankX + 5;
+      const plankTop = groundY - 6;
+      const box = placeCallout(px, stemX, plankTop - 8, size, [...toBuffer(copy.current, scale, 3), sun]);
+      if (!box) {
+        if (lastTag.current !== "none") {
+          lastTag.current = "none";
+          setTag({ x: -9999, y: 0, stemX: 0, stemY: 0, stemH: 0 });
+        }
+        return;
+      }
+      // The box hangs off its stem: the stem meets the box 10px in from the near edge.
+      const stemCss = (stemX + 0.5) * scale - 1;
+      const elW = el?.offsetWidth ?? size.w * scale;
+      const next = { x: Math.round(box.x < stemX - 2 ? stemCss + 12 - elW : stemCss - 10), y: box.y * scale, stemX: stemCss, stemY: (box.y + box.h) * scale, stemH: (plankTop - box.y - box.h) * scale };
+      const key = JSON.stringify(next);
+      if (key !== lastTag.current) {
+        lastTag.current = key;
+        setTag(next);
       }
     },
     { pixel: heroPixel, still: reduce },
   );
 
-  const showTag = phase !== "walk";
+  const showTag = phase !== "walk" && tag.x > -9999;
   const broken = phase === "break" || phase === "scan";
 
   return (
-    <section data-phase={phase} className="relative isolate flex min-h-[calc(100svh-4rem)] flex-col md:min-h-[max(40rem,calc(100svh-4rem))] overflow-hidden bg-[#090909] text-[#eceae3]" aria-labelledby="pw-hero-title">
+    <section ref={sectionRef} data-phase={phase} className="relative isolate flex min-h-[calc(100svh-4rem)] flex-col md:min-h-[max(40rem,calc(100svh-4rem))] overflow-hidden bg-[#090909] text-[#eceae3]" aria-labelledby="pw-hero-title">
       <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
       </div>
@@ -103,37 +140,36 @@ export function HeroWorld() {
             initial={reduce ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full"
-            style={{ left: `${label.left}%`, top: `${label.top}%` }}
+            transition={{ duration: DUR.fast, ease: EASE }}
+            className="pointer-events-none absolute inset-0 z-10"
           >
-            <div className={`border-2 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] md:text-[11px] ${broken ? "border-[#eceae3] bg-[#090909] text-[#eceae3]" : "border-[#f4d44d] bg-[#f4d44d] text-black"}`}>
+            <div ref={tagRef} className={`absolute border-2 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] md:text-[11px] ${broken ? "border-[#eceae3] bg-[#090909] text-[#eceae3]" : "border-[#f4d44d] bg-[#f4d44d] text-black"}`} style={{ left: tag.x, top: tag.y }}>
               <p className="whitespace-nowrap">Step 06 · refund.issue</p>
               <p className={`mt-1 whitespace-nowrap ${broken ? "text-[#eceae3]/70" : "text-black/70"}`}>{broken ? "502 · hung 5000 ms" : "passing again"}</p>
             </div>
-            <div className={`mx-auto h-6 w-[2px] ${broken ? "bg-[#eceae3]" : "bg-[#f4d44d]"}`} />
+            <div className={`absolute w-[2px] ${broken ? "bg-[#eceae3]" : "bg-[#f4d44d]"}`} style={{ left: tag.stemX, top: tag.stemY, height: Math.max(0, tag.stemH) }} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="relative mx-auto w-full max-w-[1400px] px-5 pt-5 sm:pt-[clamp(1.5rem,7svh,5rem)] md:px-10">
-        <p className="inline-flex items-center gap-2 border border-[#eceae3]/40 bg-[#090909] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[#eceae3] sm:tracking-[0.18em]">
+      <div className="relative mx-auto w-full max-w-[1400px] px-5 pt-5 sm:pt-[clamp(1.5rem,5.5svh,4.5rem)] md:px-10">
+        <p data-clear className="inline-flex items-center gap-2 border border-[#eceae3]/40 bg-[#090909] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[#eceae3]">
           <span className="size-1.5 shrink-0 animate-pulse bg-[#f4d44d]" />
           <span className="sm:hidden">For Claude Code, Cursor and Codex builds</span>
           <span className="hidden sm:inline">Agent observability for Claude Code, Cursor and Codex builds</span>
         </p>
-        <h1 id="pw-hero-title" className="mt-5 max-w-[11ch] font-pixel text-[clamp(2.9rem,min(9vw,13svh),8.5rem)] leading-[0.86] tracking-[-0.07em] sm:mt-6">
-          See the step that broke.
+        <h1 id="pw-hero-title" className={`mt-5 sm:mt-6 ${HERO}`}>
+          <span data-clear className="inline-block max-w-[11ch]">See the step that broke.</span>
         </h1>
-        <p className="mt-4 max-w-[34rem] bg-[#090909]/80 text-[15px] leading-6 text-[#eceae3]/85 sm:mt-5 sm:text-base sm:leading-7 md:mt-6 md:text-lg md:leading-8">
+        <p data-clear className="mt-4 max-w-[34rem] text-[15px] leading-6 text-[#eceae3]/85 sm:mt-5 sm:text-base sm:leading-7 md:mt-6 md:text-lg md:leading-8">
           Your agent takes dozens of steps every run. Uncoil records each one, points at the step that failed and shows what it cost, so you can fix it and keep walking.
         </p>
-        <div className="mt-5 flex flex-wrap gap-3 md:mt-8">
-          <Link href={appHref("/sign-up")} className="group inline-flex items-center gap-3 bg-[#f4d44d] px-5 py-3.5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-black shadow-[5px_5px_0_0_#eceae3] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[8px_8px_0_0_#eceae3] sm:px-7 sm:py-4 sm:text-xs">
+        <div data-clear className="mt-6 flex w-fit flex-wrap gap-4 md:mt-8">
+          <Link href={appHref("/sign-up")} className={primary("ink")}>
             Start free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
-          <a href="#pw-setup" className="inline-flex items-center gap-3 border-2 border-[#eceae3] bg-[#090909] px-5 py-3 font-mono text-[11px] font-medium uppercase tracking-[0.14em] hover:bg-[#eceae3] hover:text-black sm:px-7 sm:py-3.5 sm:text-xs">
-            Get the prompt <ArrowDown className="size-4" aria-hidden="true" />
+          <a href="#pw-setup" className={secondary("ink")}>
+            Get the prompt <ArrowDown className="size-4 transition-transform group-hover:translate-y-0.5" aria-hidden="true" />
           </a>
         </div>
         {/* Keeps the pixel ground clear of the copy on phones. */}

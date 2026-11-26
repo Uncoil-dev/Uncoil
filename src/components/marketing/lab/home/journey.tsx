@@ -6,6 +6,9 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring, typ
 import { usePixelCanvas } from "../pixel-world/use-pixel-canvas";
 import { drawJourney, journeyPixel } from "./journey-scene";
 import { SPAN_COUNT, hud, stopAt } from "./story";
+import { Eyebrow } from "./eyebrow";
+import { toBuffer, useCopyBoxes } from "./sky";
+import { DUR, EASE, H3, LABEL, primary } from "./ui";
 import { useCalm } from "./use-calm";
 
 type Hud = ReturnType<typeof hud>;
@@ -32,14 +35,14 @@ function Dialog({ index, h, pinned = false, children }: { index: number; h: Hud;
   const stop = STOPS[index];
   return (
     <div className="relative w-full max-w-[30rem] border-2 border-[#eceae3] bg-[#090909] p-4 text-[#eceae3] shadow-[inset_0_0_0_4px_#090909,inset_0_0_0_6px_#eceae3] sm:p-5 md:p-8">
-      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#eceae3]/60">
-        05 · Setup · 0{index + 1} / 03 · {stop.kicker}
+      <p className={`text-[#eceae3]/60 ${LABEL}`}>
+        Stop 0{index + 1} / 03 · {stop.kicker}
       </p>
-      <h3 className="mt-3 font-pixel text-[clamp(2rem,4.2vw,3.4rem)] leading-[0.9] tracking-[-0.07em]">{stop.title}</h3>
+      <h3 className={`mt-3 ${H3}`}>{stop.title}</h3>
       <p className="mt-3 text-[14px] leading-6 text-[#eceae3]/80 sm:mt-4 sm:text-[15px] sm:leading-7 md:text-base">{stop.body}</p>
       {index === 0 && (
-        <a href="#pw-setup" tabIndex={pinned ? -1 : undefined} className="mt-5 inline-flex items-center gap-2 bg-[#f4d44d] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-black hover:bg-[#eceae3]">
-          Get the prompt <ArrowDown className="size-3.5" aria-hidden="true" />
+        <a href="#pw-setup" tabIndex={pinned ? -1 : undefined} className={`mt-6 ${primary("ink")}`}>
+          Get the prompt <ArrowDown className="size-4 transition-transform group-hover:translate-y-0.5" aria-hidden="true" />
         </a>
       )}
       {index === 1 && (
@@ -92,6 +95,8 @@ function HudBar({ h }: { h: Hud }) {
 function PinnedJourney() {
   const ref = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const copy = useCopyBoxes(frameRef);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const p = useSpring(scrollYProgress, { stiffness: 140, damping: 32, mass: 0.6 });
   const prevX = useRef(0);
@@ -104,11 +109,19 @@ function PinnedJourney() {
     setH((cur) => (cur.spans === next.spans && cur.status === next.status ? cur : next));
   });
 
-  usePixelCanvas(canvasRef, ({ px, seconds }) => drawJourney(px, p.get(), seconds, prevX), { pixel: journeyPixel, still: false });
+  usePixelCanvas(
+    canvasRef,
+    ({ px, scale, seconds }) => {
+      // The first copy box is the section marker: the sky starts below it.
+      const boxes = toBuffer(copy.current, scale);
+      drawJourney(px, p.get(), seconds, prevX, { boxes, band: boxes[0] ? boxes[0].y + boxes[0].h + 2 : 0 });
+    },
+    { pixel: journeyPixel, still: false },
+  );
 
   return (
-    <div ref={ref} className="relative h-[330svh]">
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
+    <div ref={ref} className="relative h-[250svh]">
+      <div ref={frameRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <div className="absolute inset-0" aria-hidden="true">
           <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
         </div>
@@ -120,20 +133,21 @@ function PinnedJourney() {
             </li>
           ))}
         </ol>
-        <div aria-hidden="true" className="relative mx-auto flex h-full max-w-[1400px] flex-col px-4 pb-6 pt-[4.5rem] sm:px-5 md:px-10 md:pt-24">
-          <div className="flex justify-end">
-            <HudBar h={h} />
+        <div aria-hidden="true" className="relative mx-auto flex h-full max-w-[1400px] flex-col px-5 pb-6 pt-[6.5rem] md:px-10 md:pt-[7.5rem]">
+          <div data-clear>
+            <Eyebrow n="05" on="ink">Setup, in three stops</Eyebrow>
           </div>
-          <div className="mt-4 md:-mt-6">
+          <div className="mt-6 flex flex-col-reverse gap-4 md:mt-8 md:flex-row md:items-start md:justify-between">
             <AnimatePresence mode="wait" initial={false}>
-              <motion.div key={stop} initial={{ opacity: 0, x: -24, clipPath: "inset(0 100% 0 0)" }} animate={{ opacity: 1, x: 0, clipPath: "inset(0 0% 0 0)" }} exit={{ opacity: 0, x: 24 }} transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}>
+              <motion.div key={stop} data-clear initial={{ opacity: 0, x: -24, clipPath: "inset(0 100% 0 0)" }} animate={{ opacity: 1, x: 0, clipPath: "inset(0 0% 0 0)" }} exit={{ opacity: 0, x: 24 }} transition={{ duration: DUR.fast, ease: EASE }}>
                 <Dialog index={stop} h={h} pinned />
               </motion.div>
             </AnimatePresence>
+            <div data-clear className="self-end md:self-start">
+              <HudBar h={h} />
+            </div>
           </div>
-          <p className="mt-auto font-mono text-[10px] uppercase tracking-[0.16em] text-[#eceae3]/70">
-            <span className="bg-[#090909] px-2 py-1">Keep scrolling to walk the run →</span>
-          </p>
+          <p data-clear className={`mt-auto w-fit text-[#eceae3]/70 ${LABEL}`}>Keep scrolling to walk the run ↓</p>
         </div>
       </div>
     </div>
@@ -159,8 +173,17 @@ function StillStop({ index }: { index: number }) {
 export function ShortJourney() {
   const reduce = useCalm();
   return (
-    <section id="walk" aria-label="Setting up Uncoil, in three stops" className="relative bg-[#090909]">
-      {reduce ? STOPS.map((_, i) => <StillStop key={i} index={i} />) : <PinnedJourney />}
+    <section id="walk" aria-label="Setting up Uncoil, in three stops" className="relative bg-[#090909] text-[#eceae3]">
+      {reduce ? (
+        <>
+          <div className="mx-auto max-w-[1400px] px-5 pb-8 pt-10 text-[#eceae3] md:px-10 md:pt-14">
+            <Eyebrow n="05" on="ink">Setup, in three stops</Eyebrow>
+          </div>
+          {STOPS.map((_, i) => <StillStop key={i} index={i} />)}
+        </>
+      ) : (
+        <PinnedJourney />
+      )}
     </section>
   );
 }

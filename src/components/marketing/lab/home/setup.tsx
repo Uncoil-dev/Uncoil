@@ -5,6 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { ArrowRight, Check, Copy } from "lucide-react";
 import { appHref } from "@/lib/app-links";
+import { Eyebrow } from "./eyebrow";
+import { numberLines } from "./story";
+import { AFTER_EYEBROW, BODY, DUR, EASE, H2, LABEL, SECTION, WRAP, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
 
 // The same setup prompt the live homepage hands out, so both pages give identical instructions.
@@ -100,7 +103,7 @@ function Replay({ agent }: { agent: Agent }) {
       </div>
       <ul className="space-y-2.5 px-4 py-4" aria-hidden="true">
         {lines.slice(0, Math.min(at, lines.length)).map((line, i) => (
-          <motion.li key={`${agent}-${i}`} initial={calm ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }} className="flex items-baseline gap-3">
+          <motion.li key={`${agent}-${i}`} initial={calm ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: DUR.fast, ease: EASE }} className="flex items-baseline gap-3">
             <span className={`w-3 shrink-0 ${line.k === "ok" ? "text-[#f4d44d]" : "text-[#eceae3]/40"}`}>{line.k === "you" ? ">" : line.k === "ok" ? "✓" : "$"}</span>
             <span className={`min-w-0 flex-1 truncate ${line.k === "run" ? "text-[#eceae3]/75" : "text-[#eceae3]"}`}>{line.text}</span>
             {line.meta && <span className="hidden shrink-0 text-[10px] text-[#eceae3]/40 sm:inline">{line.meta}</span>}
@@ -139,27 +142,23 @@ export function Setup() {
   const install = PM.find((p) => p.id === pm)!.cmd;
 
   return (
-    <section id="pw-setup" className="scroll-mt-16 bg-[#eceae3] px-5 pb-20 pt-10 text-[#090909] md:px-10 md:pb-28 md:pt-14" aria-labelledby="mix-setup-title">
-      <div className="mx-auto max-w-[1320px]">
-        <p className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em]">
-          <span>05</span>
-          <span className="h-px flex-1 bg-black" />
-          <span>The prompt</span>
-        </p>
+    <section id="pw-setup" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="mix-setup-title">
+      <div className={WRAP}>
+        <Eyebrow n="05" on="cream">The prompt</Eyebrow>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-end">
-          <h2 id="mix-setup-title" className="font-pixel text-[clamp(3rem,7vw,6.5rem)] leading-[0.86] tracking-[-0.08em]">
+        <div className={`${AFTER_EYEBROW} grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-end`}>
+          <h2 id="mix-setup-title" className={H2}>
             One paste.
             <br />
             First trace.
           </h2>
           <div>
-            <p className="max-w-md text-lg leading-8 text-black/75">Copy it into your coding agent. It installs Uncoil, signs you in, connects this project and sends your first trace while you watch.</p>
-            <dl className="mt-5 grid grid-cols-3 border-y-2 border-black">
+            <p className={`max-w-md text-black/75 ${BODY}`}>Copy it into your coding agent. It installs Uncoil, signs you in, connects this project and sends your first trace while you watch.</p>
+            <dl className="mt-6 grid grid-cols-3 border-y border-black">
               {WHY.map(([n, label], i) => (
-                <div key={label} className={`py-3 ${i ? "border-l-2 border-black pl-4" : ""}`}>
+                <div key={label} className={`py-3 ${i ? "border-l border-black/25 pl-4" : ""}`}>
                   <dt className="font-pixel text-4xl tracking-[-0.06em]">{n}</dt>
-                  <dd className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-black/65">{label}</dd>
+                  <dd className={`mt-1 text-black/65 ${LABEL}`}>{label}</dd>
                 </div>
               ))}
             </dl>
@@ -175,7 +174,7 @@ export function Setup() {
                 role="tab"
                 aria-selected={agent === a}
                 onClick={() => setAgent(a)}
-                className={`relative px-2 py-4 transition-colors ${agent === a ? "bg-[#eceae3] text-black" : "text-[#eceae3]/60 hover:bg-[#eceae3]/10 hover:text-[#eceae3]"}`}
+                className={`relative min-h-12 px-2 py-4 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-[#f4d44d] ${agent === a ? "bg-[#eceae3] text-black" : "text-[#eceae3]/60 hover:bg-[#eceae3]/10 hover:text-[#eceae3]"}`}
               >
                 {a}
                 {agent === a && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1 bg-[#f4d44d]" />}
@@ -185,17 +184,21 @@ export function Setup() {
           <div className="grid lg:grid-cols-[1.1fr_1fr]">
             <div className="flex min-w-0 flex-col border-b-2 border-black lg:border-b-0 lg:border-r-2">
               <pre className="max-h-[19rem] overflow-auto whitespace-pre-wrap break-words p-5 font-mono text-[12px] leading-6 text-[#eceae3]/85 md:p-6">
-                {prompt.split("\n").map((line, i) => (
-                  <span key={i} className="grid grid-cols-[1.75rem_1fr] gap-3">
-                    <span aria-hidden="true" className="select-none text-right text-[#f4d44d]/70">{String(i + 1).padStart(2, "0")}</span>
-                    <span>{line || " "}</span>
-                  </span>
-                ))}
+                {numberLines(prompt).map(({ n, line }, i) =>
+                  n ? (
+                    <span key={i} className="grid grid-cols-[1.75rem_1fr] gap-3">
+                      <span aria-hidden="true" className="select-none text-right text-[#f4d44d]/70">{n}</span>
+                      <span>{line}</span>
+                    </span>
+                  ) : (
+                    <span key={i} className="block h-3" aria-hidden="true" />
+                  ),
+                )}
               </pre>
               <button
                 type="button"
                 onClick={() => copy("prompt", prompt)}
-                className="group mt-auto flex w-full items-center justify-between gap-4 bg-[#f4d44d] px-5 py-5 text-left font-mono text-black transition-colors hover:bg-[#fff4b5] md:px-6"
+                className="group mt-auto flex w-full items-center justify-between gap-4 bg-[#f4d44d] px-5 py-5 text-left font-mono text-black transition-colors hover:bg-[#fff4b5] focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-[#090909] md:px-6"
               >
                 <span>
                   <span className="block text-[13px] uppercase tracking-[0.14em] md:text-[15px]">{done === "prompt" ? "Copied. Paste it in " + agent : "Copy setup prompt"}</span>
@@ -213,26 +216,26 @@ export function Setup() {
 
         <div className="mt-12 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
           <div className="min-w-0 max-w-xl">
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-black/65">Prefer doing it yourself?</p>
+            <p className={`text-black/65 ${LABEL}`}>Prefer doing it yourself?</p>
             <div className="mt-3 flex flex-wrap border-2 border-black bg-[#090909] text-[#eceae3]">
               <div role="tablist" aria-label="Package manager" className="flex w-full shrink-0 border-b border-[#eceae3]/15 font-mono text-[10px] uppercase tracking-[0.12em] sm:w-auto sm:border-b-0 sm:border-r">
                 {PM.map((p) => (
-                  <button key={p.id} type="button" role="tab" aria-selected={pm === p.id} onClick={() => setPm(p.id)} className={`px-4 py-2.5 sm:py-0 ${pm === p.id ? "text-[#f4d44d]" : "text-[#eceae3]/45 hover:text-[#eceae3]"}`}>
+                  <button key={p.id} type="button" role="tab" aria-selected={pm === p.id} onClick={() => setPm(p.id)} className={`min-h-11 px-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#f4d44d] ${pm === p.id ? "text-[#f4d44d]" : "text-[#eceae3]/45 hover:text-[#eceae3]"}`}>
                     {p.id}
                   </button>
                 ))}
               </div>
               <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap px-4 py-4 font-mono text-[13px]">{install}</code>
-              <button type="button" onClick={() => copy("install", install)} aria-label="Copy install command" className="grid w-14 shrink-0 place-items-center border-l border-[#eceae3]/15 hover:bg-[#f4d44d] hover:text-black">
+              <button type="button" onClick={() => copy("install", install)} aria-label="Copy install command" className="grid min-h-12 w-14 shrink-0 place-items-center border-l border-[#eceae3]/15 hover:bg-[#f4d44d] hover:text-black focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#f4d44d]">
                 {done === "install" ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
               </button>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href={appHref("/sign-up")} className="group inline-flex items-center gap-3 bg-black px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[#eceae3] hover:bg-[#f4d44d] hover:text-black">
+          <div className="flex flex-wrap gap-4">
+            <Link href={appHref("/sign-up")} className={primary("cream")}>
               Start free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
-            <Link href="/docs" className="inline-flex items-center border-2 border-black px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] hover:bg-black hover:text-[#eceae3]">
+            <Link href="/docs" className={secondary("cream")}>
               Read the docs
             </Link>
           </div>

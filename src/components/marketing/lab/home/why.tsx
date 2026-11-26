@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { Eyebrow } from "./eyebrow";
+import { AFTER_EYEBROW, BODY, DUR, EASE, H2, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
 
 // Step 04 of the same example run, opened up. Every value is example data.
@@ -24,20 +26,16 @@ export function Why() {
   const rise = (i: number) => ({
     initial: calm ? false : { opacity: 0, x: 24 },
     whileInView: { opacity: 1, x: 0 },
-    viewport: { once: true, amount: 0.6 },
-    transition: { duration: 0.5, delay: 0.15 + i * 0.12, ease: [0.23, 1, 0.32, 1] as const },
+    viewport: { once: true, amount: 0.3 },
+    transition: { duration: DUR.base, delay: 0.1 + i * 0.08, ease: EASE },
   });
 
   return (
-    <section id="why" className="relative overflow-hidden bg-[#090909] px-5 pb-16 pt-10 text-[#eceae3] md:px-10 md:pb-20 md:pt-14" aria-labelledby="mix-why-title">
-      <div className="mx-auto max-w-[1320px]">
-        <p className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em]">
-          <span>02</span>
-          <span className="h-px flex-1 bg-[#eceae3]/60" />
-          <span>Why it broke</span>
-        </p>
+    <section id="why" className={`relative overflow-hidden bg-[#090909] text-[#eceae3] ${SECTION}`} aria-labelledby="mix-why-title">
+      <div className={WRAP}>
+        <Eyebrow n="02" on="ink">Why it broke</Eyebrow>
 
-        <div className="mt-10 grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+        <div className={`${AFTER_EYEBROW} grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16`}>
           <div className="relative mx-auto aspect-[12/13] w-full max-w-[300px] sm:max-w-[380px] lg:max-w-[520px]">
             <motion.div
               className="absolute inset-0"
@@ -60,10 +58,13 @@ export function Why() {
           </div>
 
           <div>
-            <h2 id="mix-why-title" className="max-w-[14ch] font-pixel text-[clamp(2.6rem,5.6vw,5.5rem)] leading-[0.9] tracking-[-0.07em]">
-              Open step 4. The search came back empty.
+            {/* One phrase per line, so no word is stranded at a line end. */}
+            <h2 id="mix-why-title" className={H2}>
+              <span className="block">Open step 4.</span>
+              <span className="block">The search</span>
+              <span className="block">came back empty.</span>
             </h2>
-            <dl className="mt-8 border-t-2 border-[#eceae3] font-mono text-[11px] uppercase tracking-[0.1em] md:mt-10 md:text-xs">
+            <dl className="mt-8 border-t border-[#eceae3] font-mono text-[11px] uppercase tracking-[0.1em] md:mt-10 md:text-xs">
               {LAYERS.map((layer, i) => (
                 <motion.div
                   key={layer.name}
@@ -80,19 +81,20 @@ export function Why() {
                 </motion.div>
               ))}
             </dl>
-            <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[#eceae3]/50">What Uncoil keeps for every step · example values</p>
+            <p className={`mt-3 text-[#eceae3]/50 ${LABEL}`}>What Uncoil keeps for every step · example values</p>
           </div>
         </div>
 
-        <div className="mt-16 grid gap-8 border-t border-[#eceae3]/40 pt-8 md:mt-24 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-          <p className="max-w-xl text-lg leading-8 text-[#eceae3]/80">
+        <div className="mt-16 grid gap-8 border-t border-[#eceae3] pt-8 md:mt-20 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+          <p className={`max-w-xl text-[#eceae3]/80 ${BODY}`}>
             With no policy to read, the model filled the gap with a guess and asked for a refund the order could not get. The refund call is where it showed. The empty search is where it started, and that is the step you fix.
           </p>
-          <ol className="grid gap-px bg-[#eceae3]/25 sm:grid-cols-3" aria-label="What happened after step 4">
+          {/* Cells are divided by their own borders, so nothing shows behind them before they reveal. */}
+          <ol className="grid self-start border border-[#eceae3]/25 sm:grid-cols-3" aria-label="What happened after step 4">
             {CHAIN.map((c, i) => (
-              <motion.li key={c.n} {...rise(i)} className="relative bg-[#090909] p-4 sm:pr-8">
+              <motion.li key={c.n} {...rise(i)} className={`relative p-4 sm:pr-8 ${i ? "border-t border-[#eceae3]/25 sm:border-l sm:border-t-0" : ""}`}>
                 <p className={`font-pixel text-4xl leading-none tracking-[-0.06em] ${"failed" in c ? "text-[#ff4d3d]" : i === 0 ? "text-[#f4d44d]" : ""}`}>{c.n}</p>
-                <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.1em]">{c.name}</p>
+                <p className={`mt-3 ${LABEL}`}>{c.name}</p>
                 <p className="mt-1 text-sm leading-6 text-[#eceae3]/65">{c.what}</p>
                 {i < CHAIN.length - 1 && (
                   <span aria-hidden="true" className="absolute right-3 top-4 hidden font-mono text-[#eceae3]/50 sm:block">

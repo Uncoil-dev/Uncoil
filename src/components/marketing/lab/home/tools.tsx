@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { LABEL } from "./ui";
 import { useCalm } from "./use-calm";
 
 const MODELS = ["OpenAI", "Anthropic", "Vercel AI SDK", "LangChain", "LlamaIndex"] as const;
@@ -43,9 +44,9 @@ export function Tools() {
   const calm = useCalm();
   return (
     <section className="relative bg-[#090909] pb-2 pt-8 text-[#eceae3] md:pt-10" aria-labelledby="mix-tools-title">
-      <div className="mx-auto flex max-w-[1400px] items-center gap-4 px-5 font-mono text-[10px] uppercase tracking-[0.18em] md:px-10">
+      <div className={`mx-auto flex max-w-[1400px] items-center gap-4 px-5 md:px-10 ${LABEL}`}>
         <h2 id="mix-tools-title">Works with what you already use</h2>
-        <span className="h-px flex-1 bg-[#eceae3]/40" />
+        <span className="h-px flex-1 bg-[#eceae3]" />
       </div>
       <ul className="sr-only">
         {[...MODELS, ...WIRES].map((n) => (

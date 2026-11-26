@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { motion, useMotionValue, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
+import { useMotionValue, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
+import { Eyebrow } from "./eyebrow";
+import { BODY, H3, LABEL, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
 import { segment, type Pt } from "../editorial/art";
 import { DissolveCanvas, textPoints } from "../editorial/dissolve-canvas";
@@ -23,34 +25,26 @@ export function Cost() {
   const [passed, setAfter] = useState(false);
   const after = !!reduce || passed;
   useMotionValueEvent(scrolled, "change", (v) => setAfter(v > 0.6));
-  const bar = useTransform(scrolled, [0, 1], ["0%", "100%"]);
 
   return (
-    <section ref={ref} id="cost" className="relative h-[200svh] bg-[#eceae3] text-[#090909]" aria-labelledby="ed-cost-title">
-      <div className="sticky top-16 flex h-[calc(100svh-4rem)] flex-col px-5 py-8 md:px-10 md:py-10">
-        <div className="mx-auto flex w-full max-w-[1320px] flex-1 flex-col">
-          <p className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em]">
-            <span>03</span>
-            <span className="h-px flex-1 bg-black" />
-            <span>What it cost</span>
-          </p>
+    <section ref={ref} id="cost" className="relative h-[170svh] bg-[#eceae3] text-[#090909]" aria-labelledby="ed-cost-title">
+      <div className="sticky top-16 flex h-[calc(100svh-4rem)] flex-col px-5 pb-10 pt-10 md:px-10 md:pb-12 md:pt-14">
+        <div className={`${WRAP} flex flex-1 flex-col`}>
+          <Eyebrow n="03" on="cream">What it cost</Eyebrow>
 
-          <div className="flex flex-1 flex-col justify-center">
-            <div className="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-[0.14em] text-black/60">
+          <div className="flex flex-1 flex-col justify-center py-6">
+            <div className={`flex items-baseline justify-between gap-4 text-black/60 ${LABEL}`}>
               <span>Cost per run · example support agent</span>
-              <span className="tabular-nums">{after ? "after: one model call" : "before: retry loop × 7"}</span>
+              <span className="text-right tabular-nums">{after ? "after: one model call" : "before: retry loop × 7"}</span>
             </div>
             <DissolveCanvas width={W} height={H} build={buildCost} progress={t} label="Cost per run fell from $0.42 to $0.06 in this example." className="mt-2" />
-            <div className="relative h-[3px] bg-black/15">
-              <motion.div className="absolute inset-y-0 left-0 bg-[#090909]" style={{ width: reduce ? "100%" : bar }} />
-            </div>
           </div>
 
-          <div className="grid gap-6 border-t border-black pt-6 md:grid-cols-[1.1fr_1fr] md:gap-16">
-            <h2 id="ed-cost-title" className="font-pixel text-[clamp(2rem,4vw,3.75rem)] leading-[0.92] tracking-[-0.07em]">
+          <div className="grid gap-6 border-t border-[#090909] pt-6 md:grid-cols-[1.1fr_1fr] md:gap-16 md:pt-8">
+            <h2 id="ed-cost-title" className={H3}>
               Same answer. A seventh of the price.
             </h2>
-            <p className="max-w-xl text-base leading-7 text-black/75 md:text-lg md:leading-8">
+            <p className={`max-w-xl text-black/75 ${BODY}`}>
               With nothing to go on, the model was asked the same question again and again inside a retry loop. Every call in the trace carries its tokens and its price, so the expensive step is obvious. Fix the search and the run makes a single call.
             </p>
           </div>

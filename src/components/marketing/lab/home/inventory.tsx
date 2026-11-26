@@ -6,6 +6,8 @@ import { AnimatePresence, motion, useInView } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { appHref } from "@/lib/app-links";
 import { KIT, SPRITE, spritePaths, type KitItem } from "./kit";
+import { Eyebrow } from "./eyebrow";
+import { AFTER_EYEBROW, AFTER_HEADLINE, DUR, EASE, H2, H3, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
 
 function Sprite({ item, className }: { item: KitItem; className?: string }) {
@@ -43,18 +45,14 @@ export function Inventory() {
   };
 
   return (
-    <section id="kit" className="bg-[#090909] px-5 pb-24 pt-12 text-[#eceae3] md:px-10 md:pb-32 md:pt-16" aria-labelledby="mix-kit-title">
-      <div className="mx-auto max-w-[1320px]">
-        <p className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em]">
-          <span>06</span>
-          <span className="h-px flex-1 bg-[#eceae3]/60" />
-          <span>What you get</span>
-        </p>
-        <h2 id="mix-kit-title" className="mt-10 max-w-[14ch] font-pixel text-[clamp(2.6rem,6.4vw,6.5rem)] leading-[0.9] tracking-[-0.07em]">
+    <section id="kit" className={`bg-[#090909] text-[#eceae3] ${SECTION}`} aria-labelledby="mix-kit-title">
+      <div className={WRAP}>
+        <Eyebrow n="06" on="ink">What you get</Eyebrow>
+        <h2 id="mix-kit-title" className={`${AFTER_EYEBROW} max-w-[14ch] ${H2}`}>
           Pack for the 2am incident.
         </h2>
 
-        <div ref={ref} className="mt-12 grid gap-6 md:mt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
+        <div ref={ref} className={`${AFTER_HEADLINE} grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10`}>
           <div role="tablist" aria-label="What Uncoil gives you" className="grid grid-cols-4 gap-2 self-start border-2 border-[#eceae3] p-2 shadow-[inset_0_0_0_4px_#090909,inset_0_0_0_6px_#eceae3] sm:gap-3 sm:p-4 md:p-5">
             {KIT.map((k, i) => {
               const on = i === active;
@@ -68,7 +66,7 @@ export function Inventory() {
                   aria-controls="kit-panel"
                   aria-label={k.title}
                   onClick={() => pick(i)}
-                  className={`group relative grid aspect-square place-items-center border transition-colors ${on ? "border-[#f4d44d] bg-[#eceae3]/10" : "border-[#eceae3]/25 hover:border-[#eceae3]/70"}`}
+                  className={`group relative grid aspect-square place-items-center border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#eceae3] ${on ? "border-[#f4d44d] bg-[#eceae3]/10" : "border-[#eceae3]/25 hover:border-[#eceae3]/70"}`}
                 >
                   <Sprite item={k} className="size-[62%] transition-transform group-hover:-translate-y-0.5" />
                   <span className="absolute left-1.5 top-1 font-mono text-[9px] text-[#eceae3]/45">{String(i + 1).padStart(2, "0")}</span>
@@ -90,16 +88,16 @@ export function Inventory() {
                 key={item.id}
                 initial={calm ? false : { opacity: 0, clipPath: "inset(0 100% 0 0)" }}
                 animate={{ opacity: 1, clipPath: "inset(0 0% 0 0)" }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                transition={{ duration: DUR.fast, ease: EASE }}
                 className="grid gap-6 sm:grid-cols-[auto_1fr] sm:gap-8"
               >
                 <Sprite item={item} className="size-16 sm:size-24 md:size-32" />
                 <div className="min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#eceae3]/55">
+                  <p className={`text-[#eceae3]/55 ${LABEL}`}>
                     Item {String(active + 1).padStart(2, "0")} / {String(KIT.length).padStart(2, "0")}
                   </p>
-                  <h3 className="mt-3 font-pixel text-[clamp(2rem,3.4vw,3rem)] leading-[0.92] tracking-[-0.06em]">{item.title}</h3>
+                  <h3 className={`mt-3 ${H3}`}>{item.title}</h3>
                   <p className="mt-4 max-w-md text-base leading-7 text-[#eceae3]/80">{item.body}</p>
                   <ul className="mt-6 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.1em]" aria-label="Example">
                     {item.sample.map((s, i) => (
@@ -116,13 +114,13 @@ export function Inventory() {
 
         <Link
           href={appHref("/demo/project")}
-          className="group mt-12 flex flex-col gap-4 border-y-2 border-[#eceae3] py-6 transition-colors hover:bg-[#eceae3] hover:text-black sm:flex-row sm:items-end sm:justify-between md:mt-16 md:px-2"
+          className="group mt-14 flex flex-col gap-4 border-y border-[#eceae3] px-5 py-6 transition-colors duration-200 hover:bg-[#eceae3] hover:text-black md:px-6 focus-visible:bg-[#eceae3] focus-visible:text-black focus-visible:outline-none sm:flex-row sm:items-end sm:justify-between md:mt-20 md:py-8"
         >
           <span>
-            <span className="block font-mono text-[10px] uppercase tracking-[0.18em] opacity-60">Check it yourself · no sign-up</span>
-            <span className="mt-3 block font-pixel text-[clamp(2.2rem,5vw,4.5rem)] leading-[0.9] tracking-[-0.07em]">Open the live demo</span>
+            <span className={`block opacity-60 ${LABEL}`}>Check it yourself · no sign-up</span>
+            <span className={`mt-3 block ${H3}`}>Open the live demo</span>
           </span>
-          <span className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.14em]">
+          <span className={`flex items-center gap-3 ${LABEL}`}>
             A sample project with a week of example runs
             <ArrowUpRight className="size-5 shrink-0 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" aria-hidden="true" />
           </span>

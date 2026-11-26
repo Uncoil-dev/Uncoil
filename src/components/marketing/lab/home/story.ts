@@ -54,6 +54,14 @@ export function hud(p: number) {
   return { spans, status };
 }
 
+// ── Setup prompt ─────────────────────────────────────────────────────────────────────────────
+
+/** Prompt lines with numbers for the written lines only; blank lines stay unnumbered spacers. */
+export function numberLines(text: string) {
+  let n = 0;
+  return text.split("\n").map((line) => (line.trim() ? { n: String(++n).padStart(2, "0"), line } : { n: "", line: "" }));
+}
+
 // ── Section edges ────────────────────────────────────────────────────────────────────────────
 
 export type EdgeShape = "hills" | "flat";

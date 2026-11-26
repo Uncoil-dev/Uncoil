@@ -5,7 +5,8 @@ import { FirstTraceEmpty } from "../first-trace-empty";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RANGES, TimeRangePicker } from "../tracing/time-range-picker";
 import { decodeValues, encodeValues } from "../tracing/facet-filter";
-import { compactNumber, downloadFile, formatDuration, relativeTime, toCsv } from "../tracing/format";
+import { compactNumber, downloadFile, formatDuration, toCsv } from "../tracing/format";
+import { StartedAt } from "./started-at";
 import { changePercent, costPerThousandTokens, cumulative, stackSeries, type StackedSeries } from "@/lib/cost-breakdown";
 import type { CostBreakdown, CostDimension, CostGroup } from "@/lib/tinybird";
 import { SampleCosts } from "../empty/samples";
@@ -294,7 +295,7 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
                       <td className="max-w-[160px] truncate py-1.5 text-[#C9CED6]">{trace.modelId || "–"}</td>
                       <td className="py-1.5 text-right text-[#C9CED6]">{compactNumber(trace.inputTokens + trace.outputTokens)}</td>
                       <td className="py-1.5 text-right text-[#C9CED6]">{formatDuration(trace.durationMs)}</td>
-                      <td className="py-1.5 pl-3 text-[#8B93A1]" title={trace.startedAt}>{relativeTime(trace.startedAt, clock)}</td>
+                      <td className="py-1.5 pl-3 text-[#8B93A1]"><StartedAt value={trace.startedAt} clock={clock} /></td>
                       <td className="py-1.5 pl-3"><div className="flex items-center justify-end gap-2"><span aria-hidden="true" className="h-1 flex-1 bg-[#1A1F27]"><span className="block h-full bg-[#F4D44D]" style={{ width: `${data.totals.maxTraceCostUsd > 0 ? (trace.costUsd / data.totals.maxTraceCostUsd) * 100 : 0}%` }} /></span><span className="w-20 text-right text-[#E6E9EE]">{money(trace.costUsd)}</span></div></td>
                     </tr>
                   ))}

@@ -177,7 +177,7 @@ export function ProjectSwitcher({
             ) : null}
           </>
         ) : (
-          <DropdownMenuItem disabled>No projects yet</DropdownMenuItem>
+          <DropdownMenuItem disabled>No projects yet. Use New project below to start.</DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         {!synthetic ? (

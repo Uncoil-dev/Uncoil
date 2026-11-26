@@ -10,9 +10,8 @@ describe("getPrompt errors", () => {
   afterEach(() => { vi.restoreAllMocks(); });
 
   it("asks for an API key when none is set", async () => {
-    const saved = [process.env.UNCOIL_API_KEY, process.env.TRACIFY_API_KEY];
+    const saved = process.env.UNCOIL_API_KEY;
     delete process.env.UNCOIL_API_KEY;
-    delete process.env.TRACIFY_API_KEY;
     vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
       const error = await failure(new UncoilClient());
@@ -20,8 +19,7 @@ describe("getPrompt errors", () => {
       expect(error).toMatchObject({ code: "missing_key" });
       expect((error as Error).message).toContain("UNCOIL_API_KEY");
     } finally {
-      if (saved[0] !== undefined) process.env.UNCOIL_API_KEY = saved[0];
-      if (saved[1] !== undefined) process.env.TRACIFY_API_KEY = saved[1];
+      if (saved !== undefined) process.env.UNCOIL_API_KEY = saved;
     }
   });
 

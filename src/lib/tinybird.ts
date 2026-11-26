@@ -686,6 +686,26 @@ export async function traceErrorGroups(projectId: string, filters: TraceListFilt
   };
 }
 
+/** Most traces whose first input is read for topic grouping; older matches are left out. */
+export const TOPIC_TRACE_LIMIT = 2000;
+
+/** The first input and error or timeout flag of the newest traces matching the filters, plus how many traces matched. */
+export async function traceTopicInputs(projectId: string, filters: TraceListFilters) {
+  const { where, having } = traceListClauses(projectId, filters);
+  const rows = await tinybirdRows<{ runId: string; firstInput: string; errorCount: number; timeoutCount: number; matched: number }>(`
+    SELECT runId, firstInput, errorCount, timeoutCount, count() OVER () AS matched FROM (
+      SELECT runId, min(createdAt) AS startedAt, ${DURATION_EXPR} AS durationMs, ${ERROR_COUNT_EXPR} AS errorCount, countIf(timedOut) AS timeoutCount,
+        sum(costUsd) AS totalCostUsd, sum(inputTokens) AS inputTokens, sum(outputTokens) AS outputTokens,
+        substring(if(countIf(parentSpanId = '' AND input != '') > 0, argMinIf(input, createdAt, parentSpanId = '' AND input != ''), argMinIf(input, createdAt, input != '')), 1, 2000) AS firstInput
+      FROM spans WHERE ${where} GROUP BY runId ${having})
+    ORDER BY startedAt DESC, runId
+    LIMIT ${TOPIC_TRACE_LIMIT}`);
+  return {
+    total: Number(rows[0]?.matched ?? 0),
+    traces: rows.map((row) => ({ runId: row.runId, input: row.firstInput, hasError: Number(row.errorCount) > 0, timedOut: Number(row.timeoutCount) > 0 })),
+  };
+}
+
 export type MapNode = { id: string; kind: string; name: string; count: number; traces: number; errors: number; p50LatencyMs: number };
 export type MapEdge = { source: string; target: string; count: number; back?: number; errors: number; traces: number; errorRate: number; p50LatencyMs: number };
 export const MAP_NODE_LIMIT = 40;

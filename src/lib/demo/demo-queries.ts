@@ -1,4 +1,5 @@
-import { FACET_KEYS, activityTimeZone, type ActivityDay, type ErrorGroup, type FacetCounts, type FacetKey, type HistogramBucket, type TraceListFilters, type TraceStats } from "@/lib/tinybird";
+import { FACET_KEYS, TOPIC_TRACE_LIMIT, activityTimeZone, type ActivityDay, type ErrorGroup, type FacetCounts, type FacetKey, type HistogramBucket, type TraceListFilters, type TraceStats } from "@/lib/tinybird";
+import { groupTraceTopics } from "@/lib/trace-topics";
 import { flowGraph, flowPairId, type FlowStep } from "@/lib/trace-flow";
 import { validTraceSort } from "@/lib/trace-sort";
 import type { GroupFilters, GroupKind } from "@/lib/group-filters";
@@ -186,6 +187,12 @@ export function demoErrorGroups(runs: DemoRun[]) {
   }
   const sorted = [...groups.values()].map(({ runs: set, ...group }) => ({ ...group, traces: set.size })).sort((a, b) => b.count - a.count || b.traces - a.traces || a.id.localeCompare(b.id));
   return { total: sorted.length, groups: sorted.slice(0, 20) };
+}
+
+/** Topics of the demo runs, grouped by what each run was asked to do. */
+export function demoTopics(runs: DemoRun[]) {
+  const traces = [...runs].sort((a, b) => b.startMs - a.startMs).slice(0, TOPIC_TRACE_LIMIT);
+  return { ...groupTraceTopics(traces.map((run) => ({ runId: run.runId, input: run.input, hasError: run.errorCount > 0, timedOut: run.timeouts > 0 }))), sampled: runs.length > traces.length };
 }
 
 export function demoActivity(filters: TraceListFilters, timeZone: string, nowMs = Date.now()): ActivityDay[] {

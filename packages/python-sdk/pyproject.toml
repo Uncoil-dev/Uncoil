@@ -23,6 +23,7 @@ dependencies = [
 ]
 
 [project.scripts]
+uncoil = "uncoil.__main__:main"
 uncoil-doctor = "uncoil.doctor:main"
 
 [tool.setuptools.packages.find]

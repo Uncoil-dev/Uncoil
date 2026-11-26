@@ -5,7 +5,7 @@ export type RedactionRule = (typeof DEFAULT_REDACTION_RULES)[number];
 const PATTERNS: Record<RedactionRule, { pattern: RegExp; replacement: string }> = {
   email: { pattern: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, replacement: "[REDACTED_EMAIL]" },
   phone: { pattern: /(?:\+?\d[\d .()\-]{7,}\d)/g, replacement: "[REDACTED_PHONE]" },
-  credit_card: { pattern: /(?:\d[ -]?){13,19}/g, replacement: "[REDACTED_CARD]" },
+  credit_card: { pattern: /(?:\d[ -]?){12,18}\d/g, replacement: "[REDACTED_CARD]" },
   api_key: {
     pattern: /(?:sk|pk|uncoil_sk_live|api[_-]?key)[A-Za-z0-9_\-.]{8,}/gi,
     replacement: "[REDACTED_API_KEY]",
@@ -14,15 +14,32 @@ const PATTERNS: Record<RedactionRule, { pattern: RegExp; replacement: string }> 
 };
 
 function normalizeRules(rules: string[] | undefined): RedactionRule[] {
-  const selected = rules?.filter((rule): rule is RedactionRule => rule in PATTERNS) ?? [];
+  const selected = DEFAULT_REDACTION_RULES.filter((rule) => rules?.includes(rule));
   return selected.length ? selected : [...DEFAULT_REDACTION_RULES];
 }
 
+function applyRule(value: string, rule: RedactionRule) {
+  const { pattern, replacement } = PATTERNS[rule];
+  return value.replace(pattern, replacement);
+}
+
+// The phone pattern also matches SSNs and card numbers. A phone match made up
+// only of SSNs and card numbers gets their labels; any other match is hidden
+// whole as a phone number, so it never leaves digits visible.
+function redactPhones(value: string, rules: RedactionRule[]) {
+  const specific = (["ssn", "credit_card"] as const).filter((rule) => rules.includes(rule));
+  return value.replace(PATTERNS.phone.pattern, (match) => {
+    const labelled = specific.reduce(applyRule, match);
+    return /\d/.test(labelled) ? PATTERNS.phone.replacement : labelled;
+  });
+}
+
 export function redactString(value: string, rules?: string[]) {
-  return normalizeRules(rules).reduce((current, rule) => {
-    const { pattern, replacement } = PATTERNS[rule];
-    return current.replace(pattern, replacement);
-  }, value);
+  const selected = normalizeRules(rules);
+  return selected.reduce(
+    (current, rule) => (rule === "phone" ? redactPhones(current, selected) : applyRule(current, rule)),
+    value,
+  );
 }
 
 export function redactRecord(value: Record<string, unknown>, rules?: string[], depth = 0): Record<string, unknown> {

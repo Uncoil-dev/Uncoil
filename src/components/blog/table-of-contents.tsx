@@ -108,5 +108,5 @@ export function TableOfContents({ body, collapsible }: { body: PortableBlock[]; 
     );
   }
 
-  return <nav>{inner}</nav>;
+  return <nav aria-label="On this page">{inner}</nav>;
 }

@@ -307,25 +307,27 @@ class UncoilClient:
         self._warned: set = set()
         self.api_key = (api_key or (os.environ.get("UNCOIL_API_KEY") or os.environ.get("TRACIFY_API_KEY")) or "").strip()
         if not self.api_key:
-            raise UncoilError("missing_key", "No Uncoil API key was found.", "Pass api_key=... to UncoilClient or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard.")
-        if not re.match(r"^(uncoil|tracify)_sk_", self.api_key):
+            # Without a key the client records nothing, so tracing never stops the app from running.
+            self._report(UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", "Pass api_key=... to UncoilClient or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard."))
+        elif not re.match(r"^(uncoil|tracify)_sk_", self.api_key):
             self._report(UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."))
         if not isinstance(sample_rate, (int, float)) or isinstance(sample_rate, bool) or not 0 <= sample_rate <= 1:
             raise UncoilError("bad_sample_rate", f"sample_rate must be a number from 0 to 1, but got {sample_rate!r}.", "Use 1 to record every run, 0.1 to record about one in ten.")
         self.sample_rate = float(sample_rate)
         self.keep_errors = keep_errors
         self._redactor = build_redactor(**(redact or {}))
-        selected_region = (region or (os.environ.get("UNCOIL_REGION") or os.environ.get("TRACIFY_REGION")) or "eu").strip().lower()
+        key_region = self._api_key_region(self.api_key)
+        # With no region set, the key's own region picks the host, so a US key works without extra config.
+        selected_region = (region or (os.environ.get("UNCOIL_REGION") or os.environ.get("TRACIFY_REGION")) or key_region or "eu").strip().lower()
         if selected_region not in self.REGION_HOSTS:
             raise UncoilError("bad_region", f"The region {selected_region!r} is not one Uncoil offers.", "Use region='eu' or region='us' (or set UNCOIL_REGION to one of them).")
         self.host = (host or (os.environ.get("UNCOIL_HOST") or os.environ.get("TRACIFY_HOST")) or self.REGION_HOSTS[selected_region]).rstrip("/")
         if not self.host.startswith(("http://", "https://")):
             raise UncoilError("bad_host", f"The host {self.host!r} is not a valid web address.", "Use a full address such as 'https://eu.cloud.uncoil.dev', or drop the host option and use region='eu' or 'us'.")
         host_region = next((key for key, value in self.REGION_HOSTS.items() if value == self.host), None)
-        key_region = self._api_key_region(self.api_key)
         if key_region and host_region and key_region != host_region:
             raise UncoilError("region_mismatch", f"Uncoil API key region mismatch: this key belongs to {key_region.upper()}, but the client is configured for {host_region.upper()}.", f"Set region='{key_region}' (or UNCOIL_REGION={key_region}), or create a key in the {host_region.upper()} region.")
-        self.project_id = project_id
+        self.project_id = project_id or (os.environ.get("UNCOIL_PROJECT_ID") or "").strip() or None
         self.release = release
         self.environment = environment
         self.deployment_id = deployment_id
@@ -397,6 +399,8 @@ class UncoilClient:
             self._report(UncoilError("network", f"Could not reach Uncoil ({e}).", "Check your internet connection and the host setting. Your app keeps running; these spans are dropped."))
 
     def ingest(self, **kwargs):
+        if not self.api_key:
+            return
         span = {
             "spanId": str(uuid.uuid4()),
             "createdAt": datetime.utcnow().isoformat() + "Z",
@@ -436,7 +440,7 @@ class UncoilClient:
         try:
             response = (self._http.get if self._http else _requests_fallback.get)(f"{self.host}/api/prompts/{name}", headers={"Authorization": f"Bearer {self.api_key}"}, params={"environment": environment}, timeout=10)
             if response.status_code >= 400:
-                raise RuntimeError(f"Prompt resolution failed ({response.status_code}): {response.text[:300]}")
+                raise RuntimeError(f"Prompt resolution failed ({response.status_code}): {response.text[:300]}. Check that a prompt named {name!r} with the label {environment!r} exists on the Prompts page.")
             value = response.json()
             self._prompt_cache[key] = {"value": value, "expires_at": now + cache_ttl_seconds}
             return value
@@ -448,8 +452,10 @@ class UncoilClient:
             raise
 
     def _send_feedback(self, payload: Dict[str, Any]):
+        if not self.api_key:
+            return
         if not self.project_id:
-            print("Uncoil Warning: project_id is required for feedback and score helpers")
+            print("Uncoil Warning: project_id is required for feedback and score helpers. Pass project_id= to UncoilClient; the id is in the dashboard URL and in project settings.")
             return
         try:
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
@@ -824,6 +830,12 @@ def trace_agent(client: Optional[UncoilClient] = None, environment: Optional[str
     return decorator
 
 
+def _overrides(session_id: Optional[str], end_user_id: Optional[str], environment: Optional[str], release: Optional[str], tags: Optional[List[str]], trace_name: Optional[str]) -> Dict[str, Any]:
+    """Fields passed to a helper call. Unset ones are left out so the client's values and the current trace name apply."""
+    fields = {"sessionId": session_id, "endUserId": end_user_id, "environment": environment, "release": release, "tags": tags, "traceName": trace_name}
+    return {key: value for key, value in fields.items() if value is not None}
+
+
 def llm_call(input_data: Any, output_data: Any, model_id: str, cost_usd: float, latency_ms: int, client: Optional[UncoilClient] = None, session_id: Optional[str] = None, end_user_id: Optional[str] = None, environment: Optional[str] = None, release: Optional[str] = None, tags: Optional[List[str]] = None, trace_name: Optional[str] = None, input_tokens: Optional[int] = None, output_tokens: Optional[int] = None, name: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None):
     """Record a finished model call. It is attached to the step it was made in."""
     extra: Dict[str, Any] = {}
@@ -837,12 +849,7 @@ def llm_call(input_data: Any, output_data: Any, model_id: str, cost_usd: float, 
         modelId=model_id,
         costUsd=cost_usd,
         latencyMs=latency_ms,
-        sessionId=session_id or "",
-        endUserId=end_user_id or "",
-        environment=environment or "",
-        release=release or "",
-        tags=tags or [],
-        traceName=trace_name or "",
+        **_overrides(session_id, end_user_id, environment, release, tags, trace_name),
         metadata=metadata or {},
         **extra,
     )
@@ -857,12 +864,7 @@ def tool_call(tool_name: str, input_data: Any, output_data: Any, latency_ms: int
         output=output_data,
         latencyMs=latency_ms,
         costUsd=0,
-        sessionId=session_id or "",
-        endUserId=end_user_id or "",
-        environment=environment or "",
-        release=release or "",
-        tags=tags or [],
-        traceName=trace_name or "",
+        **_overrides(session_id, end_user_id, environment, release, tags, trace_name),
         metadata=metadata or {},
     )
 

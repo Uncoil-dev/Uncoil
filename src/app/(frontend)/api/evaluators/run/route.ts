@@ -9,7 +9,8 @@ type Body = { projectId: string; evaluatorId: string; traceId: string; output: s
 export async function POST(request: NextRequest) {
   let body: Body;
   try { body = await request.json() as Body; } catch { return Response.json({ error: "Invalid JSON body" }, { status: 422 }); }
-  if (!body.projectId || !body.evaluatorId || !body.traceId || !body.output) return Response.json({ error: "projectId, evaluatorId, traceId, and output are required" }, { status: 422 });
+  const invalid = (["projectId", "evaluatorId", "traceId", "output"] as const).find((field) => typeof body?.[field] !== "string" || !body[field]);
+  if (invalid) return Response.json({ error: `${invalid} must be a non-empty string` }, { status: 422 });
   let convex;
   try {
     convex = await getAuthedConvexClient();

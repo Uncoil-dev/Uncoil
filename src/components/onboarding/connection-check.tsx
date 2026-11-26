@@ -7,6 +7,16 @@ import { getDeploymentRegion, getUncoilRegion, getWrongRegion } from "@/lib/regi
 
 export type ProbeState = "idle" | "sending" | "accepted" | "failed";
 
+/** Turns a rejected test span into a plain next step instead of a raw status code. */
+export function probeFailureMessage(status: number, reason?: string): string {
+  if (status === 401) return "Uncoil did not recognise this key. Copy the key again or make a new one in API keys.";
+  // Ingest answers 403 only for a key paused after repeated rate-limit errors.
+  if (status === 403) return "This key was paused after too many rate-limit errors. Make a new one in API keys.";
+  if (status === 429) return "Too many requests from this key right now. Wait a minute, then send the test span again.";
+  if (status >= 500) return "Something went wrong on our side. Your setup is fine; try again in a moment.";
+  return reason ? `The test span was not accepted: ${reason}` : "The test span was not accepted. Try again, or contact support if it keeps happening.";
+}
+
 /** Sends one test span so people can tell "Uncoil is broken" from "my agent is not sending". */
 export function ConnectionCheck({
   apiKey,
@@ -61,7 +71,7 @@ export function ConnectionCheck({
       });
       if (!response.ok) {
         const body = await response.json().catch(() => ({})) as { error?: string };
-        throw new Error(body.error || `Ingest returned HTTP ${response.status}`);
+        throw new Error(probeFailureMessage(response.status, body.error));
       }
       onProbeState("accepted");
       setMessage("Your key and our servers work. This was only a test, so we are still waiting for a real run from your agent.");

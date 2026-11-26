@@ -43,8 +43,9 @@ def answer(question):
     id: "otlp",
     label: "OpenTelemetry",
     file: ".env",
-    code: `UNCOIL_OTLP_ENDPOINT=https://eu.cloud.uncoil.dev/api/otel
-UNCOIL_API_KEY=uncoil_sk_live_...`,
+    code: `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://eu.cloud.uncoil.dev/api/otel
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20uncoil_sk_live_...
+OTEL_EXPORTER_OTLP_PROTOCOL=http/json`,
   },
 ] as const;
 

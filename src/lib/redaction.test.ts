@@ -33,6 +33,13 @@ test("ssn rule redacts only the dashed format", () => {
   assert.equal(redactString("order 123456789", ["ssn"]), "order 123456789");
 });
 
+test("card numbers and SSNs keep their own labels whatever the rule order", () => {
+  const input = "card 4242 4242 4242 4242 ssn 123-45-6789 phone +1 415 555 0100";
+  const expected = "card [REDACTED_CARD] ssn [REDACTED_SSN] phone [REDACTED_PHONE]";
+  assert.equal(redactString(input), expected);
+  assert.equal(redactString(input, ["phone", "credit_card", "ssn"]), expected);
+});
+
 test("only the selected rules are applied", () => {
   assert.equal(redactString("a@b.com 123-45-6789", ["ssn"]), "a@b.com [REDACTED_SSN]");
 });

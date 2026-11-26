@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildHealthReport, errorLabel, parseSpans, percentile } from "./health-report";
+import { buildHealthReport, errorLabel, formatMs, formatUsd, parseSpans, percentile } from "./health-report";
 import { sampleSpans } from "./health-report-sample";
 
 describe("parseSpans", () => {
@@ -27,6 +27,22 @@ describe("helpers", () => {
   it("groups errors that only differ by numbers", () => {
     const base = { spanId: "a", runId: "r", spanType: "tool", createdAt: "2026-11-01T10:00:00Z", latencyMs: 1 };
     expect(errorLabel({ ...base, errorType: "Timeout", errorMessage: "after 30012ms on order 8841" })).toBe(errorLabel({ ...base, errorType: "Timeout", errorMessage: "after 29977ms on order 9120" }));
+  });
+  it("formats money with more precision for small amounts", () => {
+    expect(formatUsd(0.0042)).toBe("$0.0042");
+    expect(formatUsd(0.01)).toBe("$0.010");
+    expect(formatUsd(0.999)).toBe("$0.999");
+    expect(formatUsd(1)).toBe("$1.00");
+    expect(formatUsd(99.99)).toBe("$99.99");
+    expect(formatUsd(100)).toBe("$100");
+    expect(formatUsd(1234.5)).toBe("$1,235");
+  });
+  it("formats durations as ms, seconds or minutes", () => {
+    expect(formatMs(999.4)).toBe("999 ms");
+    expect(formatMs(1000)).toBe("1.0 s");
+    expect(formatMs(59_900)).toBe("59.9 s");
+    expect(formatMs(60_000)).toBe("1.0 min");
+    expect(formatMs(90_000)).toBe("1.5 min");
   });
 });
 

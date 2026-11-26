@@ -348,8 +348,9 @@ export class UncoilClient {
     if (response.ok) return;
     const status = response.status;
     // 4xx bodies carry `{ error }` saying what was wrong with the span; show it so the fix is obvious.
+    // Read a clone so later handlers can still read the body.
     const reason = status >= 400 && status < 500
-      ? await response.json().then((body) => (typeof body?.error === "string" && body.error ? `: ${body.error}` : ""), () => "")
+      ? await response.clone().json().then((body) => (typeof body?.error === "string" && body.error ? `: ${body.error}` : ""), () => "")
       : "";
     if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
     else if (status === 403) this.report(new UncoilError("forbidden", `This API key is not allowed to send data (403${reason}).`, "Check that the key belongs to the project you expect and has not been disabled.", status));

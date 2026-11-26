@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { animate, useInView, useMotionValue, useMotionValueEvent } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { appHref } from "@/lib/app-links";
 import { pricingCheckoutHref } from "@/lib/billing-links";
@@ -9,6 +10,7 @@ import { monthlyPrice, plans, type Plan } from "@/lib/pricing-plans";
 import { Eyebrow } from "./eyebrow";
 import { AFTER_EYEBROW, AFTER_HEADLINE, DUR, EASE, H2, LABEL, WRAP, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
+import { useCell } from "./use-grid";
 
 // Dither tones for the three steps of the staircase: the higher the plan, the denser the ink.
 const TONES = [
@@ -16,7 +18,8 @@ const TONES = [
   { id: "ed-d2", cells: [[0, 0], [2, 0], [1, 1], [3, 1], [0, 2], [2, 2], [1, 3], [3, 3]] },
   { id: "ed-d3", cells: [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [2, 1], [0, 2], [1, 2], [2, 2], [3, 2], [1, 3], [3, 3]] },
 ] as const;
-const STEP_HEIGHTS = ["h-6 md:h-20", "h-10 md:h-36", "h-14 md:h-52"] as const;
+/** Heights of the three steps in page cells, on phones and on wider screens. */
+const STEP_ROWS = { phone: [6, 10, 14], wide: [13, 24, 35] } as const;
 /** The plan the page recommends gets the one primary button. */
 const FEATURED = "pro";
 const pro = plans.find((p) => p.id === FEATURED)!;
@@ -25,16 +28,45 @@ function href(plan: Plan) {
   return plan.id === "free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.id, "monthly"));
 }
 
+/**
+ * One step of the staircase, dithered on the page grid. It rises a whole cell at a time when it
+ * comes into view, so the dither never stretches.
+ */
+function Step({ rows, cell, tone, featured, delay, calm }: { rows: number; cell: number; tone: string; featured: boolean; delay: number; calm: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.6 });
+  const grow = useMotionValue(calm ? 1 : 0);
+  const [k, setK] = useState(calm ? 1 : 0);
+  useMotionValueEvent(grow, "change", setK);
+  useEffect(() => {
+    if (!inView && !calm) return;
+    const run = animate(grow, 1, { duration: calm ? 0 : DUR.slow, delay: calm ? 0 : delay, ease: EASE });
+    return () => run.stop();
+  }, [inView, calm, grow, delay]);
+  const shown = Math.round(rows * k);
+  return (
+    <div ref={ref} className="relative" style={{ height: rows * cell }}>
+      <div className="absolute inset-x-0 bottom-0 border-[#eceae3]" style={{ height: shown * cell, borderTopWidth: shown ? cell : 0 }}>
+        <svg className="absolute inset-0 size-full" shapeRendering="crispEdges">
+          <rect width="100%" height="100%" fill={`url(#${tone})`} />
+        </svg>
+        {featured && shown > 0 && <span className="absolute right-0 w-1/3 bg-[#f4d44d]" style={{ top: -cell, height: 2 * cell }} />}
+      </div>
+    </div>
+  );
+}
+
 export function Price() {
   const reduce = useCalm();
+  const cell = useCell();
   return (
     <section id="price" className="scroll-mt-16 overflow-hidden bg-[#090909] px-5 pt-8 text-[#eceae3] md:px-10 md:pt-12" aria-labelledby="ed-price-title">
       <svg width="0" height="0" className="absolute" aria-hidden="true">
         <defs>
           {TONES.map((t) => (
-            <pattern key={t.id} id={t.id} width="8" height="8" patternUnits="userSpaceOnUse">
+            <pattern key={t.id} id={t.id} width={4 * cell} height={4 * cell} patternUnits="userSpaceOnUse">
               {t.cells.map(([x, y]) => (
-                <rect key={`${x}${y}`} x={x * 2} y={y * 2} width="2" height="2" fill="#eceae3" />
+                <rect key={`${x}${y}`} x={x * cell} y={y * cell} width={cell} height={cell} fill="#eceae3" />
               ))}
             </pattern>
           ))}
@@ -89,23 +121,11 @@ export function Price() {
         {/* The plans line up; the staircase under them is what climbs. */}
         <div className="mt-12 grid grid-cols-3 items-end md:mt-16" aria-hidden="true">
           {plans.map((plan, i) => (
-            <motion.div
-              key={plan.id}
-              className={`relative origin-bottom border-t-4 border-[#eceae3] ${STEP_HEIGHTS[i]}`}
-              initial={reduce ? false : { scaleY: 0 }}
-              whileInView={{ scaleY: 1 }}
-              viewport={{ once: true, amount: 0.6 }}
-              transition={{ duration: DUR.slow, delay: 0.12 * i, ease: EASE }}
-            >
-              <svg className="absolute inset-0 size-full" shapeRendering="crispEdges">
-                <rect width="100%" height="100%" fill={`url(#${TONES[i].id})`} />
-              </svg>
-              {plan.id === FEATURED && <span className="absolute -top-1 right-0 h-3 w-1/3 bg-[#f4d44d]" />}
-            </motion.div>
+            <Step key={plan.id} rows={(cell >= 5 ? STEP_ROWS.wide : STEP_ROWS.phone)[i]} cell={cell} tone={TONES[i].id} featured={plan.id === FEATURED} delay={0.12 * i} calm={reduce} />
           ))}
         </div>
       </div>
-      <div className={`${WRAP} h-4 bg-[#eceae3]`} aria-hidden="true" />
+      <div className={`${WRAP} bg-[#eceae3]`} style={{ height: 3 * cell }} aria-hidden="true" />
       <p className={`${WRAP} pb-10 pt-6 text-[#eceae3]/60 ${LABEL}`}>
         Free needs no card. Bigger rollout?{" "}
         <Link href="/contact" className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-[#f4d44d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#eceae3]">Enterprise is custom</Link> ·{" "}

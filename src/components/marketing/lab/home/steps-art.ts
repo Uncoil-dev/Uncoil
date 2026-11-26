@@ -1,7 +1,9 @@
-// Pixel pieces for the run's six steps, shared by the hero and the trace scene: where each step
-// sits on the path, a tiny numeral tag for it, and the hollow stone that stands for an empty result.
+// Pixel pieces for the run's six steps, shared by the hero, the trace figure and the closing
+// scene: where each step sits on the path, the board that carries its number, and the hollow
+// stone that stands for an empty result. All numerals on the page come from the one 3x5 face here.
 
 import { CREAM, INK, YELLOW, type Px } from "../pixel-world/pixels";
+import { BOARD } from "./where-layout";
 
 const GLYPHS: Record<string, string> = {
   "0": "111101101101111",
@@ -13,15 +15,24 @@ const GLYPHS: Record<string, string> = {
   "6": "111100111101111",
 };
 
-/** A two-digit step tag ("04") on an ink plate, so it reads over textured ground. */
-export function stepTag(px: Px, n: number, cx: number, y: number, color: number) {
-  const text = String(n).padStart(2, "0");
-  const x = Math.round(cx) - 4;
-  px.rect(x - 1, y - 1, 9, 7, INK);
-  [...text].forEach((ch, i) => {
+/** Two digits ("04") of the 3x5 face, 7 cells wide and 5 tall, top-left at x, y. */
+export function numerals(px: Px, n: number, x: number, y: number, color: number) {
+  [...String(n).padStart(2, "0")].forEach((ch, i) => {
     const g = GLYPHS[ch] ?? GLYPHS["0"];
     for (let k = 0; k < 15; k++) if (g[k] === "1") px.set(x + i * 4 + (k % 3), y + Math.floor(k / 3), color);
   });
+}
+
+export { BOARD };
+
+/**
+ * A step's number board: an 11x9 plate with a one-cell rim and the two digits inside. The rim
+ * keeps the board apart from whatever stands behind it.
+ */
+export function board(px: Px, n: number, x: number, y: number, { rim, fill, ink }: { rim: number; fill: number; ink: number }) {
+  px.rect(x, y, BOARD.w, BOARD.h, rim);
+  px.rect(x + 1, y + 1, BOARD.w - 2, BOARD.h - 2, fill);
+  numerals(px, n, x + 2, y + 2, ink);
 }
 
 /**

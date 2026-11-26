@@ -20,7 +20,8 @@ export function promptLines(text: string) {
 
 export type EdgeShape = "hills" | "flat";
 
-export const EDGE = { cols: 180, rows: 24, cell: 8 } as const;
+// Wide enough to cover a 2000px screen at the phone cell; the seam is cropped at the right.
+export const EDGE = { cols: 500, rows: 20, cell: 8 } as const;
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 const dith = (x: number, y: number, d: number) => d > BAYER[(y & 3) * 4 + (x & 3)];

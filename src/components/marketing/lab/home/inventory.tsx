@@ -6,11 +6,18 @@ import { AnimatePresence, motion, useInView } from "framer-motion";
 import { KIT, SPRITE, spritePaths, type KitItem } from "./kit";
 import { DUR, EASE, H2, H3, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
+import { useCell } from "./use-grid";
 
-function Sprite({ item, className }: { item: KitItem; className?: string }) {
+/** Border widths for one cursor corner: one page cell on the two sides it draws. */
+function cornerWidths(c: string, cell: number) {
+  return { borderLeftWidth: c.includes("border-l") ? cell : 0, borderRightWidth: c.includes("border-r") ? cell : 0, borderTopWidth: c.includes("border-t") ? cell : 0, borderBottomWidth: c.includes("border-b") ? cell : 0 };
+}
+
+/** An item sprite drawn on the page grid: one sprite pixel is one page cell. */
+function Sprite({ item, cell, className }: { item: KitItem; cell: number; className?: string }) {
   const { cream, yellow } = spritePaths(item.sprite);
   return (
-    <svg viewBox={`-1 -1 ${SPRITE + 2} ${SPRITE + 2}`} shapeRendering="crispEdges" className={className} aria-hidden="true">
+    <svg viewBox={`-1 -1 ${SPRITE + 2} ${SPRITE + 2}`} width={(SPRITE + 2) * cell} height={(SPRITE + 2) * cell} shapeRendering="crispEdges" className={className} aria-hidden="true">
       <path d={cream} fill="#eceae3" />
       <path d={yellow} fill="#f4d44d" />
     </svg>
@@ -24,6 +31,7 @@ function Sprite({ item, className }: { item: KitItem; className?: string }) {
  */
 export function Inventory() {
   const calm = useCalm();
+  const cell = useCell();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { amount: 0.5 });
   const [active, setActive] = useState(0);
@@ -92,12 +100,12 @@ export function Inventory() {
                     onKeyDown={(e) => onKey(e, i)}
                     className={`group relative grid aspect-square place-items-center border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#eceae3] ${on ? "border-[#f4d44d] bg-[#eceae3]/10" : "border-[#eceae3]/25 hover:border-[#eceae3]/70"}`}
                   >
-                    <Sprite item={k} className="size-[58%] transition-transform group-hover:-translate-y-0.5" />
+                    <Sprite item={k} cell={cell} />
                     <span className="absolute left-1.5 top-1 font-mono text-[9px] text-[#eceae3]/45">{String(i + 1).padStart(2, "0")}</span>
                     {on && (
-                      <motion.span layoutId={calm ? undefined : "kit-cursor"} aria-hidden="true" className="pointer-events-none absolute -inset-[5px]" transition={{ type: "spring", stiffness: 500, damping: 40 }}>
-                        {["left-0 top-0 border-l-4 border-t-4", "right-0 top-0 border-r-4 border-t-4", "bottom-0 left-0 border-b-4 border-l-4", "bottom-0 right-0 border-b-4 border-r-4"].map((c) => (
-                          <span key={c} className={`absolute size-3 border-[#f4d44d] ${c}`} />
+                      <motion.span layoutId={calm ? undefined : "kit-cursor"} aria-hidden="true" className="pointer-events-none absolute" style={{ inset: -cell }} transition={{ type: "spring", stiffness: 500, damping: 40 }}>
+                        {["left-0 top-0 border-l border-t", "right-0 top-0 border-r border-t", "bottom-0 left-0 border-b border-l", "bottom-0 right-0 border-b border-r"].map((c) => (
+                          <span key={c} className={`absolute border-[#f4d44d] ${c}`} style={{ width: 3 * cell, height: 3 * cell, ...cornerWidths(c, cell) }} />
                         ))}
                       </motion.span>
                     )}
@@ -116,7 +124,7 @@ export function Inventory() {
                   transition={{ duration: DUR.fast, ease: EASE }}
                   className="grid gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8"
                 >
-                  <Sprite item={item} className="size-16 sm:size-24" />
+                  <Sprite item={item} cell={cell} />
                   <div className="min-w-0">
                     <p className={`text-[#eceae3]/55 ${LABEL}`}>
                       Item {String(active + 1).padStart(2, "0")} / {String(KIT.length).padStart(2, "0")}

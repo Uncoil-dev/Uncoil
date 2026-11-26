@@ -4,6 +4,7 @@ import { plans } from "@/lib/pricing-plans";
 import { LEGS, ROBOT_TOP } from "../pixel-world/pixels";
 import { Eyebrow } from "./eyebrow";
 import { AFTER_EYEBROW, H2, LABEL, SECTION, WRAP } from "./ui";
+import { useCell } from "./use-grid";
 
 const plan = (id: string) => plans.find((p) => p.id === id)!;
 const [free, pro, team] = [plan("free"), plan("pro"), plan("team")];
@@ -21,7 +22,7 @@ const FAQS: readonly (readonly [string, string])[] = [
 /** A pixel plus that turns into a minus when its question is open. */
 function Toggle() {
   return (
-    <svg viewBox="0 0 7 7" shapeRendering="crispEdges" className="size-5 shrink-0 md:size-6" aria-hidden="true">
+    <svg viewBox="0 0 7 7" shapeRendering="crispEdges" className="size-[21px] shrink-0 md:size-[28px]" aria-hidden="true">
       <rect y="3" width="7" height="1" fill="currentColor" />
       <rect x="3" width="1" height="7" fill="currentColor" className="group-open:hidden" />
     </svg>
@@ -40,9 +41,10 @@ function cells(rows: readonly string[], ch: string, dy = 0) {
 const QUESTION = [".CCC.", "C...C", "...C.", "..C..", ".....", "..C.."];
 
 function AskingRobot() {
+  const cell = useCell();
   const body = [...ROBOT_TOP, ...LEGS[0]];
   return (
-    <svg viewBox="-1 -9 14 23" shapeRendering="crispEdges" className="h-auto w-28 md:w-36" aria-hidden="true">
+    <svg viewBox="-1 -9 14 23" width={14 * cell} height={23 * cell} shapeRendering="crispEdges" aria-hidden="true">
       <g transform="translate(8 -8)">
         <path d={cells(QUESTION, "C")} fill="#090909" />
       </g>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { motion, useInView } from "framer-motion";
+import { animate, motion, useInView, useMotionValue, useMotionValueEvent } from "framer-motion";
 import { Check, Copy } from "lucide-react";
 import { LEGS, ROBOT_TOP } from "../pixel-world/pixels";
 import { ManualCopy, useCopy } from "./copy-prompt";
@@ -10,6 +10,7 @@ import { promptLines } from "./story";
 import { AGENTS, BY_HAND, promptFor, type Agent } from "./prompt";
 import { AFTER_EYEBROW, BODY, DUR, EASE, H2, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
+import { useCell } from "./use-grid";
 
 type Line = { k: "you" | "run" | "ok"; text: string; meta?: string };
 
@@ -50,34 +51,56 @@ function cells(rows: readonly string[], ch: string) {
   return d;
 }
 
-/** The robot from the hero, inked for the cream page. */
-function Robot({ frame }: { frame: number }) {
+/** The robot from the hero, inked for the cream page, one sprite pixel per page cell. */
+function Robot({ frame, cell }: { frame: number; cell: number }) {
   const body = [...ROBOT_TOP, ...LEGS[frame % 4]];
   return (
-    <svg viewBox="0 0 10 13" shapeRendering="crispEdges" className="h-[52px] w-10" aria-hidden="true">
+    <svg viewBox="0 0 10 13" width={10 * cell} height={13 * cell} shapeRendering="crispEdges" aria-hidden="true">
       <path d={cells(body, "C")} fill="#090909" />
       <path d={cells(body, "Y")} fill="#f4d44d" />
     </svg>
   );
 }
 
-/** A short walk across the top of the setup panel: three stops, the robot moving with the replay. */
-function Walk({ stage, moving }: { stage: number; moving: boolean }) {
+const STOP_AT = [0.08, 0.5, 0.92] as const;
+
+/**
+ * A short walk across the top of the setup panel: three stops, the robot moving with the replay.
+ * The robot steps a whole cell at a time along a plank track, so it never sits between pixels.
+ */
+function Walk({ stage, moving, calm }: { stage: number; moving: boolean; calm: boolean }) {
+  const cell = useCell();
   const [frame, setFrame] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(0);
+  const at = useMotionValue<number>(STOP_AT[0]);
+  const [f, setF] = useState<number>(STOP_AT[0]);
+  useMotionValueEvent(at, "change", setF);
   useEffect(() => {
     if (!moving) return;
-    const id = window.setInterval(() => setFrame((f) => f + 1), 140);
+    const id = window.setInterval(() => setFrame((n) => n + 1), 140);
     return () => window.clearInterval(id);
   }, [moving]);
-  const pos = ["8%", "50%", "92%"][stage];
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setW(el.clientWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  useEffect(() => {
+    const run = animate(at, STOP_AT[stage], { duration: calm ? 0 : 1.2, ease: EASE });
+    return () => run.stop();
+  }, [at, stage, calm]);
+  const x = Math.round((f * w) / cell - 5) * cell;
   return (
     <div className="relative" aria-hidden="true">
-      <div className="relative h-16">
-        <motion.div className="absolute bottom-1 -translate-x-1/2" animate={{ left: pos }} transition={{ duration: 1.2, ease: EASE }} style={{ left: pos }}>
-          <Robot frame={moving ? frame : 0} />
-        </motion.div>
+      <div ref={trackRef} className="relative" style={{ height: 14 * cell }}>
+        <div className="absolute bottom-0 left-0" style={{ transform: `translateX(${x}px)` }}>
+          <Robot frame={moving ? frame : 0} cell={cell} />
+        </div>
       </div>
-      <div className="h-1 bg-[#090909] [background-image:repeating-linear-gradient(90deg,#090909_0_22px,#eceae3_22px_24px)]" />
+      <div style={{ height: cell, backgroundImage: `repeating-linear-gradient(90deg,#090909 0 ${11 * cell}px,#eceae3 ${11 * cell}px ${12 * cell}px)` }} />
       <ol className="grid grid-cols-3">
         {STOPS.map((s, i) => (
           <li key={s.label} className={`flex flex-col gap-1 pt-2 ${i === 0 ? "items-start" : i === 1 ? "items-center text-center" : "items-end text-right"}`}>
@@ -212,7 +235,7 @@ export function Setup() {
         </div>
 
         <div ref={ref} className="mt-10 md:mt-12">
-          <Walk stage={stage} moving={moving} />
+          <Walk stage={stage} moving={moving} calm={calm} />
           <div className="mt-6 border-2 border-black bg-[#090909] text-[#eceae3]">
             <div role="tablist" aria-label="How to set it up" className="grid grid-cols-2 border-b-2 border-black font-mono text-[10px] uppercase tracking-[0.12em] sm:grid-cols-4 sm:text-[11px]">
               {TABS.map((a, i) => (

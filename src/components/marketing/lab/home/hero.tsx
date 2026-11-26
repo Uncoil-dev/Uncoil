@@ -5,17 +5,19 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { ArrowRight, RotateCcw, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CREAM, PALE, RED, YELLOW, brokenStep, bridge, flag, ground, pines, rebuild, reticle, robot, type Scene } from "../pixel-world/pixels";
+import { CREAM, PALE, YELLOW, flag, pines, rebuild, type Scene } from "../pixel-world/pixels";
 import { ease } from "../pixel-world/world";
 import { HURRY, breakTarget, focusStep, heroState, scanAt, type HeroPhase } from "./hero-clock";
-import { usePixelCanvas, type Frame } from "../pixel-world/use-pixel-canvas";
+import { brackets, bridgeArt, brokenPlank, gantrySign, groundArt, robotInFront, stem, stoneSign } from "./hero-art";
+import { useGridCanvas, type Frame } from "./use-grid";
 import { CopyPromptButton } from "./copy-prompt";
 import { clearStars, landscapeUnder, placeCallout, toBuffer, useCopyBoxes } from "./sky";
-import { causeStone, stepStones, stepTag } from "./steps-art";
+import { causeStone, stepStones } from "./steps-art";
 import { DUR, EASE, HERO, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
 
-const heroPixel = (w: number) => (w < 640 ? 4 : w < 1100 ? 5 : 6);
+/** The callout's box in CSS px, on the scene's grid; `b` is its border, one cell wide. */
+const HIDDEN = { x: -9999, y: 0, w: 0, h: 0, b: 0 };
 
 function layout(w: number, h: number) {
   // On phones the copy fills the top of the screen, so the ground sits low and the scene
@@ -65,8 +67,8 @@ export function HeroWorld() {
   const sectionRef = useRef<HTMLElement>(null);
   const tagRef = useRef<HTMLDivElement>(null);
   const copy = useCopyBoxes(sectionRef);
-  // The callout box and its stem, in CSS pixels relative to the section.
-  const [tag, setTag] = useState({ x: -9999, y: 0, stemX: 0, stemY: 0, stemH: 0 });
+  // The callout box in CSS pixels relative to the section; its stem is drawn in the scene.
+  const [tag, setTag] = useState(HIDDEN);
   const lastTag = useRef("");
   const lastPhase = useRef<HeroPhase>(phase);
   // The scene's own clock: it runs in real time, and hurries ahead when the visitor breaks the step.
@@ -76,7 +78,7 @@ export function HeroWorld() {
     if (c.target < 0) c.target = breakTarget(c.v);
   };
 
-  usePixelCanvas(
+  useGridCanvas(
     canvasRef,
     ({ px, scale, seconds }: Frame) => {
       const c = clock.current;
@@ -94,88 +96,81 @@ export function HeroWorld() {
       const stones = stepStones(gap0);
       const four = stones[3];
       const s: Scene = { px, cam: 0, groundY, t: seconds };
-      const edge = (gap0 - 7 - start) / (goal - 8 - start);
+      // The robot stops on the bridge's first plank, right before step 06.
+      const edge = (gap0 + 5 - start) / (goal - 8 - start);
       const rx = Math.round(start + track(st.phase, st.local, edge) * (goal - 8 - start));
 
-      const sunX = px.w < 200 ? 0.8 : 0.8;
+      const sunX = 0.8;
       // No star ever sits behind a word, and the far ridge never climbs into the copy: if it
       // would, the hills are drawn a little lower.
       const words = toBuffer(copy.current, scale, 6);
       landscapeUnder(s, sunX, px.w < 200 ? 0.8 : 0.6, words);
       clearStars(px, words);
       pines(s, [[four - 20, gap1 + 4], [goal - 10, goal + 30]], 1);
+
       const passed = st.phase === "cross" || st.phase === "goal";
-      ground(s, [[gap0, gap1]], passed ? rx + 6 : -1, start);
-      bridge(s, gap0, gap1, 1);
+      const tracing = st.phase === "trace" || st.phase === "mark" || st.phase === "repair";
+      const shake = st.phase === "fail" && st.local < 0.45;
+      const jolt = shake && Math.floor(vt * 30) % 2 ? 1 : 0;
+      // Uncoil's scan reads the run back from step 06 to step 04; everything it has read lights up.
+      const k = tracing ? scanAt(st) : 0;
+      const scanX = Math.round(plankX + (four - plankX) * k);
+      const read = (x: number) => tracing && x + 12 > scanX && x < plankX;
+      groundArt(s, [[gap0, gap1]], (wx) => (passed && wx >= start && wx < rx + 6 ? YELLOW : read(wx) ? PALE : undefined));
+      bridgeArt(px, gap0, gap1, groundY, 1, (x) => (tracing && x >= scanX ? PALE : CREAM), (x) => (read(x) ? PALE : CREAM));
 
       // Step 04 returned nothing: its stone is hollow until the fix lands.
       const fixed = st.phase === "repair" ? st.local >= 1 : passed;
       causeStone(px, four, groundY, fixed);
       if (st.phase === "repair") rebuild(px, four, groundY - 3, 12, 3, st.local);
 
-      // Step 06, the plank: whole while walking, red and falling when it fails, whole again on the re-run.
+      // Step 06, the plank: whole while walking, cracking and falling when it fails, whole again on the re-run.
       if (st.phase === "walk" || passed) px.rect(plankX, groundY - 2, 11, 3, CREAM);
-      if (st.phase === "fail") {
-        const shake = st.local < 0.45;
-        brokenStep({ ...s, groundY: groundY + (shake && Math.floor(vt * 30) % 2 ? 1 : 0) }, plankX, 11, shake ? 0 : (st.local - 0.45) / 0.55);
-      }
-      if (st.phase === "trace" || st.phase === "mark" || st.phase === "repair") brokenStep(s, plankX, 11, 1);
+      if (st.phase === "fail") brokenPlank(px, plankX, groundY + jolt, st.local > 0.15, shake ? 0 : (st.local - 0.45) / 0.55);
+      if (tracing) brokenPlank(px, plankX, groundY, true, 1);
 
-      // Uncoil's scan walks back along the run from 06 to 04, leaving a dotted trail.
-      if (st.phase === "trace" || st.phase === "mark" || st.phase === "repair") {
-        const k = scanAt(st);
-        const sx = Math.round(plankX + (four - plankX) * k);
-        for (let x = sx + 6; x < plankX + 6; x += 3) px.set(x, groundY - 7, YELLOW);
-        const lock = st.phase === "trace" ? 0.55 : st.phase === "mark" ? 0.55 + 0.45 * st.local : 1;
-        reticle(px, sx, groundY - 3, st.phase === "trace" ? 11 : 12, 3, lock);
+      // Every step carries its number on a board: 01 to 05 on signposts on their stones, 06 on the
+      // bridge's gantry. 04 turns yellow once the scan has found it; 06 is red while it is failing.
+      const found = st.phase === "mark" || st.phase === "repair" || passed || (st.phase === "trace" && k >= 1);
+      const boards = stones.map((x, i) => (x < 1 ? null : stoneSign(px, i + 1, x, groundY, i === 3 && found ? "lit" : "plain")));
+      const six = gantrySign(px, plankX, gap1, groundY, passed ? "lit" : st.phase === "walk" ? "plain" : "failed", jolt);
+      const four4 = boards[3];
+      if (tracing && four4) {
+        const box = { x: Math.round(six.x + (four4.x - six.x) * k), y: Math.round(six.y + (four4.y - six.y) * k), w: six.w, h: six.h };
+        brackets(px, box, st.phase === "trace" ? 3 : st.phase === "mark" ? Math.round(3 - 2 * st.local) : 1);
       }
-
-      // Step tags in the ground under each step.
-      const tagY = groundY + 4;
-      stones.forEach((x, i) => {
-        if (x < 2) return;
-        const n = i + 1;
-        const lit = n === 4 && st.phase !== "walk" && st.phase !== "fail" && !(st.phase === "trace" && scanAt(st) < 1);
-        stepTag(px, n, x + 6, tagY, lit ? YELLOW : PALE);
-      });
-      stepTag(px, 6, plankX + 5, tagY + 1, st.phase === "fail" ? RED : passed ? YELLOW : PALE);
 
       flag(px, goal, groundY - 3, st.phase === "goal" ? Math.min(1, st.local * 2.5) : 0);
       const walking = st.phase === "walk" || st.phase === "cross";
-      robot(px, rx, groundY - 3, walking ? Math.floor(vt * 8) : 0, st.phase === "fail" || st.phase === "trace");
+      // On the bridge the planks sit one cell lower than the stones.
+      const onBridge = rx - 5 >= gap0 && rx + 4 < gap1;
+      robotInFront(px, rx, groundY - (onBridge ? 2 : 3), walking ? Math.floor(vt * 8) : 0, st.phase === "fail" || st.phase === "trace", true);
 
       if (st.phase !== lastPhase.current) {
         lastPhase.current = st.phase;
         setPhase(st.phase);
       }
 
-      // The callout sits in clear sky above the ridge, on a stem down to the step it names, away
-      // from the copy and the sun. Placed from the drawn frame so it follows the ridge at every width.
+      // The callout sits in clear sky above the ridge, on a one-cell stem down to the board it
+      // names, away from the copy and the sun. Its frame is drawn on the same grid as the scene.
       const el = tagRef.current;
-      const size = { w: Math.ceil((el?.offsetWidth ?? (px.w < 200 ? 196 : 216)) / scale) + 1, h: Math.ceil((el?.offsetHeight ?? 60) / scale) + 1 };
+      const size = { w: Math.ceil((el?.offsetWidth ?? (px.w < 200 ? 196 : 216)) / scale) + 2, h: Math.ceil((el?.offsetHeight ?? 52) / scale) + 2 };
       const r = Math.round(Math.min(px.w * 0.11, px.h * 0.2));
       const sun = { x: Math.round(px.w * sunX) - r - 3, y: Math.round(groundY - px.h * 0.2 - r * 0.6) - r - 3, w: 2 * r + 6, h: 2 * r + 6 };
-      const stemX = focusStep(st.phase) === 4 ? four + 6 : plankX + 5;
-      const stepTop = groundY - 8;
-      const box = placeCallout(px, stemX, stepTop - 8, size, [...toBuffer(copy.current, scale, 3), sun]);
-      if (!box) {
-        if (lastTag.current !== "none") {
-          lastTag.current = "none";
-          setTag({ x: -9999, y: 0, stemX: 0, stemY: 0, stemH: 0 });
-        }
-        return;
-      }
-      // The box hangs off its stem: the stem meets the box 10px in from the near edge.
-      const stemCss = (stemX + 0.5) * scale - 1;
-      const elW = el?.offsetWidth ?? size.w * scale;
-      const next = { x: Math.round(box.x < stemX - 2 ? stemCss + 12 - elW : stemCss - 10), y: box.y * scale, stemX: stemCss, stemY: (box.y + box.h) * scale, stemH: (stepTop - box.y - box.h) * scale };
+      const onFour = focusStep(st.phase) === 4 && four4;
+      const stemX = onFour ? four4.x + 5 : six.x + 5;
+      const stemTo = onFour ? four4.y - (st.phase === "mark" || st.phase === "repair" ? 2 : 0) : six.top;
+      const box = placeCallout(px, stemX, stemTo - 4, size, [...toBuffer(copy.current, scale, 3), sun]);
+      const cause = onFour;
+      if (box) stem(px, stemX, box.y + box.h, stemTo, cause ? YELLOW : CREAM, st.phase === "walk");
+      const next = box ? { x: box.x * scale, y: box.y * scale, w: box.w * scale, h: box.h * scale, b: scale } : HIDDEN;
       const key = JSON.stringify(next);
       if (key !== lastTag.current) {
         lastTag.current = key;
         setTag(next);
       }
     },
-    { pixel: heroPixel, still: reduce },
+    { still: reduce },
   );
 
   const showTag = tag.x > -9999 && !(reduce && phase === "walk");
@@ -196,30 +191,26 @@ export function HeroWorld() {
           <motion.div
             key={mode}
             aria-hidden="true"
-            initial={reduce ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: DUR.fast, ease: EASE }}
-            className="pointer-events-none absolute inset-0 z-10"
+            onClick={waiting ? breakIt : undefined}
+            className={`absolute z-10 flex items-center justify-center border-solid text-left font-mono text-[10px] uppercase tracking-[0.12em] md:text-[11px] ${
+              waiting
+                ? "cursor-pointer border-[#eceae3] bg-[#090909] text-[#eceae3] hover:border-[#f4d44d]"
+                : mode === "cause"
+                  ? "pointer-events-none border-[#f4d44d] bg-[#090909] text-[#eceae3]"
+                  : passed
+                    ? "pointer-events-none border-[#eceae3] bg-[#eceae3] text-black"
+                    : "pointer-events-none border-[#eceae3] bg-[#090909] text-[#eceae3]"
+            }`}
+            style={{ left: tag.x, top: tag.y, width: tag.w, height: tag.h, borderWidth: tag.b }}
           >
-            <div
-              ref={tagRef}
-              onClick={waiting ? breakIt : undefined}
-              className={`absolute border-2 px-3 py-2 text-left font-mono text-[10px] uppercase tracking-[0.12em] md:text-[11px] ${
-                waiting
-                  ? "pointer-events-auto cursor-pointer border-dashed border-[#eceae3] bg-[#090909] text-[#eceae3] hover:border-solid hover:border-[#f4d44d]"
-                  : mode === "cause"
-                    ? "border-[#f4d44d] bg-[#090909] text-[#eceae3]"
-                    : passed
-                      ? "border-[#eceae3] bg-[#eceae3] text-black"
-                      : "border-[#eceae3] bg-[#090909] text-[#eceae3]"
-              }`}
-              style={{ left: tag.x, top: tag.y }}
-            >
+            <div ref={tagRef} className="px-3 py-2">
               <p className="whitespace-nowrap">{title}</p>
               <p className={`mt-1 whitespace-nowrap ${waiting || mode === "cause" ? "text-[#f4d44d]" : passed ? "text-black/70" : "text-[#eceae3]/70"}`}>{line}</p>
             </div>
-            <div className={`absolute w-[2px] ${waiting ? "bg-[repeating-linear-gradient(to_bottom,#eceae3_0_4px,transparent_4px_8px)]" : mode === "cause" ? "bg-[#f4d44d]" : "bg-[#eceae3]"}`} style={{ left: tag.stemX, top: tag.stemY, height: Math.max(0, tag.stemH) }} />
           </motion.div>
         )}
       </AnimatePresence>

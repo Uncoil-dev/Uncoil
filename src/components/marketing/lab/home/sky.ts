@@ -90,12 +90,12 @@ export function crestTop(px: Px, x0: number, x1: number, below: number) {
 }
 
 /**
- * Where a callout box goes: above the ridge, beside its stem, clear of the copy and the sun.
- * Tries the left of the stem first, then the right. Returns the box in buffer pixels, or null
+ * Where a callout box goes: above the ridge, clear of the copy and the sun, with its stem running
+ * down from the box's right edge column (box to the left of the stem) or its left edge column. Returns the box in buffer pixels, or null
  * when there is no clean spot (the scene's status bar still reports the step).
  */
 export function placeCallout(px: Px, stemX: number, below: number, size: { w: number; h: number }, avoid: readonly Box[]) {
-  for (const x of [stemX - size.w + 1, stemX - 1]) {
+  for (const x of [stemX - size.w + 1, stemX]) {
     if (x < 1 || x + size.w > px.w - 1) continue;
     const bottom = crestTop(px, x - 1, x + size.w + 1, below) - 3;
     const box = { x, y: bottom - size.h, w: size.w, h: size.h };

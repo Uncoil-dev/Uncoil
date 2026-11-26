@@ -3,8 +3,9 @@
 import dynamic from "next/dynamic";
 import { useRef, useState, type KeyboardEvent } from "react";
 import { appHref } from "@/lib/app-links";
-import { CREAM, ground, pines, robot, type Scene } from "../pixel-world/pixels";
-import { usePixelCanvas } from "../pixel-world/use-pixel-canvas";
+import { CREAM, pines, type Scene } from "../pixel-world/pixels";
+import { groundArt, robotInFront } from "./hero-art";
+import { useGridCanvas } from "./use-grid";
 import { CASES } from "./cases";
 import { clearStars, landscapeUnder, toBuffer, useCopyBoxes } from "./sky";
 import { BODY, H2, LABEL } from "./ui";
@@ -15,7 +16,6 @@ import { useCalm } from "./use-calm";
 const TraceWindow = dynamic(() => import("./product-view").then((m) => m.TraceWindow));
 
 const ROOM = { desk: 13, phone: 6 };
-const scenePixel = (w: number) => (w < 640 ? 4 : w < 1100 ? 5 : 6);
 
 /**
  * "What broke?": the real trace view standing in the pixel world like a signboard on two posts,
@@ -32,7 +32,7 @@ export function Product() {
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const c = CASES[pick];
 
-  usePixelCanvas(
+  useGridCanvas(
     canvasRef,
     ({ px, scale, seconds }) => {
       const section = sectionRef.current;
@@ -52,16 +52,16 @@ export function Product() {
       const postL = bx0 + Math.round((bx1 - bx0) * 0.12);
       const postR = bx1 - Math.round((bx1 - bx0) * 0.12);
       pines(s, [[postL - 40, postL + 20], [postR - 20, postR + 20]], 1);
-      ground(s, []);
+      groundArt(s, []);
       // Two posts carry the board down to the ground, with a crossbeam just under it.
       for (const x of [postL, postR]) {
         px.rect(x - 1, bBottom, 3, groundY - bBottom, CREAM);
         px.rect(x - 3, groundY - 3, 7, 3, CREAM);
       }
       px.rect(postL, bBottom + 4, postR - postL, 1, CREAM);
-      robot(px, postL - 12, groundY - 3, calm ? 0 : Math.floor(seconds * 1.2) % 2 === 0 ? 0 : 1);
+      robotInFront(px, postL - 12, groundY - 3, calm ? 0 : Math.floor(seconds * 1.2) % 2 === 0 ? 0 : 1);
     },
-    { pixel: scenePixel, still: calm },
+    { still: calm },
   );
 
   const onKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {

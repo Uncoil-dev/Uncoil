@@ -5,25 +5,27 @@ import { motion } from "framer-motion";
 import { Pause, Play } from "lucide-react";
 import { LABEL } from "./ui";
 import { useCalm } from "./use-calm";
+import { useCell } from "./use-grid";
 
 // Only what the SDK READMEs document: init() traces OpenAI and Anthropic, LangChain / LangGraph
 // use the handler, the Vercel AI SDK uses the middleware, and the API ingests OpenTelemetry.
 const MODELS = ["OpenAI", "Anthropic", "Vercel AI SDK", "LangChain", "LangGraph"] as const;
 const WIRES = ["OpenTelemetry", "TypeScript", "Python", "HTTP"] as const;
 
-/** A bridge plank from the pixel world, used as the separator between names. */
-function Plank({ lit, ink }: { lit?: boolean; ink?: boolean }) {
+/** A bridge plank from the pixel world, used as the separator between names, on the page grid. */
+function Plank({ lit, ink, cell }: { lit?: boolean; ink?: boolean; cell: number }) {
   const fill = ink ? "#090909" : lit ? "#f4d44d" : "#eceae3";
   return (
-    <svg viewBox="0 0 11 4" shapeRendering="crispEdges" className="h-[0.32em] w-[0.88em] shrink-0" aria-hidden="true">
-      <rect width="11" height="3" fill={fill} />
-      <rect x="2" y="1" width="2" height="1" fill={ink ? "#f4d44d" : "#090909"} />
-      <rect y="3" width="11" height="1" fill={fill} opacity="0.35" />
+    <svg viewBox="0 0 8 3" width={8 * cell} height={3 * cell} shapeRendering="crispEdges" className="shrink-0" aria-hidden="true">
+      <rect width="8" height="2" fill={fill} />
+      <rect x="2" y="1" width="1" height="1" fill={ink ? "#f4d44d" : "#090909"} />
+      <rect x="1" y="2" width="6" height="1" fill={fill} />
     </svg>
   );
 }
 
 function Row({ items, reverse, lit, calm }: { items: readonly string[]; reverse?: boolean; lit?: boolean; calm: boolean }) {
+  const cell = useCell();
   // Four copies keep the strip wider than a 1920 screen while it slides by half its width.
   const run = [...items, ...items, ...items, ...items];
   return (
@@ -36,7 +38,7 @@ function Row({ items, reverse, lit, calm }: { items: readonly string[]; reverse?
         {run.map((name, i) => (
           <span key={`${name}-${i}`} className={`flex items-center gap-[0.55em] ${lit ? "text-[#090909]" : ""}`}>
             {name}
-            <Plank lit={!lit && i % items.length === 0} ink={lit} />
+            <Plank lit={!lit && i % items.length === 0} ink={lit} cell={cell} />
           </span>
         ))}
       </motion.div>

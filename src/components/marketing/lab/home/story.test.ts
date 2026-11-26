@@ -9,6 +9,9 @@ import { chapterAt } from "./rail-logic.ts";
 import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanAt, type HeroPhase } from "./hero-clock.ts";
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
 import { promptFor } from "./prompt.ts";
+import { snapCell, targetCell } from "./grid.ts";
+import { PLATE, boardBox, ropeCells, whereLayout } from "./where-layout.ts";
+import { pebbles } from "./soil.ts";
 import { callCost, getModel } from "../../../../lib/tools/models.ts";
 
 test("a section edge is solid at the bottom, open at the top and thins out as it rises", () => {
@@ -122,4 +125,45 @@ test("the rail marks the last chapter whose top has passed the reading line", ()
   assert.equal(chapterAt([500, 900, 1300], 360), -1);
   assert.equal(chapterAt([-400, 120, 900], 360), 1);
   assert.equal(chapterAt([-900, -500, -100], 360), 2);
+});
+
+test("a page cell always covers a whole number of device pixels", () => {
+  for (const dpr of [1, 1.25, 1.5, 2, 2.625, 3]) {
+    for (const w of [390, 768, 1440]) {
+      const cell = snapCell(targetCell(w), dpr);
+      assert.ok(Math.abs(cell * dpr - Math.round(cell * dpr)) < 1e-9, `dpr ${dpr}, width ${w}: ${cell}`);
+      assert.ok(Math.abs(cell - targetCell(w)) <= 0.5 / dpr + 1e-9);
+    }
+  }
+  assert.equal(snapCell(6, 1.25), 6.4);
+});
+
+test("the trace figure keeps its plates apart, its boards on screen and its rope unbroken until the snap", () => {
+  for (const [cols, vertical] of [[137, false], [213, false], [87, true]] as const) {
+    const l = whereLayout(cols, vertical);
+    for (let i = 0; i < 6; i++) {
+      const b = boardBox(l, i);
+      assert.ok(b.x >= 0 && b.x + b.w <= cols && b.y >= 0 && b.y + b.h <= l.rows, `${cols}: board ${i + 1} off the figure`);
+      if (i) {
+        const [p, q] = [l.centers[i - 1], l.centers[i]];
+        assert.ok(Math.abs(p.x - q.x) > PLATE || Math.abs(p.y - q.y) > PLATE, `${cols}: plates ${i} and ${i + 1} overlap`);
+      }
+    }
+    const { cells, snap } = ropeCells(l);
+    assert.ok(snap > 0 && snap < cells.length);
+    for (let k = 1; k < cells.length; k++) {
+      const gap = Math.max(Math.abs(cells[k][0] - cells[k - 1][0]), Math.abs(cells[k][1] - cells[k - 1][1]));
+      assert.equal(gap, 1, `${cols}: the rope jumps at cell ${k}`);
+    }
+  }
+});
+
+test("pebbles in the soil keep clear of the chasm", () => {
+  const gap = [100, 136] as const;
+  const cells = pebbles(240, 150, 110, [gap]);
+  assert.ok(cells.length > 10);
+  for (const [x, y] of cells) {
+    assert.ok(x < gap[0] - 6 || x >= gap[1] + 6, `pebble at ${x},${y} sits on the chasm edge`);
+    assert.ok(y > 110 + 4);
+  }
 });

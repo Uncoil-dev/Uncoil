@@ -5,16 +5,15 @@ import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { useInView } from "framer-motion";
 import { appHref } from "@/lib/app-links";
-import { bridge, flag, ground, pines, robot, type Scene } from "../pixel-world/pixels";
-import { usePixelCanvas } from "../pixel-world/use-pixel-canvas";
+import { YELLOW, flag, pines, type Scene } from "../pixel-world/pixels";
+import { bridgeArt, gantrySign, groundArt, robotInFront, stoneSign } from "./hero-art";
+import { useGridCanvas } from "./use-grid";
 import { clamp01, ease } from "../pixel-world/world";
 import { CopyPromptButton } from "./copy-prompt";
 import { clearStars, landscapeUnder, toBuffer, useCopyBoxes } from "./sky";
 import { causeStone, stepStones } from "./steps-art";
 import { BODY, HERO, LABEL, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
-
-const closingPixel = (w: number) => (w < 640 ? 4 : w < 1100 ? 5 : 6);
 
 /**
  * The closing scene pays off the journey: the plank Uncoil marked is now yellow, the robot
@@ -28,7 +27,7 @@ export function ClosingWorld() {
   const startedAt = useRef<number | null>(null);
   const copy = useCopyBoxes(sectionRef);
 
-  usePixelCanvas(
+  useGridCanvas(
     canvasRef,
     ({ px, scale, seconds }) => {
       if (inView && startedAt.current === null) startedAt.current = seconds;
@@ -54,15 +53,19 @@ export function ClosingWorld() {
       landscapeUnder(s, sunX, 0.7, words);
       clearStars(px, words);
       pines(s, [[gap0 - 30, gap1 + 4], [goal - 14, goal + 30]], 1);
-      ground(s, [[gap0, gap1]], rx + 6, start);
-      bridge(s, gap0, gap1, -1);
+      groundArt(s, [[gap0, gap1]], (wx) => (wx >= start && wx < rx + 6 ? YELLOW : undefined));
+      bridgeArt(px, gap0, gap1, groundY, -1);
       // The run's two marked steps, both whole now: step 04 fixed in yellow, step 06 passing.
       const four = stepStones(gap0)[3];
-      if (four > 2) causeStone(px, four, groundY, true);
+      if (four > 2) {
+        causeStone(px, four, groundY, true);
+        stoneSign(px, 4, four, groundY, "lit");
+      }
+      gantrySign(px, gap0 + 12, gap1, groundY, "lit");
       flag(px, goal, groundY - 3, clamp01((t - 3) / 0.8));
-      robot(px, rx, groundY - 3, walk > 0 && walk < 1 ? Math.floor(seconds * 8) : 0);
+      robotInFront(px, rx, groundY - 3, walk > 0 && walk < 1 ? Math.floor(seconds * 8) : 0);
     },
-    { pixel: closingPixel, still: reduce },
+    { still: reduce },
   );
 
   return (

@@ -152,7 +152,7 @@ resources and unsupported convenience methods are passed through without instrum
 
 Calls inside `trace_agent`/`span` inherit their run/parent and custom client. Standalone calls receive
 an independent completed root. LangGraph callbacks preserve graph/node/tool/model parent IDs and
-concurrent runs. Avoid using both framework model callbacks and a provider wrapper for the same call.
+concurrent runs. A LangGraph `interrupt()` ends the run as paused (`metadata.interrupted`), not failed. Avoid using both framework model callbacks and a provider wrapper for the same call.
 Provider packages remain optional; newer framework extras may require a newer Python than the core SDK.
 
 Options: `client=custom_client`, `name="my-agent"`, `capture_input=False`, `capture_output=False`.

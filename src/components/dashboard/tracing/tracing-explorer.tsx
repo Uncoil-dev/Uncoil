@@ -16,6 +16,7 @@ import { FirstTraceEmpty } from "../first-trace-empty";
 import { TraceCharts, TracesOverTime, type ChartBucket } from "./trace-charts";
 import { ErrorGroupsPanel, errorGroupLabel, fixQuestion, type ErrorGroups } from "./error-groups";
 import { FACETS, FacetGroup, decodeValues, encodeValues, type FacetCounts } from "./facet-filter";
+import { LiveToggle, useTracingLive } from "./live-toggle";
 import { TRACE_VIEWS, TracePanel, type TraceView } from "./trace-panel";
 import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime } from "./format";
 import { EmptyNotice } from "../empty/empty-notice";
@@ -75,7 +76,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
   const [columns, setColumns] = useState<string[]>(DEFAULT_COLUMNS);
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [now, setNow] = useState(() => Date.now());
-  const [live] = useState(true);
+  const [live, setLive] = useTracingLive();
   const [clock, setClock] = useState(() => Date.now());
   const [fresh, setFresh] = useState<Set<string>>(() => new Set());
   const [errorsOpen, setErrorsOpen] = useState(true);
@@ -348,6 +349,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
           onPreset={(id) => { setNow(Date.now()); update({ range: id, from: "", to: "" }); }}
           onCustom={(from, to) => { const current = Date.now(); setNow(current); update({ from: String(from), to: String(Math.min(to, current)) }); }}
           onReset={() => update({ from: "", to: "" })} />
+        <LiveToggle live={live} fixedWindow={Boolean(query.from || query.to)} onToggle={() => { if (!live) setNow(Date.now()); setLive(!live); }} />
         <button type="button" onClick={() => setNow(Date.now())} className="h-8 rounded-md border border-[#262C35] px-2.5 text-xs text-[#C9CED6] hover:border-[#4A5260]">Refresh</button>
       </header>
 

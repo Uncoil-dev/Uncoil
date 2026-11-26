@@ -33,7 +33,7 @@ export interface DoctorReport {
   traceUrl?: string;
 }
 
-function keyRegion(apiKey: string): UncoilRegion | undefined {
+export function keyRegion(apiKey: string): UncoilRegion | undefined {
   if (/^(uncoil|tracify)_sk_live_eu_/.test(apiKey)) return "eu";
   if (/^(uncoil|tracify)_sk_live_us_/.test(apiKey)) return "us";
   if (/^(uncoil|tracify)_sk_live_/.test(apiKey)) return "eu";
@@ -50,7 +50,7 @@ function id() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function errorText(error: unknown) {
+export function errorText(error: unknown) {
   const err = error as { name?: string; message?: string; cause?: { code?: string; message?: string } };
   if (err?.name === "TimeoutError" || err?.name === "AbortError") return "the request timed out";
   return err?.cause?.code || err?.cause?.message || err?.message || String(error);

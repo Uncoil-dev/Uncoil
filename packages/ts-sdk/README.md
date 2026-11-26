@@ -242,6 +242,14 @@ Opens your browser so you can sign in (or create a free account), pick or create
 
 `npx @uncoil.dev/sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
 
+## Topics
+
+```bash
+npx @uncoil.dev/sdk topics
+```
+
+Lists the topics Uncoil found in your traces, grouped by facet, with the trace count, share and a few sample trace ids for each. It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST`). Options: `--key`, `--region eu|us`, `--host` and `--json` (prints the raw response). It exits with code 1 when the key is missing or rejected, the server does not offer topics yet, no topic map has been built for the project, or the network fails.
+
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:

@@ -906,8 +906,13 @@ export default defineSchema({
       v.literal("building"),
       v.literal("ready"),
       v.literal("failed"),
+      v.literal("paused"),
     ),
     builtAt: v.number(),
+    // Plain-language note: why the map is paused, or how many more traces it needs.
+    message: v.optional(v.string()),
+    // Live maps are rebuilt every day.
+    live: v.optional(v.boolean()),
   }).index("by_projectId", ["projectId"]),
 
   topics: defineTable({

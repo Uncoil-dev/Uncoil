@@ -5,7 +5,7 @@ import { v } from "convex/values";
  * Tinybird retention should be configured separately at the datasource level;
  * this mutation keeps the dashboard's durable summaries aligned with it.
  */
-function isJobAuthorized(jobSecret: string | undefined) {
+export function isJobAuthorized(jobSecret: string | undefined) {
   const configured = (process.env.UNCOIL_RETENTION_SECRET ?? process.env.TRACIFY_RETENTION_SECRET);
   return Boolean(configured && jobSecret && jobSecret === configured);
 }

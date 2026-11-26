@@ -14,6 +14,9 @@ for (const dir of ["onboarding", "dashboard", "(auth)", "cloud", "forgot-passwor
   });
 }
 
+// Thin utility pages that are reachable but should not rank.
+test("refer page is noindex", () => assert.match(read(`${app}/refer/page.tsx`), /\.\.\.noIndex\b/));
+
 // Public pages must use the shared helper so canonical, Open Graph and X card values stay complete.
 for (const file of ["changelog/page.tsx", "roadmap/page.tsx", "status/page.tsx", "privacy/page.tsx", "terms/page.tsx", "cookie-policy/page.tsx", "security/page.tsx", "contact/page.tsx", "integrations/page.tsx", "glossary/page.tsx", "blog/page.tsx", "docs/page.tsx", "pricing/layout.tsx", "product/[feature]/page.tsx", "use-cases/[slug]/page.tsx", "docs/[...slug]/page.tsx"]) {
   test(`${file} ships full social metadata`, () => assert.match(read(`${app}/${file}`), /pageMetadata\(/));

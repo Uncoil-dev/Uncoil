@@ -1,4 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 export interface UncoilConfig {
   apiKey?: string;
@@ -270,6 +272,15 @@ function isRetryableError(error: unknown, retryableErrors: string[]): boolean {
   return false;
 }
 
+/** True when .env.local in the working folder sets UNCOIL_API_KEY; `login` saves the key there, but plain Node does not read the file. */
+function envLocalSetsKey(): boolean {
+  try {
+    return /^\s*(?:export\s+)?UNCOIL_API_KEY\s*=\s*\S/m.test(readFileSync(resolve(process.cwd(), ".env.local"), "utf8"));
+  } catch {
+    return false;
+  }
+}
+
 const pendingSends = new Set<Promise<unknown>>();
 
 async function waitFor(sends: Set<Promise<unknown>>, timeoutMs: number): Promise<boolean> {
@@ -327,7 +338,10 @@ export class UncoilClient {
     this.keepErrors = config.keepErrors ?? true;
     this.redactor = buildRedactor(config.redact);
     if (!this.apiKey) {
-      this.report(new UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", "Pass { apiKey } to the client or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard."));
+      const hint = envLocalSetsKey()
+        ? "Your .env.local sets UNCOIL_API_KEY, but this app did not load it. Run it with node --env-file=.env.local (for example node --env-file=.env.local app.js), or load the file with dotenv."
+        : "Pass { apiKey } to the client or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard.";
+      this.report(new UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", hint));
     } else if (!/^(uncoil|tracify)_sk_/.test(this.apiKey)) {
       this.report(new UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."));
     }
@@ -388,15 +402,20 @@ export class UncoilClient {
   private async checkIngestResponse(response: Response) {
     if (response.ok) return;
     const status = response.status;
+    // 4xx bodies carry `{ error }` saying what was wrong with the span; show it so the fix is obvious.
+    // Read a clone so later handlers can still read the body.
+    const body: { error?: unknown; code?: unknown } | undefined = status >= 400 && status < 500
+      ? await response.clone().json().catch(() => undefined)
+      : undefined;
+    const reason = typeof body?.error === "string" && body.error ? `: ${body.error}` : "";
     // The ingest route pauses a key after repeated rate-limit errors and says so with code "key_paused".
-    const code = status === 403 ? await response.clone().json().then((body) => body?.code, () => undefined) : undefined;
-    if (code === "key_paused") this.report(new UncoilError("key_paused", "This API key was paused after repeated rate-limit errors (403).", "Create a new key on the API keys page of your dashboard and update UNCOIL_API_KEY.", status));
+    if (status === 403 && body?.code === "key_paused") this.report(new UncoilError("key_paused", "This API key was paused after repeated rate-limit errors (403).", "Create a new key on the API keys page of your dashboard and update UNCOIL_API_KEY.", status));
     else if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
-    else if (status === 403) this.report(new UncoilError("forbidden", "This API key is not allowed to send data (403).", "Check that the key belongs to the project you expect and has not been disabled.", status));
+    else if (status === 403) this.report(new UncoilError("forbidden", `This API key is not allowed to send data (403${reason}).`, "Check that the key belongs to the project you expect and has not been disabled.", status));
     else if (status === 429 && (await this.reportPlanLimit(response))) return;
     else if (status === 429) this.report(new UncoilError("rate_limited", "Uncoil is receiving too much data from this app (429).", "Lower the volume with sampleRate (for example 0.2), or upgrade your plan.", status));
     else if (status >= 500) this.report(new UncoilError("server_error", `Uncoil had a problem on its side (${status}).`, "Your app is not affected; data from this moment may be missing. Check the status page if it keeps happening.", status));
-    else this.report(new UncoilError("rejected", `Uncoil did not accept a span (${status}).`, "Update the SDK to the latest version; if it still happens, contact support.", status));
+    else this.report(new UncoilError("rejected", `Uncoil did not accept a span (${status}${reason}).`, "Update the SDK to the latest version; if it still happens, contact support.", status));
   }
 
   async ingest(data: SpanData) {
@@ -808,16 +827,19 @@ export function traceAgent<T extends (...args: any[]) => Promise<any>>(
   return ((...args: any[]) => span(name, () => func(...args), { type: 'agent', client, runId: createId(), root: true })) as T;
 }
 
+/** The client of the active trace (for example the one traceAgent was given), or the shared default. */
+const currentClient = () => currentTraceContext()?.client ?? defaultClient();
+
 /** Record a finished model call. It is attached to the step it was made in. */
 export const llmCall = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'llm_call' });
+  currentClient().ingest({ ...data, spanType: 'llm_call' });
 
 /** Record a finished tool call. It is attached to the step it was made in. */
 export const toolCall = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'tool_call' });
+  currentClient().ingest({ ...data, spanType: 'tool_call' });
 
 export const decision = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'decision' });
+  currentClient().ingest({ ...data, spanType: 'decision' });
 
 export { wrapOpenAI, wrapAnthropic, type IntegrationOptions } from "./integrations/providers";
 export { UncoilLangGraphHandler } from "./integrations/langgraph";

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { productFeatureSlugs } from "@/lib/product-features";
 import robots from "./robots";
 import sitemap from "./(frontend)/sitemap";
 import nextConfig from "../../next.config";
@@ -13,6 +14,11 @@ function disallowed(): string[] {
 }
 
 describe("sitemap crawlability", () => {
+  it("lists every product page from the shared product list", async () => {
+    const products = (await sitemap()).map((e) => e.url).filter((url) => url.startsWith(`${BASE}/product/`));
+    expect(products).toEqual(productFeatureSlugs.map((slug) => `${BASE}/product/${slug}`));
+  });
+
   it("lists only unique URLs that robots.txt allows and that do not redirect", async () => {
     const entries = await sitemap();
     const paths = entries.map((e) => e.url.replace(BASE, "") || "/");

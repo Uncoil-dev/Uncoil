@@ -2,6 +2,7 @@ import { getPostDate, getPublishedPosts } from "@/lib/markdoc-blog";
 import { getDocs } from "@/lib/markdoc-docs";
 import { comparisons, integrationPages } from "@/lib/seo-pages";
 import { answers } from "@/lib/answers";
+import { productFeatureSlugs } from "@/lib/product-features";
 import { glossaryTerms } from "@/lib/glossary";
 import { tools } from "@/lib/tools/registry";
 import type { MetadataRoute } from "next";
@@ -32,7 +33,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const productFeatures = ["trace-viewer", "cost-dashboard", "tool-calls", "llm-calls", "failures", "reports", "runtime-control", "evaluation-engine", "lifecycle"];
   const useCases = ["research", "support", "automation", "tool-calling", "coding", "rag", "voice", "browser", "multi-agent", "mcp", "chatbot", "sales", "sql", "documents", "cost-control", "release", "copilot"];
   const documentation = getDocs().map((doc) => doc.slug);
 
@@ -60,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...answers.map((a) => ({ url: `${baseUrl}/answers/${a.slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     { url: `${baseUrl}/glossary`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },
     ...documentation.map((slug) => ({ url: `${baseUrl}/docs/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
-    ...productFeatures.map((slug) => ({ url: `${baseUrl}/product/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.8 })),
+    ...productFeatureSlugs.map((slug) => ({ url: `${baseUrl}/product/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.8 })),
     ...useCases.map((slug) => ({ url: `${baseUrl}/use-cases/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     { url: `${baseUrl}/best-llm-observability-tools`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/compare`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },

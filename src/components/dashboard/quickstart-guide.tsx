@@ -219,7 +219,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 font-sans text-[13px] text-[#9b9b95]">
         <span>Stuck? The full guide covers frameworks, environments and troubleshooting.</span>
-        <Link href="/docs/quickstart" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#eceae3] hover:!text-[#f4d44d]"><BookOpen className="size-4" /> Full guide</Link>
+        <a href="https://www.uncoil.dev/docs/quickstart" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#eceae3] hover:!text-[#f4d44d]"><BookOpen className="size-4" /> Full guide</a>
       </div>
       </>)}
     </div>

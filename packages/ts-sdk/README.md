@@ -98,7 +98,7 @@ avoid sending anything else you would not want stored.
 - **traceAgent Wrapper:** Automatically captures run lifecycle and errors.
 - **Granular Spans:** Manually record LLMs, tools, and custom decisions.
 - **Environment Aware:** Automatically picks up API keys from `process.env`.
-- **Lightweight:** Minimal dependencies, optimized for Node.js and Edge runtimes.
+- **Lightweight:** Minimal dependencies. Runs on Node.js (it uses async context to keep concurrent runs apart), so use the Node.js runtime rather than the edge runtime.
 - **Session context:** Add `sessionId`, `endUserId`, `environment`, `release`, and `tags` to connect related traces.
 
 ## Feedback and evaluation scores

@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { comparisons, formatLastChecked } from "./seo-pages";
+import { integrationGuides, KEY_STEP } from "./integration-guides";
+import { comparisons, formatLastChecked, integrationPages } from "./seo-pages";
 
 test("every comparison has a valid lastChecked date", () => {
   for (const c of comparisons) {
@@ -12,4 +13,24 @@ test("every comparison has a valid lastChecked date", () => {
 
 test("formatLastChecked returns month and year", () => {
   expect(formatLastChecked("2026-11-07")).toBe("November 2026");
+});
+
+test("integration page slugs are unique across hand-written pages and setup guides", () => {
+  const slugs = integrationPages.map((p) => p.slug);
+  const dupes = slugs.filter((s, i) => slugs.indexOf(s) !== i);
+  expect(dupes).toEqual([]);
+  for (const guide of integrationGuides) expect(slugs, guide.slug).toContain(guide.slug);
+});
+
+test("every setup guide has a title and at least one step with code and a language", () => {
+  for (const guide of integrationGuides) {
+    expect(guide.title.trim(), guide.slug).not.toBe("");
+    const withCode = (guide.steps ?? []).filter((s) => s.code?.trim());
+    expect(withCode.length, guide.slug).toBeGreaterThan(0);
+    for (const step of withCode) expect(step.language, `${guide.slug}: ${step.title}`).toBeDefined();
+  }
+});
+
+test("the shared key step uses the placeholder live key prefix, not a real key", () => {
+  expect(KEY_STEP.code).toContain('UNCOIL_API_KEY="uncoil_sk_live_..."');
 });

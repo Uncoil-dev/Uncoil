@@ -112,6 +112,10 @@ npm run lint && npm run test:content && npm run build
 
 Read [docs/releasing.md](docs/releasing.md) before you publish or deploy.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), including the rules for AI-assisted pull requests.
+
 ## Security
 
 API keys are hashed on the server and shown once. Secrets are removed before traces are processed. Do not put secrets or personal data in trace metadata. See the [security page](https://www.uncoil.dev/security). To report a problem, use the [contact page](https://www.uncoil.dev/contact).

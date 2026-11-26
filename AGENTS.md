@@ -12,10 +12,12 @@ This project uses Convex as its backend. **Always read `convex/_generated/ai/gui
 ## Pull request rules
 
 - One task per PR, under about 200 changed lines. Open PRs against `main`.
+- When a PR resolves an issue, put `Closes: #<number>` on its own line in the PR description so the issue closes when the PR merges. Use `Refs: #<number>` when the PR only partly resolves it.
 - Code changes need tests. Content changes must pass the blog and docs validators.
 - Open every PR with auto-merge on (squash), except anything touching auth, billing, secrets, infra or data deletion, or visible UI changes. Leave those for owner review.
 - Run a separate review pass for bugs before enabling auto-merge, following `REVIEW.md`. Fix or flag what it finds.
 - Never push to `main`. Never weaken CI or branch protection.
+- On shared branches, add new commits; do not rebase, amend or force-push.
 - Do not assign anyone or request reviewers on agent PRs; owner approval happens in chat, not through GitHub review requests.
 - Keep PR titles and text neutral and general. Never put setup or launch notes in PR text (unfinished steps, products, env var names, deploy steps). Keep internal plans out of the repo.
 
@@ -44,6 +46,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 - Code map: `docs/repository-map.md`. Dashboard standard: `docs/dashboard-page-standard.md`.
 - Unattended or scheduled runs follow `docs/agent-safety.md`.
 - Install with `npm ci`. CI uses pnpm (`pnpm-lock.yaml`); the Docker image uses `package-lock.json`. Keep both lockfiles in sync when dependencies change.
+- Checks listed in `.github/known-flaky.json` are known flaky: re-run them once instead of investigating. Add a check there only after it failed on unrelated PRs.
 - Before opening a PR run `npm run lint`, `npx tsc --noEmit` and the tests for the area you touched. Blog and docs changes run `npm run test:content`.
 - Do not break Clerk/Better Auth middleware or the ingest pipeline (`/api/ingest` → Inngest → ClickHouse + Convex).
 - Keep notes short, bulleted and factual. Record decisions in the PR description, not in new files at the repo root.
@@ -79,7 +82,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 ### Marketing (public)
 `/` — Landing (Hero → Problem → DebugStream → FirstTrace → WhatYouGet → UseCases → PricingTeaser → FinalCTA)
 `/pricing` — Free/Pro/Team/Enterprise
-`/product/[feature]` — Static feature pages (trace-viewer, cost-dashboard, tool-calls, llm-calls, failures — all placeholder)
+`/product/[feature]` — Feature pages with demos, setup code and FAQs (trace-viewer, cost-dashboard, tool-calls, llm-calls, failures, runtime-control, evaluation-engine)
 `/use-cases/[slug]` — Use case pages (research, support, automation, tool-calling)
 `/blog`, `/blog/[slug]`, `/blog/rss.xml` — Repository-backed Markdoc blog
 `/changelog` — Product updates
@@ -119,6 +122,18 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 - **Turbopack may OOM** on Windows during `npm run build` (Rust panic in `globals.css`). This is a system memory issue, not a code problem — use `npm run dev` to verify compilation.
 - **Marketing product feature pages** (`/product/[feature]`) have feature-specific content; update the relevant page and its metadata when changing a product surface.
 - **SDKs** (`packages/ts-sdk/`, `packages/python-sdk/`) are built but not yet published to npm/PyPI.
+
+## Agent delegation
+
+- Simple one-file edits: do them directly.
+- Multi-file features or refactors: delegate to the `project-manager` agent, which spawns `worker` agents and a `reviewer` (see `.claude/agents/`).
+- Keep the main context clean: delegate verbose test runs, long logs and wide searches to subagents.
+- Use quiet flags for shell commands (`--quiet`, `-q`, `--silent`, `--reporter=dot`).
+- When a task ends, run the `retrospective` skill, then start unrelated work in a fresh session.
+
+## Learned conventions and gotchas
+
+- Add short, factual bullets here via the `retrospective` skill.
 
 ## Finishing
 

@@ -27,9 +27,18 @@ doctor options:
 
 Exit code is 0 when everything passes, 1 when a check fails.`;
 
+/** Picks the command from the first argument. Doctor runs when there is none or only options. */
+export function parseCommand(argv: string[]): { command: "login" | "doctor"; args: string[] } | { error: string } {
+  const first = argv[0];
+  if (first === "login" || first === "doctor") return { command: first, args: argv.slice(1) };
+  if (first !== undefined && !first.startsWith("-")) return { error: `Unknown command "${first}". Use "login" or "doctor".` };
+  return { command: "doctor", args: argv };
+}
+
 async function main(argv: string[]) {
-  const command = argv[0] === "login" || argv[0] === "doctor" ? argv[0] : "doctor";
-  const args = argv[0] === "login" || argv[0] === "doctor" ? argv.slice(1) : argv;
+  const parsed = parseCommand(argv);
+  if ("error" in parsed) { console.error(parsed.error); return 2; }
+  const { command, args } = parsed;
   const options: DoctorOptions & LoginOptions = {};
   let json = false;
   let newProject: string | undefined;
@@ -66,4 +75,4 @@ async function main(argv: string[]) {
   return report.ok ? 0 : 1;
 }
 
-main(process.argv.slice(2)).then((code) => { process.exitCode = code; });
+if (require.main === module) main(process.argv.slice(2)).then((code) => { process.exitCode = code; });

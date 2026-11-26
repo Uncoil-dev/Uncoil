@@ -1,0 +1,27 @@
+name: Question
+description: Ask how something works or how to use it
+labels: [question]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you want to know?
+      description: Ask one clear question.
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: Include links to the docs pages you already read.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - TypeScript SDK
+        - Python SDK
+        - Dashboard
+        - Ingest API
+        - Billing and plans
+        - Other

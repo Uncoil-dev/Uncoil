@@ -24,7 +24,8 @@ jobs:
   # - Push to main: if the same commit already passed this gate (the merge queue
   #   tests the exact commit that lands on main), every job is skipped.
   # - Pull request or merge queue: jobs are skipped only when the changed files
-  #   cannot affect them (docs-only changes skip the app jobs; the SDK jobs run
+  #   cannot affect them (docs-only changes skip the app jobs, content-only changes skip
+  #   types and lint; the SDK jobs run
   #   only for SDK or workflow changes).
   # Any lookup failure, or a file list too long to trust, skips nothing.
   # The gate below accepts a skipped job only if it is named here.
@@ -38,6 +39,7 @@ jobs:
       pull-requests: read
     outputs:
       skipped: ${{ steps.plan.outputs.skipped }}
+      waiting: ${{ steps.plan.outputs.waiting }}
     steps:
       - name: Plan the run
         id: plan
@@ -52,6 +54,7 @@ jobs:
           HEAD_REF: ${{ github.event.merge_group.head_ref }}
         run: |
           skipped=","
+          waiting=0
           add() { skipped="${skipped}$1,"; }
           known=false
           files=""
@@ -91,16 +94,33 @@ jobs:
             fi
           fi
 
+          # Heavy jobs wait until every review thread on the pull request is
+          # resolved. The gate fails meanwhile, and resolving a thread reruns
+          # this workflow (see rerun-after-review.yml).
+          if [ "$EVENT" = "pull_request" ]; then
+            waiting=$(gh api graphql -F owner="${GH_REPO%/*}" -F name="${GH_REPO#*/}" -F number="$PR_NUMBER" \
+              -f query='query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){reviewThreads(first:100){nodes{isResolved}}}}}' \
+              --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not)] | length' || echo 0)
+            if [ "${waiting:-0}" -gt 0 ]; then
+              for j in build tests sdks; do add "$j"; done
+            fi
+          fi
+
           if [ "$known" = true ]; then
             other=$(grep -Ev '^(docs/|[^/]+\.md$|LICENSE$|packages/python-sdk/)' <<< "$files" | grep -v '^$' || true)
             if [ -z "$other" ]; then
               for j in build static tests; do add "$j"; done
             fi
+            # Blog and docs pointer bumps and media files hold no code, so types
+            # and lint cannot change; the build and content tests still run.
+            code=$(grep -Ev '^(docs/|content/|public/media/|[^/]+\.md$|LICENSE$|packages/python-sdk/)' <<< "$files" | grep -v '^$' || true)
+            [ -z "$code" ] && add static
             grep -Eq '^(packages/(ts|python)-sdk/|\.github/)' <<< "$files" || add sdks
           fi
 
           echo "Skipped jobs: $skipped"
           echo "skipped=$skipped" >> "$GITHUB_OUTPUT"
+          echo "waiting=${waiting:-0}" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build (${{ matrix.site }})
@@ -189,6 +209,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:content
       - run: pnpm test:tools
+      - run: pnpm test:ci-scripts
       - run: pnpm test:ask-ai
       - run: pnpm test:activation
       - run: pnpm test:regions
@@ -258,12 +279,42 @@ jobs:
       - run: pip install -e ".[test]" && python -m pytest tests -q
         working-directory: packages/python-sdk
 
+  # Code changes need a test. Pull requests only; other events pass at once.
+  # Add the no-tests-needed label (or write "No new test needed: <reason>" in
+  # the description) and re-run the job to skip it.
+  tests-required:
+    name: Code changes include a test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/require-tests.mjs
+      - name: Check for a test
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          PR_LABELS=$(gh api "repos/$GH_REPO/issues/$PR_NUMBER/labels" --jq '[.[].name] | join(",")')
+          export PR_LABELS
+          gh api --paginate "repos/$GH_REPO/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[] | .filename, (.previous_filename // empty)' | node scripts/require-tests.mjs
+
   # Single required check. The `needs` list below is the only place that
   # names the jobs to gate on; add any new job here.
   all-checks-passed:
     name: All checks passed
     if: always()
-    needs: [precheck, build, static, tests, hygiene, sdks]
+    needs: [precheck, build, static, tests, hygiene, sdks, tests-required]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -271,7 +322,12 @@ jobs:
         env:
           NEEDS: ${{ toJSON(needs) }}
           SKIPPED: ${{ needs.precheck.outputs.skipped }}
+          WAITING: ${{ needs.precheck.outputs.waiting }}
         run: |
+          if [ "${WAITING:-0}" -gt 0 ]; then
+            echo "$WAITING review thread(s) are unresolved. Build and tests run once they are resolved."
+            exit 1
+          fi
           echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
           echo "Skipped on purpose: $SKIPPED"
           # Failed and cancelled never pass. Skipped passes only for a job the

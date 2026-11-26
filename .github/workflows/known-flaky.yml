@@ -1,0 +1,41 @@
+name: Known flaky checks
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  close-known-flaky:
+    name: Close issues about known flaky checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # The "Main checks failing" alert is excluded so real failures on main stay visible.
+    if: ${{ github.event.issue.title != 'Main checks failing' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: false
+          sparse-checkout: |
+            scripts/ci
+            .github/known-flaky.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Close the issue when it names a listed check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          result=$(node scripts/ci/known-flaky.mjs)
+          if [ -n "$result" ]; then
+            comment=$(printf '%s' "$result" | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).comment)')
+            gh issue close "$ISSUE_NUMBER" --reason "not planned" --comment "$comment"
+          fi

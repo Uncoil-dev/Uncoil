@@ -2,7 +2,8 @@ import type { IntegrationPage, IntegrationStep } from "./seo-pages";
 
 /**
  * Setup guides for the providers and frameworks that do not have a hand-written page in seo-pages.ts.
- * Every snippet here is run against the real SDKs (mocked network) by scripts/check-integration-guides.
+ * src/lib/seo-pages.test.ts checks their structure (unique slugs, steps with code, the placeholder key);
+ * the snippets themselves are not executed, so keep them in step with the SDK APIs by hand.
  * Where the SDK has no direct wrapper for a library, the guide says so and uses a manual step instead.
  */
 

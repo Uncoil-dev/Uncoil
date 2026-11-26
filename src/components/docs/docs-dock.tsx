@@ -4,13 +4,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, CornerDownLeft, Search } from "lucide-react";
-import { searchDocs, type SearchableDoc } from "@/lib/docs-search";
+import { searchDockLinks, searchDocs, type DockLink, type SearchableDoc } from "@/lib/docs-search";
 
-type Doc = SearchableDoc;
+let indexRequest: Promise<SearchableDoc[]> | null = null;
+function loadIndex() {
+  indexRequest ??= fetch("/api/docs/search-index").then((res) => (res.ok ? res.json() : Promise.reject(new Error(`${res.status}`)))).catch((error: unknown) => { indexRequest = null; throw error; });
+  return indexRequest;
+}
 
-/** Search bar pinned to the bottom of every docs page. Results open upward. */
-export function DocsDock({ docs }: { docs: Doc[] }) {
+/**
+ * Search bar pinned to the bottom of every docs page. Results open upward.
+ * Pages carry only guide titles; the full-text index loads on first use and
+ * title search answers until it arrives.
+ */
+export function DocsDock({ links }: { links: DockLink[] }) {
   const router = useRouter();
+  const [index, setIndex] = useState<SearchableDoc[] | null>(null);
+  const prepare = () => { if (!index) loadIndex().then(setIndex, () => {}); };
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -18,9 +28,9 @@ export function DocsDock({ docs }: { docs: Doc[] }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const results = useMemo(() => {
-    if (query.trim()) return searchDocs(docs, query, 6);
-    return docs.filter((d) => !d.noindex).slice(0, 6).map((d) => ({ slug: d.slug, title: d.title, description: d.description, section: d.section, excerpt: d.description, score: 0 }));
-  }, [docs, query]);
+    if (query.trim()) return index ? searchDocs(index, query, 6) : searchDockLinks(links, query, 6);
+    return links.slice(0, 6).map((d) => ({ ...d, excerpt: d.description, score: 0 }));
+  }, [index, links, query]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -64,7 +74,8 @@ export function DocsDock({ docs }: { docs: Doc[] }) {
             id="docs-dock-search"
             value={query}
             autoComplete="off"
-            onFocus={() => setOpen(true)}
+            onFocus={() => { prepare(); setOpen(true); }}
+            onPointerEnter={prepare}
             onChange={(e) => { setQuery(e.target.value); setActive(0); setOpen(true); }}
             onKeyDown={(e) => {
               if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(0, a - 1)); }

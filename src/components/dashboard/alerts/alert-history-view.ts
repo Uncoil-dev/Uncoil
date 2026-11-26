@@ -18,8 +18,8 @@ export function matchesHistoryFilter(item: { state: HistoryState; silencedBy?: s
   return item.state === filter;
 }
 
-// Rule, budget and evaluation monitor alerts store a made-up id ("rule:<id>:<time>") instead of a run id.
-const SYNTHETIC_RUN_ID = /^(rule|budget|eval-monitor[\w-]*):/;
+// Rule, budget, evaluation monitor and hand-made alerts store a made-up id ("rule:<id>:<time>") instead of a run id.
+const SYNTHETIC_RUN_ID = /^(rule|budget|eval-monitor[\w-]*|manual(-alert)?):/;
 
 /** Where a history row leads: the run itself, or Tracing over the window the alert looked at. */
 export function historyLink(projectId: string, item: { runId: string; ruleId?: string; type: string; triggeredAt: string; windowMinutes?: number }) {

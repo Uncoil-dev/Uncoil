@@ -26,5 +26,7 @@ describe("alert history view", () => {
       href: "/dashboard/p1/tracing?from=1795172400000&to=1795176000000",
     });
     expect(historyLink("p1", { ...base, runId: "budget:b1:2026-11:80", type: "cost_budget" }).href).toBe("/dashboard/p1/tracing?from=1795172400000&to=1795176000000");
+    expect(historyLink("p1", { ...base, runId: "manual-alert:High cost", type: "cost_usd" }).label).toBe("See traces from then");
+    expect(historyLink("p1", { ...base, runId: "manual:Slow runs", type: "latency_ms" }).label).toBe("See traces from then");
   });
 });

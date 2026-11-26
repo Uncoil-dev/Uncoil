@@ -3,10 +3,11 @@
 import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, Copy } from "lucide-react";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import { getCopy, type Locale } from "@/lib/i18n";
+import { copyToClipboard, setupPrompt } from "@/lib/setup-prompt";
 
 const feed = [
   { t: "00.000", kind: "AGENT", name: "support-agent", meta: "run started" },
@@ -68,6 +69,21 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
   const bgY = useTransform(sy, (v) => v * -12);
   const cardX = useTransform(sx, (v) => v * 14);
   const cardY = useTransform(sy, (v) => v * 10);
+  const prompt = setupPrompt();
+  const [state, setState] = useState<"idle" | "copied" | "blocked">("idle");
+  const fallback = useRef<HTMLTextAreaElement>(null);
+
+  async function copyPrompt() {
+    const ok = await copyToClipboard(prompt);
+    setState(ok ? "copied" : "blocked");
+  }
+
+  useEffect(() => {
+    if (state === "blocked") {
+      fallback.current?.focus();
+      fallback.current?.select();
+    }
+  }, [state]);
 
   return (
     <section
@@ -113,7 +129,7 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           className="mt-[clamp(1.25rem,3svh,2rem)] max-w-[1100px] font-pixel text-[clamp(3.2rem,min(10vw,13svh),9.5rem)] leading-[0.9] tracking-[-0.07em]"
         >
-          {t.heroA} <span className="text-[#f4d44d]">{t.heroB}</span>
+          {t.heroA} <span className="block text-[#f4d44d]">{t.heroB}</span>
         </motion.h1>
         <motion.p
           initial={reduce ? false : { y: 8 }}
@@ -129,13 +145,31 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           transition={{ delay: 0.85 }}
           className="mt-[clamp(1.25rem,3.5svh,2.25rem)] flex flex-wrap justify-center gap-3"
         >
-          <Link href={appHref("/sign-up")} className="group inline-flex min-h-13 items-center gap-3 bg-[#f4d44d] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white">
-            {t.ctaPrimary} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-          </Link>
+          <button
+            type="button"
+            onClick={copyPrompt}
+            className="group inline-flex min-h-13 items-center gap-3 bg-[#f4d44d] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white"
+          >
+            {state === "copied" ? t.ctaCopied : t.ctaPrimary}
+            {state === "copied" ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
+          </button>
           <Link href={appHref("/demo/project")} className="inline-flex min-h-13 items-center gap-3 border border-white/30 bg-black/40 px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] backdrop-blur-sm hover:bg-white hover:text-black">
-            {t.ctaSecondary} <ArrowUpRight className="size-4" aria-hidden="true" />
+            {t.ctaSecondary}
           </Link>
         </motion.div>
+        <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-white/55" role="status">
+          {state === "blocked" ? t.ctaCopyFailed : t.ctaNote}
+        </p>
+        {state === "blocked" && (
+          <textarea
+            ref={fallback}
+            readOnly
+            value={prompt}
+            onFocus={(e) => e.currentTarget.select()}
+            aria-label="Setup prompt"
+            className="mt-3 h-40 w-full max-w-[640px] resize-none border border-white/30 bg-black p-3 text-left font-mono text-[11px] leading-5 text-white/85"
+          />
+        )}
       </div>
 
       {/* Cards sit in the flow at the bottom of the screen, so they never push the hero past one viewport. */}

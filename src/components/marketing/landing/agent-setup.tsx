@@ -7,17 +7,10 @@ import { motion, useInView, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Copy } from "lucide-react";
 import { DitherEmber } from "./dither-ember";
 import { Reveal } from "./reveal";
+import { copyToClipboard, setupPrompt, SETUP_AGENTS, type SetupAgent } from "@/lib/setup-prompt";
 
-// PLACEHOLDER prompt: swap in the tested text from the "Write the agent setup prompt" work when it lands.
-const STEPS = [
-  "Install the Uncoil SDK: `@uncoil.dev/sdk` for a JavaScript or TypeScript project, `uncoil-sdk` for a Python project.",
-  "Run `npx @uncoil.dev/sdk login` so I can sign in or sign up in the browser and pick this project.",
-  "Add the one-line init() call at the start of the app.",
-  "Run `npx @uncoil.dev/sdk doctor` (JavaScript or TypeScript) or `python -m uncoil doctor` (Python), then send one test trace and tell me where to see it.",
-];
-
-const AGENTS = ["Claude Code", "Cursor", "Codex"] as const;
-type Agent = (typeof AGENTS)[number];
+const AGENTS = SETUP_AGENTS;
+type Agent = SetupAgent;
 
 const PM = [
   { id: "npm", cmd: "npm install @uncoil.dev/sdk" },
@@ -31,25 +24,12 @@ const WHY = [
   ["30s", "to first trace"],
 ] as const;
 
-function promptFor(agent: Agent) {
-  return `Set up Uncoil tracing in this project (${agent}).\n\n${STEPS.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\nDo not invent an API key. Never print or commit the key.`;
-}
-
 function useCopy() {
   const [done, setDone] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
   async function copy(id: string, text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const area = document.createElement("textarea");
-      area.value = text;
-      document.body.appendChild(area);
-      area.select();
-      document.execCommand("copy");
-      area.remove();
-    }
+    if (!(await copyToClipboard(text))) return;
     setDone(id);
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setDone(null), 1800);
@@ -169,7 +149,7 @@ export function AgentSetup() {
   const [pm, setPm] = useState<(typeof PM)[number]["id"]>("npm");
   const [copied, setCopied] = useState(false);
   const { done, copy } = useCopy();
-  const prompt = promptFor(agent);
+  const prompt = setupPrompt(agent);
   const install = PM.find((p) => p.id === pm)!.cmd;
 
   function copyPrompt() {

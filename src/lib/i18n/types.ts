@@ -10,6 +10,9 @@ export type Copy = {
     heroB: string;
     lede: string;
     ctaPrimary: string;
+    ctaNote: string;
+    ctaCopied: string;
+    ctaCopyFailed: string;
     ctaSecondary: string;
     works: string;
     stepsEyebrow: string;

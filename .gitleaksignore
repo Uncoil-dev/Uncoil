@@ -1,1 +1,3 @@
 8c1a807729492d09eca71d0f873c3001e0186d89:src/lib/ask-ai.test.ts:aws-access-token:33
+6dc81b1384466a8317e7ca955b0e788095e47ff0:src/lib/fix-prompt.test.ts:stripe-access-token:13
+6dc81b1384466a8317e7ca955b0e788095e47ff0:src/lib/fix-prompt.test.ts:stripe-access-token:30

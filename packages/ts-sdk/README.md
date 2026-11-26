@@ -158,7 +158,7 @@ calls get a completed root, so unrelated requests never share an `unknown` run. 
 record graph/node/tool/model parent relationships. Use either framework model callbacks or a wrapped
 provider for each model call to avoid recording that call twice.
 
-Supported APIs: OpenAI `chat.completions.create`, `responses.create`, and their `.stream()` helpers;
+Supported APIs: OpenAI `chat.completions.create`, `responses.create`, their structured-output `.parse()` and `.stream()` helpers;
 Anthropic `messages.create`, `messages.stream`, and beta messages equivalents. Async iteration and
 helper event/final-result APIs are observed. OpenAI `.withResponse()` retains headers/request IDs;
 `.asResponse()` remains unparsed and records request timing only. Stream conversion helpers such as

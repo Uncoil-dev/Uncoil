@@ -69,3 +69,14 @@ export function renderNoTraceEmail(args: { name?: string; projectName?: string; 
   const text = `${hi}\n\n${project ? `Your project "${project}" is set up` : "Your project is set up"}, but no trace has arrived yet. The three most common causes:\n\n1. The key isn't reaching your code. Check UNCOIL_API_KEY is set where the agent runs.\n2. The agent never ran through the wrapper. Make sure the wrapped function is the one that gets called, then run it once.\n3. The key was lost. It is shown once; make a new one on the API keys page.\n\nPick up where you left off: ${url}\nSetup guide: ${docs}\n\nStill stuck? Reply with the error you see and I'll help.\n\nKristoffer\nFounder, Uncoil\nkb@uncoil.dev`;
   return { subject: "Your Uncoil project is waiting for its first trace", html, text };
 }
+
+export function renderFirstTraceEmail(args: { name?: string; projectId: string; runId: string; origin: string; assets?: string }): RenderedEmail {
+  const hi = `Hi ${firstName(args.name)},`;
+  const project = `${args.origin}/dashboard/${encodeURIComponent(args.projectId)}`;
+  const trace = `${project}/runs/${encodeURIComponent(args.runId)}`;
+  const costs = `${project}/costs`;
+  const content = `${button("Open your trace", trace)}<p style="margin:28px 0 0;font-family:${SANS};font-size:15px;line-height:25px;color:#33332f;"><strong>One next step:</strong> run your agent a few more times with real inputs, then open <a href="${escapeHtml(costs)}" style="color:${INK};font-weight:700;">Costs</a> to see which step spends the most.</p><p style="margin:16px 0 0;font-family:${SANS};font-size:15px;line-height:25px;color:#33332f;">Something look wrong in the trace? Reply to this email and I'll take a look.</p>${signoff()}`;
+  const html = shell({ tag: "First trace", hero: "welcome-hero.png", heroAlt: "A trace waterfall: spans cascading across the screen, the first trace arriving in yellow.", assets: args.assets ?? args.origin, greeting: hi.replace(/,$/, ""), heading: `Your first trace is ${mark("in.")}`, intro: "Uncoil just received your agent's first run. Open it to see every step, model call, tool call, cost and error in order.", content, footer: `You're getting this once because your project received its first trace. Questions? <a href="mailto:kb@uncoil.dev" style="color:${YELLOW};">kb@uncoil.dev</a>.` });
+  const text = `${hi}\n\nUncoil just received your agent's first run. Open it to see every step, model call, tool call, cost and error in order:\n${trace}\n\nOne next step: run your agent a few more times with real inputs, then open Costs to see which step spends the most: ${costs}\n\nSomething look wrong in the trace? Reply and I'll take a look.\n\nKristoffer\nFounder, Uncoil\nkb@uncoil.dev`;
+  return { subject: "Your first Uncoil trace is ready", html, text };
+}

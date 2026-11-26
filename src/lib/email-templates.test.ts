@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { renderNoTraceEmail, renderWelcomeEmail } from "./email-templates.ts";
+import { renderFirstTraceEmail, renderNoTraceEmail, renderWelcomeEmail } from "./email-templates.ts";
 
 const origin = "https://www.uncoil.dev";
 
@@ -21,4 +21,14 @@ test("no-trace email links to the project quickstart and escapes the project nam
 
 test("no-trace email falls back to onboarding without a project", () => {
   assert.ok(renderNoTraceEmail({ origin }).text.includes(`${origin}/onboarding`));
+});
+
+test("first-trace email links the trace, suggests a next step and escapes the name", () => {
+  const email = renderFirstTraceEmail({ name: "<i>Eve</i> Doe", projectId: "p 1", runId: "run/2", origin });
+  const trace = `${origin}/dashboard/p%201/runs/run%2F2`;
+  assert.ok(email.html.includes(trace));
+  assert.ok(email.text.includes(trace));
+  assert.ok(email.html.includes(`${origin}/dashboard/p%201/costs`));
+  assert.ok(!email.html.includes("<i>Eve</i>"));
+  assert.match(email.html, /#f4d44d/);
 });

@@ -17,7 +17,8 @@ export function Cost() {
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const t = useTransform(scrollYProgress, (p) => (reduce ? 1 : segment(p, 0.12, 0.72)));
-  const [after, setAfter] = useState(!!reduce);
+  const [passed, setAfter] = useState(false);
+  const after = !!reduce || passed;
   useMotionValueEvent(t, "change", (v) => setAfter(v > 0.6));
   const bar = useTransform(t, [0, 1], ["0%", "100%"]);
 

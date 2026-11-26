@@ -11,7 +11,9 @@ export function Fix() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const [count, setCount] = useState(reduce ? 0 : START);
+  const [scrolled, setCount] = useState(START);
+  // Reduced motion shows the end state; the hook reports the preference only after mount.
+  const count = reduce ? 0 : scrolled;
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     if (!reduce) setCount(Math.max(0, START - Math.floor(segment(p, 0.1, 0.7) * (START + 0.999))));
   });

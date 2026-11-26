@@ -1,17 +1,18 @@
 "use client";
 
-import { useId } from "react";
-import { motion } from "framer-motion";
-import { Eyebrow, NextStep } from "./eyebrow";
+import { useId, useRef, useState } from "react";
+import { motion, useMotionValue, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { Eyebrow } from "./eyebrow";
+import { PLAN_CALL, tokens } from "./run-data";
 import { cellsPath } from "./story";
-import { AFTER_EYEBROW, AFTER_HEADLINE, BODY, DUR, EASE, H2, LABEL, SECTION, WRAP } from "./ui";
+import { AFTER_EYEBROW, AFTER_HEADLINE, DUR, EASE, H2, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
-import { inked } from "../editorial/art";
+import { inked, segment } from "../editorial/art";
 
 // One example run, the same one the hero calls out. Step 4 is where it went wrong; step 6 is where it showed.
 const STEPS = [
   { name: "support-agent", note: "run started" },
-  { name: "llm.chat", note: "412 tok · 820 ms" },
+  { name: "llm.chat", note: `${tokens(PLAN_CALL).toLocaleString("en-US")} tok · ${PLAN_CALL.latencyMs} ms` },
   { name: "order.lookup", note: "140 ms" },
   { name: "docs.search", note: "0 results", cause: true },
   { name: "llm.chat · retry", note: "guessed the policy" },
@@ -92,7 +93,22 @@ function pixelLine(pts: readonly Pt[], keep: (i: number) => boolean = () => true
   return cellsPath(cells.filter((_, i) => keep(i)), CELL);
 }
 
-function Plate({ l, className }: { l: Layout; className: string }) {
+/** Yellow pixel corner brackets around a 68px target centred on 0,0: Uncoil's scan, as in the hero. */
+function reticlePath() {
+  const cells: [number, number][] = [];
+  const r = 9; // half size, in cells
+  const arm = 4;
+  for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+    for (let k = 0; k < arm; k++) {
+      cells.push([sx * r - sx * k, sy * r]);
+      if (k) cells.push([sx * r, sy * r - sy * k]);
+    }
+  }
+  return cellsPath(cells, CELL);
+}
+const RETICLE = reticlePath();
+
+function Plate({ l, className, scan }: { l: Layout; className: string; scan: MotionValue<number> }) {
   const reduce = useCalm();
   const clipId = useId().replace(/:/g, "");
   const view = { once: true, amount: 0.35 } as const;
@@ -112,6 +128,21 @@ function Plate({ l, className }: { l: Layout; className: string }) {
   const thread = pixelLine(threadPoints(l, 0, 4 + 0.66));
   const dashes = pixelLine(tail, (i) => i % 4 < 2);
 
+  // The scan walks the thread back from step 06 to step 04 as the plate scrolls up the screen,
+  // leaving a dotted yellow trail; step 04 lights up when it arrives.
+  const back = threadPoints(l, 3, 5).reverse();
+  const at = (k: number) => back[Math.round(Math.min(1, Math.max(0, k)) * (back.length - 1))];
+  const sx = useTransform(scan, (k) => at(k).x);
+  const sy = useTransform(scan, (k) => at(k).y);
+  const trail = pixelLine(back, (i) => i % 3 === 0);
+  const clipX = useTransform(scan, (k) => (l.vertical ? 0 : at(k).x));
+  const clipY = useTransform(scan, (k) => (l.vertical ? at(k).y : 0));
+  const clipW = useTransform(scan, (k) => (l.vertical ? l.w : Math.max(0, six.x - at(k).x)));
+  const clipH = useTransform(scan, (k) => (l.vertical ? Math.max(0, six.y - at(k).y) : l.h));
+  const found = useTransform(scan, [0.92, 1], [0, 1]);
+  const scanOn = useTransform(scan, [0, 0.02], [0, 1]);
+  const trailId = `${clipId}-trail`;
+
   return (
     <svg viewBox={`0 0 ${l.w} ${l.h}`} className={className} shapeRendering="crispEdges" role="img" aria-label="Diagram of one run: six steps on a thread. Step 4, docs.search, returned 0 results. The thread snaps at step 6, refund.issue, which failed with a 502.">
       <defs>
@@ -127,6 +158,9 @@ function Plate({ l, className }: { l: Layout; className: string }) {
             viewport={view}
             transition={{ duration: 1.6, ease: [0.65, 0, 0.35, 1] }}
           />
+        </clipPath>
+        <clipPath id={trailId}>
+          <motion.rect x={clipX} y={clipY} width={clipW} height={clipH} />
         </clipPath>
       </defs>
       <g clipPath={`url(#${clipId})`} transform={`translate(${-CELL / 2} ${-CELL / 2})`}>
@@ -153,7 +187,7 @@ function Plate({ l, className }: { l: Layout; className: string }) {
         else for (let y = above ? p.y - 62 : p.y + 34; y <= (above ? p.y - 34 : p.y + 62); y += CELL * 2) leader.push([Math.round(p.x / CELL), Math.round(y / CELL)]);
         return (
           <g key={s.name + i}>
-            {cause && <motion.rect x={p.x - 34} y={p.y - 34} width={68} height={68} fill="#f4d44d" {...pop(0.9)} />}
+            {cause && <motion.rect x={p.x - 34} y={p.y - 34} width={68} height={68} fill="#f4d44d" style={{ opacity: found }} />}
             <motion.path d={pixelDisc(p.x, p.y, 22, CELL, 1)} fill={failed ? "#ff4d3d" : "#090909"} {...pop(0.2 + i * 0.2)} />
             <motion.path d={cellsPath(leader, CELL)} transform={`translate(${-CELL / 2} ${-CELL / 2})`} fill="#090909" {...pop(0.3 + i * 0.2)} />
             <motion.g {...pop(0.4 + i * 0.2)} style={{ transformOrigin: `${tx}px ${ty}px` }}>
@@ -170,17 +204,34 @@ function Plate({ l, className }: { l: Layout; className: string }) {
           </g>
         );
       })}
+
+      <motion.path d={trail} fill="#f4d44d" clipPath={`url(#${trailId})`} transform={`translate(${-CELL / 2} ${-CELL / 2})`} style={{ opacity: scanOn }} />
+      <motion.g style={{ x: sx, y: sy, opacity: scanOn }}>
+        <path d={RETICLE} fill="#090909" transform={`translate(${-CELL / 2 + 2} ${-CELL / 2 + 2})`} opacity={0.25} />
+        <path d={RETICLE} fill="#f4d44d" transform={`translate(${-CELL / 2} ${-CELL / 2})`} />
+      </motion.g>
     </svg>
   );
 }
 
+const READING = ["06 · refund.issue failed: 502 after 5000 ms", "05 · llm.chat retried 7 times, guessing the policy", "04 · docs.search returned 0 results: the cause"] as const;
+
 export function Where() {
+  const calm = useCalm();
+  const figRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: figRef, offset: ["start 0.8", "end 0.55"] });
+  const scrolled = useTransform(scrollYProgress, (p) => segment(p, 0.12, 0.82));
+  const still = useMotionValue(1);
+  const scan = calm ? still : scrolled;
+  const [read, setRead] = useState(0);
+  useMotionValueEvent(scrolled, "change", (k) => setRead(k < 0.35 ? 0 : k < 0.92 ? 1 : 2));
+  const line = calm ? 2 : read;
+
   return (
     <section id="break" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="ed-break-title">
       <div className={WRAP}>
         <Eyebrow n="01" on="cream">Where it broke</Eyebrow>
-        <div className={`${AFTER_EYEBROW} grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-end lg:gap-16`}>
-        <h2 id="ed-break-title" className={H2}>
+        <h2 id="ed-break-title" className={`${AFTER_EYEBROW} ${H2}`}>
           It failed at step 6.
           <br />
           It broke at{" "}
@@ -189,20 +240,18 @@ export function Where() {
             <span className="relative">step 4.</span>
           </span>
         </h2>
-          <p className={`max-w-xl text-black/75 ${BODY}`}>
-            Agent bugs rarely happen where they show up. Logs stop at the crash, so they point at the refund call. A trace keeps every step, so you can read the run backwards and land two steps earlier, where it went wrong.
-          </p>
-        </div>
 
-        <figure className={AFTER_HEADLINE}>
-          <Plate l={HORIZONTAL} className="hidden h-auto w-full md:block" />
-          <Plate l={VERTICAL} className="mx-auto h-auto w-full max-w-[420px] md:hidden" />
-          <figcaption className={`mt-6 border-t border-black/25 pt-3 text-black/60 ${LABEL}`}>
-            Fig. 1 — One run, read backwards from the failure. Example data.
+        <figure ref={figRef} className={AFTER_HEADLINE}>
+          <Plate l={HORIZONTAL} scan={scan} className="hidden h-auto w-full md:block" />
+          <Plate l={VERTICAL} scan={scan} className="mx-auto h-auto w-full max-w-[420px] md:hidden" />
+          <figcaption className={`mt-6 flex flex-col gap-2 border-t border-black/25 pt-3 sm:flex-row sm:items-baseline sm:justify-between ${LABEL}`}>
+            <span className="flex items-center gap-2 text-black">
+              <span aria-hidden="true" className={`size-2 shrink-0 ${line === 2 ? "bg-[#f4d44d] outline outline-1 outline-black" : line === 0 ? "bg-[#ff4d3d]" : "bg-black"}`} />
+              Reading back · {READING[line]}
+            </span>
+            <span className="text-black/55">Fig. 1 · one run, example data</span>
           </figcaption>
         </figure>
-
-        <NextStep href="#trace" on="cream">Open the run in the trace view</NextStep>
       </div>
     </section>
   );

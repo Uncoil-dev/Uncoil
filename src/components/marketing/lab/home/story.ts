@@ -1,14 +1,19 @@
 // Pure logic for the combined homepage concept, shared by the components and the tests: the
-// setup prompt's line numbers and the pixel seams between sections.
+// setup prompt's lines and the pixel seams between sections.
 
 import { hash, noise } from "../pixel-world/world.ts";
 
 // ── Setup prompt ─────────────────────────────────────────────────────────────────────────────
 
-/** Prompt lines with numbers for the written lines only; blank lines stay unnumbered spacers. */
-export function numberLines(text: string) {
-  let n = 0;
-  return text.split("\n").map((line) => (line.trim() ? { n: String(++n).padStart(2, "0"), line } : { n: "", line: "" }));
+/**
+ * The setup prompt split for display. The prompt numbers its own steps ("1. Install…"), so those
+ * numbers are lifted out to be styled and nothing else is numbered: one numbering, the prompt's.
+ */
+export function promptLines(text: string) {
+  return text.split("\n").map((line) => {
+    const m = /^(\d+)\.\s+(.*)$/.exec(line);
+    return m ? { num: m[1], text: m[2] } : { num: "", text: line };
+  });
 }
 
 // ── Section edges ────────────────────────────────────────────────────────────────────────────

@@ -6,8 +6,9 @@ import { LABEL } from "./ui";
 
 /**
  * The page read as one run: a slim trace rail with a knot per chapter. Passed chapters are
- * filled, the current one is lit, and any knot jumps to its chapter. On narrow screens it shrinks
- * to a thin segmented bar under the navigation.
+ * filled, the current one is lit, and any knot jumps to its chapter. It shows only from the first
+ * chapter until the closing scene, and only on screens wide enough to give it a clear margin
+ * beside the content; below that it shrinks to a thin segmented bar at the top.
  */
 export function Rail() {
   const [at, setAt] = useState(-1);
@@ -22,8 +23,9 @@ export function Rail() {
       const tops = CHAPTERS.map(([id]) => document.getElementById(id)?.getBoundingClientRect().top ?? Infinity);
       setAt(chapterAt(tops, line));
       const close = document.getElementById("close")?.getBoundingClientRect().top ?? Infinity;
-      setDone(close <= line);
-      setShown(window.scrollY > window.innerHeight * 0.6);
+      const now = chapterAt(tops, line);
+      setDone(close <= window.innerHeight * 0.85);
+      setShown(now >= 0 && close > window.innerHeight * 0.85);
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(read);
@@ -42,7 +44,7 @@ export function Rail() {
     <>
       <nav
         aria-label="Page chapters"
-        className={`fixed right-3 top-1/2 z-40 hidden -translate-y-1/2 transition-opacity duration-300 xl:block ${shown ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed right-3 top-1/2 z-40 hidden -translate-y-1/2 transition-opacity duration-300 min-[1560px]:block ${shown ? "opacity-100" : "pointer-events-none invisible opacity-0"}`}
       >
         <ol className="relative flex flex-col items-center gap-[14px] border border-[#eceae3]/30 bg-[#090909] px-[9px] py-3">
           <span aria-hidden="true" className="absolute inset-y-4 left-1/2 w-[2px] -translate-x-1/2 bg-[repeating-linear-gradient(to_bottom,rgba(236,234,227,0.35)_0_4px,transparent_4px_8px)]" />
@@ -72,12 +74,12 @@ export function Rail() {
             );
           })}
         </ol>
-        <p aria-live="polite" className={`mt-2 text-center text-[#eceae3] ${LABEL}`}>
-          <span className="block bg-[#090909] px-1 py-0.5 text-[9px]">{done ? "passed" : `${String(Math.max(0, at + 1)).padStart(2, "0")}/${String(CHAPTERS.length).padStart(2, "0")}`}</span>
+        <p aria-hidden="true" className={`mt-2 text-center text-[#eceae3] ${LABEL}`}>
+          <span className="block bg-[#090909] px-1 py-0.5 text-[9px]">{`${String(Math.max(1, at + 1)).padStart(2, "0")}/${String(CHAPTERS.length).padStart(2, "0")}`}</span>
         </p>
       </nav>
 
-      <div aria-hidden="true" className={`fixed inset-x-0 top-0 z-[60] flex h-[3px] gap-[3px] bg-[#090909] transition-opacity duration-300 xl:hidden ${shown ? "opacity-100" : "opacity-0"}`}>
+      <div aria-hidden="true" className={`fixed inset-x-0 top-0 z-[60] flex h-[3px] gap-[3px] bg-[#090909] transition-opacity duration-300 min-[1560px]:hidden ${shown ? "opacity-100" : "opacity-0"}`}>
         {CHAPTERS.map(([id], i) => (
           <span key={id} className={`flex-1 transition-colors duration-300 ${done || i < at ? "bg-[#eceae3]" : i === at ? "bg-[#f4d44d]" : "bg-[#eceae3]/20"}`} />
         ))}

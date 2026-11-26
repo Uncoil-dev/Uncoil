@@ -1,18 +1,22 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { plans } from "@/lib/pricing-plans";
 import { LEGS, ROBOT_TOP } from "../pixel-world/pixels";
 import { Eyebrow } from "./eyebrow";
-import { AFTER_EYEBROW, H2, LABEL, WRAP } from "./ui";
+import { AFTER_EYEBROW, H2, LABEL, SECTION, WRAP } from "./ui";
 
-// The same questions and answers as the live homepage.
-const FAQS = [
+const plan = (id: string) => plans.find((p) => p.id === id)!;
+const [free, pro, team] = [plan("free"), plan("pro"), plan("team")];
+
+// Each answer is grounded in the repo: the SDK READMEs for setup, the /security page for where
+// data lives, and src/lib/pricing-plans.ts for retention and seats.
+const FAQS: readonly (readonly [string, string])[] = [
   ["What is a span?", "One recorded step in a run: a model call, a tool call, a retrieval. Plans are sized by spans per month."],
-  ["Do I have to rewrite my agent?", "No. Wrap the entry point once and mark the steps you care about. Everything else keeps working the way it does today."],
-  ["What can I send traces from?", "The TypeScript and Python SDKs, OpenTelemetry, or plain HTTP."],
-  ["Can I try it without paying?", "Yes. The Free plan includes the trace viewer and cost visibility, no card needed."],
-  ["How long are traces kept?", "7 days on Free, 30 days on Pro and 90 days on Team. Enterprise sets its own retention."],
-  ["Can my team look at the same runs?", "Yes. Pro has room for 5 members and Team for 20, all looking at the same projects and traces."],
-] as const;
+  ["Do I have to rewrite my agent?", "No. Call init() once at startup and every OpenAI and Anthropic call is traced, with no client wrapping; in Python that covers LangChain and LangGraph too. In TypeScript, LangChain takes one callback handler and the Vercel AI SDK one middleware."],
+  ["Where is my data kept?", "Traces are stored in a database we run ourselves in Frankfurt, Germany. Queued span events pass through a service in the United States, so there is no claim of end-to-end EU residency. Email, phone, card, SSN and API-key patterns are removed before they leave the EU region. The security page lists every place."],
+  ["How long are traces kept?", `${free.retention} on ${free.name}, ${pro.retention} on ${pro.name} and ${team.retention} on ${team.name}. Enterprise sets its own retention.`],
+  ["Can my team look at the same runs?", `Yes. ${pro.name} has room for ${pro.members} members and ${team.name} for ${team.members}, all looking at the same projects and traces.`],
+];
 
 /** A pixel plus that turns into a minus when its question is open. */
 function Toggle() {
@@ -51,7 +55,7 @@ function AskingRobot() {
 
 export function Faq() {
   return (
-    <section id="faq" className="scroll-mt-16 bg-[#eceae3] px-5 pb-16 pt-12 text-[#090909] md:px-10 md:pb-20 md:pt-16" aria-labelledby="mix-faq-title">
+    <section id="faq" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="mix-faq-title">
       <div className={WRAP}>
         <Eyebrow n="08" on="cream">Questions</Eyebrow>
         <div className={`${AFTER_EYEBROW} grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16`}>
@@ -61,14 +65,8 @@ export function Faq() {
             <Link href="/docs" className={`mt-6 inline-flex min-h-11 w-fit items-center gap-2 underline underline-offset-4 hover:text-black/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#090909] ${LABEL}`}>
               More in the docs <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>
-            <div className="mt-auto hidden items-end gap-6 pt-12 lg:flex">
+            <div className="mt-auto hidden pt-12 lg:block">
               <AskingRobot />
-              <div className="pb-3">
-                <p className={`text-black/60 ${LABEL}`}>Not answered here?</p>
-                <Link href="/contact" className={`mt-2 inline-flex min-h-11 items-center gap-2 underline underline-offset-4 hover:text-black/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#090909] ${LABEL}`}>
-                  Ask a person <ArrowRight className="size-3.5" aria-hidden="true" />
-                </Link>
-              </div>
             </div>
           </div>
           <div className="border-t border-[#090909]">

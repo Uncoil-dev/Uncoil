@@ -35,20 +35,6 @@ const LENS: Sprite = [
   "............",
 ];
 
-const COIN: Sprite = [
-  "............",
-  "....####....",
-  "..##....##..",
-  ".#....y...#.",
-  ".#..yyyy..#.",
-  "#...y......#",
-  "#....yyy...#",
-  "#.......y..#",
-  ".#..yyyy..#.",
-  ".#....y...#.",
-  "..##....##..",
-  "....####....",
-];
 
 const LOCK: Sprite = [
   "............",
@@ -80,20 +66,6 @@ const LOOP: Sprite = [
   "............",
 ];
 
-const LANES: Sprite = [
-  "............",
-  "############",
-  "............",
-  ".yyy..yy.y..",
-  "............",
-  "############",
-  "............",
-  ".##.###..#..",
-  "............",
-  "############",
-  "............",
-  "............",
-];
 
 const PAGE: Sprite = [
   "..#######...",
@@ -110,32 +82,31 @@ const PAGE: Sprite = [
   "..#########.",
 ];
 
-const PLUG: Sprite = [
-  "....#..#....",
-  "....#..#....",
-  "...######...",
-  "...#....#...",
-  "...#.yy.#...",
-  "...#....#...",
+const BELL: Sprite = [
+  ".....yy.....",
   "....####....",
-  ".....##.....",
-  ".....##.....",
-  ".....#......",
-  ".....y......",
-  ".....yyy....",
+  "...#....#...",
+  "..#......#..",
+  "..#......#..",
+  "..#......#..",
+  "..#......#..",
+  ".#........#.",
+  "############",
+  "............",
+  ".....yy.....",
+  "............",
 ];
+
 
 export type KitItem = { id: string; title: string; body: string; sample: readonly string[]; sprite: Sprite };
 
 export const KIT: readonly KitItem[] = [
   { id: "steps", title: "Every step kept", body: "Each model call, tool call and retrieval is recorded with what went in, what came out, the model, tokens, cost, latency and the step that called it.", sample: ["input", "output", "model", "tokens", "cost", "ms", "parent"], sprite: LAYERS },
+  { id: "alerts", title: "Hear about it first", body: "On Pro, alerts watch failed runs, spend, slow runs and runs that stop arriving, and reach you by email or Slack.", sample: ["failed runs > 5 / hour", "spend > $30 / day", "email", "Slack"], sprite: BELL },
   { id: "search", title: "Search like you think", body: "Filter runs by status, cost, latency or tokens. Exclude with a minus.", sample: ["status:error", "cost>0.05", "latency>3s", "-env:dev"], sprite: LENS },
-  { id: "cost", title: "A price on every call", body: "Every model call carries its tokens and what it cost, so the expensive step stands out instead of hiding in a monthly bill.", sample: ["llm.chat", "1,180 tok", "$0.006", "example"], sprite: COIN },
   { id: "secrets", title: "Secrets stay home", body: "Bearer tokens, API keys, JWTs and passwords are stripped from inputs and outputs before anything is sent.", sample: ["Authorization: Bearer", "→ [stripped]"], sprite: LOCK },
   { id: "loops", title: "Loops make sense", body: "Nested steps keep their parent, so a five-turn loop reads as five turns, not fifty lines.", sample: ["turn 1", "turn 2", "turn 3", "turn 4", "turn 5"], sprite: LOOP },
-  { id: "runs", title: "Runs never mix", body: "Concurrent runs stay in separate traces, even when they share a process.", sample: ["run_9f3a", "run_a71c", "same process"], sprite: LANES },
   { id: "report", title: "A report you can print", body: "One page per project: where the money went, what broke and which steps were slowest.", sample: ["cost", "errors", "slow steps"], sprite: PAGE },
-  { id: "stack", title: "Plugs into your stack", body: "TypeScript and Python SDKs, OpenTelemetry, or plain HTTP, next to OpenAI, Anthropic, the Vercel AI SDK, LangChain and LlamaIndex.", sample: ["TypeScript", "Python", "OpenTelemetry", "HTTP"], sprite: PLUG },
 ];
 
 /** One SVG path per colour for a sprite, merging horizontal runs of the same colour. */

@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { Pause, Play } from "lucide-react";
 import { LABEL } from "./ui";
 import { useCalm } from "./use-calm";
 
-const MODELS = ["OpenAI", "Anthropic", "Vercel AI SDK", "LangChain", "LlamaIndex"] as const;
+// Only what the SDK READMEs document: init() traces OpenAI and Anthropic, LangChain / LangGraph
+// use the handler, the Vercel AI SDK uses the middleware, and the API ingests OpenTelemetry.
+const MODELS = ["OpenAI", "Anthropic", "Vercel AI SDK", "LangChain", "LangGraph"] as const;
 const WIRES = ["OpenTelemetry", "TypeScript", "Python", "HTTP"] as const;
 
 /** A bridge plank from the pixel world, used as the separator between names. */
@@ -41,19 +45,26 @@ function Row({ items, reverse, lit, calm }: { items: readonly string[]; reverse?
 }
 
 export function Tools() {
-  const calm = useCalm();
+  const reduce = useCalm();
+  const [paused, setPaused] = useState(false);
+  const calm = reduce || paused;
   return (
     <section className="relative bg-[#090909] pb-2 pt-8 text-[#eceae3] md:pt-10" aria-labelledby="mix-tools-title">
-      <div className={`mx-auto flex max-w-[1400px] items-center gap-4 px-5 md:px-10 ${LABEL}`}>
+      <div className={`mx-auto flex max-w-[1360px] items-center gap-4 px-5 md:px-10 ${LABEL}`}>
         <h2 id="mix-tools-title">Works with what you already use</h2>
         <span className="h-px flex-1 bg-[#eceae3]" />
+        {!reduce && (
+          <button type="button" onClick={() => setPaused((p) => !p)} aria-pressed={paused} aria-label={paused ? "Play the list of integrations" : "Pause the list of integrations"} className="grid size-11 shrink-0 place-items-center border border-[#eceae3]/40 hover:border-[#eceae3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f4d44d]">
+            {paused ? <Play className="size-3.5" aria-hidden="true" /> : <Pause className="size-3.5" aria-hidden="true" />}
+          </button>
+        )}
       </div>
       <ul className="sr-only">
         {[...MODELS, ...WIRES].map((n) => (
           <li key={n}>{n}</li>
         ))}
       </ul>
-      <div aria-hidden="true" className="mt-6 grid gap-3 md:mt-8">
+      <div aria-hidden="true" className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 md:mt-8">
         <div className="py-2">
           <Row items={MODELS} calm={calm} />
         </div>

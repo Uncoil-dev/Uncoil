@@ -2,11 +2,11 @@
 
 export const CHAPTERS = [
   ["break", "Where it broke"],
-  ["trace", "The trace"],
-  ["cost", "What it cost"],
+  ["logs", "Logs or Uncoil"],
+  ["trace", "What broke?"],
   ["fix", "Fix and verify"],
-  ["pw-setup", "Setup"],
   ["kit", "What you get"],
+  ["pw-setup", "Setup"],
   ["price", "Price"],
   ["faq", "Questions"],
 ] as const;

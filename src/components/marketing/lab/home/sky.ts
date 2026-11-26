@@ -53,15 +53,24 @@ export function toBuffer(boxes: readonly { x: number; y: number; w: number; h: n
  */
 export function clearStars(px: Px, boxes: readonly Box[]) {
   const { w, h, buf } = px;
-  for (const b of boxes) {
-    const x1 = Math.min(w - 1, b.x + b.w);
-    const y1 = Math.min(h - 1, b.y + b.h);
-    for (let y = Math.max(1, b.y); y < y1; y++) {
-      for (let x = Math.max(1, b.x); x < x1; x++) {
+  for (const box of boxes) {
+    // Copy that starts near the left edge clears all the way to it, so no lone star sits in the
+    // gutter beside a headline.
+    const b = box.x < 16 ? { ...box, x: 0, w: box.w + box.x } : box;
+    const x1 = Math.min(w, b.x + b.w);
+    const y1 = Math.min(h, b.y + b.h);
+    for (let y = Math.max(0, b.y); y < y1; y++) {
+      for (let x = Math.max(0, b.x); x < x1; x++) {
         const i = y * w + x;
         if (buf[i] === DARK) continue;
+        // Neighbours off the edge of the buffer count as dark, so the first row and column clear too.
         let lit = 0;
-        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && buf[i + dy * w + dx] !== DARK) lit++;
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if ((dx || dy) && nx >= 0 && ny >= 0 && nx < w && ny < h && buf[ny * w + nx] !== DARK) lit++;
+          }
         if (lit <= 1) buf[i] = INK;
       }
     }

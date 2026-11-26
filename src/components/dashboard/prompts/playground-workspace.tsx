@@ -137,7 +137,7 @@ export function PlaygroundWorkspace({ projectId, initialPrompt, initialVersion, 
         <PageTitle>Playground</PageTitle>
         <label className="sr-only" htmlFor="pg-source">Start from a saved prompt</label>
         <select id="pg-source" value="" onChange={(event) => pick(event.target.value)} className={`${field} h-8 max-w-64 font-mono`} disabled={!prompts?.length}>
-          <option value="">{prompts === undefined ? "Loading prompts…" : prompts.length ? source ? `${source}` : "Start from a saved prompt…" : "No saved prompts yet"}</option>
+          <option value="">{prompts === undefined ? "Loading prompts…" : prompts.length ? source ? `${source}` : "Start from a saved prompt…" : "No saved prompts yet (save one on the Prompts page)"}</option>
           {prompts?.flatMap((prompt) => prompt.versions.map((version) => <option key={version._id} value={`${prompt._id}|${version._id}`}>{prompt.name} · v{version.version}{version.labels.length ? ` (${version.labels.join(", ")})` : ""}</option>))}
         </select>
         <label className="flex items-center gap-2 text-[11px] text-[#8B93A1]">Temp <span className="w-6 font-mono text-[#E6E9EE]">{temperature.toFixed(1)}</span>

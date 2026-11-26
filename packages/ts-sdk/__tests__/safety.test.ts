@@ -41,6 +41,15 @@ describe("clear errors", () => {
     expect(seen[0].code).toBe("bad_key");
     expect(seen[0].status).toBe(401);
   });
+  it("explains a paused key and how to replace it", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "This API key was paused.", code: "key_paused" }, { status: 403 })));
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    expect(seen[0].code).toBe("key_paused");
+    expect(seen[0].hint).toContain("API keys page");
+  });
   it("includes the server's reason when a span is rejected", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "latencyMs must be a non-negative number" }, { status: 422 })));
     const seen: UncoilError[] = [];

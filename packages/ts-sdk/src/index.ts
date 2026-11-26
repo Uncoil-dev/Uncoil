@@ -404,10 +404,13 @@ export class UncoilClient {
     const status = response.status;
     // 4xx bodies carry `{ error }` saying what was wrong with the span; show it so the fix is obvious.
     // Read a clone so later handlers can still read the body.
-    const reason = status >= 400 && status < 500
-      ? await response.clone().json().then((body) => (typeof body?.error === "string" && body.error ? `: ${body.error}` : ""), () => "")
-      : "";
-    if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
+    const body: { error?: unknown; code?: unknown } | undefined = status >= 400 && status < 500
+      ? await response.clone().json().catch(() => undefined)
+      : undefined;
+    const reason = typeof body?.error === "string" && body.error ? `: ${body.error}` : "";
+    // The ingest route pauses a key after repeated rate-limit errors and says so with code "key_paused".
+    if (status === 403 && body?.code === "key_paused") this.report(new UncoilError("key_paused", "This API key was paused after repeated rate-limit errors (403).", "Create a new key on the API keys page of your dashboard and update UNCOIL_API_KEY.", status));
+    else if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
     else if (status === 403) this.report(new UncoilError("forbidden", `This API key is not allowed to send data (403${reason}).`, "Check that the key belongs to the project you expect and has not been disabled.", status));
     else if (status === 429 && (await this.reportPlanLimit(response))) return;
     else if (status === 429) this.report(new UncoilError("rate_limited", "Uncoil is receiving too much data from this app (429).", "Lower the volume with sampleRate (for example 0.2), or upgrade your plan.", status));

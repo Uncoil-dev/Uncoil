@@ -133,7 +133,7 @@ export async function runLogin(options: LoginOptions = {}): Promise<LoginResult>
   try {
     started = await post(`${host}/api/cli/login/start`, { publicKey: spki, newProjectName: options.newProject });
   } catch (error) {
-    return { ok: false, message: `Could not reach ${host} (${(error as Error)?.message ?? error}). Check your internet connection.` };
+    return { ok: false, message: `Could not reach ${host} (${(error as Error)?.message ?? error}). Check your internet connection, then try --region eu or us, or --host <url>.` };
   }
   if (started.status === 429) return { ok: false, message: started.data?.error || "Too many sign-in attempts. Try again in a few minutes." };
   if (started.status !== 200 || !started.data?.deviceCode) return { ok: false, message: started.data?.error || `Uncoil could not start the sign-in (${started.status}).` };
@@ -170,5 +170,5 @@ export async function runLogin(options: LoginOptions = {}): Promise<LoginResult>
       return { ok: true, message, projectId: String(polled.data.projectId), projectName, envFile };
     }
   }
-  return { ok: false, message: "Timed out waiting for the browser. Run the command again." };
+  return { ok: false, message: "Timed out waiting for the browser. Run the command again with --no-browser and open the printed address yourself." };
 }

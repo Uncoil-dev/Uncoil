@@ -824,6 +824,12 @@ def trace_agent(client: Optional[UncoilClient] = None, environment: Optional[str
     return decorator
 
 
+def _overrides(session_id: Optional[str], end_user_id: Optional[str], environment: Optional[str], release: Optional[str], tags: Optional[List[str]], trace_name: Optional[str]) -> Dict[str, Any]:
+    """Fields passed to a helper call. Unset ones are left out so the client's values and the current trace name apply."""
+    fields = {"sessionId": session_id, "endUserId": end_user_id, "environment": environment, "release": release, "tags": tags, "traceName": trace_name}
+    return {key: value for key, value in fields.items() if value is not None}
+
+
 def llm_call(input_data: Any, output_data: Any, model_id: str, cost_usd: float, latency_ms: int, client: Optional[UncoilClient] = None, session_id: Optional[str] = None, end_user_id: Optional[str] = None, environment: Optional[str] = None, release: Optional[str] = None, tags: Optional[List[str]] = None, trace_name: Optional[str] = None, input_tokens: Optional[int] = None, output_tokens: Optional[int] = None, name: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None):
     """Record a finished model call. It is attached to the step it was made in."""
     extra: Dict[str, Any] = {}
@@ -837,12 +843,7 @@ def llm_call(input_data: Any, output_data: Any, model_id: str, cost_usd: float, 
         modelId=model_id,
         costUsd=cost_usd,
         latencyMs=latency_ms,
-        sessionId=session_id or "",
-        endUserId=end_user_id or "",
-        environment=environment or "",
-        release=release or "",
-        tags=tags or [],
-        traceName=trace_name or "",
+        **_overrides(session_id, end_user_id, environment, release, tags, trace_name),
         metadata=metadata or {},
         **extra,
     )
@@ -857,12 +858,7 @@ def tool_call(tool_name: str, input_data: Any, output_data: Any, latency_ms: int
         output=output_data,
         latencyMs=latency_ms,
         costUsd=0,
-        sessionId=session_id or "",
-        endUserId=end_user_id or "",
-        environment=environment or "",
-        release=release or "",
-        tags=tags or [],
-        traceName=trace_name or "",
+        **_overrides(session_id, end_user_id, environment, release, tags, trace_name),
         metadata=metadata or {},
     )
 

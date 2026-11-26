@@ -11,7 +11,10 @@ export function ShareButtons({ title }: { title: string }) {
   }, []);
 
   if (!url) return null;
+  return <ShareLinks title={title} url={url} />;
+}
 
+export function ShareLinks({ title, url }: { title: string; url: string }) {
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
   const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
 
@@ -23,6 +26,7 @@ export function ShareButtons({ title }: { title: string }) {
       <a
         href={twitterUrl}
         target="_blank"
+        aria-label="Share on X (opens in a new tab)"
         rel="noopener noreferrer"
         className="font-mono text-[13px] text-[#666666] hover:text-white transition-colors border border-[#2A2A2A] px-3 py-1.5"
       >
@@ -31,6 +35,7 @@ export function ShareButtons({ title }: { title: string }) {
       <a
         href={linkedinUrl}
         target="_blank"
+        aria-label="Share on LinkedIn (opens in a new tab)"
         rel="noopener noreferrer"
         className="font-mono text-[13px] text-[#666666] hover:text-white transition-colors border border-[#2A2A2A] px-3 py-1.5"
       >

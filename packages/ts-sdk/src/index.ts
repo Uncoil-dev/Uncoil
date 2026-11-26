@@ -54,6 +54,12 @@ export class UncoilError extends Error {
   }
 }
 
+function promptError(name: string, environment: string, status: number, reason?: string) {
+  if (status === 401) return new UncoilError("bad_key", "Uncoil rejected the API key while resolving a prompt (401).", "Check UNCOIL_API_KEY, or create a new key on the API keys page if this one was revoked.", status);
+  if (status === 404) return new UncoilError("prompt_not_found", `Prompt "${name}" has no version deployed to "${environment}" (404).`, "Check that the prompt name and environment label exist on the Prompts page.", status);
+  return new UncoilError("prompt_failed", `Prompt resolution failed (${status})${reason ? `: ${reason}` : ""}.`, "Try again shortly; if it keeps happening, check the status page.", status);
+}
+
 export type UncoilRegion = "eu" | "us";
 
 export const UNCOIL_REGION_HOSTS: Record<UncoilRegion, string> = {
@@ -275,6 +281,28 @@ function envLocalSetsKey(): boolean {
   }
 }
 
+const pendingSends = new Set<Promise<unknown>>();
+
+async function waitFor(sends: Set<Promise<unknown>>, timeoutMs: number): Promise<boolean> {
+  if (sends.size === 0) return true;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<false>((resolve) => { timer = setTimeout(() => resolve(false), timeoutMs); });
+  try {
+    return await Promise.race([Promise.allSettled([...sends]).then(() => true), timedOut]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Wait until every span sent by any Uncoil client so far has finished sending.
+ * Call it before a short script or serverless request handler returns.
+ * Resolves to false if sends are still in flight after `timeoutMs`.
+ */
+export function flush(timeoutMs = 5_000): Promise<boolean> {
+  return waitFor(pendingSends, timeoutMs);
+}
+
 function isLatencyAbort(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
@@ -298,6 +326,7 @@ export class UncoilClient {
   private redactor?: (text: string) => string;
   private onError?: (error: UncoilError) => void;
   private warned = new Set<string>();
+  private pending = new Set<Promise<unknown>>();
 
   constructor(config: UncoilConfig = {}) {
     this.apiKey = (config.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || '').trim();
@@ -358,11 +387,24 @@ export class UncoilClient {
     return sampleBucket(runId) >= this.sampleRate;
   }
 
+  /** A 429 with a plan or daily limit code means the project ran out of spans, which a lower sampleRate does not fix. */
+  private async reportPlanLimit(response: Response) {
+    const body = await response.json().catch(() => null) as { code?: string; limit?: number; retryAfterSeconds?: number; upgradeUrl?: string } | null;
+    if (body?.code !== "plan_limit_reached" && body?.code !== "daily_limit_reached") return false;
+    const period = body.code === "daily_limit_reached" ? "daily" : "monthly";
+    const limit = typeof body.limit === "number" ? ` of ${body.limit.toLocaleString("en-US")} spans` : "";
+    const resets = typeof body.retryAfterSeconds === "number" ? `from ${new Date(Date.now() + body.retryAfterSeconds * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC` : `when the ${period === "daily" ? "day" : "month"} resets`;
+    const upgradeUrl = body.upgradeUrl || "https://www.uncoil.dev/pricing";
+    this.report(new UncoilError(body.code, `This project reached its ${period} plan limit${limit}, so new spans are not saved (429).`, `Data is saved again ${resets}. To keep recording now, upgrade the plan: ${upgradeUrl}`, 429));
+    return true;
+  }
+
   private async checkIngestResponse(response: Response) {
     if (response.ok) return;
     const status = response.status;
     if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
     else if (status === 403) this.report(new UncoilError("forbidden", "This API key is not allowed to send data (403).", "Check that the key belongs to the project you expect and has not been disabled.", status));
+    else if (status === 429 && (await this.reportPlanLimit(response))) return;
     else if (status === 429) this.report(new UncoilError("rate_limited", "Uncoil is receiving too much data from this app (429).", "Lower the volume with sampleRate (for example 0.2), or upgrade your plan.", status));
     else if (status >= 500) this.report(new UncoilError("server_error", `Uncoil had a problem on its side (${status}).`, "Your app is not affected; data from this moment may be missing. Check the status page if it keeps happening.", status));
     else this.report(new UncoilError("rejected", `Uncoil did not accept a span (${status}).`, "Update the SDK to the latest version; if it still happens, contact support.", status));
@@ -387,14 +429,14 @@ export class UncoilClient {
       output: this.clean(data.output),
       release: data.release ?? this.release,
       environment: data.environment ?? this.environment,
-      deploymentId: data.metadata?.deploymentId ?? this.deploymentId,
+      deploymentId: data.deploymentId ?? data.metadata?.deploymentId ?? this.deploymentId,
       sessionId: data.sessionId ?? this.sessionId,
       endUserId: data.endUserId ?? this.endUserId,
       tags: data.tags ?? this.tags,
     };
 
     try {
-      fetch(this.ingestUrl, {
+      const send = fetch(this.ingestUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
@@ -402,21 +444,32 @@ export class UncoilClient {
         },
         body: JSON.stringify(span),
       }).then((response) => this.checkIngestResponse(response)).catch((err) => this.report(new UncoilError("network", `Could not reach Uncoil (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
+      this.pending.add(send);
+      pendingSends.add(send);
+      send.finally(() => { this.pending.delete(send); pendingSends.delete(send); });
     } catch {
       // Ignore errors in telemetry
     }
   }
 
+  /**
+   * Wait until the spans this client has sent have finished sending.
+   * Resolves to false if sends are still in flight after `timeoutMs`.
+   */
+  flush(timeoutMs = 5_000): Promise<boolean> {
+    return waitFor(this.pending, timeoutMs);
+  }
+
   /** Resolve a prompt version labeled for an environment without redeploying application code. */
   async getPrompt(name: string, environment = "production", options: PromptResolutionOptions = {}): Promise<PromptResolution> {
-    if (!this.apiKey) throw new Error("An Uncoil API key is required to resolve prompts");
+    if (!this.apiKey) throw new UncoilError("missing_key", "An Uncoil API key is required to resolve prompts.", "Set UNCOIL_API_KEY or pass apiKey to UncoilClient.");
     const key = `${name}:${environment}`;
     const cached = this.promptCache.get(key);
     if (cached && cached.expiresAt > Date.now()) return cached.value;
     try {
       const response = await fetch(`${this.host}/api/prompts/${encodeURIComponent(name)}?environment=${encodeURIComponent(environment)}`, { headers: { Authorization: `Bearer ${this.apiKey}` } });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error || `Prompt resolution failed (${response.status})`);
+      if (!response.ok) throw promptError(name, environment, response.status, data?.error);
       const value = data as PromptResolution;
       this.promptCache.set(key, { value, expiresAt: Date.now() + (options.cacheTtlMs ?? 60_000) });
       return value;
@@ -695,7 +748,8 @@ export interface StepOptions {
 }
 
 let defaultClientInstance: UncoilClient | undefined;
-function defaultClient() {
+/** The shared client used when no client is passed and no trace is active, so setup warnings print once. */
+export function defaultClient() {
   return (defaultClientInstance ??= new UncoilClient());
 }
 

@@ -61,7 +61,8 @@ async function runAnthropic(model: string, text: string, temperature: number, si
 }
 
 export async function POST(request: NextRequest) {
-  const body: PlaygroundBody = await request.json().catch(() => ({}));
+  let body: PlaygroundBody;
+  try { body = await request.json() as PlaygroundBody; } catch { return Response.json({ error: "Invalid JSON body" }, { status: 422 }); }
   if (!body.projectId || !body.prompt?.trim()) return Response.json({ error: "projectId and prompt are required" }, { status: 422 });
   if (body.prompt.length > MAX_PROMPT) return Response.json({ error: "The prompt is too long for the playground." }, { status: 422 });
   const denied = await authorise(body.projectId);

@@ -127,6 +127,15 @@ describe("UncoilClient", () => {
     expect(body.tags).toEqual(["checkout"]);
     fetchSpy.mockRestore();
   });
+
+  it("keeps a deploymentId set on the span over the client default", async () => {
+    const client = new UncoilClient({ apiKey: "test-key", host: "http://localhost:9999", deploymentId: "client-default" });
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    await client.ingest({ spanType: "llm_call", input: "hello", deploymentId: "d1" });
+    const body = JSON.parse(String(fetchSpy.mock.calls[0]?.[1]?.body));
+    expect(body.deploymentId).toBe("d1");
+    fetchSpy.mockRestore();
+  });
 });
 
 // ─── orchestrate — success on primary model ───────────────────────

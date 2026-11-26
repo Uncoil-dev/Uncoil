@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const search = request.nextUrl.searchParams;
   const by = (search.get("by") ?? "model") as ComparisonDimension;
-  if (!(by in COMPARISON_DIMENSIONS)) return NextResponse.json({ error: "by must be model or release" }, { status: 400 });
+  if (!Object.hasOwn(COMPARISON_DIMENSIONS, by)) return NextResponse.json({ error: "by must be model or release" }, { status: 400 });
   try {
     const filters = await resolveTraceFlowFilters(projectId, parseTraceFilters(search));
     const groups = await traceGroupComparison(projectId, filters, by);

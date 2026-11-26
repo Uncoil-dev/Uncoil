@@ -25,7 +25,7 @@ export function Pagination({
             href={buildUrl("older")}
             className="font-mono text-[13px] text-[#666666] hover:text-white transition-colors"
           >
-            ← Older posts
+            <span aria-hidden="true">←</span> Older posts
           </Link>
         )}
       </div>
@@ -35,7 +35,7 @@ export function Pagination({
             href={buildUrl("newer")}
             className="font-mono text-[13px] text-[#666666] hover:text-white transition-colors"
           >
-            Newer posts →
+            Newer posts <span aria-hidden="true">→</span>
           </Link>
         )}
       </div>

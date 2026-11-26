@@ -27,6 +27,19 @@ describe("UncoilLangGraphHandler", () => {
     expect(records[2]).toMatchObject({ spanType: "run_end", toolName: "graph" });
   });
 
+  it("records retriever steps with the query and the documents found", () => {
+    const h = make();
+    h.handleChainStart({ name: "rag" }, {}, "c1");
+    h.handleRetrieverStart({ id: ["langchain", "retrievers", "VectorStoreRetriever"] }, "refund policy", "r1", "c1");
+    h.handleRetrieverEnd([{ pageContent: "Refunds within 30 days", metadata: {} }], "r1");
+    h.handleRetrieverStart({}, "missing", "r2", "c1");
+    h.handleRetrieverError(new Error("index offline"), "r2");
+    h.handleChainEnd({}, "c1");
+    expect(records[0]).toMatchObject({ spanType: "retrieval", toolName: "VectorStoreRetriever", input: "refund policy", parentSpanId: "c1" });
+    expect(JSON.stringify(records[0].output)).toContain("Refunds within 30 days");
+    expect(records[1]).toMatchObject({ spanType: "retrieval", errorMessage: "index offline" });
+  });
+
   it("records errors with their type and message", () => {
     const h = make();
     h.handleChainStart({}, {}, "c1");
@@ -56,6 +69,15 @@ describe("UncoilLangGraphHandler", () => {
     h.handleChainEnd({}, "c1");
     expect(records[0]).toMatchObject({ toolName: "model", inputTokens: 3, outputTokens: 1 });
     expect(records[1].toolName).toBe("graph");
+  });
+
+  it("keeps cache details from usage_metadata", () => {
+    const h = make();
+    h.handleLLMStart({}, ["hi"], "l1", undefined, { invocation_params: { model: "m-1" } });
+    const usage_metadata = { input_tokens: 20, output_tokens: 3, total_tokens: 23, input_token_details: { cache_read: 15 } };
+    h.handleLLMEnd({ generations: [[{ text: "ok", message: { usage_metadata } }]] }, "l1");
+    expect(records[0]).toMatchObject({ inputTokens: 20, outputTokens: 3 });
+    expect(records[0].metadata.usage).toMatchObject({ total_tokens: 23, input_token_details: { cache_read: 15 } });
   });
 
   it("honors captureInput and captureOutput", () => {

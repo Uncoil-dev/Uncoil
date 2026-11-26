@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { denyProjectAccess } from "@/lib/project-route-access";
 import { getAuthedConvexClient } from "@/lib/convex-server";
 import { api } from "convex/_generated/api";
+import type { FunctionArgs } from "convex/server";
 import type { Id } from "convex/_generated/dataModel";
+import { readSavedViewRequest } from "@/lib/saved-view-state";
 type Context = { params: Promise<{ projectId: string }> };
 export async function GET(request: NextRequest, { params }: Context) {
   const { projectId } = await params;
@@ -41,14 +43,20 @@ export async function POST(request: NextRequest, { params }: Context) {
   if (denied) return denied;
   if (request.headers.get("origin") !== request.nextUrl.origin)
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  const read = await readSavedViewRequest(request);
+  if ("error" in read)
+    return NextResponse.json({ error: read.error }, { status: 400 });
+  // Convex validates the fields; the cast only names them for the call below.
+  const body = read.body as FunctionArgs<typeof api.savedViews.save> & {
+    action?: unknown;
+  };
   try {
-    const body = await request.json();
     const client = await getAuthedConvexClient();
     const id =
       body.action === "delete"
         ? await client.mutation(api.savedViews.remove, {
             projectId: projectId as Id<"projects">,
-            id: body.id,
+            id: body.id as Id<"savedViews">,
           })
         : await client.mutation(api.savedViews.save, {
             projectId: projectId as Id<"projects">,

@@ -41,6 +41,21 @@ describe("clear errors", () => {
     expect(seen[0].code).toBe("bad_key");
     expect(seen[0].status).toBe(401);
   });
+  it("explains a reached plan limit with the reset time and upgrade link", async () => {
+    vi.useFakeTimers({ now: new Date("2026-11-20T12:00:00Z"), toFake: ["Date"] });
+    const body = { error: "This project has used its 10,000 free spans for the month.", code: "plan_limit_reached", limit: 10000, retryAfterSeconds: 86400, upgradeUrl: "https://www.uncoil.dev/pricing" };
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(body), { status: 429 })));
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    vi.useRealTimers();
+    expect(seen[0].code).toBe("plan_limit_reached");
+    expect(seen[0].message).toContain("10,000 spans");
+    expect(seen[0].hint).toContain("2026-11-21 12:00 UTC");
+    expect(seen[0].hint).toContain("https://www.uncoil.dev/pricing");
+    expect(seen[0].hint).not.toContain("sampleRate");
+  });
   it("reports an unreachable network without throwing", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
     const seen: UncoilError[] = [];

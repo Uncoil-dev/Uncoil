@@ -51,3 +51,8 @@ test("old domain redirects keep the method for non-GET requests", () => {
   assert.match(proxy, /308/);
   assert.match(proxy, /cloud\\\.tracify\\\.tech/);
 });
+
+test("product pages link the demo at its final URL, not the redirecting /demo front door", () => {
+  // /demo redirects twice before landing on /demo/project (see src/lib/app-links.ts).
+  assert.doesNotMatch(read(`${app}/product/[feature]/page.tsx`), /["'`]\/demo["'`]/);
+});

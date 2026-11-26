@@ -48,9 +48,7 @@ describe("client config validation", () => {
     if (envLocal !== undefined) writeFileSync(join(dir, ".env.local"), envLocal);
     const cwd = vi.spyOn(process, "cwd").mockReturnValue(dir);
     const saved = process.env.UNCOIL_API_KEY;
-    const savedLegacy = process.env.TRACIFY_API_KEY;
     delete process.env.UNCOIL_API_KEY;
-    delete process.env.TRACIFY_API_KEY;
     const seen: UncoilError[] = [];
     try {
       new UncoilClient({ onError: (e) => seen.push(e) });
@@ -58,7 +56,6 @@ describe("client config validation", () => {
       cwd.mockRestore();
       rmSync(dir, { recursive: true, force: true });
       if (saved !== undefined) process.env.UNCOIL_API_KEY = saved;
-      if (savedLegacy !== undefined) process.env.TRACIFY_API_KEY = savedLegacy;
     }
     return seen[0];
   }

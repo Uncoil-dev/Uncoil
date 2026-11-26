@@ -94,7 +94,7 @@ avoid sending anything else you would not want stored.
 
 ## Feedback and evaluation scores
 
-Pass `project_id` when constructing the client to attach end-user feedback and typed scores to traces:
+Feedback and typed scores need the project id. The client reads `UNCOIL_PROJECT_ID` (which `npx @uncoil.dev/sdk login` writes to `.env.local`), or you can pass `project_id` when constructing the client:
 
 ```python
 client = UncoilClient(project_id="your-project-id")

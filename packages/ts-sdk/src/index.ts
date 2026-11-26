@@ -3,7 +3,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 export interface UncoilConfig {
   apiKey?: string;
   host?: string;
-  /** Uncoil Cloud data region. Ignored when `host` is provided. Defaults to UNCOIL_REGION or EU. */
+  /** Uncoil Cloud data region. Ignored when `host` is provided. Defaults to UNCOIL_REGION, then the API key's region, then EU. */
   region?: UncoilRegion;
   projectId?: string;
   /** Release and environment are copied onto observations created by this client. */
@@ -302,10 +302,11 @@ export class UncoilClient {
     } else if (!/^(uncoil|tracify)_sk_/.test(this.apiKey)) {
       this.report(new UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."));
     }
-    const configuredRegion = config.region ?? parseRegion((process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)) ?? "eu";
+    // With no region set, the key's own region picks the host, so a US key works without extra config.
+    const keyRegion = apiKeyRegion(this.apiKey);
+    const configuredRegion = config.region ?? parseRegion((process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)) ?? keyRegion ?? "eu";
     this.host = (config.host || (process.env.UNCOIL_HOST ?? process.env.TRACIFY_HOST) || UNCOIL_REGION_HOSTS[configuredRegion]).replace(/\/$/, '');
     const selectedHostRegion = Object.entries(UNCOIL_REGION_HOSTS).find(([, host]) => host === this.host)?.[0] as UncoilRegion | undefined;
-    const keyRegion = apiKeyRegion(this.apiKey);
     if (keyRegion && selectedHostRegion && keyRegion !== selectedHostRegion) {
       throw new UncoilError("region_mismatch", `Uncoil API key region mismatch: this key belongs to ${keyRegion.toUpperCase()}, but the client is configured for ${selectedHostRegion.toUpperCase()}.`, `Set region: "${keyRegion}" (or UNCOIL_REGION=${keyRegion}), or create a key in the ${selectedHostRegion.toUpperCase()} region.`);
     }

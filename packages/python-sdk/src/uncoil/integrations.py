@@ -75,6 +75,9 @@ class Observation:
         self.data["latencyMs"] = int((time.time() - self.started) * 1000)
         self.data["output"] = "[not captured]" if self.options.get("capture_output") is False else output if output is not None else self.text
         self.data["metadata"]["cancelled"] = cancelled
+        if self.data["metadata"].get("finishReason") in ("length", "max_tokens"):
+            # The model hit its token limit, so the answer is cut off; the tag makes that easy to filter for.
+            self.data["tags"] = [*(getattr(self.client, "tags", None) or []), "truncated"]
         if error is not None or cancelled:
             self.data["errorType"] = "AbortError" if cancelled else error.__class__.__name__
             self.data["errorMessage"] = _payload("Stream cancelled before completion" if cancelled else str(error))

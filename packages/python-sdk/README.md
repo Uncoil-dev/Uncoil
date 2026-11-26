@@ -146,7 +146,7 @@ graph.invoke(inputs, config={"callbacks": [uncoil.langgraph_callback()]})
 Wrap sync or async clients once. Supported: OpenAI chat completions and Responses `create` APIs,
 including streams; Anthropic messages `create`/`stream` and beta equivalents, including sync/async
 context managers, text streams and final messages. Close streams when stopping early. Raw response
-resources and unsupported convenience methods are passed through without instrumentation.
+resources and unsupported convenience methods are passed through without instrumentation. A model call that stopped at its token limit (OpenAI `finish_reason="length"`, Anthropic `stop_reason="max_tokens"`) gets the tag `truncated`.
 
 Calls inside `trace_agent`/`span` inherit their run/parent and custom client. Standalone calls receive
 an independent completed root. LangGraph callbacks preserve graph/node/tool/model parent IDs and

@@ -123,7 +123,9 @@ export class UncoilLangGraphHandler {
     const usage =
       output?.llmOutput?.tokenUsage ?? generation?.message?.usage_metadata;
     if (usage)
+      // Keep the whole usage object (total_tokens, input_token_details.cache_read, ...) in metadata.
       run?.usage({
+        ...usage,
         input_tokens: usage.input_tokens ?? usage.promptTokens,
         output_tokens: usage.output_tokens ?? usage.completionTokens,
       });

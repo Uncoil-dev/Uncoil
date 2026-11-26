@@ -347,7 +347,10 @@ export class UncoilClient {
   private async checkIngestResponse(response: Response) {
     if (response.ok) return;
     const status = response.status;
-    if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
+    // The ingest route pauses a key after repeated rate-limit errors and says so with code "key_paused".
+    const code = status === 403 ? await response.clone().json().then((body) => body?.code, () => undefined) : undefined;
+    if (code === "key_paused") this.report(new UncoilError("key_paused", "This API key was paused after repeated rate-limit errors (403).", "Create a new key on the API keys page of your dashboard and update UNCOIL_API_KEY.", status));
+    else if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
     else if (status === 403) this.report(new UncoilError("forbidden", "This API key is not allowed to send data (403).", "Check that the key belongs to the project you expect and has not been disabled.", status));
     else if (status === 429) this.report(new UncoilError("rate_limited", "Uncoil is receiving too much data from this app (429).", "Lower the volume with sampleRate (for example 0.2), or upgrade your plan.", status));
     else if (status >= 500) this.report(new UncoilError("server_error", `Uncoil had a problem on its side (${status}).`, "Your app is not affected; data from this moment may be missing. Check the status page if it keeps happening.", status));

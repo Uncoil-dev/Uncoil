@@ -31,9 +31,18 @@ test("sitemap lists every public legal page", () => {
   for (const path of ["/privacy", "/terms", "/cookie-policy"]) assert.ok(sitemap.includes(path), path);
 });
 
-test("robots keeps utility routes out of the crawl", () => {
+test("robots keeps API and private admin routes out of the crawl", () => {
   const robots = read("src/app/robots.ts");
-  for (const path of ["/dashboard/", "/onboarding/", "/api/", "/sign-in", "/sign-up"]) assert.ok(robots.includes(path), path);
+  for (const path of ["/api/", "/admin/"]) assert.ok(robots.includes(`"${path}"`), path);
+});
+
+// A robots.txt block hides a page's noindex tag, so Google keeps the bare URL as
+// "Indexed, though blocked by robots.txt". Noindex pages must stay crawlable.
+test("robots does not block pages that carry noindex", () => {
+  const robots = read("src/app/robots.ts");
+  for (const path of ["/sign-in", "/sign-up", "/dashboard", "/onboarding", "/forgot-password", "/reset-password", "/accept-invitation", "/alternative", "/library", "/tracing-preview", "/uncoil-preview", "/operations-preview", "/health-report/r/", "/cloud/", "/dash"]) {
+    assert.ok(!robots.includes(`"${path}"`) && !robots.includes(`"${path}/"`), `${path} is noindex, so robots.txt must not block it`);
+  }
 });
 
 test("sitemap does not list URLs that redirect", () => {

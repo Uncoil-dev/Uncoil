@@ -167,3 +167,26 @@ def test_templates_are_valid_python():
     assert files, "templates are missing"
     for file in files:
         py_compile.compile(str(file), doraise=True)
+
+
+def test_prompt_and_feedback_errors_say_how_to_fix_them(capsys):
+    class NotFound:
+        status_code = 404
+        text = "not found"
+
+    class Http:
+        def get(self, *a, **k):
+            return NotFound()
+
+    client = UncoilClient(api_key=KEY)
+    client._http = Http()
+    with pytest.raises(RuntimeError) as caught:
+        client.get_prompt("support-reply", environment="staging")
+    assert "404" in str(caught.value)
+    assert "'support-reply'" in str(caught.value) and "'staging'" in str(caught.value)
+    assert "Prompts page" in str(caught.value)
+
+    client.feedback("trace-1", True)
+    warning = capsys.readouterr().out
+    assert "project_id=" in warning and "UncoilClient" in warning
+    assert "dashboard URL" in warning and "project settings" in warning

@@ -4,59 +4,11 @@ import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { HeroDemo } from "./hero-demo";
 import { Check, Copy } from "lucide-react";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import { getCopy, type Locale } from "@/lib/i18n";
 import { copyToClipboard, setupPrompt } from "@/lib/setup-prompt";
-
-const feed = [
-  { t: "00.000", kind: "AGENT", name: "support-agent", meta: "run started" },
-  { t: "00.012", kind: "LLM", name: "chat", meta: "412 tok · 820 ms" },
-  { t: "00.840", kind: "TOOL", name: "order.lookup", meta: "140 ms" },
-  { t: "00.851", kind: "TOOL", name: "docs.search", meta: "0 results" },
-  { t: "01.170", kind: "LLM", name: "chat · retry", meta: "$0.0187" },
-  { t: "02.350", kind: "TOOL", name: "refund.issue", meta: "502 · 5000 ms", fail: true },
-] as const;
-
-function LiveFeed() {
-  const reduce = useReducedMotion();
-  const [count, setCount] = useState(reduce ? feed.length : 1);
-
-  useEffect(() => {
-    if (reduce) return;
-    const id = window.setInterval(() => setCount((c) => (c >= feed.length + 3 ? 1 : c + 1)), 900);
-    return () => window.clearInterval(id);
-  }, [reduce]);
-
-  const shown = feed.slice(0, Math.min(count, feed.length));
-  return (
-    <div className="w-[340px] border border-white/20 bg-[#090909]/90 font-mono text-[11px] text-white backdrop-blur-sm">
-      <div className="flex items-center justify-between border-b border-white/15 px-3 py-2 text-[9px] uppercase tracking-[0.14em] text-white/55">
-        <span>run_9f3a · live</span>
-        <span className="flex items-center gap-1.5 text-[#f4d44d]">
-          <span className="size-1.5 animate-pulse bg-[#f4d44d]" /> streaming
-        </span>
-      </div>
-      <ul className="h-[168px] px-3 py-2">
-        {shown.map((row) => (
-          <motion.li
-            key={row.name}
-            initial={reduce ? false : { opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            className={`grid grid-cols-[48px_44px_1fr] items-center gap-2 py-[5px] ${"fail" in row ? "text-[#f4d44d]" : ""}`}
-          >
-            <span className="text-white/40">{row.t}</span>
-            <span className="text-[9px] tracking-[0.1em] text-white/60">{row.kind}</span>
-            <span className="flex justify-between gap-2 truncate">
-              <span>{row.name}</span>
-              <span className="text-white/45">{row.meta}</span>
-            </span>
-          </motion.li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 export function Hero({ locale = "en" }: { locale?: Locale }) {
   const t = getCopy(locale).home;
@@ -72,6 +24,17 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
   const prompt = setupPrompt();
   const [state, setState] = useState<"idle" | "copied" | "blocked">("idle");
   const fallback = useRef<HTMLTextAreaElement>(null);
+  const demo = useRef<HTMLDivElement>(null);
+  const [pulse, setPulse] = useState(0);
+
+  // Where the demo card is shown, the secondary link scrolls to it instead of leaving the page.
+  function goToDemo(e: React.MouseEvent) {
+    const el = demo.current;
+    if (!el || el.offsetParent === null) return;
+    e.preventDefault();
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    el.focus({ preventScroll: true });
+  }
 
   async function copyPrompt() {
     const ok = await copyToClipboard(prompt);
@@ -148,12 +111,22 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           <button
             type="button"
             onClick={copyPrompt}
-            className="group inline-flex min-h-13 items-center gap-3 bg-[#f4d44d] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white"
+            className="group relative inline-flex min-h-13 items-center gap-3 bg-[#f4d44d] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black hover:bg-white"
           >
+            {pulse > 0 && !reduce && (
+              <motion.span
+                key={pulse}
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-1 border-2 border-[#f4d44d]"
+                initial={{ opacity: 0.9, scale: 1 }}
+                animate={{ opacity: 0, scale: 1.18 }}
+                transition={{ duration: 1.1, ease: "easeOut" }}
+              />
+            )}
             {state === "copied" ? t.ctaCopied : t.ctaPrimary}
             {state === "copied" ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
           </button>
-          <Link href={appHref("/demo/project")} className="inline-flex min-h-13 items-center gap-3 border border-white/30 bg-black/40 px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] backdrop-blur-sm hover:bg-white hover:text-black">
+          <Link href={appHref("/demo/project")} onClick={goToDemo} className="inline-flex min-h-13 items-center gap-3 border border-white/30 bg-black/40 px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] backdrop-blur-sm hover:bg-white hover:text-black">
             {t.ctaSecondary}
           </Link>
         </motion.div>
@@ -172,29 +145,16 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
         )}
       </div>
 
-      {/* Cards sit in the flow at the bottom of the screen, so they never push the hero past one viewport. */}
-      <div className="mx-auto mt-auto hidden w-full max-w-[1440px] items-end justify-between gap-6 px-8 pb-[clamp(1.5rem,4svh,3rem)] pt-6 lg:flex">
+      {/* The demo sits in the flow at the bottom of the screen, so it never pushes the hero past one viewport. */}
+      <div className="mx-auto mt-auto hidden w-full max-w-[1440px] justify-center px-8 pb-[clamp(1.5rem,4svh,3rem)] pt-6 lg:flex">
         <motion.div
           style={{ x: cardX, y: cardY }}
           initial={reduce ? false : { opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.1, duration: 0.8 }}
+          className="flex w-full justify-center"
         >
-          <LiveFeed />
-        </motion.div>
-        <motion.div
-          style={{ x: cardX, y: cardY }}
-          initial={reduce ? false : { opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.3, duration: 0.8 }}
-          className="mb-4 w-[280px] border border-[#f4d44d] bg-[#090909]/90 p-4 text-left font-mono backdrop-blur-sm"
-        >
-          <p className="flex items-center justify-between text-[9px] uppercase tracking-[0.14em] text-[#f4d44d]">
-            <span>Root cause found</span>
-            <span className="size-2 animate-ping bg-[#f4d44d]" />
-          </p>
-          <p className="mt-3 text-sm text-white">docs.search returned 0 results</p>
-          <p className="mt-1 text-[11px] leading-5 text-white/55">→ fallback model guessed the policy → refund.issue timed out</p>
+          <HeroDemo ref={demo} onFixed={() => setPulse((n) => n + 1)} />
         </motion.div>
       </div>
       <div className="h-[30svh] min-h-[200px] lg:hidden" aria-hidden="true" />

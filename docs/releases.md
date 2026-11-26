@@ -7,6 +7,7 @@ Every pull request description has a Changelog section: one ticked category and 
 ## [Unreleased]
 
 ### Features
+- The homepage hero now has a copy-the-setup-prompt button and a short demo: an agent run fails at one step, you copy a fix prompt, and the re-run comes back cheaper.
 - Codex and OpenCode plugins send each finished coding-agent turn to Uncoil as a trace, with tool calls, token use and cost. Install steps are in the docs.
 - The pricing page calculator now links to the tracing bill calculator, which compares the monthly bill across tools for the same traffic.
 - New Startups page with discounted plans for early-stage startups, students and educators, and open-source projects. See /startups.

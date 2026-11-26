@@ -95,3 +95,14 @@ def test_payloads_are_redacted_and_capped(client):
     sent = client.sent[-1]
     assert "hunter2" not in sent["input"] and secret not in sent["input"] and "x" * 40 not in sent["input"]
     assert len(sent["output"]) < 10_100 and "truncated" in sent["output"]
+
+
+def test_run_id_falls_back_to_environment_outside_a_step(monkeypatch):
+    monkeypatch.delenv("TRACIFY_CURRENT_RUN_ID", raising=False)
+    monkeypatch.setenv("UNCOIL_CURRENT_RUN_ID", "parent-run")
+    assert uncoil.current_run_id() == "parent-run"
+    assert uncoil.current_span_id() is None
+
+    monkeypatch.delenv("UNCOIL_CURRENT_RUN_ID")
+    assert uncoil.current_run_id() == "unknown"
+    assert uncoil.current_span_id() is None

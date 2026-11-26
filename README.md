@@ -21,13 +21,18 @@ capture → diagnose → assign → fix → verify → prevent
 
 ## Quickstart
 
-Get a key in the [dashboard](https://eu.cloud.uncoil.dev/dashboard), then:
+New here? [Sign up](https://eu.cloud.uncoil.dev/sign-up) and copy your key. Already have an account? Get a key on the [API keys page](https://eu.cloud.uncoil.dev/dashboard/api-keys). The Free plan covers 10k spans a month and needs no card.
 
 ### TypeScript
 
 ```bash
 npm install @uncoil.dev/sdk
 export UNCOIL_API_KEY=uncoil_sk_live_...
+```
+
+```powershell
+# Windows PowerShell
+$env:UNCOIL_API_KEY="uncoil_sk_live_..."
 ```
 
 ```typescript
@@ -49,14 +54,22 @@ pip install uncoil-sdk
 export UNCOIL_API_KEY=uncoil_sk_live_...
 ```
 
+```powershell
+# Windows PowerShell
+$env:UNCOIL_API_KEY="uncoil_sk_live_..."
+```
+
 ```python
+import asyncio
 from uncoil import trace_agent, llm_call, tool_call
 
 @trace_agent(environment="development", release="quickstart")
 async def run_agent(question: str):
-    llm_call(input_data=question, output_data="I will look that up.", model_id="gpt-4o-mini", cost_usd=0.001)
+    llm_call(input_data=question, output_data="I will look that up.", model_id="gpt-4o-mini", cost_usd=0.001, latency_ms=450)
     tool_call(tool_name="search", input_data={"query": question}, output_data="Done", latency_ms=120)
     return "Done"
+
+asyncio.run(run_agent("What is agent observability?"))
 ```
 
 Run it once. Your first trace shows up in the dashboard in seconds. Full guide: [docs/quickstart](https://www.uncoil.dev/docs/quickstart).

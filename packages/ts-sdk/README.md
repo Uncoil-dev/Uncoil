@@ -155,7 +155,7 @@ await graph.invoke(input, { callbacks: [new UncoilLangGraphHandler()] });
 Use `UNCOIL_API_KEY` and the existing region/host configuration. Pass `{ client }` for a custom
 `UncoilClient`. Calls inside `traceAgent`/`span` inherit the current run and parent; standalone provider
 calls get a completed root, so unrelated requests never share an `unknown` run. LangGraph callbacks
-record graph/node/tool/model parent relationships. Use either framework model callbacks or a wrapped
+record graph/node/tool/retriever/model parent relationships; retriever steps keep the query and the documents found. Use either framework model callbacks or a wrapped
 provider for each model call to avoid recording that call twice.
 
 Supported APIs: OpenAI `chat.completions.create`, `responses.create`, their structured-output `.parse()` and `.stream()` helpers;

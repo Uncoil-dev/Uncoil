@@ -22,7 +22,6 @@ class FakeResponse:
 
 def test_missing_key_explains_the_fix(monkeypatch):
     monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
-    monkeypatch.delenv("TRACIFY_API_KEY", raising=False)
     seen = []
     UncoilClient(on_error=seen.append)
     assert seen[0].code == "missing_key"
@@ -32,7 +31,6 @@ def test_missing_key_explains_the_fix(monkeypatch):
 
 def test_traced_function_runs_without_a_key(monkeypatch, capsys):
     monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
-    monkeypatch.delenv("TRACIFY_API_KEY", raising=False)
     posts = []
     monkeypatch.setattr("httpx.Client.post", lambda self, *args, **kwargs: posts.append(args))
 

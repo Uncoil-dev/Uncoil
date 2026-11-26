@@ -59,6 +59,9 @@ const agent = traceAgent(async (query: string) => {
 }, { environment: "development", release: "quickstart" });
 ```
 
+`llmCall`, `toolCall` and `decision` made inside a `traceAgent` function are sent with that agent's settings,
+such as an `apiKey` passed to it. Outside one, they use `UNCOIL_API_KEY`.
+
 4. Run `npx @uncoil.dev/sdk doctor` to [check your setup](#setup-checker).
 
 ## Steps

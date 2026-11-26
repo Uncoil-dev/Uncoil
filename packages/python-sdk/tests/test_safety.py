@@ -202,6 +202,19 @@ def test_templates_are_valid_python():
         py_compile.compile(str(file), doraise=True)
 
 
+def test_feedback_uses_the_project_id_from_the_environment(monkeypatch):
+    import json
+    import httpx
+
+    monkeypatch.setenv("UNCOIL_PROJECT_ID", "proj_from_env")
+    sent = []
+    client = UncoilClient(api_key=KEY)
+    client._http = httpx.Client(transport=httpx.MockTransport(lambda request: sent.append(json.loads(request.content)) or httpx.Response(200)))
+    client.feedback("trace-1", True)
+    assert sent[0]["projectId"] == "proj_from_env"
+    assert UncoilClient(api_key=KEY, project_id="proj_given").project_id == "proj_given"
+
+
 def test_prompt_and_feedback_errors_say_how_to_fix_them(capsys):
     class NotFound:
         status_code = 404

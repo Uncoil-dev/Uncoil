@@ -35,6 +35,18 @@ def _key_region(api_key: str) -> Optional[str]:
     return None
 
 
+def _unloaded_env_file() -> Optional[str]:
+    """Names the .env file in the current folder that sets UNCOIL_API_KEY, without reading the value out."""
+    for name in (".env.local", ".env"):
+        try:
+            with open(name, encoding="utf-8") as handle:
+                if any(re.match(r"^\s*(export\s+)?UNCOIL_API_KEY\s*=\s*\S", line) for line in handle):
+                    return name
+        except (OSError, UnicodeDecodeError):
+            continue
+    return None
+
+
 def _request(method: str, url: str, timeout: float, headers: Optional[Dict[str, str]] = None, body: Optional[Dict[str, Any]] = None) -> int:
     """Returns the HTTP status; raises on network trouble. Uses httpx or requests, whichever the SDK already needs."""
     try:
@@ -71,7 +83,11 @@ def run_doctor(api_key: Optional[str] = None, region: Optional[str] = None, host
     add("runtime", "Runtime", "ok", f"Python {sys.version.split()[0]}")
 
     if not key:
-        add("key", "API key", "fail", "No API key was found.", "Set the UNCOIL_API_KEY environment variable, or run with --key. Create a key on the API keys page of your dashboard.")
+        env_file = _unloaded_env_file()
+        if env_file:
+            add("key", "API key", "fail", f"No API key was loaded, but {env_file} in this folder sets UNCOIL_API_KEY.", f"Python does not read {env_file} on its own. Export UNCOIL_API_KEY in your shell, or load the file at startup (for example with python-dotenv).")
+        else:
+            add("key", "API key", "fail", "No API key was found.", "Set the UNCOIL_API_KEY environment variable, or run with --key. Create a key on the API keys page of your dashboard.")
         return report()
     if not re.match(r"^(uncoil|tracify)_sk_", key):
         add("key", "API key", "fail", f"{mask_key(key)} does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page; make sure no other service's key was pasted by mistake.")

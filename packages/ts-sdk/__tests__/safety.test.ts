@@ -150,4 +150,18 @@ describe("framework helpers", () => {
     expect(llm.find((s) => s.output === "ab")).toMatchObject({ inputTokens: 3, outputTokens: 4 });
     expect(llm.some((s) => s.errorMessage?.includes("rate limit"))).toBe(true);
   });
+  it("reads token totals from AI SDK v6+ usage objects", async () => {
+    mockFetch();
+    const mw = uncoilMiddleware({ client: new UncoilClient({ apiKey: KEY }) });
+    const model = { provider: "openai.responses", modelId: "gpt-test" };
+    const usage = { inputTokens: { total: 8, noCache: 8, cacheRead: 0 }, outputTokens: { total: 3, text: 3, reasoning: 0 } };
+    await mw.wrapGenerate({ model, params: {}, doGenerate: async () => ({ content: [{ type: "text", text: "nested" }], usage, finishReason: "stop" }) });
+    const parts = [{ type: "text-delta", delta: "s" }, { type: "finish", usage }];
+    const streamed = await mw.wrapStream({ model, params: {}, doStream: async () => ({ stream: new ReadableStream({ start(c) { parts.forEach((p) => c.enqueue(p)); c.close(); } }) }) });
+    const reader = streamed.stream.getReader();
+    while (!(await reader.read()).done);
+    await flush();
+    expect(sent.find((s) => s.output === "nested")).toMatchObject({ inputTokens: 8, outputTokens: 3 });
+    expect(sent.find((s) => s.output === "s")).toMatchObject({ inputTokens: 8, outputTokens: 3 });
+  });
 });

@@ -30,6 +30,10 @@ function readUrl(initial: Query): Query {
   return query;
 }
 
+export function PromptsEmptyNote() {
+  return <p className="p-4 text-xs text-[#6B7380]">Saved prompts let you version and reuse your prompts. Click New prompt to add your first one.</p>;
+}
+
 export function PromptsWorkspace({ projectId, initialQuery }: { projectId: string; initialQuery: Query }) {
   const typedProjectId = projectId as Id<"projects">;
   const prompts = useQuery(api.prompts.list, { projectId: typedProjectId });
@@ -118,7 +122,7 @@ export function PromptsWorkspace({ projectId, initialQuery }: { projectId: strin
         <nav aria-label="Prompts" className={`min-h-0 overflow-auto border-r border-[#1F242C] bg-[#0D1014] ${selected ? "hidden lg:block" : ""}`}>
           {prompts === undefined ? (
             <div className="grid gap-1 p-2" role="status" aria-label="Loading prompts">{Array.from({ length: 6 }, (_, index) => <div key={index} className="h-12 animate-pulse rounded bg-[#11151A]" />)}</div>
-          ) : !prompts.length ? <p className="p-4 text-xs text-[#6B7380]">No prompts yet.</p>
+          ) : !prompts.length ? <PromptsEmptyNote />
           : !rows.length ? <p className="p-4 text-xs text-[#8B93A1]">No prompts match “{query.q}”. <button type="button" onClick={() => { setDraft(""); update({ q: "" }); }} className="text-[#8AB4FF] underline">Clear search</button></p>
           : (
             <ul className="grid gap-px p-2">

@@ -235,6 +235,8 @@ npx @uncoil.dev/sdk login
 
 Opens your browser so you can sign in (or create a free account), pick or create a project, and confirm the code shown in your terminal. The key is then saved to `.env.local` as `UNCOIL_API_KEY`, with `UNCOIL_PROJECT_ID` next to it (and `UNCOIL_REGION` for the US region). In a git repo the file is added to `.gitignore` if it is not already ignored. The key travels encrypted to your machine and is never printed. Options: `--region eu|us`, `--new <name>` (create a project with this name), `--no-browser` (only print the address and code), `--env-file <path>` and `--json`. Picking a project that already sends data replaces its key, and the browser asks you to confirm that first. Plain Node does not read `.env.local` by itself; run `node --env-file=.env.local app.js` or load it with dotenv.
 
+`npx @uncoil.dev/sdk <command>` runs the package's CLI directly. Once the package is installed, the same CLI is also available as `uncoil` and `uncoil-doctor`.
+
 `npx @uncoil.dev/sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
 
 ## Setup checker

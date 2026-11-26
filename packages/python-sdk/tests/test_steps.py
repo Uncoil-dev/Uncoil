@@ -6,8 +6,8 @@ from uncoil import UncoilClient
 
 
 class Recorder(UncoilClient):
-    def __init__(self):
-        super().__init__(api_key="uncoil_sk_live_eu_test")
+    def __init__(self, **options):
+        super().__init__(api_key="uncoil_sk_live_eu_test", **options)
         self.sent = []
 
     def _send_span(self, span):
@@ -42,6 +42,25 @@ def test_nested_steps_link_to_their_parent_and_root(client):
     assert spans["chat"]["inputTokens"] == 10 and spans["chat"]["outputTokens"] == 3
     assert {span["runId"] for span in client.sent} == {root["runId"]}
     assert spans["search"]["output"] == '["doc"]'
+
+
+def test_model_and_tool_calls_keep_client_defaults():
+    client = Recorder(session_id="s1", end_user_id="u1", environment="staging", release="v2", tags=["beta"])
+
+    @uncoil.trace_agent(client=client, name="answer")
+    def answer():
+        uncoil.llm_call("prompt", "reply", "claude", 0.01, 5, client=client, name="chat")
+        uncoil.tool_call("search", "q", "hits", 3, client=client)
+
+    answer()
+    spans = by_name(client.sent)
+    for step in (spans["chat"], spans["search"]):
+        assert step["sessionId"] == "s1"
+        assert step["endUserId"] == "u1"
+        assert step["environment"] == "staging"
+        assert step["release"] == "v2"
+        assert step["tags"] == ["beta"]
+        assert step["traceName"] == "answer"
 
 
 def test_failure_marks_step_and_root(client):
@@ -95,3 +114,13 @@ def test_payloads_are_redacted_and_capped(client):
     sent = client.sent[-1]
     assert "hunter2" not in sent["input"] and secret not in sent["input"] and "x" * 40 not in sent["input"]
     assert len(sent["output"]) < 10_100 and "truncated" in sent["output"]
+
+
+def test_run_id_falls_back_to_environment_outside_a_step(monkeypatch):
+    monkeypatch.setenv("UNCOIL_CURRENT_RUN_ID", "parent-run")
+    assert uncoil.current_run_id() == "parent-run"
+    assert uncoil.current_span_id() is None
+
+    monkeypatch.delenv("UNCOIL_CURRENT_RUN_ID")
+    assert uncoil.current_run_id() == "unknown"
+    assert uncoil.current_span_id() is None

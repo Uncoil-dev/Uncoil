@@ -1,5 +1,7 @@
 "use client";
 
+import { safeRelativePath } from "@/lib/navigation-context";
+
 let apiKey = "";
 const listeners = new Set<() => void>();
 const ONE_TIME_API_KEY_STORAGE_KEY = "uncoil.onboarding.apiKey";
@@ -43,9 +45,11 @@ const ONBOARDING_DISMISSED_STORAGE_KEY = "uncoil.onboarding.dismissed";
 
 export function setReturnPath(value: string) {
   if (typeof window !== "undefined") {
-    const normalizedValue = value.includes("/dashboard/no-project")
+    // `?from=` comes from the URL, so only in-app paths are kept.
+    const safeValue = safeRelativePath(value);
+    const normalizedValue = safeValue.includes("/dashboard/no-project")
       ? "/dashboard"
-      : value;
+      : safeValue;
     window.sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, normalizedValue);
     emit();
   }

@@ -1,3 +1,4 @@
+import { answers } from "@/lib/answers";
 import { getPublicDocs } from "@/lib/markdoc-docs";
 import { glossaryTerms } from "@/lib/glossary";
 import { getPublishedPosts } from "@/lib/markdoc-blog";
@@ -5,11 +6,12 @@ import { comparisons, integrationPages } from "@/lib/seo-pages";
 
 export const dynamic = "force-static";
 
-/** One plain-text file with Uncoil's public docs, glossary, comparisons and integrations, for AI assistants and AI search. */
+/** Uncoil's public docs and site pages as one plain-text file, for AI assistants and AI search. */
 export async function GET() {
   const posts = (await getPublishedPosts()).filter((post) => post.slug && post.slug !== "how-to-write-uncoil-blog-posts");
   const parts: string[] = [
     "# Uncoil (full text)\n\nUncoil is an observability and evaluation platform for AI agents. It records agent runs, model calls and tool calls as traces, tracks cost, tokens and latency, raises alerts, and runs evaluations. Traces can be sent with the TypeScript or Python SDK or over OpenTelemetry (OTLP HTTP). An EU region is available. Canonical site: https://www.uncoil.dev",
+    "## Answers\n" + answers.map((a) => `### ${a.question}\n${a.answer}\nhttps://www.uncoil.dev/answers/${a.slug}`).join("\n\n"),
     "## Glossary\n" + glossaryTerms.map((t) => `### ${t.term}\n${t.definition} ${t.expansion}\nhttps://www.uncoil.dev/glossary/${t.slug}`).join("\n\n"),
     "## Comparisons\n" + comparisons.map((c) => `### Uncoil vs ${c.name}\n${c.oneLine}\nPick ${c.name} if: ${c.pickThem.join("; ")}.\nPick Uncoil if: ${c.pickUncoil.join("; ")}.\nhttps://www.uncoil.dev/compare/${c.slug}`).join("\n\n"),
     "## Integrations\n" + integrationPages.map((p) => `### ${p.title}\n${p.answer}\nhttps://www.uncoil.dev/integrations/${p.slug}`).join("\n\n"),

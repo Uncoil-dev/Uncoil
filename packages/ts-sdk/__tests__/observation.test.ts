@@ -89,4 +89,19 @@ describe("observation", () => {
     const o = observation("openai", "m", "i", { client });
     expect(() => o.finish("x")).not.toThrow();
   });
+
+  it("warns about a missing key once across calls made without a client", async () => {
+    vi.resetModules();
+    vi.stubEnv("UNCOIL_API_KEY", "");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const fresh = await import("../src/integrations/observation");
+      for (let i = 0; i < 3; i++) fresh.observation("openai", "m", "hi", {}).finish("ok");
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(String(warn.mock.calls[0][0])).toContain("No Uncoil API key");
+    } finally {
+      warn.mockRestore();
+      vi.unstubAllEnvs();
+    }
+  });
 });

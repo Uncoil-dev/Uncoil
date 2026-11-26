@@ -73,6 +73,10 @@ function CompareChart({ metric, data }: { metric: Metric; data: Response }) {
   );
 }
 
+export function ComparisonEmptyRow({ loading }: { loading: boolean }) {
+  return <tr><td colSpan={4} className="px-4 py-6 text-[#6B7380]">{loading ? "Loading…" : "No runs in this time range yet. Send a trace or pick a longer range."}</td></tr>;
+}
+
 export function ComparisonsExplorer({ projectId }: { projectId: string }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -174,7 +178,7 @@ export function ComparisonsExplorer({ projectId }: { projectId: string }) {
                   <td className="px-4 py-2">{row.now}</td><td className="px-4 py-2 text-[#8B93A1]">{row.before}</td>
                   <td className={`px-4 py-2 ${row.change.tone}`}><span aria-hidden="true">{row.change.arrow} </span>{row.change.text}</td>
                 </tr>
-              )) : <tr><td colSpan={4} className="px-4 py-6 text-[#6B7380]">{loading ? "Loading…" : "No data yet."}</td></tr>}
+              )) : <ComparisonEmptyRow loading={loading} />}
             </tbody>
           </table>
         </section>

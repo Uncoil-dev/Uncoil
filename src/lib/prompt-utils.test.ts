@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compilePrompt, diffSummary, estimateTokens, extractVariables, lineDiff } from "./prompt-utils.ts";
+import { compilePrompt, decodePromptName, diffSummary, estimateTokens, extractVariables, lineDiff } from "./prompt-utils.ts";
 
 test("extractVariables keeps first-use order and drops duplicates", () => {
   assert.deepEqual(extractVariables("Hi {{ name }}, {{topic}} and {{name}} {{user.id}}"), ["name", "topic", "user.id"]);
@@ -27,4 +27,11 @@ test("lineDiff refuses huge inputs and estimateTokens rounds up", () => {
   assert.equal(lineDiff("x\n".repeat(2001), "y"), null);
   assert.equal(estimateTokens("abcde"), 2);
   assert.equal(estimateTokens(""), 0);
+});
+
+test("decodePromptName decodes URL names and rejects ones that cannot be decoded", () => {
+  assert.equal(decodePromptName("support%20triage"), "support triage");
+  assert.equal(decodePromptName("summarize-v2"), "summarize-v2");
+  assert.equal(decodePromptName("%E0%A4%A"), null);
+  assert.equal(decodePromptName("100%"), null);
 });

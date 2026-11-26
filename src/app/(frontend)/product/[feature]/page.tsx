@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { Fragment } from "react";
 import { FutureAction, FutureBand, FuturePage } from "@/components/marketing/future19-page";
 import { ProductPage, type ProductSlug } from "@/components/marketing/pages/product-page";
+import { productFeatureSlugs, type ProductFeatureSlug } from "@/lib/product-features";
 
 type Detail = { title: string; body: string };
 type FaqItem = { q: string; a: string };
@@ -267,14 +268,14 @@ const productFeatures = {
       { q: "Who uses an AI engineering lifecycle platform?", a: "AI product teams that need to coordinate debugging, prompt iteration, evaluation, experimentation, and release monitoring without rebuilding context at every stage." },
     ],
   },
-} as const satisfies Record<string, FeaturePage>;
+} as const satisfies Record<ProductFeatureSlug, FeaturePage>;
 
 type Feature = keyof typeof productFeatures;
 const redesigned = ["trace-viewer", "cost-dashboard", "tool-calls", "llm-calls", "failures", "evaluation-engine", "runtime-control", "reports"];
 const isNewProductPage = (s: string): s is ProductSlug => redesigned.includes(s);
 
 export function generateStaticParams() {
-  return Object.keys(productFeatures).map((feature) => ({ feature }));
+  return productFeatureSlugs.map((feature) => ({ feature }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ feature: string }> }): Promise<Metadata> {

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   UncoilClient,
   currentTraceContext,
+  defaultClient,
   currentRunId,
   integrationPayload,
   type SpanData,
@@ -39,7 +40,7 @@ export function observation(
   const runId = scope?.runId ?? (implicit ? randomUUID() : inheritedRun);
   const id = scope?.spanId ?? randomUUID(),
     rootId = implicit ? randomUUID() : undefined;
-  const client = options.client ?? context?.client ?? new UncoilClient();
+  const client = options.client ?? context?.client ?? defaultClient();
   const start = Date.now();
   let ended = false;
   const data: SpanData = {

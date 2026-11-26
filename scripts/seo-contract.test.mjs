@@ -14,6 +14,9 @@ for (const dir of ["onboarding", "dashboard", "(auth)", "cloud", "forgot-passwor
   });
 }
 
+// Thin utility pages that are reachable but should not rank.
+test("refer page is noindex", () => assert.match(read(`${app}/refer/page.tsx`), /\.\.\.noIndex\b/));
+
 // Public pages must use the shared helper so canonical, Open Graph and X card values stay complete.
 for (const file of ["changelog/page.tsx", "roadmap/page.tsx", "status/page.tsx", "privacy/page.tsx", "terms/page.tsx", "cookie-policy/page.tsx", "security/page.tsx", "contact/page.tsx", "integrations/page.tsx", "glossary/page.tsx", "blog/page.tsx", "docs/page.tsx", "pricing/layout.tsx", "product/[feature]/page.tsx", "use-cases/[slug]/page.tsx", "docs/[...slug]/page.tsx"]) {
   test(`${file} ships full social metadata`, () => assert.match(read(`${app}/${file}`), /pageMetadata\(/));
@@ -45,6 +48,26 @@ test("copy-paste examples never point at the bare domain, which redirects", () =
     assert.doesNotMatch(read(file), /https?:\/\/uncoil\.dev/, `${file} uses https://uncoil.dev, which redirects; use www.uncoil.dev or eu.cloud.uncoil.dev`);
   }
 });
+
+// A stock OTLP HTTP exporter reads only the standard OTEL_* variables and uses the
+// signal-specific traces endpoint exactly as given, so the snippet must name the full route.
+function otlpEnv(source) {
+  const block = source.match(/OTEL_EXPORTER_OTLP_[\s\S]*?(?=`)/)?.[0] ?? "";
+  return Object.fromEntries(block.split("\n").map((line) => line.replace(/^export /, "").split(/=(.*)/s).slice(0, 2)).filter(([key]) => key));
+}
+
+for (const file of ["src/components/marketing/company/code-tabs.tsx", "src/lib/seo-pages.ts"]) {
+  test(`${file} OpenTelemetry setup works with a stock OTLP HTTP exporter`, () => {
+    const source = read(file);
+    assert.doesNotMatch(source, /UNCOIL_OTLP/);
+    const env = otlpEnv(source);
+    assert.equal(new URL(env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).pathname, "/api/otel");
+    assert.equal(env.OTEL_EXPORTER_OTLP_PROTOCOL, "http/json");
+    const [name, value] = decodeURIComponent(env.OTEL_EXPORTER_OTLP_HEADERS).split(/=(.*)/s);
+    assert.equal(name, "Authorization");
+    assert.match(value, /^Bearer uncoil_sk_live_/);
+  });
+}
 
 test("old domain redirects keep the method for non-GET requests", () => {
   const proxy = read("src/proxy.ts");

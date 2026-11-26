@@ -14,6 +14,7 @@ import { FirstRunPanel } from "@/components/onboarding/first-run-panel";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { clearOneTimeApiKey, getOneTimeApiKey } from "@/lib/onboarding-client-state";
+import { latestAgentRun } from "@/lib/onboarding-runs";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
 const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
@@ -51,11 +52,8 @@ export function InstallStep() {
     api.agentRuns.listByProject,
     projectId ? { projectId: projectId as Id<"projects"> } : "skip",
   );
-  // The built-in test span is a real run, so it must never count as "your agent connected".
-  const realFirstRun = useMemo(
-    () => (recentRuns ?? []).filter((run) => !run.runId.startsWith("onboarding-")).at(-1) ?? null,
-    [recentRuns],
-  );
+  // The built-in test span and the SDK setup check are real runs, so they must never count as "your agent connected".
+  const realFirstRun = useMemo(() => latestAgentRun(recentRuns ?? []), [recentRuns]);
 
   // The page can be left open for a while. Count only until the run lands.
   useEffect(() => {

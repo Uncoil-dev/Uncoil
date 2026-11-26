@@ -20,7 +20,7 @@ const STEP_INFO: Record<StepId, { label: string; title: string; hint: string }> 
   method: { label: "Start", title: "How do you want to connect?", hint: "Both take about five minutes. Pick what suits you." },
   prompt: { label: "Paste", title: "Paste this into your coding agent", hint: "Claude Code, Cursor or Codex will install, wire up and send the first trace." },
   install: { label: "Install", title: "Install the library", hint: "One package, no config files." },
-  instrument: { label: "Instrument", title: "Instrument your agent", hint: "Wrap the function that runs your agent and record each model call." },
+  instrument: { label: "Instrument", title: "Instrument your agent", hint: "Put this at the top of your agent's main file. Every model call it makes is then recorded." },
   key: { label: "Add your key", title: "Add your key", hint: "Put it in your agent's environment. It is shown in full only once, at creation." },
   verify: { label: "First trace", title: "Run your agent once", hint: "Start your agent. This page updates by itself when the trace lands." },
 };
@@ -32,38 +32,31 @@ const BARS = [
   { name: "llm.chat", left: 60, width: 38 },
 ] as const;
 
-const SNIPPETS: Record<Lang, { install: string; code: string; file: string }> = {
+export const SNIPPETS: Record<Lang, { install: string; code: string; file: string }> = {
   python: {
     install: "pip install uncoil-sdk",
     file: "agent.py",
-    code: `from uncoil import trace_agent, llm_call
+    code: `import uncoil
 
-@trace_agent()
-async def run_my_agent():
-    llm_call(
-        input_data="What is Uncoil?",
-        output_data="Observability for AI agents.",
-        model_id="gpt-4o",
-        cost_usd=0.002,
-        latency_ms=450
-    )
-    return "Success"`,
+uncoil.init()  # reads UNCOIL_API_KEY, traces OpenAI, Anthropic and LangChain
+
+# Your agent code stays as it is. Run it once to send your first trace.
+# To record your own steps instead: https://www.uncoil.dev/docs/quickstart`,
   },
   typescript: {
     install: "npm install @uncoil.dev/sdk",
     file: "agent.ts",
-    code: `import { traceAgent, llmCall } from '@uncoil.dev/sdk';
+    code: `import { init } from "@uncoil.dev/sdk";
 
-const runAgent = traceAgent(async () => {
-  await llmCall({
-    input: "What is Uncoil?",
-    output: "Observability for AI agents.",
-    modelId: "gpt-4o",
-    costUsd: 0.002,
-    latencyMs: 450
-  });
-  return "Success";
-});`,
+const tracing = init(); // reads UNCOIL_API_KEY, traces OpenAI and Anthropic
+
+async function main() {
+  await tracing.ready; // once, before the first model call
+  // Your agent code, as it is today.
+}
+
+main(); // run it once to send your first trace
+// To record your own steps instead: https://www.uncoil.dev/docs/quickstart`,
   },
 };
 

@@ -1,9 +1,12 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { formatReport, runDoctor, type DoctorOptions } from "./doctor";
 import { loadUncoilEnv, runLogin, type LoginOptions } from "./login";
 
 const HELP = `Usage: uncoil login [options]
        uncoil doctor [options]
+       uncoil --version
 
 login   Sign in through your browser and save the API key for this folder.
 doctor  Check your API key, region and network, then send one test trace.
@@ -24,12 +27,19 @@ doctor options:
   --no-send         Skip the test trace
   --json            Print the result as JSON
   -h, --help        Show this help
+  -v, --version     Print the SDK version
 
 Exit code is 0 when everything passes, 1 when a check fails.`;
 
+/** The installed SDK version, read from the package's own package.json (one level above src/ and dist/). */
+export function sdkVersion(): string {
+  return (JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8")) as { version: string }).version;
+}
+
 /** Picks the command from the first argument. Doctor runs when there is none or only options. */
-export function parseCommand(argv: string[]): { command: "login" | "doctor"; args: string[] } | { error: string } {
+export function parseCommand(argv: string[]): { command: "login" | "doctor" | "version"; args: string[] } | { error: string } {
   const first = argv[0];
+  if (first === "--version" || first === "-v") return { command: "version", args: [] };
   if (first === "login" || first === "doctor") return { command: first, args: argv.slice(1) };
   if (first !== undefined && !first.startsWith("-")) return { error: `Unknown command "${first}". Use "login" or "doctor".` };
   return { command: "doctor", args: argv };
@@ -39,6 +49,7 @@ async function main(argv: string[]) {
   const parsed = parseCommand(argv);
   if ("error" in parsed) { console.error(parsed.error); return 2; }
   const { command, args } = parsed;
+  if (command === "version") { console.log(sdkVersion()); return 0; }
   const options: DoctorOptions & LoginOptions = {};
   let json = false;
   let newProject: string | undefined;

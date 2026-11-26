@@ -1,7 +1,6 @@
 import type { BillingInterval, PaidPlan } from "./billing-links.ts";
 
-// Single source of truth for the pricing and checkout pages.
-// The landing page's pricing teaser mirrors these numbers by hand; change them there too.
+// Single source of truth for the landing, pricing and checkout pages.
 export type PlanId = "free" | PaidPlan;
 
 export type Plan = {

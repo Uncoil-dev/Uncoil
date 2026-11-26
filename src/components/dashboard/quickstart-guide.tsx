@@ -82,7 +82,7 @@ function useCopy() {
 
 /** Where the last setup step leads: the run that just arrived, or the tracing list while waiting. */
 export function lastStepHref(projectId: string, runId?: string) {
-  return runId ? `/dashboard/${projectId}/runs/${encodeURIComponent(runId)}` : `/dashboard/${projectId}/tracing`;
+  return runId ? `/dashboard/${projectId}/tracing/${encodeURIComponent(runId)}` : `/dashboard/${projectId}/tracing`;
 }
 
 export function QuickstartGuide({ projectId, apiKey, embedded = false }: { projectId: string; apiKey?: string; embedded?: boolean }) {

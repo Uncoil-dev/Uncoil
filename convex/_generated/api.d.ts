@@ -30,6 +30,7 @@ import type * as dashboards from "../dashboards.js";
 import type * as datasets from "../datasets.js";
 import type * as deviceLogins from "../deviceLogins.js";
 import type * as evaluation from "../evaluation.js";
+import type * as errorGroups from "../errorGroups.js";
 import type * as evaluationEngine from "../evaluationEngine.js";
 import type * as evaluators from "../evaluators.js";
 import type * as experiments from "../experiments.js";
@@ -93,6 +94,7 @@ declare const fullApi: ApiFromModules<{
   datasets: typeof datasets;
   deviceLogins: typeof deviceLogins;
   evaluation: typeof evaluation;
+  errorGroups: typeof errorGroups;
   evaluationEngine: typeof evaluationEngine;
   evaluators: typeof evaluators;
   experiments: typeof experiments;

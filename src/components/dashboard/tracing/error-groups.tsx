@@ -5,7 +5,7 @@ import { compactNumber, formatTime, parseTime, relativeTime } from "./format";
 
 export type ErrorGroup = {
   id: string; tool: string; errorType: string; message: string; sample: string;
-  count: number; traces: number; firstSeen: string; lastSeen: string; sampleRunId?: string;
+  count: number; traces: number; firstSeen: string; lastSeen: string; sampleRunId?: string; resolved?: boolean; cameBack?: boolean;
 };
 export type ErrorGroups = { total: number; groups: ErrorGroup[] };
 

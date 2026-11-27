@@ -673,6 +673,10 @@ export type ErrorGroup = {
   count: number; traces: number; firstSeen: string; lastSeen: string;
   /** A trace that contains this error, used to open an example. */
   sampleRunId?: string;
+  /** Set when a member marked the group resolved and no newer error has appeared. */
+  resolved?: boolean;
+  /** Set when the group was resolved and the same error was seen again afterwards. */
+  cameBack?: boolean;
 };
 
 /** The 20 most frequent error groups among the steps of every trace matching the filters. */

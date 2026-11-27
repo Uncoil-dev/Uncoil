@@ -10,6 +10,7 @@ Every pull request description has a Changelog section: one ticked category and 
 - Very large step inputs and outputs (over 20,000 characters) open collapsed in the run view, with a preview and the size. Show all reveals the full text, and Copy still copies all of it.
 - The TypeScript and Python SDKs now fill in the release when none is set: from `UNCOIL_RELEASE`, then the commit variable of Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions or GitLab CI, then the local git commit. An explicit `release` option still wins.
 - Pro and Team plan cards, the in-app upgrade card and the usage banner now show the free trial: 7 days free, once per project.
+- New homepage, told as one example agent run: it fails at step 06, Uncoil walks it back to the step that caused it at step 04, and the page follows that run through your logs, the trace view, the fix, setup and pricing. The sign-in and sign-up pages share its pixel art. On phones, the menu is now a full-screen view of the site drawn as a trace.
 - New topics endpoint, `GET /api/projects/{projectId}/topics`, groups the traces matching the traces-list filters by what they were asked to do, with error rates and example traces. The public demo shows topics too.
 - Codex and OpenCode plugins send each finished coding-agent turn to Uncoil as a trace, with tool calls, token use and cost. Install steps are in the docs.
 - The pricing page calculator now links to the tracing bill calculator, which compares the monthly bill across tools for the same traffic.

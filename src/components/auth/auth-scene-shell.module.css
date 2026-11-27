@@ -1,0 +1,28 @@
+/* Presentation tweaks for the shared auth form inside the sign-in and sign-up scene shell only. */
+
+/* 16px inputs: easier to read, and phones do not zoom the page when a field is focused. */
+.form input {
+  font-size: 16px;
+}
+
+.form label {
+  font-size: 11px;
+}
+
+/* A clear ink focus ring on every control, on the cream background. */
+.form input:focus-visible,
+.form button:focus-visible,
+.form a:focus-visible {
+  outline: 2px solid #090909;
+  outline-offset: 2px;
+}
+
+/* Inputs sit on white so the fields read as fields against the cream panel. */
+.form input {
+  background-color: #fff;
+}
+
+/* Headings in mixed case, as on the homepage. */
+.form h2 {
+  text-transform: none;
+}

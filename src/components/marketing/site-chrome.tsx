@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import { LandingFooter } from "@/components/marketing/landing/landing-footer";
 import { LandingNav } from "@/components/marketing/landing/landing-nav";
+import { usesOverlayNav } from "@/lib/homepage";
 
 // The chat widget is closed until clicked, so it does not need to block page load.
 const SiteAssistant = dynamic(() => import("@/components/marketing/site-assistant").then((module) => module.SiteAssistant), { ssr: false });
@@ -19,7 +20,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   if (isDashboard || isPlayground || isOnboarding || isCheckout || isAuth || isCloudDirectory) return <>{children}</>;
 
-  if (pathname === "/") {
+  if (usesOverlayNav(pathname)) {
     return (
       <>
         <LandingNav />

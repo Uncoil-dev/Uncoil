@@ -70,7 +70,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 - **API keys:** HMAC-SHA256 with `UNCOIL_API_KEY_HASH_SECRET`. Prefix: `uncoil_sk_live_` (legacy `uncoil_sk_live_` accepted). Plaintext never stored server-side — shown once during onboarding.
 
 ## Conventions
-- **Design:** Marketing pages (`/`, `/pricing`, `/product/[feature]`, shared navbar/footer) use exactly three colors — cream/off-white (`#eceae3`) backgrounds, near-black (`#090909`) text/panels, and yellow (`#f4d44d`/`#fff4b5`) as the only accent. No navy, no rainbow accent system, no blue. 0px border-radius everywhere. Geist Pixel Square for logos/H1s, Geist Mono for UI/data, Geist Sans for prose. Tailwind v4 + shadcn/ui (`base-nova`). This is the current, intentional design — do not reintroduce a multi-color/navy "rebrand" system without the user explicitly asking for it (one was tried and reverted; see git history around commit 334ad09 for the exact revert point if this needs restoring again).
+- **Design:** Marketing pages (`/`, `/pricing`, `/product/[feature]`, shared navbar/footer) use exactly three colors — cream/off-white (`#eceae3`) backgrounds, near-black (`#090909`) text/panels, and yellow (`#f4d44d`/`#fff4b5`) as the only accent. No navy, no rainbow accent system, no blue. 0px border-radius everywhere. One owner-approved exception: red `#ff4d3d` marks the single failed step in the homepage story (and only that). The homepage and the sign-in pages draw their pixel art on one shared grid (`grid.ts`, `use-grid.ts`) and sprite set in `src/components/marketing/home/`; reuse those for new pixel scenes. Geist Pixel Square for logos/H1s, Geist Mono for UI/data, Geist Sans for prose. Tailwind v4 + shadcn/ui (`base-nova`). This is the current, intentional design — do not reintroduce a multi-color/navy "rebrand" system without the user explicitly asking for it (one was tried and reverted; see git history around commit 334ad09 for the exact revert point if this needs restoring again).
 - **Design quality bar (owner rule):** The landing page and Dissolve logo from PR #171 are the minimum standard for all visual work. Read `docs/design-quality-bar.md` before any design task; only work that matches or beats that benchmark may be proposed or merged.
 - **Design exploration workflow:** Never redesign or restyle marketing pages directly on `main`. Any new visual direction — palette change, new homepage layout, new component treatment — goes on its own branch with its own draft PR and Vercel preview link, so it can be reviewed live before anything touches production. Only merge a design PR when the user explicitly approves what they see in the preview. Multiple competing ideas can exist as separate open draft PRs at once; don't feel pressure to pick one before the user has seen previews of each.
 - **Dashboard pages:** Every live dashboard page follows `docs/dashboard-page-standard.md`; the Tracing page (`src/components/dashboard/tracing/`) is the reference implementation.
@@ -80,7 +80,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 
 ## Existing Pages
 ### Marketing (public)
-`/` — Landing (Hero → Problem → DebugStream → FirstTrace → WhatYouGet → UseCases → PricingTeaser → FinalCTA)
+`/` — Homepage, told as one example run (`src/components/marketing/home/`): Hero → Works with → Where it broke → Logs or Uncoil → Trace view → Fix → What you get → Setup → Price → FAQ → Note from the builder → Closing. The previous landing page (`src/components/marketing/landing/`) stays at the unlisted, noindex `/classic`; switching `/` back to it is the import in `src/app/(frontend)/page.tsx` plus `HOME_DESIGN` in `src/lib/homepage.ts` (a test keeps them in step).
 `/pricing` — Free/Pro/Team/Enterprise
 `/product/[feature]` — Feature pages with demos, setup code and FAQs (trace-viewer, cost-dashboard, tool-calls, llm-calls, failures, runtime-control, evaluation-engine)
 `/use-cases/[slug]` — Use case pages (research, support, automation, tool-calling)
@@ -105,7 +105,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 `/dashboard/[projectId]/quickstart` — Quickstart guide
 
 ### Auth / Onboarding
-`/sign-in`, `/sign-up` — Clerk auth pages
+`/sign-in`, `/sign-up` — Auth pages: the shared Better Auth form in `AuthSceneShell` (`src/components/auth/auth-scene-shell.tsx`), beside the homepage's pixel path. The other auth pages keep `AuthShell`.
 `/onboarding`, `/onboarding/project`, `/onboarding/api-key`, `/onboarding/install`, `/onboarding/waiting`, `/onboarding/success`
 
 ## Public product pages

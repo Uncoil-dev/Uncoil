@@ -4,7 +4,9 @@ The owner set this rule on 2026-10-15: the landing page rebuilt in PR #171 is th
 
 ## The benchmark
 
-The reference implementation is the landing page in `src/components/marketing/landing/`, plus the Dissolve logo (`src/components/brand/uncoil-mark.tsx`, `scripts/generate-logo.py`, `public/logos/dissolve/`). Before starting any design work, open that page locally, scroll the whole thing on desktop and phone, and compare your work against it side by side.
+The previous benchmark, the PR #171 landing page in `src/components/marketing/landing/`, stays viewable at `/classic` for comparison.
+
+The reference implementation is the homepage in `src/components/marketing/home/` (the sign-in and sign-up pages share its pixel grid and sprites), plus the Dissolve logo (`src/components/brand/uncoil-mark.tsx`, `scripts/generate-logo.py`, `public/logos/dissolve/`). Before starting any design work, open that page locally, scroll the whole thing on desktop and phone, and compare your work against it side by side.
 
 What makes it the bar:
 
@@ -12,7 +14,7 @@ What makes it the bar:
 - **Image-led.** Every section carries real visuals: dithered procedural artwork (`scripts/generate-landing-art.py`), product-like UI, diagrams. No section is just a heading over a paragraph.
 - **Motion with a purpose.** Scroll-driven sticky sections, clip-path reveals, a trace waterfall that plays as you scroll, a before/after slider that moves on its own. Motion explains the product; it is never decoration for its own sake.
 - **One coherent visual language.** The pixel/dither style runs through the logo, the art, the timeline bars and the favicon. New elements reuse that language instead of inventing a new one.
-- **Strict brand rules.** Three colors only (`#eceae3`, `#090909`, `#f4d44d`/`#fff4b5`), 0px radius, Geist Pixel Square / Geist Mono / Geist Sans. Text must stay readable: no yellow text on cream.
+- **Strict brand rules.** Three colors only (`#eceae3`, `#090909`, `#f4d44d`/`#fff4b5`), plus red `#ff4d3d` for the single failed step in the homepage story and nowhere else, 0px radius, Geist Pixel Square / Geist Mono / Geist Sans. Text must stay readable: no yellow text on cream.
 - **Finished details.** Works at phone width with no horizontal scroll, respects reduced motion, has no blocked clicks or overlapping elements, and passes lint and typecheck on changed files.
 
 ## Rules for every agent

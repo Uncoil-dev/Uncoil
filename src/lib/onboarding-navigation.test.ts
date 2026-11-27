@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearOneTimeApiKey, setOneTimeApiKey } from "@/lib/onboarding-client-state";
-import { continueSetupHref, getOnboardingHref } from "./onboarding-navigation";
+import { continueSetupHref, getOnboardingHref, getStoredOnboardingProjectId } from "./onboarding-navigation";
 
 function createStorage() {
   const data = new Map<string, string>();
@@ -105,5 +105,20 @@ describe("getOnboardingHref", () => {
   it("returns the project step when the last project is the sentinel", () => {
     local.setItem("uncoil.lastProjectId", "no-project");
     expect(getOnboardingHref()).toBe("/onboarding/project");
+  });
+
+  describe("getStoredOnboardingProjectId", () => {
+    it("uses the session project, then the last project", () => {
+      local.setItem("uncoil.lastProjectId", "proj_last");
+      expect(getStoredOnboardingProjectId()).toBe("proj_last");
+      session.setItem("uncoil.onboarding.projectId", "proj_session");
+      expect(getStoredOnboardingProjectId()).toBe("proj_session");
+    });
+
+    it("returns an empty id for the no-project sentinel or when nothing is stored", () => {
+      expect(getStoredOnboardingProjectId()).toBe("");
+      local.setItem("uncoil.lastProjectId", "no-project");
+      expect(getStoredOnboardingProjectId()).toBe("");
+    });
   });
 });

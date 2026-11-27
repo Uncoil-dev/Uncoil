@@ -15,20 +15,16 @@ Every pull request description has a Changelog section: one ticked category and 
 - Error groups have a Suggest a fix button. It opens an example trace with Ask AI ready to explain the likely cause and the change to make.
 - RSS feed for the changelog at /changelog/rss.xml.
 - New Pro and Team subscriptions start with a 7-day free trial. A card is added at checkout and is charged when the trial ends; each project gets one trial.
-- The pricing page calculator now links to the tracing bill calculator, which compares the monthly bill across tools for the same traffic.
-- New Pro and Team subscriptions start with a 7-day free trial. A card is added at checkout and is charged when the trial ends; each project gets one trial.
-- Error groups have a Suggest a fix button. It opens an example trace with Ask AI ready to explain the likely cause and the change to make.
 - Free projects get one email when they reach 80% of the month's spans. Refused requests at the monthly or daily limit now include a link to the plans.
 - Updated plan limits: Free is now 10,000 spans a month, 2,000 a day, 2 projects and 300 requests a minute.
 - Alerts, custom Ask AI questions and date ranges over 7 days are part of Pro.
-- Release-log and SharePoint discovery foundations.
 - New free tool: a tracing bill calculator that compares the monthly cost on Langfuse, LangSmith, Helicone and Uncoil for the same traffic.
 - New Switch to Uncoil guide for teams moving from Langfuse, LangSmith, Helicone or OpenTelemetry.
 - Agent health report: a one-off $79 report on cost, errors and slow steps, built from a file of runs, with ranked fixes, a private link and a print-ready PDF. See /health-report.
 - New free tool: prompt caching savings calculator.
 - New comparison pages: Uncoil vs Opik, AgentOps and Pydantic Logfire.
 - Landing page: a clickable sample weekly agent report (cost, errors, slow steps) that links into the public demo project, no sign-up needed.
-- New sign-up question: "What do you want to fix with Uncoil?" on the first-project step. It is optional, and the team reads the answers in the admin page under Goals.
+- New sign-up question: "What do you want to fix with Uncoil?" on the first-project step. It is optional.
 
 ### Fixes
 - The traces list topic filter is faster on repeat loads, and the list response now says when a topic was worked out from the newest traces only. The demo project's traces list respects the topic filter.
@@ -43,10 +39,10 @@ Every pull request description has a Changelog section: one ticked category and 
 - None.
 
 ### Security and operations
-- SharePoint exports exclude secrets, customer data, caches, worktrees, and scratch files.
+- None.
 
 ### Known limitations
-- Direct SharePoint synchronization requires Microsoft 365 access and a target site.
+- None.
 
 ### Deployment and rollback
 - No deployment or publication is associated with this unreleased entry.

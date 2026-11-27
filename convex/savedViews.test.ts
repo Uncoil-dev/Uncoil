@@ -58,9 +58,9 @@ test("project access is enforced for every operation", async () => {
     shared: true,
   });
   for (const user of [t, outsider]) {
-    await expect(
-      user.query(api.savedViews.list, { projectId }),
-    ).rejects.toThrow();
+    // Reads return nothing instead of throwing, so a page that mounts this query never crashes.
+    expect(await user.query(api.savedViews.list, { projectId })).toEqual([]);
+    expect(await user.query(api.savedViews.get, { projectId, id })).toBeNull();
     await expect(
       user.mutation(api.savedViews.save, { projectId, ...state }),
     ).rejects.toThrow();

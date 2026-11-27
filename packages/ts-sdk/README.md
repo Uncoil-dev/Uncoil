@@ -216,7 +216,7 @@ const uncoil = new UncoilClient({
 
 ### Keep message content out
 
-Set `UNCOIL_CAPTURE_CONTENT=false` (also `0`, `no` or `off`, any case) to record runs without any message text. Names, timings, token counts, cost, status and the error type are still sent; prompts, answers, tool inputs and outputs, error messages and feedback or score comments are not. Any other value, or no value, captures as before.
+Set `UNCOIL_CAPTURE_CONTENT=false` (also `0`, `no` or `off`, any case) to record runs without any message text. Names, timings, token counts, cost, status and the error type are still sent; prompts, answers, tool inputs and outputs, error messages and feedback or score comments, stack traces and text score values are not. Metadata you attach yourself is still sent. Any other value, or no value, captures as before.
 
 ```ts
 const client = new UncoilClient({ captureContent: false }); // overrides the environment variable

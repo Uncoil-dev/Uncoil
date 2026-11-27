@@ -114,4 +114,33 @@ describe("UNCOIL_CAPTURE_CONTENT", () => {
     expect(first.input).toContain(SECRET);
     expect(second.input).toBe("");
   });
+
+  it("does not send text score values or string thumb feedback, but keeps categories", async () => {
+    const client = make({ captureContent: false });
+    client.score("t1", "tone", SECRET);
+    client.feedback("t1", SECRET, { kind: "thumb" });
+    client.score("t1", "label", "good", { dataType: "categorical" });
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const bodies = sent.filter((r) => r.url.endsWith("/api/feedback")).map((r) => r.body);
+    expect(bodies).toHaveLength(3);
+    expect(JSON.stringify(bodies)).not.toContain(SECRET);
+    expect(bodies[2]).toMatchObject({ value: "good" });
+  });
+
+  it("does not send stack traces", async () => {
+    const client = make({ captureContent: false });
+    await client.ingest({ spanType: "error", toolName: "t", errorType: "Error", stackTrace: SECRET } as never);
+    await client.flush();
+    const [first] = spansSent();
+    expect(JSON.stringify(first)).not.toContain(SECRET);
+    expect(first).not.toHaveProperty("stackTrace");
+  });
+
+  it("an explicit captureContent: false beats the environment", async () => {
+    process.env.UNCOIL_CAPTURE_CONTENT = "true";
+    const client = make({ captureContent: false });
+    await client.ingest({ spanType: "llm_call", input: SECRET, output: SECRET, latencyMs: 1 });
+    await client.flush();
+    expect(JSON.stringify(spansSent())).not.toContain(SECRET);
+  });
 });

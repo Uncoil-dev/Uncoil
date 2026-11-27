@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { resolveSettingsTab } from "@/features/dashboard-workspace/settings-tabs";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
@@ -644,7 +645,7 @@ function SettingsSurface({ workspace, onReadOnly, onSave, dataPanel, tabPanels }
   ];
   const tabs = groups.flatMap((group) => group.items);
   const requestedTab = searchParams.get("tab");
-  const normalizedTab = requestedTab && tabs.includes(requestedTab) ? requestedTab : "General";
+  const normalizedTab = resolveSettingsTab(requestedTab, tabs);
   const [tab, setTab] = useState(normalizedTab);
   const [name, setName] = useState(workspace.project.name);
   const [saving, setSaving] = useState(false);

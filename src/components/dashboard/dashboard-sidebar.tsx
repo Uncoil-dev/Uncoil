@@ -229,7 +229,7 @@ export function DashboardSidebar({
                 icon: Settings2,
                 children: [
                   { title: "General", href: workspaceHref("settings") },
-                  { title: "Members", href: `${workspaceHref("settings")}?tab=members` },
+                  { title: "Members", href: `${workspaceHref("settings")}?tab=Members` },
                   { title: "API keys", href: workspaceHref("api-keys") },
                   { title: "Billing", href: workspaceHref("billing") },
                 ],

@@ -445,26 +445,6 @@ def tunnel():
     render(c, "nav-tunnel", px=3)
 
 
-# 15. RIDGES: stacked ridgelines for the footer
-def ridges():
-    w, h = 2000, 900
-    c = Canvas(w, h)
-    x = np.linspace(0, w, 4000)
-    for i in range(38):
-        base = 250 + i * 17
-        amp = 170 * np.exp(-((x - w * (0.35 + 0.3 * math.sin(i))) / 260) ** 2) + 50 * np.exp(-((x - w * 0.72) / 180) ** 2)
-        noise = sum(RNG.uniform(4, 14) * np.sin(x / RNG.uniform(20, 90) + RNG.uniform(0, 6)) for _ in range(4))
-        y = base - amp * (0.5 + 0.5 * math.sin(i * 0.35)) - noise * (amp / 200)
-        # hide the ridges behind this one (Joy Division style occlusion)
-        cols = np.clip(np.interp(np.arange(w), x, y), 0, h)
-        hidden = np.arange(h)[:, None] > cols[None, :] + 2
-        c.base[hidden] = 0
-        c.accent[hidden] = 0
-        c.splat(x, y, 0.9, "accent" if i == 21 else "base")
-    c.base, c.accent = glow(c.base, 1, 0.4, 3), glow(c.accent, 1, 1.2, 8)
-    render(c, "footer-ridges", px=3)
-
-
 # 16. STAIRS: four steps rising in isometric view, one lit, for the pricing page
 def pricing_stairs():
     w, h = 1800, 1000
@@ -524,7 +504,7 @@ def checkout_gate():
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     import sys
-    all_fns = (hero, capture, cost, failure, globe, horizon, uc_support, uc_research, uc_automation, uc_tools, logs_wall, map_flat, span_anatomy, tunnel, ridges, pricing_stairs, checkout_gate)
+    all_fns = (hero, capture, cost, failure, globe, horizon, uc_support, uc_research, uc_automation, uc_tools, logs_wall, map_flat, span_anatomy, tunnel, pricing_stairs, checkout_gate)
     # Pass function names to regenerate only those: python3 generate-landing-art.py pricing_stairs
     wanted = set(sys.argv[1:])
     for fn in all_fns:

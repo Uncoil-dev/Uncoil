@@ -241,7 +241,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                       onFocus={() => active && active !== name && open(null)}
                       aria-expanded={isOpen}
                       aria-controls="site-menu-panel"
-                      className={`group relative flex h-full items-center gap-2 whitespace-nowrap px-3.5 text-[11px] xl:px-5 ${mono} ${ring} ${isOpen ? "text-[#eceae3]" : "text-[#eceae3]/70 hover:text-[#eceae3]"}`}
+                      className={`group relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-[11px] xl:px-5 ${mono} ${ring} ${isOpen ? "text-[#eceae3]" : "text-[#eceae3]/70 hover:text-[#eceae3]"}`}
                     >
                       <span className={isHere ? "bg-[#f4d44d] px-1 text-[#090909]" : "text-[#f4d44d]"}>0{i + 1}</span>
                       {name}
@@ -259,7 +259,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                   onMouseEnter={() => open(null)}
                   onFocus={() => active && open(null)}
                   aria-current={here?.section === names.length ? "page" : undefined}
-                  className={`group relative flex h-full items-center gap-2 whitespace-nowrap px-3.5 text-[11px] text-[#eceae3]/70 hover:text-[#eceae3] xl:px-5 ${mono} ${ring}`}
+                  className={`group relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-[11px] text-[#eceae3]/70 hover:text-[#eceae3] xl:px-5 ${mono} ${ring}`}
                 >
                   <span className={here?.section === names.length ? "bg-[#f4d44d] px-1 text-[#090909]" : "text-[#f4d44d]"}>0{names.length + 1}</span>
                   {NAV_PRICING.label}
@@ -267,7 +267,8 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                 </Link>
               </li>
             </ul>
-            <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
+            {/* The margin keeps Pricing clear of Sign in: wider than the gap between two menu items. */}
+            <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-4">
               {session ? (
                 <Link href={appHref("/dashboard")} className={`hidden h-11 items-center bg-[#f4d44d] px-4 text-[10px] text-[#090909] hover:bg-[#fff4b5] sm:inline-flex ${mono} focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[#eceae3]`}>
                   Dashboard

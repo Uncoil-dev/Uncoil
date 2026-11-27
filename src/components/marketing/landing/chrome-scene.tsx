@@ -3,13 +3,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { snapCell, targetCell } from "@/components/marketing/home/grid";
 import { Px, drawScene } from "./phone-menu/pixel-art";
-import { deviceShift, lanePitch } from "./chrome-layout";
+import { SunTrack, deviceShift, lanePitch, restX, rowsBelow } from "./chrome-layout";
 
-export type Ruler = { ox: number; pitch: number; boards: boolean };
+export type Ruler = { ox: number; pitch: number; boards: boolean; scale?: number };
 
 type Props = {
   /** Scene height in cells. The ruler sits 12 cells above the bottom, with the boards under it. */
   rows: number;
+  /** Scene height when the ruler asks for boards and robot at twice the size (the boards then need more room). */
+  rows2?: number;
   /** Grow to the height the parent gives it (never under `rows`), adding sky above the ruler. */
   fill?: boolean;
   /** Pages on the ruler. */
@@ -51,11 +53,13 @@ const defaultRuler = (cells: number, pages: number): Ruler => {
  * number of device pixels, and the canvas nudged onto a whole device pixel. Under reduced motion
  * the robot stands still where it is going.
  */
-export function ChromeScene({ rows: minRows, fill = false, pages, marks, lit, target, ruler, armed = true, className = "" }: Props) {
+export function ChromeScene({ rows: minRows1, rows2, fill = false, pages, marks, lit, target, ruler, armed = true, className = "" }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const reduce = useReduced();
+  const sun = useRef(new SunTrack());
   const [size, setSize] = useState<{ cells: number; c: number; shift: number; ruler: Ruler; rows: number } | null>(null);
+  const minRows = size?.ruler.scale === 2 && rows2 ? rows2 : minRows1;
   const rows = size?.rows ?? minRows;
   const goal = armed || reduce ? target : 0;
   const live = useRef({ goal, lit, size, pages, marks, rows });
@@ -70,7 +74,7 @@ export function ChromeScene({ rows: minRows, fill = false, pages, marks, lit, ta
       const cells = Math.floor(el.clientWidth / c);
       if (!cells) return;
       const r = ruler ? ruler(cells, c, el) : defaultRuler(cells, pages);
-      const rows = fill ? Math.max(minRows, Math.floor(el.clientHeight / c)) : minRows;
+      const rows = fill ? Math.max(minRows1, Math.floor(el.clientHeight / c)) : r.scale === 2 && rows2 ? rows2 : minRows1;
       setSize({ cells, c, shift: deviceShift(el.getBoundingClientRect().left, dpr), ruler: r, rows });
     };
     measure();
@@ -85,7 +89,7 @@ export function ChromeScene({ rows: minRows, fill = false, pages, marks, lit, ta
       dpr.removeEventListener("change", measure);
       window.removeEventListener("resize", measure);
     };
-  }, [ruler, pages, fill, minRows]);
+  }, [ruler, pages, fill, minRows1, rows2]);
 
   useEffect(() => {
     const el = canvas.current;
@@ -118,11 +122,15 @@ export function ChromeScene({ rows: minRows, fill = false, pages, marks, lit, ta
       if (k === 1 && before !== w.pos && !reduce) w.hop = now;
       const hopT = w.hop < 0 ? 99 : (now - w.hop) / 60;
       const lift = reduce ? 0 : ([1, 2, 2, 1][Math.floor(hopT)] ?? 0);
+      const sc = s.ruler.scale ?? 1;
+      const horizon = H - rowsBelow(sc);
       drawScene(px, {
         pitch: s.ruler.pitch,
         pages: n,
         ox: s.ruler.ox,
-        ruler: H - 12,
+        ruler: horizon,
+        scale: sc,
+        sun: sun.current.update(now, s.cells, horizon, restX(s.ruler.ox, s.ruler.pitch, g, sc), sc, reduce),
         trail: true,
         pos: w.pos,
         frame: k < 1 ? Math.floor(w.dist / 2) % 4 : 0,
@@ -132,7 +140,7 @@ export function ChromeScene({ rows: minRows, fill = false, pages, marks, lit, ta
         boards: s.ruler.boards ? mk.map((at, i) => ({ at, n: i + 1, lit: l === i })) : [],
       });
       px.blit(ctx);
-      if (!reduce && (k < 1 || hopT < 4)) w.raf = requestAnimationFrame(frame);
+      if (!reduce && (k < 1 || hopT < 4 || sun.current.moving)) w.raf = requestAnimationFrame(frame);
     };
     if (reduce) {
       w.pos = goal;

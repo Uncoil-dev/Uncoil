@@ -43,7 +43,7 @@ function Caret({ open }: { open: boolean }) {
 /** One link: a cell-sized block lights beside it on hover and focus, like a step on the trace. */
 function FootLink({ label, href }: { label: string; href: string }) {
   return (
-    <Link href={href} className={`group flex items-center gap-3 py-1 text-sm text-[#eceae3]/70 transition-colors hover:text-[#eceae3] focus-visible:text-[#eceae3] ${row} ${ring}`}>
+    <Link href={href} className={`group flex items-center gap-3 py-1 text-sm md:gap-2 md:text-[13px] md:leading-4 xl:gap-3 xl:text-sm xl:leading-5 text-[#eceae3]/70 transition-colors hover:text-[#eceae3] focus-visible:text-[#eceae3] ${row} ${ring}`}>
       <span className="shrink-0 bg-[#eceae3]/20 group-hover:bg-[#f4d44d] group-focus-visible:bg-[#f4d44d]" style={{ width: "var(--c)", height: "var(--c)" }} aria-hidden="true" />
       <span className="min-w-0">{label}</span>
     </Link>
@@ -70,9 +70,9 @@ function GroupHead({ n, title, count, open, onToggle, id }: { n: number; title: 
           <Caret open={open} />
         </span>
       </button>
-      <p className={`hidden items-baseline justify-between gap-2 pb-3 text-[10px] text-[#eceae3]/55 md:flex ${mono}`}>
+      <p className={`hidden items-baseline justify-between gap-2 whitespace-nowrap pb-3 text-[10px] text-[#eceae3]/55 md:flex lg:max-xl:tracking-[0.06em] ${mono}`}>
         {label}
-        <span className="text-[#eceae3]/35">{count}</span>
+        <span className="text-[#eceae3]/35 lg:max-xl:hidden">{count}</span>
       </p>
     </>
   );
@@ -117,8 +117,8 @@ export function LandingFooter() {
     <footer className="relative isolate bg-[#090909] text-[#eceae3]" style={{ "--c": `${cell}px` } as CSSProperties}>
       <div className="mx-auto max-w-[1440px] px-5 pt-14 md:px-8 md:pt-20">
         {/* The primary action, then the monthly note. */}
-        <div className="grid grid-cols-[minmax(0,1fr)] border border-[#eceae3]/15 lg:grid-cols-[1.25fr_1fr]">
-          <div className="flex flex-col gap-6 p-6 md:p-10">
+        <div className="grid grid-cols-[minmax(0,1fr)] border border-[#eceae3]/15 md:grid-cols-[1.25fr_1fr]">
+          <div className="flex flex-col gap-6 p-6 md:p-8 lg:p-10">
             <p className={`${mono} text-[10px] text-[#f4d44d]`}>First trace in five minutes</p>
             <p className="font-pixel text-[clamp(2.5rem,7vw,4.75rem)] leading-[0.9] tracking-[-0.06em]">
               One map
@@ -134,7 +134,7 @@ export function LandingFooter() {
               </Link>
             </div>
           </div>
-          <div className="flex flex-col justify-end gap-4 border-t border-[#eceae3]/15 p-6 md:p-10 lg:border-l lg:border-t-0">
+          <div className="flex flex-col justify-end gap-4 border-t border-[#eceae3]/15 p-6 md:border-l md:border-t-0 md:p-8 lg:p-10">
             <p className={`${mono} text-[10px] text-[#eceae3]/55`}>The dispatch · monthly</p>
             <p className="max-w-sm text-lg leading-7 text-[#eceae3]/85 md:text-xl">Notes on debugging agents, plus what shipped. One email a month.</p>
             <div className="[&_form:focus-within]:border-[#f4d44d] [&_form>*]:min-h-11">
@@ -155,9 +155,9 @@ export function LandingFooter() {
               {groups.length + 1} groups · {totalLinks} pages
             </span>
           </div>
-          <ChromeScene rows={30} pages={groups.length} marks={MARKS} lit={lit} target={target} ruler={ruler} armed={seen} className="mt-2" />
+          <ChromeScene rows={30} rows2={57} pages={groups.length} marks={MARKS} lit={lit} target={target} ruler={ruler} armed={seen} className="mt-2" />
 
-          <div ref={sitemap} className="mt-4 grid border-b border-[#eceae3]/15 md:mt-8 md:grid-cols-3 md:gap-x-6 md:gap-y-12 md:border-b-0 xl:grid-cols-6">
+          <div ref={sitemap} className="mt-4 grid border-b border-[#eceae3]/15 md:mt-8 md:grid md:grid-cols-3 md:gap-x-4 md:gap-y-8 md:border-b-0 lg:grid-cols-6 lg:gap-y-0 xl:gap-x-6">
             {groups.map(([title, links], i) => (
               <div
                 key={title}
@@ -168,7 +168,7 @@ export function LandingFooter() {
                 onFocus={() => setLit(i)}
               >
                 <GroupHead n={i + 1} title={title} count={links.length} open={open === i} onToggle={() => toggle(i)} id={`footer-group-${i}`} />
-                <ul id={`footer-group-${i}`} className={`${open === i ? "grid" : "hidden"} pb-4 md:grid md:pb-0`}>
+                <ul id={`footer-group-${i}`} className={`${open === i ? "grid" : "hidden"} content-start pb-4 md:grid md:grid-cols-2 md:gap-x-3 md:pb-0 lg:grid-cols-1`}>
                   {links.map(([label, href]) => (
                     <li key={href}>
                       <FootLink label={label} href={href} />
@@ -179,9 +179,9 @@ export function LandingFooter() {
             ))}
           </div>
 
-          <div className="border-b border-[#eceae3]/15 md:mt-12 md:grid md:grid-cols-3 md:gap-x-6 md:border-b-0 md:border-t md:pt-8 xl:grid-cols-6">
+          <div className="border-b border-[#eceae3]/15 md:mt-8 md:border-b-0 md:border-t md:border-[#eceae3]/15 md:pt-6 lg:mt-12 lg:grid lg:grid-cols-6 lg:gap-x-4 lg:pt-8 xl:gap-x-6">
             <GroupHead n={groups.length + 1} title="Built for" count={useCases.length} open={open === groups.length} onToggle={() => toggle(groups.length)} id="footer-group-uses" />
-            <ul id="footer-group-uses" className={`${open === groups.length ? "grid" : "hidden"} grid-cols-2 gap-x-6 pb-4 md:col-span-2 md:grid md:pb-0 xl:col-span-5 xl:grid-cols-5 lg:grid-cols-3`}>
+            <ul id="footer-group-uses" className={`${open === groups.length ? "grid" : "hidden"} grid-cols-2 gap-x-6 pb-4 md:flex md:flex-wrap md:pb-0 lg:col-span-5`}>
               {useCases.map(([label, href]) => (
                 <li key={href}>
                   <FootLink label={label} href={href} />
@@ -192,21 +192,24 @@ export function LandingFooter() {
         </nav>
 
         {/* The fine print. The floating assistant button sits bottom right, so this row keeps
-            clear of that corner. */}
-        <div className="mt-14 grid gap-8 border-t border-[#eceae3]/15 pb-24 pt-8 md:mt-20 lg:grid-cols-[auto_1fr_auto] lg:items-end lg:gap-10 lg:pb-10 lg:pr-20">
-          <div className="grid gap-3">
-            <Link href="/" aria-label="Uncoil home" className={`flex h-11 w-fit items-center ${ring}`}>
+            clear of that corner. On wide screens the logo, the links and the button share one
+            centre line, with the notice under them. */}
+        <div className="mt-14 grid gap-8 border-t border-[#eceae3]/15 pb-24 pt-8 md:mt-16 md:grid-cols-[1fr_auto] md:gap-x-10 md:gap-y-4 lg:pb-10 lg:pr-20 xl:grid-cols-[auto_1fr_auto] xl:items-center">
+          <div className="grid gap-3 md:contents">
+            <Link href="/" aria-label="Uncoil home" className={`flex h-11 w-fit items-center md:col-start-1 md:row-start-1 ${ring}`}>
               <Image src="/logos/uncoil/uncoil-logo-crisp-on-dark.svg" alt="Uncoil" width={204} height={38} unoptimized className="block h-[38px] w-[204px] max-w-none" />
             </Link>
-            <p className={`${mono} text-[10px] text-[#eceae3]/60`}>© {year} Uncoil</p>
-            <p className="font-mono text-[11px] leading-5 text-[#eceae3]/60">
-              <span className="normal-case tracking-normal">
-                formerly Tracify – not affiliated with Tracify GmbH (
-                <a href="https://tracify.ai/" target="_blank" rel="noopener noreferrer" className="py-[15px] underline decoration-[#f4d44d]/60 underline-offset-2 hover:text-[#eceae3]">tracify.ai</a>)
-              </span>
-            </p>
+            <div className="grid gap-3 md:col-span-full md:row-start-3 md:flex md:flex-wrap md:items-baseline md:gap-x-6 md:gap-y-1 xl:row-start-2">
+              <p className={`${mono} text-[10px] text-[#eceae3]/60`}>© {year} Uncoil</p>
+              <p className="font-mono text-[11px] leading-5 text-[#eceae3]/60">
+                <span className="normal-case tracking-normal">
+                  formerly Tracify – not affiliated with Tracify GmbH (
+                  <a href="https://tracify.ai/" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center underline decoration-[#f4d44d]/60 underline-offset-2 hover:text-[#eceae3] lg:min-h-0">tracify.ai</a>)
+                </span>
+              </p>
+            </div>
           </div>
-          <ul className={`${mono} flex flex-wrap gap-x-6 text-[10px] text-[#eceae3]/65 lg:justify-end`}>
+          <ul className={`${mono} flex flex-wrap gap-x-6 text-[10px] text-[#eceae3]/65 md:col-span-2 md:row-start-2 xl:col-span-1 xl:col-start-2 xl:row-start-1 xl:justify-end`}>
             {[
               ["Where your data lives", "/security#data"],
               ["Delete anytime", "/security#deletion"],
@@ -227,7 +230,7 @@ export function LandingFooter() {
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}
-            className={`inline-flex h-11 w-fit items-center gap-2 whitespace-nowrap border border-[#eceae3]/30 px-4 text-[10px] hover:border-[#f4d44d] hover:bg-[#f4d44d] hover:text-[#090909] ${mono} ${ring}`}
+            className={`inline-flex h-11 w-fit items-center gap-2 whitespace-nowrap border border-[#eceae3]/30 px-4 text-[10px] hover:border-[#f4d44d] hover:bg-[#f4d44d] hover:text-[#090909] md:col-start-2 md:row-start-1 xl:col-start-3 ${mono} ${ring}`}
           >
             Back to top <ArrowUp className="size-3.5" aria-hidden="true" />
           </button>

@@ -99,35 +99,36 @@ const GLYPHS: Record<string, string> = {
 /** Number boards are 11x9: a one-cell rim, a one-cell margin and two 3x5 digits. */
 export const BOARD = { w: 11, h: 9 } as const;
 
-function board(px: Px, n: number, x: number, y: number, lit: boolean) {
-  px.rect(x, y, BOARD.w, BOARD.h, CREAM);
-  px.rect(x + 1, y + 1, BOARD.w - 2, BOARD.h - 2, lit ? YELLOW : INK);
+/** A board at `k` times its size, every part still a whole number of cells. */
+function board(px: Px, n: number, x: number, y: number, lit: boolean, k = 1) {
+  px.rect(x, y, BOARD.w * k, BOARD.h * k, CREAM);
+  px.rect(x + k, y + k, (BOARD.w - 2) * k, (BOARD.h - 2) * k, lit ? YELLOW : INK);
   [...String(n).padStart(2, "0")].forEach((ch, i) => {
     const g = GLYPHS[ch] ?? GLYPHS["0"];
-    for (let k = 0; k < 15; k++) if (g[k] === "1") px.set(x + 2 + i * 4 + (k % 3), y + 2 + Math.floor(k / 3), lit ? INK : CREAM);
+    for (let q = 0; q < 15; q++) if (g[q] === "1") px.rect(x + (2 + i * 4 + (q % 3)) * k, y + (2 + Math.floor(q / 3)) * k, k, k, lit ? INK : CREAM);
   });
   if (!lit) return;
   // The homepage marks the step that matters with yellow corner brackets, one cell out.
-  const [l, r, t, b] = [x - 2, x + BOARD.w + 1, y - 2, y + BOARD.h + 1];
+  const [l, r, t, b] = [x - 2 * k, x + (BOARD.w + 1) * k - k, y - 2 * k, y + (BOARD.h + 1) * k - k];
   for (const [cx, cy, sx, sy] of [[l, t, 1, 1], [r, t, -1, 1], [l, b, 1, -1], [r, b, -1, -1]] as const)
-    for (let k = 0; k < 3; k++) {
-      px.set(cx + sx * k, cy, YELLOW);
-      px.set(cx, cy + sy * k, YELLOW);
+    for (let q = 0; q < 3; q++) {
+      px.rect(cx + sx * q * k, cy, k, k, YELLOW);
+      px.rect(cx, cy + sy * q * k, k, k, YELLOW);
     }
 }
 
-/** The robot with a one-cell ink outline on its sides and top, so it reads in front of the sun. */
-function robot(px: Px, x: number, feet: number, frame: number, lift: number, antenna: boolean) {
+/** The robot with an outline on its sides and top, so it reads in front of the sky, at `k` times its size. */
+function robot(px: Px, x: number, feet: number, frame: number, lift: number, antenna: boolean, k = 1) {
   const rows = [...ROBOT_TOP, ...LEGS[frame % 4]];
-  const top = feet - rows.length + 1 - lift;
+  const top = feet - rows.length * k + 1 - lift * k;
   const at = (i: number, j: number) => j >= 0 && j < rows.length && i >= 0 && i < 10 && rows[j][i] !== ".";
   for (let j = 0; j < rows.length; j++)
     for (let i = 0; i < 10; i++) {
       if (!at(i, j)) continue;
-      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1]] as const) if (!at(i + dx, j + dy)) px.set(x - 5 + i + dx, top + j + dy, INK);
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1]] as const) if (!at(i + dx, j + dy)) px.rect(x - 5 * k + (i + dx) * k, top + (j + dy) * k, k, k, INK);
     }
-  px.sprite(rows, x - 5, top);
-  if (!antenna) px.set(x - 1, top, PALE);
+  rows.forEach((row, j) => [...row].forEach((ch, i) => ch in MAP && px.rect(x - 5 * k + i * k, top + j * k, k, k, MAP[ch])));
+  if (!antenna) px.rect(x - k, top, k, k, PALE);
 }
 
 /** A cream speech block with an ink tick, shown beside the robot's head after a copy. */
@@ -137,12 +138,9 @@ function tick(px: Px, x: number, y: number) {
   for (const [i, j] of [[2, 4], [3, 5], [4, 4], [5, 3], [6, 2]]) px.set(x + i, y + j, INK);
 }
 
-// ── The scene ────────────────────────────────────────────────────────────────────────────────
+import { standOffset, skyStars, type Box } from "../chrome-layout";
 
-const hash = (n: number, seed: number) => {
-  const s = Math.sin(n * 127.1 + seed * 311.7) * 43758.5453;
-  return s - Math.floor(s);
-};
+// ── The scene ────────────────────────────────────────────────────────────────────────────────
 
 export type SceneState = {
   /** Cells per page on the ruler, and how many pages the ruler shows. */
@@ -161,6 +159,10 @@ export type SceneState = {
   ox: number;
   /** Light the ruler behind the robot: off when the page is not on the trace. */
   trail: boolean;
+  /** The sun's centre column and radius, or none; see `placeSun`. */
+  sun: { cx: number; r: number } | null;
+  /** Boards and robot are drawn at this many times their size (1 or 2), on the same grid. */
+  scale?: number;
 };
 
 /**
@@ -170,44 +172,46 @@ export type SceneState = {
 export function drawScene(px: Px, s: SceneState) {
   const { w } = px;
   const R = s.ruler;
+  const k = s.scale ?? 1;
   const span = s.pitch * s.pages;
+  const o = s.ox;
   px.clear();
 
-  for (let i = 0; i < 9; i++) {
-    const x = Math.floor(hash(i, 3) * (w - 4)) + 2;
-    const y = Math.floor(hash(i, 7) * (R - 14)) + 2;
-    px.set(x, y, i % 4 === 1 ? PALE : CREAM);
-  }
+  const lit = Math.round(s.pos * s.pitch + standOffset(s.pitch, k));
+  const rx = o + lit;
 
-  // The homepage sun, setting at the far end of the timeline, cut by the horizon.
-  const r = Math.max(8, Math.min(14, R - 8));
-  const cx = w - r + 2;
-  for (let y = -r; y < 0; y++) {
-    const band = y > -r * 0.55 && (y + r) % 4 === 3 - Math.min(2, Math.floor((y + r * 0.55) / 3));
-    if (band) continue;
-    for (let x = -r; x <= r; x++) {
-      const d = Math.sqrt(x * x + y * y) / r;
-      if (d > 1) continue;
-      px.set(cx + x, R + y, d > 0.84 && dith(cx + x, R + y, 0.5) ? PALE : YELLOW);
+  // Stars stay out of the sun and out of the robot's column.
+  const avoid: Box[] = [{ x0: rx - 6 * k - 3, x1: rx + 6 * k + 3, y0: R - 15 * k - 3, y1: R }];
+  if (s.sun) avoid.push({ x0: s.sun.cx - s.sun.r - 2, x1: s.sun.cx + s.sun.r + 2, y0: R - s.sun.r - 2, y1: R });
+  for (const st of skyStars(w, R, avoid)) px.set(st.x, st.y, st.pale ? PALE : CREAM);
+
+  // The homepage sun, setting at one end of the timeline, cut by the horizon.
+  if (s.sun) {
+    const { cx, r } = s.sun;
+    for (let y = -r; y < 0; y++) {
+      const band = y > -r * 0.55 && (y + r) % 4 === 3 - Math.min(2, Math.floor((y + r * 0.55) / 3));
+      if (band) continue;
+      for (let x = -r; x <= r; x++) {
+        const d = Math.sqrt(x * x + y * y) / r;
+        if (d > 1) continue;
+        px.set(cx + x, R + y, d > 0.84 && dith(cx + x, R + y, 0.5) ? PALE : YELLOW);
+      }
     }
   }
 
   // Before the first page and past the last one the horizon is the homepage's dotted ground line.
-  const o = s.ox;
   for (let x = 0; x < o - 1; x += 2) px.set(x, R, CREAM);
   for (let x = o + span; x < w; x += 2) px.set(x, R, CREAM);
-  const lit = Math.round(s.pos * s.pitch + s.pitch / 2);
   px.rect(o, R, span - 1, 1, CREAM);
   if (s.trail) px.rect(o, R, Math.max(0, Math.min(span - 1, lit)), 1, YELLOW);
-  for (let k = 1; k < s.pages; k++) px.set(o + k * s.pitch - 1, R + 1, CREAM);
+  for (let q = 1; q < s.pages; q++) px.set(o + q * s.pitch - 1, R + 1, CREAM);
 
   for (const b of s.boards) {
     const x = o + b.at * s.pitch;
-    px.set(x + 5, R + 1, CREAM);
-    board(px, b.n, x, R + 2, b.lit);
+    px.rect(x + Math.floor((5.5 * k) - k / 2), R + 1, k, k, CREAM);
+    board(px, b.n, x, R + 1 + k, b.lit, k);
   }
 
-  const rx = o + lit;
-  robot(px, rx, R - 1, s.frame, s.lift, s.antenna);
+  robot(px, rx, R - 1, s.frame, s.lift, s.antenna, k);
   if (s.copied) tick(px, rx + 8 + 9 > w ? rx - 17 : rx + 8, R - ROBOT_H - 2 - s.lift);
 }

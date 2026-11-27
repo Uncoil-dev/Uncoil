@@ -7,6 +7,7 @@ import { ArrowRight, Check, Copy, X } from "lucide-react";
 import { appHref } from "@/lib/app-links";
 import { SETUP_PROMPT } from "../setup-prompt";
 import { CELL, Px, drawScene, snapCell, type SceneState } from "./pixel-art";
+import { SunTrack, restX } from "../chrome-layout";
 import { barCells, buildTrace, findHere, onLine, pitch, type Here } from "./trace";
 import s from "./phone-menu.module.css";
 
@@ -147,6 +148,7 @@ function Scene({ view, layout, here, target, copied, reduce, rows }: { view: Vie
   const canvas = useRef<HTMLCanvasElement>(null);
   const live = useRef({ view, here, target, copied, rows, layout });
   const motion = useRef({ pos: 0, from: 0, t0: 0, walk: 0, hop: -1, frame: 0 });
+  const sun = useRef(new SunTrack());
 
   useEffect(() => {
     const m = motion.current;
@@ -189,6 +191,7 @@ function Scene({ view, layout, here, target, copied, reduce, rows }: { view: Vie
         pages: v.len,
         ox: PAD,
         ruler: H - 12,
+        sun: sun.current.update(now, L.cells, H - 12, restX(PAD, sp, tg - v.start), 1, false),
         trail: hr !== null,
         pos: m.pos - v.start,
         frame: walking ? Math.floor(m.walk / 2) % 4 : 0,
@@ -221,6 +224,7 @@ function Scene({ view, layout, here, target, copied, reduce, rows }: { view: Vie
       pages: view.len,
       ox: PAD,
       ruler: rows - 12,
+      sun: new SunTrack().update(0, layout.cells, rows - 12, restX(PAD, view.len === N ? layout.sceneFull : layout.sceneZoom(view.len), target - view.start), 1, true),
       trail: here !== null,
       pos: target - view.start,
       frame: 0,

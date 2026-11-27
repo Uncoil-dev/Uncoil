@@ -121,3 +121,34 @@ describe("steps", () => {
     });
   });
 });
+
+describe("failed run link", () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+  const agent = (config: Record<string, unknown>, fail: boolean) => traceAgent(async () => {
+    await span("search_docs", () => { if (fail) throw new Error("404"); }, { type: "tool" });
+    return "ok";
+  }, { apiKey: "uncoil_sk_live_eu_test", projectId: "proj_1", name: "answer", ...config });
+  let bodies: Array<Record<string, unknown>> = [];
+  const lines = async (config: Record<string, unknown>, fail = true) => {
+    bodies = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init: { body: string }) => { bodies.push(JSON.parse(init.body)); return new Response("{}"); }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await agent(config, fail)().catch(() => {});
+    return warn.mock.calls.map((c) => String(c[0]));
+  };
+
+  it("prints one line naming the failing step with a link to the run", async () => {
+    const printed = await lines({});
+    expect(printed).toHaveLength(1);
+    const runId = bodies.find((b) => b.spanType === "error")?.runId;
+    expect(printed[0]).toBe(`Uncoil: run failed at step "search_docs" -> https://eu.cloud.uncoil.dev/dashboard/proj_1/tracing/${runId}`);
+  });
+
+  it("prints nothing for a passing run, in production, or when switched off", async () => {
+    expect(await lines({}, false)).toEqual([]);
+    expect(await lines({ failureLinks: false })).toEqual([]);
+    expect(await lines({ environment: "production" })).toEqual([]);
+    vi.stubEnv("NODE_ENV", "production");
+    expect(await lines({})).toEqual([]);
+  });
+});

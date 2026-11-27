@@ -35,6 +35,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CancelRunButton } from "./cancel-run-button";
 import { ShareTraceButton } from "./share-trace-button";
 import { ScoreRunButton } from "./scores/score-run-button";
+import { HighlightedText, SpanSearch } from "./span-search";
 import { RunNotes } from "./run-notes";
 import { CollapsiblePayload } from "./collapsible-payload";
 import { useNow } from "@/hooks/use-now";
@@ -290,9 +291,15 @@ export function TraceViewer({ projectId, runId }: TraceViewerProps) {
           <NoStepsNotice />
         ) : null}
 
-        {safeSpans.map((span, index) => (
-          <SpanCard key={span.spanId} span={span} index={index} projectId={projectId} replayActive={index === activeReplayIndex} onSelect={() => selectSpan(index)} />
-        ))}
+        <SpanSearch spans={safeSpans}>
+          {({ query, visible, activeId }) =>
+            safeSpans.map((span, index) =>
+              visible.has(span.spanId) ? (
+                <SpanCard key={span.spanId} span={span} index={index} projectId={projectId} replayActive={index === activeReplayIndex} onSelect={() => selectSpan(index)} search={query} searchActive={span.spanId === activeId} />
+              ) : null,
+            )
+          }
+        </SpanSearch>
         
         {run.status === "running" && (
           <div className="relative flex items-center gap-4 text-black/55">
@@ -622,7 +629,7 @@ function SummaryList({
   );
 }
 
-function SpanCard({ span, index, projectId, replayActive, onSelect }: { span: SpanRow, index: number, projectId: string, replayActive?: boolean; onSelect?: () => void }) {
+function SpanCard({ span, index, projectId, replayActive, onSelect, search = "", searchActive }: { span: SpanRow, index: number, projectId: string, replayActive?: boolean; onSelect?: () => void; search?: string; searchActive?: boolean }) {
   const [isExpanded, setIsExpanded] = useState(index === 0 || span.spanType === "error");
   const [commentContent, setCommentContent] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
@@ -686,6 +693,7 @@ function SpanCard({ span, index, projectId, replayActive, onSelect }: { span: Sp
       {/* Card */}
       <div className={cn(
         "border transition-all duration-200",
+        searchActive && "outline outline-2 outline-[#f4d44d]",
         replayActive ? "border-black bg-black/5 shadow-lg" : isExpanded ? "border-black/25 bg-muted/20 shadow-lg" : "border-border bg-transparent hover:border-black/25 hover:bg-muted/5"
       )}>
         <button 
@@ -699,7 +707,7 @@ function SpanCard({ span, index, projectId, replayActive, onSelect }: { span: Sp
               {span.spanType.replace("_", " ")}
             </Badge>
             <div className="truncate font-mono text-xs text-black max-w-[200px] md:max-w-md">
-              {span.modelId || span.toolName || "Processing..."}
+              {span.modelId || span.toolName ? <HighlightedText text={span.modelId || span.toolName} query={search} /> : "Processing..."}
             </div>
             {span.retryCount > 0 ? <Badge variant="outline" className="rounded-none border-amber-400/40 px-1.5 font-mono text-[9px] text-amber-300">retry ×{span.retryCount}</Badge> : null}
             {span.errorType || span.errorMessage || span.stackTrace ? <Badge variant="outline" className="rounded-none border-red-400/40 px-1.5 font-mono text-[9px] text-red-300">error</Badge> : null}

@@ -248,6 +248,14 @@ Opens your browser so you can sign in (or create a free account), pick or create
 
 `npx @uncoil.dev/sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
 
+## Project check
+
+```bash
+npx @uncoil.dev/sdk init
+```
+
+Looks at the `package.json` in the current folder and prints one line: the language, the framework (Next.js, Vite or plain Node), the package manager, the model libraries it found (OpenAI, Anthropic, Vercel AI SDK, LangChain) and the file where tracing should start, e.g. `Found: TypeScript · Next.js · pnpm · OpenAI · tracing goes in src/instrumentation.ts (new file)`. It does not change any file. Add `--json` for machine-readable output.
+
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:

@@ -89,3 +89,15 @@ export function subscribeToOneTimeApiKey(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
+
+/**
+ * Whole seconds between account creation and `now`, so activation can be
+ * measured from sign-up rather than from opening the install step.
+ * Returns null when the creation time is missing, unreadable or in the future.
+ */
+export function secondsSinceSignup(createdAt: Date | string | number | null | undefined, now = Date.now()) {
+  if (createdAt == null) return null;
+  const created = new Date(createdAt).getTime();
+  if (!Number.isFinite(created) || created > now) return null;
+  return Math.floor((now - created) / 1000);
+}

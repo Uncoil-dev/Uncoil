@@ -7,6 +7,7 @@ import {
   getReturnPath,
   hasDismissedOnboarding,
   hasOneTimeApiKey,
+  secondsSinceSignup,
   setOneTimeApiKey,
   setReturnPath,
   subscribeToOneTimeApiKey,
@@ -151,6 +152,21 @@ describe("onboarding client state", () => {
     it("returns false without window", () => {
       vi.stubGlobal("window", undefined);
       expect(hasDismissedOnboarding()).toBe(false);
+    });
+  });
+
+  describe("secondsSinceSignup", () => {
+    const now = Date.parse("2026-11-26T12:10:00Z");
+
+    it("counts whole seconds from the account creation time", () => {
+      expect(secondsSinceSignup(new Date("2026-11-26T12:00:00Z"), now)).toBe(600);
+      expect(secondsSinceSignup("2026-11-26T12:09:59.400Z", now)).toBe(0);
+    });
+
+    it("returns null when the creation time is missing, invalid or in the future", () => {
+      expect(secondsSinceSignup(undefined, now)).toBeNull();
+      expect(secondsSinceSignup("not a date", now)).toBeNull();
+      expect(secondsSinceSignup(new Date(now + 5_000), now)).toBeNull();
     });
   });
 });

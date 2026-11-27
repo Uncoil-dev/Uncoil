@@ -13,7 +13,7 @@ import { FirstRunPanel } from "@/components/onboarding/first-run-panel";
 import { WaitingLinks } from "@/components/onboarding/waiting-links";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
-import { clearOneTimeApiKey, getOneTimeApiKey } from "@/lib/onboarding-client-state";
+import { clearOneTimeApiKey, getOneTimeApiKey, secondsSinceSignup } from "@/lib/onboarding-client-state";
 import { latestAgentRun } from "@/lib/onboarding-runs";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 import { setTemporaryTitle } from "@/lib/document-title";
@@ -77,10 +77,11 @@ export function InstallStep() {
     }
     captureAnalytics("first_trace_received", {
       elapsed_seconds: elapsed,
+      seconds_since_signup: secondsSinceSignup(session?.user.createdAt),
       source: probeState === "accepted" ? "onboarding_probe" : "agent",
       region: region.id,
     });
-  }, [elapsed, onboardingState, projectId, realFirstRun, probeState, region.id, session?.user.email, session?.user.name, updateProgress]);
+  }, [elapsed, onboardingState, projectId, realFirstRun, probeState, region.id, session?.user.createdAt, session?.user.email, session?.user.name, updateProgress]);
 
   // Tell the server we reached this step, so the dashboard can send people back here.
   const savedStep = useRef(false);

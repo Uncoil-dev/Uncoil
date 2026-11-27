@@ -146,7 +146,7 @@ graph.invoke(inputs, config={"callbacks": [uncoil.langgraph_callback()]})
 ```
 
 Wrap sync or async clients once. Supported: OpenAI chat completions and Responses `create` APIs,
-including streams; Anthropic messages `create`/`stream` and beta equivalents, including sync/async
+including streams; OpenAI `embeddings.create` as a retrieval step (token usage and the number of vectors, not the vectors); Anthropic messages `create`/`stream` and beta equivalents, including sync/async
 context managers, text streams and final messages. Close streams when stopping early. Raw response
 resources and unsupported convenience methods are passed through without instrumentation. A model call that stopped at its token limit (OpenAI `finish_reason="length"`, Anthropic `stop_reason="max_tokens"`) gets the tag `truncated`.
 

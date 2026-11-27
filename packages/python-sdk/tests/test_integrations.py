@@ -135,3 +135,15 @@ def test_cut_off_answers_are_tagged_truncated():
     uncoil.wrap_openai(full,client=recorder).chat.completions.create(model='test-model',messages=[])
     assert [s['tags'] for s in llms(recorder)]==[['prod','truncated'],['prod','truncated'],['prod']]
     for raw in (chat,message,full): raw.close()
+
+def test_openai_embeddings_are_recorded_as_one_retrieval_span_without_vectors():
+    recorder=Recorder()
+    body=dict(object='list',model='text-embedding-3-small',data=[dict(object='embedding',index=0,embedding=[0.25]*8)],usage=dict(prompt_tokens=5,total_tokens=5))
+    raw=OpenAI(api_key='test',http_client=httpx.Client(transport=transport(body)))
+    with uncoil.span('agent',type='agent',client=recorder):
+        result=uncoil.wrap_openai(raw,client=recorder).embeddings.create(model='text-embedding-3-small',input='refund policy')
+    assert len(result.data[0].embedding)==8
+    span,=[s for s in recorder.sent if s['spanType']=='retrieval']
+    assert span['input']=='refund policy' and span['modelId']=='text-embedding-3-small' and span['inputTokens']==5
+    assert '0.25' not in json.dumps(span['output'])
+    raw.close()

@@ -15,6 +15,7 @@ import {
   stepRowLabel,
   stepKind,
   toCsv,
+  traceRowLabel,
 } from "./format.ts";
 
 test("formatDuration: zero, negative and invalid values collapse to 0 ms", () => {
@@ -164,4 +165,10 @@ test("stepKind: maps aliases, lowercases and tolerates empty input", () => {
   assert.equal(stepKind("retriever"), "retriever");
   assert.equal(stepKind(""), "");
   assert.equal(stepKind(undefined as unknown as string), "");
+});
+
+test("traceRowLabel: names the trace, its status and its start time for screen readers", () => {
+  const started = "2026-11-20T10:15:00Z";
+  assert.equal(traceRowLabel({ traceName: "checkout agent", runId: "run_1", errorCount: 0, startedAt: started }), `checkout agent, succeeded, ${formatTime(started)}`);
+  assert.equal(traceRowLabel({ traceName: "", runId: "run_abcdefghijklmnop", errorCount: 2, startedAt: started }), `run_abcdefgh, failed, ${formatTime(started)}`);
 });

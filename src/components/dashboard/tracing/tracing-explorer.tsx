@@ -20,7 +20,7 @@ import { TraceCharts, TracesOverTime, type ChartBucket } from "./trace-charts";
 import { ErrorGroupsPanel, errorGroupLabel, fixQuestion, type ErrorGroups } from "./error-groups";
 import { FACETS, FacetGroup, decodeValues, encodeValues, type FacetCounts } from "./facet-filter";
 import { TRACE_VIEWS, TracePanel, type TraceView } from "./trace-panel";
-import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime } from "./format";
+import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime, traceRowLabel } from "./format";
 import { EmptyNotice } from "../empty/empty-notice";
 import { loadErrorMessage, readJson } from "@/lib/safe-json";
 
@@ -453,9 +453,15 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
                 </thead>
                 <tbody className={loading ? "opacity-60" : ""}>
                   {rows.map((row) => (
-                    <tr key={row.runId} aria-selected={selected === row.runId}
+                    <tr key={row.runId} aria-selected={selected === row.runId} tabIndex={0} aria-label={traceRowLabel(row)}
                       className={`cursor-pointer transition-colors duration-700 ${selected === row.runId ? "bg-[#161B22] shadow-[inset_3px_0_0_#F4D44D]" : fresh.has(row.runId) ? "bg-[#1F2A1F]" : Number(row.errorCount) > 0 ? "bg-[#1A1012] shadow-[inset_3px_0_0_#FF8A8A] hover:bg-[#241518]" : "hover:bg-[#12161C]"}`}
-                      onClick={() => update({ trace: row.runId }, false)}>
+                      onClick={() => update({ trace: row.runId }, false)}
+                      onKeyDown={(event) => {
+                        // Enter or Space on the row itself opens it; keys on links and buttons inside the row keep their own action.
+                        if (event.target !== event.currentTarget || (event.key !== "Enter" && event.key !== " ")) return;
+                        event.preventDefault();
+                        update({ trace: row.runId }, false);
+                      }}>
                       {columns.map((id) => <td key={id} className="max-w-[320px] truncate border-b border-[#171B21] px-2.5 py-1.5 align-middle">{cell(id, row, update, clock, feedback, projectId, costScale)}</td>)}
                     </tr>
                   ))}

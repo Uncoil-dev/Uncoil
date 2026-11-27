@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatCost } from "@/components/dashboard/tracing/format";
 
 type ArrivedRun = {
   runId: string;
@@ -12,6 +13,15 @@ type ArrivedRun = {
 
 function clock(seconds: number) {
   return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+/** The three facts shown for an arrived run; cost stands in when no model was recorded. */
+export function firstRunStats(run: ArrivedRun): Array<[string, string]> {
+  return [
+    ["Spans", String(run.spanCount)],
+    ["Status", run.status],
+    run.primaryModel ? ["Model", run.primaryModel] : ["Cost", formatCost(run.totalCostUsd)],
+  ];
 }
 
 /** Hints get more specific the longer the wait lasts. */
@@ -48,11 +58,7 @@ export function FirstRunPanel({
           </div>
         </div>
         <dl className="mt-5 grid grid-cols-3 gap-px border border-[#050505] bg-[#050505]">
-          {[
-            ["Spans", String(run.spanCount)],
-            ["Status", run.status],
-            ["Model", run.primaryModel ?? "none"],
-          ].map(([label, value]) => (
+          {firstRunStats(run).map(([label, value]) => (
             <div key={label} className="min-w-0 bg-[#090909] px-3 py-2.5">
               <dt style={{ color: "rgba(236,234,227,.55)" }} className="font-mono text-[9px] uppercase tracking-[0.14em]">{label}</dt>
               <dd style={{ color: "#f4d44d" }} className="mt-1 truncate font-mono text-[12px]">{value}</dd>

@@ -12,6 +12,7 @@ import re
 import contextlib
 import contextvars
 from datetime import datetime, timezone
+from .release import resolve_release
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -353,7 +354,7 @@ class UncoilClient:
         if key_region and host_region and key_region != host_region:
             raise UncoilError("region_mismatch", f"Uncoil API key region mismatch: this key belongs to {key_region.upper()}, but the client is configured for {host_region.upper()}.", f"Set region='{key_region}' (or UNCOIL_REGION={key_region}), or create a key in the {host_region.upper()} region.")
         self.project_id = project_id or (os.environ.get("UNCOIL_PROJECT_ID") or "").strip() or None
-        self.release = release
+        self.release = resolve_release(release)
         self.environment = environment
         self.deployment_id = deployment_id
         self.session_id = session_id

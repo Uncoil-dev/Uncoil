@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, BookOpen, Check, Copy } from "lucide-react";
 
@@ -81,7 +81,9 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
   const firstRun = useMemo(() => (runs ?? []).filter((run) => !run.runId.startsWith("onboarding-")).at(-1) ?? null, [runs]);
   const arrived = Boolean(firstRun);
 
-  const [lang, setLang] = useState<Lang>("python");
+  const updateProgress = useMutation(api.projects.updateOnboardingProgress);
+  const [pickedLang, setPickedLang] = useState<Lang | null>(null);
+  const lang: Lang = pickedLang ?? project?.onboardingSdk ?? "python";
   const [mode, setMode] = useState<"agent" | "manual">("agent");
   const [step, setStep] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -102,6 +104,10 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
   const keyLine = `UNCOIL_API_KEY=${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}\nUNCOIL_REGION=${region.id}`;
   const envCopy = `UNCOIL_API_KEY=${apiKey || "YOUR_API_KEY"}\nUNCOIL_REGION=${region.id}`;
   const agentPrompt = `Set up Uncoil tracing in this project.\n\n1. Install: ${snippet.install}\n2. Wrap the main agent function with the Uncoil tracing helper and record each model call.\n3. Read UNCOIL_API_KEY and UNCOIL_REGION=${region.id} from the environment. Never print or commit the key.\n4. Run the agent once and tell me where to see the trace.`;
+  function pickLang(value: Lang) {
+    setPickedLang(value);
+    if (projectId) void updateProgress({ projectId: projectId as Id<"projects">, sdk: value }).catch(() => undefined);
+  }
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const ss = String(elapsed % 60).padStart(2, "0");
 
@@ -149,7 +155,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
                   </div>
                   <div role="tablist" aria-label="Language" className="inline-flex gap-1 border border-[#333] bg-[#0c0c0c] p-1">
                     {(["python", "typescript"] as const).map((value) => (
-                      <button key={value} type="button" role="tab" aria-selected={lang === value} onClick={() => setLang(value)} className={`h-9 px-5 font-mono text-[11px] uppercase tracking-widest transition-colors ${lang === value ? "bg-[#f4f3ee] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{value}</button>
+                      <button key={value} type="button" role="tab" aria-selected={lang === value} onClick={() => pickLang(value)} className={`h-9 px-5 font-mono text-[11px] uppercase tracking-widest transition-colors ${lang === value ? "bg-[#f4f3ee] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{value}</button>
                     ))}
                   </div>
                 </div>

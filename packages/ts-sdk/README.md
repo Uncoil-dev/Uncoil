@@ -269,6 +269,11 @@ npx @uncoil.dev/sdk init
 
 Looks at the `package.json` in the current folder and prints one line: the language, the framework (Next.js, Vite or plain Node), the package manager, the model libraries it found (OpenAI, Anthropic, Vercel AI SDK, LangChain) and the file where tracing should start, e.g. `Found: TypeScript · Next.js · pnpm · OpenAI · tracing goes in src/instrumentation.ts (new file)`. It does not change any file. Add `--json` for machine-readable output.
 
+### Topics
+
+`npx @uncoil.dev/sdk topics` lists what your traces are about: topic names, counts, error rates and sample trace ids. It reads `UNCOIL_API_KEY` like `doctor` and accepts `--key`, `--region`, `--host` and `--json`. The same data is available read-only over HTTP: `GET /api/sdk/topics` with `Authorization: Bearer <api key>` returns `{ total, sampled, topics }` and accepts the same filter query parameters as the trace list.
+
+
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:

@@ -25,7 +25,7 @@ describe("CLI command parsing", () => {
   });
 
   it("rejects an unknown command instead of treating it as an option", () => {
-    expect(parseCommand(["logn"])).toEqual({ error: 'Unknown command "logn". Use "init", "login" or "doctor".' });
+    expect(parseCommand(["logn"])).toEqual({ error: 'Unknown command "logn". Use "init", "login", "doctor" or "topics".' });
   });
 
   it("runs doctor with no arguments or only options", () => {

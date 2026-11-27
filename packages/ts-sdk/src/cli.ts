@@ -2,17 +2,20 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { formatReport, runDoctor, type DoctorOptions } from "./doctor";
+import { fetchTopics, formatTopics } from "./topics";
 import { detectProject, formatProject } from "./init/detect";
 import { loadUncoilEnv, runLogin, type LoginOptions } from "./login";
 
 const HELP = `Usage: uncoil init [options]
        uncoil login [options]
        uncoil doctor [options]
+       uncoil topics [options]
        uncoil --version
 
 init    Look at this project and say where tracing goes. Changes no files yet.
 login   Sign in through your browser and save the API key for this folder.
 doctor  Check your API key, region and network, then send one test trace.
+topics  List what your traces are about: topic names, counts and sample trace ids.
 
 login options:
   --region <eu|us>    Data region (default: UNCOIL_REGION, else eu)
@@ -29,6 +32,13 @@ doctor options:
   --host <url>      Custom host (default: UNCOIL_HOST)
   --no-send         Skip the test trace
   --json            Print the result as JSON
+
+topics options:
+  --key <key>       API key (default: UNCOIL_API_KEY)
+  --region <eu|us>  Data region (default: from the key)
+  --host <url>      Custom host (default: UNCOIL_HOST)
+  --json            Print the result as JSON
+
   -h, --help        Show this help
   -v, --version     Print the SDK version
 
@@ -40,11 +50,11 @@ export function sdkVersion(): string {
 }
 
 /** Picks the command from the first argument. Doctor runs when there is none or only options. */
-export function parseCommand(argv: string[]): { command: "init" | "login" | "doctor" | "version"; args: string[] } | { error: string } {
+export function parseCommand(argv: string[]): { command: "init" | "login" | "doctor" | "topics" | "version"; args: string[] } | { error: string } {
   const first = argv[0];
   if (first === "--version" || first === "-v") return { command: "version", args: [] };
-  if (first === "init" || first === "login" || first === "doctor") return { command: first, args: argv.slice(1) };
-  if (first !== undefined && !first.startsWith("-")) return { error: `Unknown command "${first}". Use "init", "login" or "doctor".` };
+  if (first === "init" || first === "login" || first === "doctor" || first === "topics") return { command: first, args: argv.slice(1) };
+  if (first !== undefined && !first.startsWith("-")) return { error: `Unknown command "${first}". Use "init", "login", "doctor" or "topics".` };
   return { command: "doctor", args: argv };
 }
 
@@ -64,7 +74,7 @@ async function main(argv: string[]) {
       return next;
     };
     if (arg === "-h" || arg === "--help") { console.log(HELP); return 0; }
-    else if (arg === "--key" && command === "doctor") options.apiKey = value();
+    else if (arg === "--key" && command !== "login") options.apiKey = value();
     else if (arg === "--region") {
       const region = value().toLowerCase();
       if (region !== "eu" && region !== "us") { console.error('--region must be "eu" or "us".'); return 2; }
@@ -90,6 +100,13 @@ async function main(argv: string[]) {
     return result.ok ? 0 : 1;
   }
   loadUncoilEnv(process.cwd());
+  if (command === "topics") {
+    try {
+      const result = await fetchTopics(options);
+      console.log(json ? JSON.stringify(result, null, 2) : formatTopics(result));
+      return 0;
+    } catch (error) { console.error((error as Error).message); return 1; }
+  }
   const report = await runDoctor(options);
   console.log(json ? JSON.stringify(report, null, 2) : formatReport(report));
   return report.ok ? 0 : 1;

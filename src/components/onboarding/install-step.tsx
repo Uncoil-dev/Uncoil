@@ -16,6 +16,7 @@ import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { clearOneTimeApiKey, getOneTimeApiKey } from "@/lib/onboarding-client-state";
 import { latestAgentRun } from "@/lib/onboarding-runs";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
+import { setTemporaryTitle } from "@/lib/document-title";
 
 const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
 const PROJECT_NAME_STORAGE_KEY = "uncoil.onboarding.projectName";
@@ -97,6 +98,13 @@ export function InstallStep() {
         ? `uncoil_sk_live_...${apiKey.slice(-4)}`
         : "uncoil_sk_live_...";
   const arrived = realFirstRun !== null;
+
+  // People watching their terminal notice the tab change when the first run lands.
+  useEffect(() => {
+    if (!arrived) return;
+    return setTemporaryTitle(document, "First run in · Uncoil");
+  }, [arrived]);
+
   const projectReady = !projectId || onboardingState === null ? "fail" : onboardingState === undefined ? "checking" : "pass";
 
   return (

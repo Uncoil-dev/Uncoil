@@ -3,6 +3,7 @@ import { DURATION_EXPR, ERROR_COUNT_EXPR, IS_ERROR, LEAN_AGGREGATE, inPageOrder,
 export { IS_ERROR };
 import { TYPE_ALIASES } from "@/components/dashboard/tracing/format";
 import { flowGraph, collapseFlowReturns, flowPairId, median, type FlowEdge, type FlowStep } from "./trace-flow";
+import { topicRunIds } from "./trace-topics";
 /**
  * ClickHouse query client (the file name is historical).
  * All span analytics queries go through here — never Convex.
@@ -360,6 +361,10 @@ export type TraceListFilters = {
   maxTokens?: number;
   /** Traces containing an error from this group (id from traceErrorGroups). */
   errorGroup?: string;
+  /** Traces in this topic (id from the topics endpoint); resolved to `topicRunIds` before the query runs. */
+  topic?: string;
+  /** Internal: run ids of the chosen topic. */
+  topicRunIds?: string[];
   /** Traces containing this agent-map step ("tool:<name>" or "model:<id>"). */
   node?: string;
   /** Traces where step `to` ran directly after step `from` (agent-map arrow). */
@@ -429,6 +434,7 @@ function traceListClauses(projectId: string, filters: TraceListFilters) {
   // Error groups and the agent map are computed from steps inside the range, so their filters use the same range.
   const scope = rangeScope(projectId, filters);
   if (filters.errorGroup) where.push(`runId IN (SELECT runId FROM spans WHERE ${scope} AND ${IS_ERROR} AND ${ERROR_GROUP_ID} = '${sqlString(filters.errorGroup)}')`);
+  if (filters.topic) where.push(filters.topicRunIds?.length ? `runId IN (${filters.topicRunIds.map((id) => `'${sqlString(id)}'`).join(',')})` : '0');
   if (filters.node && !['__start__', '__end__'].includes(filters.node)) where.push(`runId IN (SELECT runId FROM spans WHERE ${scope} AND ${NODE_KEY} = '${sqlString(filters.node)}')`);
   if (filters.edge) where.push(filters.flowRunIds?.length ? `runId IN (${filters.flowRunIds.map((id) => `'${sqlString(id)}'`).join(',')})` : '0');
   const having: string[] = [];
@@ -743,12 +749,20 @@ async function* flowRuns(projectId: string, filters: TraceListFilters) {
 
 /** Resolve an arrow to traces with the shared caller/return rules before list, facets and stats run. */
 export async function resolveTraceFlowFilters(projectId: string, filters: TraceListFilters): Promise<TraceListFilters> {
-  if (!filters.edge) return filters;
-  const ids: string[] = [], wanted = flowPairId(filters.edge.from, filters.edge.to);
-  for await (const run of flowRuns(projectId, { fromMs: filters.fromMs, toMs: filters.toMs })) {
-    if (flowGraph(run.steps, false).edges.some((edge) => flowPairId(edge.source, edge.target) === wanted)) ids.push(run.runId);
+  let resolved = filters;
+  if (filters.edge) {
+    const ids: string[] = [], wanted = flowPairId(filters.edge.from, filters.edge.to);
+    for await (const run of flowRuns(projectId, { fromMs: filters.fromMs, toMs: filters.toMs })) {
+      if (flowGraph(run.steps, false).edges.some((edge) => flowPairId(edge.source, edge.target) === wanted)) ids.push(run.runId);
+    }
+    resolved = { ...resolved, flowRunIds: ids };
   }
-  return { ...filters, flowRunIds: ids };
+  if (filters.topic) {
+    // Topics are grouped over the traces matching every other filter, the same input the topics endpoint reads.
+    const { traces } = await traceTopicInputs(projectId, { ...resolved, topic: undefined });
+    resolved = { ...resolved, topicRunIds: topicRunIds(traces, filters.topic) };
+  }
+  return resolved;
 }
 
 /** Every matching run contributes to one agent's Flow; node statistics stay exact in ClickHouse. */

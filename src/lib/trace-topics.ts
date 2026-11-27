@@ -149,3 +149,13 @@ export function groupTraceTopics(traces: TopicTrace[], options: TopicOptions = {
   if (leftovers.length) topics.push(toTopic("other", "Other", [], leftovers));
   return { total: docs.length + leftovers.length, topics };
 }
+
+/** Topic ids are an 8-digit hash (with a `-n` suffix on a repeat) or `other`. */
+export function isTopicId(value: string) {
+  return /^([0-9a-f]{8}(-\d+)?|other)$/.test(value);
+}
+
+/** Run ids of one topic, or none for an unknown id. Uses the same grouping as the topics list, so counts agree. */
+export function topicRunIds(traces: TopicTrace[], topicId: string, options: TopicOptions = {}) {
+  return groupTraceTopics(traces, options).topics.find((topic) => topic.id === topicId)?.runIds ?? [];
+}

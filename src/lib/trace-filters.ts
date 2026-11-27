@@ -1,4 +1,5 @@
 import { validTraceSort } from "./trace-sort";
+import { isTopicId } from "@/lib/trace-topics";
 import { EXCLUDE_PREFIX } from "@/lib/trace-search";
 import { FACET_KEYS, type TraceListFilters } from "@/lib/tinybird";
 
@@ -54,6 +55,7 @@ export function parseTraceFilters(searchParams: URLSearchParams, now = Date.now(
     minTokens: optionalNumber(searchParams.get("minTokens")),
     maxTokens: optionalNumber(searchParams.get("maxTokens")),
     errorGroup: /^[0-9a-f]{16}$/.test(searchParams.get("errorGroup") ?? "") ? searchParams.get("errorGroup")! : undefined,
+    topic: isTopicId(searchParams.get("topic") ?? "") ? searchParams.get("topic")! : undefined,
     node: stepKey(text(searchParams.get("node"))),
     edge: edge(searchParams.get("edge")),
     sort: validTraceSort(sort),

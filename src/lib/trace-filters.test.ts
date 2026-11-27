@@ -84,4 +84,10 @@ describe("parseTraceFilters", () => {
     const edge = `__start__${EDGE_SEPARATOR}__end__`;
     expect(parse(`edge=${encodeURIComponent(edge)}`).edge).toEqual({ from: "__start__", to: "__end__" });
   });
+
+  it("keeps a well-formed topic id and drops anything else", () => {
+    expect(parse("topic=0a1b2c3d-2").topic).toBe("0a1b2c3d-2");
+    expect(parse("topic=other").topic).toBe("other");
+    expect(parse("topic=x'%20OR%201=1").topic).toBeUndefined();
+  });
 });

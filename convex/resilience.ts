@@ -71,7 +71,7 @@ function pickFailureMode(mix: FailureMix): FailureMode {
   return entries[entries.length - 1][0];
 }
 
-function isRetryable(mode: FailureMode, retryableErrors: string[]) {
+export function isRetryable(mode: FailureMode, retryableErrors: string[]) {
   if (mode === "timeout") return retryableErrors.includes("timeout");
   if (mode === "429") return retryableErrors.includes("429") || retryableErrors.includes("rate_limit");
   if (mode === "500") return retryableErrors.includes("5xx");
@@ -190,7 +190,7 @@ const failureMixValidator = v.record(
   v.number(),
 );
 
-function normalizeFailureMix(value: Record<string, number>): FailureMix {
+export function normalizeFailureMix(value: Record<string, number>): FailureMix {
   const modes: FailureMode[] = ["success", "timeout", "429", "500", "cost_overrun"];
   const keys = Object.keys(value);
   if (keys.length !== modes.length || keys.some((key) => !modes.includes(key as FailureMode))) {

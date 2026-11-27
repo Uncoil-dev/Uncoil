@@ -5,6 +5,8 @@ test("shared columns are bounded, validated and preserve metadata order",()=>{co
 
 test("long checkbox selections and new search exclusions survive snapshots",()=>{const value=Array.from({length:30},(_,i)=>`model-${i}`).join(",");expect(savedViewQuery({modelId:value,not_environment:"dev",minTokens:"50",maxTokens:"1000"})).toEqual({modelId:value,not_environment:"dev",minTokens:"50",maxTokens:"1000"});});
 
+test("the topic filter is kept in saved views",()=>{expect(savedViewQuery({topic:"0a1b2c3d",errorGroup:"0123456789abcdef"})).toEqual({topic:"0a1b2c3d",errorGroup:"0123456789abcdef"});});
+
 const savedViewPost=(body:string)=>new Request("https://app.test/api/projects/p/saved-views",{method:"POST",body});
 test("save requests explain a bad body or a missing name before reaching the backend",async()=>{
   expect(await readSavedViewRequest(savedViewPost("{not json"))).toEqual({error:"Invalid JSON body"});

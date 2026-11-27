@@ -17,6 +17,7 @@ export function OnboardingBackButton({ currentStep }: { currentStep: OnboardingS
 
   return (
     <button
+      type="button"
       onClick={() => router.push(backHref)}
       className="flex items-center gap-1 text-[11px] uppercase tracking-wider text-black/55 transition-colors hover:text-black mb-6"
     >

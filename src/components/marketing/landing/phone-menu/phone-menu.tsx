@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, Check, Copy, X } from "lucide-react";
 import { appHref } from "@/lib/app-links";
 import { SETUP_PROMPT } from "../setup-prompt";
@@ -12,14 +12,15 @@ import s from "./phone-menu.module.css";
 
 const { sections: SECTIONS, total: N } = buildTrace();
 
-// Grid lengths, in cells. Section lanes grow from 14 to 20 cells to fill the screen, page lanes
-// are 12, with a 2-cell gap that the risers bridge. The list's side padding is 4 cells; 12 cells
-// on the right stay free for the step number and caret.
+// Grid lengths, in cells. A row is its name on its own line, then the bar on its own lane. Section
+// bars grow from 6 to 12 cells tall so the five rows fill the screen; page bars are 5. The list's
+// side padding is 4 cells, and 12 cells on the right stay free so a label fits beside the last bar.
 const PAD = 4;
 const RESERVE = 12;
-const GAP = 2;
-const PAGE_H = 12;
-const TEXT_X = 2;
+const NAME_H = 11;
+const PAGE_NAME_H = 7;
+const PAGE_BAR = 5;
+const MIN_BAR = 6;
 
 const mono = "font-mono uppercase tracking-[0.14em]";
 const focus = "outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-[#f4d44d]";
@@ -40,12 +41,17 @@ function useReduced() {
   return reduce;
 }
 
+type Label = { text: string; tag?: boolean; path?: boolean };
+
+// Rough widths of the mono labels in CSS px, enough to choose a side of the bar for them.
+const labelPx = (l: Label) => (l.tag ? l.text.length * 6.7 + 12 : l.text.length * 7.4 + 8);
+
 /**
- * One lane of the waterfall: a bar at its place on the timeline with the label running across
- * it. Where the label crosses the bar it is drawn again in ink, clipped to the bar, so it reads
- * on both. Every position is whole cells from the lane's left edge.
+ * One bar lane of the waterfall: the span's bar at its place on the timeline, the yellow block
+ * for the page you are on, and its labels beside it on whichever side has room. Every position
+ * is whole cells from the lane's left edge.
  */
-function Lane({ view, layout, from, len, here, h, delay, riser, wait, children }: {
+function BarLane({ view, layout, from, len, here, h, delay, wait, labels }: {
   view: View;
   layout: Layout;
   from: number;
@@ -53,33 +59,63 @@ function Lane({ view, layout, from, len, here, h, delay, riser, wait, children }
   here: number | null;
   h: number;
   delay: number;
-  riser: boolean;
   wait?: number;
-  children: ReactNode;
+  labels: Label[];
 }) {
   const { c } = layout;
-  const left = (from - view.start) * view.p * c;
-  const width = len * view.p * c;
+  const lane = layout.cells - 2 * PAD;
+  const start = (from - view.start) * view.p;
+  const cells = Math.max(len * view.p - 1, MIN_BAR);
+  const end = start + cells;
   const inView = from + len > view.start && from < view.start + view.len;
-  const label = (ink: boolean, x: number) => (
-    <span className={`${s.zoom} pointer-events-none absolute inset-y-0 flex items-center whitespace-nowrap ${ink ? "text-[#090909]" : ""}`} style={{ left: x }} aria-hidden={ink || undefined}>
-      {children}
-    </span>
-  );
+  const mid = Math.floor((h - 1) / 2) * c;
+  // Pages narrower than 5 cells would turn a bar into a comb of seams, so such bars are drawn
+  // solid, and the page you are on becomes a yellow pin standing a cell out of the bar.
+  const seams = view.p >= 5 && len > 1;
+  const pin = here !== null && !seams && len > 1;
+
+  // Labels go together on the roomier side; if they do not fit there, the "you are here" tag
+  // takes the side it fits on and the rest go to the other.
+  const room = { right: lane - end - 2, left: start - 2 };
+  const need = (ls: Label[]) => Math.ceil(ls.reduce((n, l) => n + labelPx(l), 0) / c) + (ls.length - 1) * 2;
+  let right: Label[] = [];
+  let left: Label[] = [];
+  if (!inView) (from < view.start ? left : right).push(...labels);
+  else if (need(labels) <= room.right) right = labels;
+  else if (need(labels) <= room.left) left = labels;
+  else {
+    const tag = labels.filter((l) => l.tag);
+    const rest = labels.filter((l) => !l.tag);
+    if (need(tag) <= room.right) [right, left] = [tag, rest];
+    else [left, right] = [tag, rest];
+  }
+  const group = (ls: Label[], side: "left" | "right") =>
+    ls.length > 0 && (
+      <span
+        className={`${s.zoom} pointer-events-none absolute flex items-center gap-2 whitespace-nowrap`}
+        style={{ top: 0, height: h * c, ...(side === "right" ? { left: inView ? (end + 2) * c : undefined, right: inView ? undefined : 0 } : { right: inView ? (lane - start + 2) * c : undefined, left: inView ? undefined : 0 }) }}
+      >
+        {ls.map((l) => (
+          <span key={l.text} className={`font-mono tracking-[0.14em] leading-none ${l.path ? "" : "uppercase"} ${l.tag ? "bg-[#f4d44d] px-1.5 py-1 text-[9px] text-[#090909]" : `px-1 text-[10px] text-[#eceae3]/55 ${side === "left" ? "bg-[#090909]" : ""}`}`}>
+            {!inView && side === "left" ? `◂ ${l.text}` : !inView ? `${l.text} ▸` : l.text}
+          </span>
+        ))}
+      </span>
+    );
   return (
     <span className="relative block" style={{ height: h * c }}>
-      {wait !== undefined && wait < from && inView && <span className={`${s.wait} ${s.zoom}`} style={{ left: (wait - view.start) * view.p * c, width: (from - wait) * view.p * c }} />}
-      {riser && inView && <span className={`${s.riser} ${s.zoom}`} style={{ left: Math.max(0, left - c), top: -GAP * c, height: GAP * c }} />}
-      {label(false, TEXT_X * c)}
+      {wait !== undefined && wait < from && inView && <span className={`${s.wait} ${s.zoom}`} style={{ top: mid, left: (wait - view.start) * view.p * c, width: (from - wait) * view.p * c - c }} />}
       {inView && (
-        <span className={s.bar} style={{ left, width: width - c }}>
+        <span className={s.bar} style={{ left: start * c, width: cells * c }}>
           <span className={s.fill} style={{ "--n": len, "--d": `${delay}ms`, "--t": `${len * 45}ms` } as CSSProperties}>
-            <span className={`${s.blocks} ${s.zoom}`} style={{ width, "--p": view.p } as CSSProperties} />
-            {here !== null && <span className={`${s.here} ${s.zoom}`} style={{ left: (here - from) * view.p * c, width: (view.p - 1) * c }} />}
-            {label(true, TEXT_X * c - left)}
+            <span className={`${s.blocks} ${s.zoom}`} style={{ width: cells * c, "--p": seams ? view.p : cells + 1 } as CSSProperties} />
+            {here !== null && !pin && <span className={`${s.here} ${s.zoom}`} style={{ left: (here - from) * view.p * c, width: (len === 1 ? cells : view.p - 1) * c }} />}
           </span>
         </span>
       )}
+      {pin && <span className={`${s.here} ${s.zoom} ${s.pin}`} style={{ left: (start + (here - from) * view.p) * c, width: Math.max(2, view.p - 1) * c, top: -c, bottom: -c, "--d": `${delay + (here - from) * 45}ms` } as CSSProperties} />}
+      {group(left, "left")}
+      {group(right, "right")}
     </span>
   );
 }
@@ -182,7 +218,7 @@ export function PhoneMenu({ currentPath, signedIn, onClose }: { currentPath: str
   const [open, setOpen] = useState<number | null>(null);
   const [armed, setArmed] = useState(false);
   const [copy, setCopy] = useState<"idle" | "copied" | "blocked">("idle");
-  const [layout, setLayout] = useState<Layout>({ cells: 97, c: CELL, full: 3, zoom: () => 12, step: 16 });
+  const [layout, setLayout] = useState<Layout>({ cells: 97, c: CELL, full: 3, zoom: () => 12, step: 9 });
   const [rows, setRows] = useState(34);
   const root = useRef<HTMLDivElement>(null);
   const sky = useRef<HTMLDivElement>(null);
@@ -200,7 +236,7 @@ export function PhoneMenu({ currentPath, signedIn, onClose }: { currentPath: str
       const cells = Math.floor(width / c);
       const lane = cells - 2 * PAD;
       const listCells = Math.floor((list.current?.clientHeight ?? 0) / c);
-      const step = Math.min(20, Math.max(14, Math.floor((listCells - 4) / SECTIONS.length) - GAP));
+      const step = Math.min(12, Math.max(6, Math.floor((listCells - 4) / SECTIONS.length) - NAME_H - 5));
       setLayout({ cells, c, full: pitch(lane, N, RESERVE), zoom: (len) => pitch(lane, len, RESERVE), step });
       setRows(window.innerHeight < 700 ? 29 : 34);
     };
@@ -259,11 +295,14 @@ export function PhoneMenu({ currentPath, signedIn, onClose }: { currentPath: str
 
   useEffect(() => {
     if (open === null) return;
-    // If the unfolded pages run past the bottom, bring the section to the top of the list.
+    // If the unfolded pages run past the bottom, or the section's own row has scrolled above the
+    // top, bring the section to the top of the list.
     const nav = list.current;
     const tail = nav?.querySelector(`[data-tail="${open}"]`);
     const row = nav?.querySelector<HTMLElement>(`[data-step="${open}"]`);
-    if (!nav || !tail || !row || tail.getBoundingClientRect().bottom <= nav.getBoundingClientRect().bottom) return;
+    if (!nav || !tail || !row) return;
+    const box = nav.getBoundingClientRect();
+    if (tail.getBoundingClientRect().bottom <= box.bottom && row.getBoundingClientRect().top >= box.top) return;
     nav.scrollTo({ top: row.offsetTop, behavior: reduce ? "auto" : "smooth" });
   }, [open, reduce]);
 
@@ -320,27 +359,32 @@ export function PhoneMenu({ currentPath, signedIn, onClose }: { currentPath: str
       </div>
 
       {/* The waterfall */}
-      <nav ref={list} aria-label="Site" className={`${s.list} relative overflow-y-auto overflow-x-hidden overscroll-contain`} style={{ paddingBottom: 4 * c }}>
+      <nav ref={list} aria-label="Site" className={`${s.list} relative overflow-y-auto overflow-x-hidden overscroll-contain [overflow-anchor:none]`} style={{ paddingBottom: 4 * c }}>
         <ul>
           {SECTIONS.map((sec) => {
             const isOpen = open === sec.index;
             const holdsHere = here?.section === sec.index;
-            const off = sec.start + sec.len <= view.start ? "◂" : sec.start >= view.start + view.len ? "▸" : "";
+            const count: Label = { text: `${sec.len} page${sec.len === 1 ? "" : "s"}` };
+            const labels: Label[] = isOpen ? [] : holdsHere && open === null ? [count, { text: "You are here", tag: true }] : [count];
             const rowCls = `group relative block w-full text-left ${s.rise} ${focus}`;
             const body = (
               <>
-                <Lane view={view} layout={layout} from={sec.start} len={sec.len} here={holdsHere ? here.cell : null} h={layout.step} delay={140 + sec.start * 34} riser={open === null && sec.index > 0}>
-                  <span className="font-pixel text-[clamp(30px,11.5vw,48px)] leading-none tracking-[-0.05em]">{sec.name}</span>
-                </Lane>
-                <span className="pointer-events-none absolute flex items-start gap-2" style={{ right: PAD * c, top: GAP * c, height: layout.step * c, paddingTop: 6 * c }}>
-                  <span className={`font-mono text-[11px] leading-5 ${isOpen || holdsHere ? "text-[#f4d44d]" : "text-[#eceae3]/50"}`}>
-                    {off && <span className="mr-1 text-[#eceae3]/50">{off}</span>}0{sec.index + 1}
+                <span className="flex items-start justify-between gap-3" style={{ height: NAME_H * c }}>
+                  <span className="flex min-w-0 items-start gap-3">
+                    <span className="flex items-center font-pixel text-[clamp(30px,11vw,44px)] leading-none tracking-[-0.05em] group-hover:text-[#fff4b5]" style={{ height: NAME_H * c }}>
+                      {sec.name}
+                    </span>
+                    <span className="shrink-0" style={{ marginTop: 3 * c }}>
+                      {sec.href ? <PixelArrow c={c} /> : <Caret open={isOpen} c={c} />}
+                    </span>
                   </span>
-                  {sec.href ? <ArrowRight className="size-5 text-[#f4d44d]" aria-hidden="true" /> : <Caret open={isOpen} c={c} />}
+                  {isOpen && <span className={`${mono} shrink-0 self-center text-[10px] text-[#eceae3]/55`}>{count.text}</span>}
                 </span>
+                <span className="block" style={{ height: c }} />
+                <BarLane view={view} layout={layout} from={sec.start} len={sec.len} here={holdsHere ? here.cell : null} h={layout.step} delay={140 + sec.start * 34} labels={labels} />
               </>
             );
-            const rowStyle = { ...lanePad, paddingTop: GAP * c, ...d(sec.index * 40) };
+            const rowStyle = { ...lanePad, paddingTop: 2 * c, paddingBottom: 2 * c, ...d(sec.index * 40) };
             return (
               <li key={sec.name} data-step={sec.index} style={{ width: laneW + 2 * PAD * c }}>
                 {sec.href ? (
@@ -350,7 +394,6 @@ export function PhoneMenu({ currentPath, signedIn, onClose }: { currentPath: str
                 ) : (
                   <button type="button" onClick={() => setOpen(isOpen ? null : sec.index)} aria-expanded={isOpen} aria-controls={`phone-menu-${sec.index}`} className={rowCls} style={rowStyle}>
                     {body}
-                    <span className="sr-only">{`, ${sec.len} pages`}</span>
                   </button>
                 )}
                 {!sec.href && (
@@ -360,11 +403,20 @@ export function PhoneMenu({ currentPath, signedIn, onClose }: { currentPath: str
                         const isHere = holdsHere && here.link === j;
                         return (
                           <li key={ln.href + j} data-tail={j === sec.links.length - 1 ? sec.index : undefined}>
-                            <Link href={ln.href} onClick={onClose} aria-current={isHere ? "page" : undefined} className={`group relative block ${s.rise} ${focus}`} style={{ ...lanePad, paddingTop: GAP * c, ...d(j * 40) }}>
-                              <Lane view={view} layout={layout} from={ln.cell} len={1} here={isHere ? ln.cell : null} h={PAGE_H} delay={60 + j * 50} riser wait={sec.start}>
-                                <span className="font-pixel text-[clamp(22px,7vw,28px)] leading-none tracking-[-0.04em]">{ln.label}</span>
-                                {isHere && <span className={`${mono} ml-3 bg-[#f4d44d] px-1.5 py-1 text-[9px] leading-none text-[#090909]`}>You are here</span>}
-                              </Lane>
+                            <Link
+                              href={ln.href}
+                              onClick={onClose}
+                              aria-current={isHere ? "page" : undefined}
+                              className={`group relative block ${s.rise} ${focus} ${isHere ? "bg-[#eceae3]/[0.06]" : ""}`}
+                              style={{ ...lanePad, paddingTop: 2 * c, paddingBottom: 2 * c, ...d(j * 40) }}
+                            >
+                              {isHere && <span className="pointer-events-none absolute inset-y-0 left-0 bg-[#f4d44d]" style={{ width: c }} />}
+                              <span className="flex items-center gap-3" style={{ height: PAGE_NAME_H * c }}>
+                                <span className="font-pixel text-[clamp(22px,7vw,28px)] leading-none tracking-[-0.04em] group-hover:text-[#fff4b5]">{ln.label}</span>
+                                {isHere && <span className={`${mono} bg-[#f4d44d] px-1.5 py-1 text-[9px] leading-none text-[#090909]`}>You are here</span>}
+                              </span>
+                              <span className="block" style={{ height: c }} />
+                              <BarLane view={view} layout={layout} from={ln.cell} len={1} here={isHere ? ln.cell : null} h={PAGE_BAR} delay={60 + j * 50} wait={sec.start} labels={[{ text: ln.href.replace(/^https?:\/\/[^/]+/, ""), path: true }]} />
                             </Link>
                           </li>
                         );
@@ -407,6 +459,19 @@ export function PhoneMenu({ currentPath, signedIn, onClose }: { currentPath: str
         </span>
       </div>
     </div>
+  );
+}
+
+/** Pixel arrow for a step that is a single page, 5x5 cells. */
+function PixelArrow({ c }: { c: number }) {
+  return (
+    <svg viewBox="0 0 5 5" width={5 * c} height={5 * c} className="shrink-0 text-[#f4d44d]" shapeRendering="crispEdges" aria-hidden="true">
+      <rect x="2" y="0" width="1" height="1" fill="currentColor" />
+      <rect x="3" y="1" width="1" height="1" fill="currentColor" />
+      <rect x="0" y="2" width="5" height="1" fill="currentColor" />
+      <rect x="3" y="3" width="1" height="1" fill="currentColor" />
+      <rect x="2" y="4" width="1" height="1" fill="currentColor" />
+    </svg>
   );
 }
 

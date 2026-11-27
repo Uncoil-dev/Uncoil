@@ -71,14 +71,13 @@
   from, to { opacity: 1; }
 }
 
-/* Cream pages. Each page ends in a one-cell ink seam, cut only as a notch along the top so the
-   label across the bar stays whole. */
+/* Cream pages, each ending in a one-cell ink seam. */
 .blocks {
   position: absolute;
   inset-block: 0;
   left: 0;
   background:
-    linear-gradient(to right, transparent calc(var(--p) * var(--c) - var(--c)), #090909 0) 0 0 / calc(var(--p) * var(--c)) calc(var(--c) * 2) repeat-x,
+    linear-gradient(to right, transparent calc(var(--p) * var(--c) - var(--c)), #090909 0) 0 0 / calc(var(--p) * var(--c)) 100% repeat-x,
     #eceae3;
 }
 .here {
@@ -88,17 +87,18 @@
   box-shadow: inset 0 var(--c) 0 #fff4b5;
 }
 
-/* One-cell connectors: the riser that steps from one bar down to the next, and the dotted wait
-   line from a section's start to a page that starts later. */
-.riser {
-  position: absolute;
-  width: var(--c);
-  background: #eceae3;
+/* The pin for the page you are on appears once its bar has drawn in up to it. */
+.pin {
+  animation: pin 1ms steps(1, end) backwards;
+  animation-delay: var(--d, 0ms);
 }
+@keyframes pin {
+  from { opacity: 0; }
+}
+
+/* The dotted wait line, one cell tall, from a section's start to a page that starts later. */
 .wait {
   position: absolute;
-  left: 0;
-  bottom: 0;
   height: var(--c);
   background: linear-gradient(to right, rgb(236 234 227 / 0.4) var(--c), transparent 0) 0 0 / calc(var(--c) * 2) var(--c) repeat-x;
 }
@@ -110,7 +110,8 @@
 @media (prefers-reduced-motion: reduce) {
   .rise,
   .fill,
-  .fill::after { animation: none; }
+  .fill::after,
+  .pin { animation: none; }
   .bar,
   .zoom,
   .caret { transition: none; }

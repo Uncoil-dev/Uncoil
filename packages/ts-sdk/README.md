@@ -234,6 +234,8 @@ Spans that report an error are kept even when their run was not sampled (`keepEr
 
 When a project reaches its monthly or daily plan limit, `onError` gets a `plan_limit_reached` or `daily_limit_reached` error that says when data is saved again and links to the plans page. A lower `sampleRate` does not lift a plan limit.
 
+A plain `402` response is reported as `plan_limit`: your plan's limit was reached and new spans are not recorded until you upgrade on the billing page or the limit resets.
+
 When a run wrapped in `traceAgent` fails, the SDK prints one line with the step that failed and a link to the run, for example `Uncoil: run failed at step "search_docs" -> https://eu.cloud.uncoil.dev/dashboard/<project>/tracing/<run>`. The link needs the project id (`projectId` or `UNCOIL_PROJECT_ID`, which `login` saves); without it the line shows the run id instead. Passing runs print nothing. The line is off when `NODE_ENV` or `environment` is `"production"`; set `failureLinks: false` (or `true`) to choose yourself.
 
 ### Sign in from the terminal

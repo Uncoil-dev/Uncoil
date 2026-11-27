@@ -43,6 +43,17 @@ describe("clear errors", () => {
     expect(seen[0].code).toBe("bad_key");
     expect(seen[0].status).toBe(401);
   });
+  it("says a plan limit was reached on 402 and points to billing", async () => {
+    mockFetch(402);
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    expect(seen[0].code).toBe("plan_limit");
+    expect(seen[0].status).toBe(402);
+    expect(seen[0].hint).toMatch(/billing page/);
+    expect(seen[0].message).not.toMatch(/Update the SDK/);
+  });
   it("explains a paused key and how to replace it", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "This API key was paused.", code: "key_paused" }, { status: 403 })));
     const seen: UncoilError[] = [];

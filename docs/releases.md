@@ -31,6 +31,7 @@ Every pull request description has a Changelog section: one ticked category and 
 - The traces list topic filter is faster on repeat loads, and the list response now says when a topic was worked out from the newest traces only. The demo project's traces list respects the topic filter.
 
 ### SDK changes
+- TypeScript SDK: setting `UNCOIL_CAPTURE_CONTENT=false` (or `captureContent: false` on the client) keeps prompts, answers, tool inputs and outputs, error messages, stack traces and feedback text out of everything the SDK sends. Names, timings, tokens, cost, status and error type are still recorded. Metadata you attach yourself is still sent.
 - Python SDK: setting `UNCOIL_CAPTURE_CONTENT=false` (or `capture_content=False` on the client) keeps prompts, answers, tool inputs and outputs, error messages, stack traces and feedback text out of everything the SDK sends. Names, timings, tokens, cost, status and error type are still recorded. Metadata you attach yourself is still sent.
 
 ### Breaking changes

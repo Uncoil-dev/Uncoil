@@ -48,7 +48,7 @@ export async function postJson(kind: string, url: string, body: unknown): Promis
 }
 
 /**
- * Sends through Resend and says how it went. Never throws.
+ * Sends through Resend, with replies going to the founder, and says how it went. Never throws.
  * Without RESEND_API_KEY it logs and skips, so nothing breaks before the key is added.
  */
 export async function sendEmail(args: { to: string[]; subject: string; text: string; html: string; idempotencyKey: string }): Promise<DeliveryResult> {
@@ -58,7 +58,7 @@ export async function sendEmail(args: { to: string[]; subject: string; text: str
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": args.idempotencyKey },
-      body: JSON.stringify({ from: process.env.EMAIL_FROM || "Uncoil <alerts@uncoil.dev>", to: args.to, subject: args.subject, text: args.text, html: args.html }),
+      body: JSON.stringify({ from: process.env.EMAIL_FROM || "Uncoil <alerts@uncoil.dev>", reply_to: process.env.EMAIL_REPLY_TO || "kb@uncoil.dev", to: args.to, subject: args.subject, text: args.text, html: args.html }),
       signal: AbortSignal.timeout(10_000),
     });
     if (response.ok) return { ok: true, status: response.status };

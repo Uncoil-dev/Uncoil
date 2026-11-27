@@ -16,6 +16,7 @@ export function observeLeaves({
 }): SidebarLeaf[] {
   return [
     { title: "Tracing", href: href("tracing") },
+    ...(liveProject || demo ? [{ title: "Topics", href: href("topics") }] : []),
     ...(liveProject ? [{ title: "Steps", href: href("steps") }] : []),
     ...(liveProject || demo ? [{ title: "Costs", href: href("costs") }] : []),
     ...(synthetic || demo ? [{ title: "Explore", href: href("explore") }] : []),

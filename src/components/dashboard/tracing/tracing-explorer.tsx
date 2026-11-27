@@ -9,6 +9,7 @@ import { stepLabel } from "./agent-map";
 import { PAGE_SIZES, listPaging } from "./format";
 import { traceCsv } from "@/lib/trace-csv";
 import { EXCLUDE_PREFIX, parseSearch } from "@/lib/trace-search";
+import { LoadError } from "./load-error";
 import { SearchBox } from "./search-box";
 import { FeedbackCell, useFeedback, type FeedbackState } from "./feedback";
 import { RANGES, TimeRangePicker } from "./time-range-picker";
@@ -419,14 +420,10 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
           )}
 
           <div className="min-h-0 flex-1 overflow-auto px-4">
-            {chartMode ? (
-              error ? <p role="alert" className="my-6 text-sm text-[#FF8A8A]">{error}</p>
-                : <TraceCharts projectId={projectId} filterParams={activityParams} histogram={data?.histogram} range={data?.range} onZoom={(from, to) => update({ from: String(from), to: String(to) })} />
-            ) : error ? (
-              <div role="alert" className="my-6 rounded-lg border border-[#5A2A2A] bg-[#1E1314] p-4 text-sm">
-                <p className="font-medium text-[#FF8A8A]">{error}</p>
-                <button type="button" className="mt-3 rounded-md border border-[#5A2A2A] px-3 py-1.5 text-xs hover:bg-[#2A1A1C]" onClick={() => setNow(Date.now())}>Try again</button>
-              </div>
+            {error ? (
+              <LoadError message={error} onRetry={() => setNow(Date.now())} />
+            ) : chartMode ? (
+              <TraceCharts projectId={projectId} filterParams={activityParams} histogram={data?.histogram} range={data?.range} onZoom={(from, to) => update({ from: String(from), to: String(to) })} />
             ) : !loading && rows.length === 0 && !activeFilters.length && !query.q && projectId !== DEMO_PROJECT_ID ? (
               <FirstTraceEmpty projectId={projectId} title="Every run of your agent will land here" description="Each trace shows the steps, the model calls, what it cost and where it failed. Send one and this page fills in within seconds." />
             ) : !loading && rows.length === 0 ? (

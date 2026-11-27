@@ -1,18 +1,19 @@
 "use client";
 
 import { PageTitle } from "@/components/dashboard/page-title";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { relativeTime } from "@/components/dashboard/tracing/format";
+import { historyBadge, historyLink, matchesHistoryFilter, type HistoryFilter } from "./alert-history-view";
 
-type Filter = "all" | "open" | "resolved" | "held";
-
-const FILTERS: Array<{ id: Filter; label: string }> = [
+const FILTERS: Array<{ id: HistoryFilter; label: string }> = [
   { id: "all", label: "All" },
   { id: "open", label: "Still open" },
   { id: "resolved", label: "Resolved" },
+  { id: "muted", label: "Muted" },
   { id: "held", label: "Held back" },
 ];
 
@@ -28,8 +29,8 @@ function lasted(startIso: string, endMs: number) {
 /** Everything that fired, newest first, including alerts that were recorded but not sent because of a snooze or quiet hours. */
 export function AlertHistory({ projectId }: { projectId: string }) {
   const data = useQuery(api.alertRules.history, { projectId: projectId as Id<"projects"> });
-  const [filter, setFilter] = useState<Filter>("all");
-  const items = useMemo(() => (data?.items ?? []).filter((item) => filter === "all" || (filter === "open" && item.state === "active") || (filter === "resolved" && item.state === "resolved") || (filter === "held" && item.silencedBy)), [data, filter]);
+  const [filter, setFilter] = useState<HistoryFilter>("all");
+  const items = useMemo(() => (data?.items ?? []).filter((item) => matchesHistoryFilter(item, filter)), [data, filter]);
 
   return (
     <div className="flex min-h-svh flex-col bg-[#0B0D10] font-[family-name:var(--font-geist-sans)] text-[13px] text-[#E6E9EE]">
@@ -57,17 +58,19 @@ export function AlertHistory({ projectId }: { projectId: string }) {
         <ol className="m-0 list-none p-0">
           {items.map((item) => {
             const open = item.state === "active";
-            const color = open ? "#FF6B6B" : "#5BE3A0";
+            const { label, color } = historyBadge(item.state);
+            const link = historyLink(projectId, item);
             return (
               <li key={item._id} className="grid grid-cols-[8px_1fr] gap-3 border-b border-[#1F242C] px-4 py-3 sm:grid-cols-[8px_1fr_auto]">
                 <i className="mt-1.5 block size-1.5" style={{ background: color }} />
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <b className="truncate">{item.ruleName}</b>
-                    <span className="border px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-[0.1em]" style={{ color, borderColor: color }}>{open ? "OPEN" : "RESOLVED"}</span>
+                    <span className="border px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-[0.1em]" style={{ color, borderColor: color }}>{label}</span>
                     {item.silencedBy ? <span className="border border-[#4A5260] px-1.5 py-0.5 text-[10px] text-[#8B93A1]">{HELD_LABEL[item.silencedBy]}</span> : null}
                   </div>
                   <p className="mt-0.5 text-[#8B93A1]">{item.message}</p>
+                  <Link href={link.href} className="mt-1 inline-block text-[12px] text-[#8AB4FF] hover:underline">{link.label} →</Link>
                 </div>
                 <div className="col-start-2 font-mono text-[11px] text-[#6B7380] sm:col-start-3 sm:text-right">
                   <div title={new Date(item.triggeredAt).toLocaleString()}>{relativeTime(item.triggeredAt, data.now)}</div>

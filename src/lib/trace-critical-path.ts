@@ -75,3 +75,20 @@ export function criticalPath(spans: CriticalPathSpan[]): CriticalPathResult {
     bottlenecks: [...path].sort((a, b) => b.latencyMs - a.latencyMs).slice(0, 5),
   };
 }
+
+type StoredSpan = { spanId: string; parentSpanId: string; spanType: string; createdAt: string; latencyMs: number; costUsd?: number };
+
+/**
+ * The longest step on a trace's critical path, from spans as the trace panel stores them
+ * ("YYYY-MM-DD hh:mm:ss" UTC or ISO start times). Null for traces with fewer than two steps.
+ */
+export function slowestStep(spans: StoredSpan[]): { spanId: string; latencyMs: number } | null {
+  if (spans.length < 2) return null;
+  const { bottlenecks } = criticalPath(spans.map((span) => ({
+    spanId: span.spanId, parentSpanId: span.parentSpanId, spanType: span.spanType, label: span.spanId,
+    startMs: Date.parse(span.createdAt.includes("T") ? span.createdAt : `${span.createdAt.replace(" ", "T")}Z`),
+    latencyMs: Number(span.latencyMs ?? 0), costUsd: Number(span.costUsd ?? 0),
+  })));
+  const top = bottlenecks[0];
+  return top && top.latencyMs > 0 ? { spanId: top.spanId, latencyMs: top.latencyMs } : null;
+}

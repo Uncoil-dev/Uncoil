@@ -6,7 +6,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { api } from "convex/_generated/api";
-import type { BillingInterval, PaidPlan } from "@/lib/billing-links";
+import { checkoutPageHref, initialCheckoutProjectId, type BillingInterval, type PaidPlan } from "@/lib/billing-links";
 import { CheckoutShell, TrustRow } from "@/components/checkout/checkout-shell";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 import { projectCreateError } from "@/lib/project-errors";
@@ -35,8 +35,8 @@ function PricingCheckout() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const autoStarted = useRef(false);
-  const selectedProjectId = projectId || projects?.[0]?._id || "";
-  const returnPath = `/pricing/checkout?plan=${plan}&interval=${interval}`;
+  const selectedProjectId = projectId || initialCheckoutProjectId(searchParams.get("project"), projects);
+  const returnPath = checkoutPageHref(plan, interval, searchParams.get("project"));
 
   async function openCheckout(targetProjectId?: string) {
     const response = await fetch("/api/stripe/checkout", {
@@ -92,7 +92,7 @@ function PricingCheckout() {
 
   const planInfo = planById(plan);
   const price = monthlyPrice(planInfo, interval);
-  const intervalHref = (next: BillingInterval) => `/pricing/checkout?plan=${plan}&interval=${next}`;
+  const intervalHref = (next: BillingInterval) => checkoutPageHref(plan, next, searchParams.get("project"));
   const steps = isAuthenticated ? (["Plan", "Pay", "Send a trace"] as const) : (["Pay", "Create login", "Send a trace"] as const);
   // If sign-in cannot be checked (status "error"), treat them as a new customer so paying is never blocked.
   // If sign-in cannot be checked (it times out), treat them as a new customer so paying is never blocked.

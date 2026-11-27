@@ -35,10 +35,10 @@ export function UsageMeter({ projectId }: { projectId: string }) {
   );
 
   if (!usage) return <div className="h-44 w-full animate-pulse border border-[#262C35] bg-[#0E1115]" />;
-  return <UsageMeterView usage={usage} />;
+  return <UsageMeterView usage={usage} projectId={projectId} />;
 }
 
-export function UsageMeterView({ usage }: { usage: { spans: number; planTier: string; truncated?: boolean } }) {
+export function UsageMeterView({ usage, projectId }: { usage: { spans: number; planTier: string; truncated?: boolean }; projectId?: string }) {
   const tier = usage.planTier;
   const plan = planById(tier as PlanId);
   if (tier === "enterprise") {
@@ -116,7 +116,7 @@ export function UsageMeterView({ usage }: { usage: { spans: number; planTier: st
       </p>
       {next && level !== "ok" ? (
         <Link
-          href={pricingCheckoutHref(next, "monthly")}
+          href={pricingCheckoutHref(next, "monthly", projectId)}
           className="mt-4 inline-flex items-center gap-2 bg-[#F4D44D] px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[#0B0D10] hover:bg-[#fff4b5]"
         >
           Upgrade to {planById(next).name} <ArrowRight className="size-3.5" />

@@ -50,7 +50,7 @@ export function UpgradeBanner({ projectId }: { projectId: string }) {
         {usage.planTier === "free" ? ` ${trialLine()}.` : ""}
       </span>
       <Link
-        href={next ? pricingCheckoutHref(next, "monthly") : "/contact"}
+        href={next ? pricingCheckoutHref(next, "monthly", projectId) : "/contact"}
         className="inline-flex items-center gap-2 bg-black px-3 py-2 uppercase tracking-[0.12em] text-white hover:bg-black/85"
       >
         {next ? `Upgrade to ${planById(next).name}` : "Talk to us"} <ArrowRight className="size-3.5" />

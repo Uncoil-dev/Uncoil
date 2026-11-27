@@ -227,7 +227,7 @@ export function AlertsWorkspace({ projectId, startCreating = false }: { projectI
           </div>
         </>
       )}
-      {creating && data?.planTier === "free" ? <UpgradePrompt feature="Alerts" plan="pro" onClose={() => setCreating(false)}>Get told by email or Slack the moment your agent fails, slows down or costs too much.</UpgradePrompt> : null}
+      {creating && data?.planTier === "free" ? <UpgradePrompt feature="Alerts" plan="pro" projectId={projectId} onClose={() => setCreating(false)}>Get told by email or Slack the moment your agent fails, slows down or costs too much.</UpgradePrompt> : null}
       {creating && data && data.planTier !== "free" ? <AlertRuleForm projectId={projectId} defaultEmail={session?.user?.email ?? ""} onClose={() => setCreating(false)} /> : null}
     </div>
   );

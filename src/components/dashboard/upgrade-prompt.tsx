@@ -9,7 +9,7 @@ import { trialLine } from "@/lib/checkout-trial";
 import { planById } from "@/lib/pricing-plans";
 
 /** A calm "this is part of Pro" card, shown where a Free project reaches a paid feature. */
-export function UpgradePrompt({ feature, plan = "pro", trial = false, children, onClose }: { feature: string; plan?: PaidPlan; trial?: boolean; children: ReactNode; onClose?: () => void }) {
+export function UpgradePrompt({ feature, plan = "pro", trial = false, projectId, children, onClose }: { feature: string; plan?: PaidPlan; trial?: boolean; projectId?: string; children: ReactNode; onClose?: () => void }) {
   const target = planById(plan);
   return (
     <div role="dialog" aria-label={`${feature} is part of ${target.name}`} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -19,7 +19,7 @@ export function UpgradePrompt({ feature, plan = "pro", trial = false, children, 
         <p className="mt-2 text-sm leading-6 text-black/75">{children}</p>
         <p className="mt-3 font-mono text-[11px] text-black/60">{target.name} is ${target.monthly} a month. {trial ? `${trialLine()}. ` : ""}Tracing, costs and the trace viewer stay free.</p>
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Link href={pricingCheckoutHref(plan, "monthly")} className="inline-flex items-center gap-2 bg-black px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.12em] text-white hover:bg-black/85">Upgrade to {target.name} <ArrowRight className="size-3.5" /></Link>
+          <Link href={pricingCheckoutHref(plan, "monthly", projectId)} className="inline-flex items-center gap-2 bg-black px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.12em] text-white hover:bg-black/85">Upgrade to {target.name} <ArrowRight className="size-3.5" /></Link>
           {onClose ? <button type="button" onClick={onClose} className="font-mono text-[11px] uppercase tracking-[0.12em] underline underline-offset-4">Not now</button> : null}
         </div>
       </div>

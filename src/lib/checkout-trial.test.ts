@@ -35,6 +35,17 @@ describe("checkoutPanelCopy", () => {
     expect(copy.heading).toBe("Thank you. You're all set.");
     expect(copy.detail).toContain("receipt");
   });
+  it("shows neutral copy with no receipt or charge claims while the status is unknown", () => {
+    for (const status of [undefined, null, "incomplete"]) {
+      const copy = checkoutPanelCopy({ status, planTier: "pro", periodEnd: null }, base);
+      expect(copy.heading).toBe("Checkout complete");
+      expect([copy.eyebrow, copy.heading, copy.detail].join(" ")).not.toMatch(/receipt|Payment received|charge/i);
+      expect(copy.steps).toHaveLength(3);
+    }
+  });
+  it("uses a neutral trial heading for an unknown plan tier", () => {
+    expect(checkoutPanelCopy({ status: "trialing", planTier: "free", periodEnd: null }, base).heading).toBe("Your 7-day trial is on");
+  });
   it("links next steps to alerts, runs (where Ask AI lives) and evaluation for the project", () => {
     for (const status of ["trialing", "active"]) {
       const copy = checkoutPanelCopy({ status, planTier: "pro", periodEnd: null }, base);

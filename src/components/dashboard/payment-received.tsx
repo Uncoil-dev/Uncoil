@@ -11,8 +11,7 @@ import { checkoutPanelCopy } from "@/lib/checkout-trial";
 /** Shown on the billing page right after Stripe checkout for an existing project. */
 export function PaymentReceived({ projectId }: { projectId: string }) {
   const base = `/dashboard/${projectId}`;
-  const summary = useQuery(api.projects.getProjectManagementSummary, { projectId: projectId as Id<"projects"> });
-  const project = summary?.project;
+  const project = useQuery(api.projects.getProjectById, { projectId: projectId as Id<"projects"> });
   const copy = checkoutPanelCopy(
     { status: project?.stripeSubscriptionStatus, planTier: project?.planTier, periodEnd: project?.subscriptionCurrentPeriodEnd },
     base,
@@ -32,7 +31,7 @@ export function PaymentReceived({ projectId }: { projectId: string }) {
           <li key={s.href} className="bg-[#fff4b5] p-5">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em]">{i + 1}. {s.title}</p>
             <p className="mt-2 text-sm leading-6 text-black/75">{s.body}</p>
-            <Link href={s.href} className="group mt-3 inline-flex min-h-11 items-center gap-2 bg-black px-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4d44d]">
+            <Link href={s.href} aria-label={`Open: ${s.title}`} className="group mt-3 inline-flex min-h-11 items-center gap-2 bg-black px-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4d44d]">
               Open <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
           </li>

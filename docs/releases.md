@@ -8,6 +8,7 @@ Every pull request description has a Changelog section: one ticked category and 
 
 ### Features
 - The run page has a search box above the step list. It filters steps by name, tool, model or error text, keeps parent steps visible, highlights the match, and Enter / Shift+Enter jump between matches. Press / to focus it.
+- The TypeScript and Python SDKs now fill in the release when none is set: from `UNCOIL_RELEASE`, then the commit variable of Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions or GitLab CI, then the local git commit. An explicit `release` option still wins.
 - Pro and Team plan cards, the in-app upgrade card and the usage banner now show the free trial: 7 days free, once per project.
 - New topics endpoint, `GET /api/projects/{projectId}/topics`, groups the traces matching the traces-list filters by what they were asked to do, with error rates and example traces. The public demo shows topics too.
 - Codex and OpenCode plugins send each finished coding-agent turn to Uncoil as a trace, with tool calls, token use and cost. Install steps are in the docs.
@@ -31,7 +32,8 @@ Every pull request description has a Changelog section: one ticked category and 
 - The traces list topic filter is faster on repeat loads, and the list response now says when a topic was worked out from the newest traces only. The demo project's traces list respects the topic filter.
 
 ### SDK changes
-- None.
+- TypeScript SDK: setting `UNCOIL_CAPTURE_CONTENT=false` (or `captureContent: false` on the client) keeps prompts, answers, tool inputs and outputs, error messages, stack traces and feedback text out of everything the SDK sends. Names, timings, tokens, cost, status and error type are still recorded. Metadata you attach yourself is still sent.
+- Python SDK: setting `UNCOIL_CAPTURE_CONTENT=false` (or `capture_content=False` on the client) keeps prompts, answers, tool inputs and outputs, error messages, stack traces and feedback text out of everything the SDK sends. Names, timings, tokens, cost, status and error type are still recorded. Metadata you attach yourself is still sent.
 
 ### Breaking changes
 - None.

@@ -107,6 +107,7 @@ avoid sending anything else you would not want stored.
 - **Environment Aware:** Automatically picks up API keys from `process.env`.
 - **Lightweight:** Minimal dependencies. Runs on Node.js (it uses async context to keep concurrent runs apart), so use the Node.js runtime rather than the edge runtime.
 - **Session context:** Add `sessionId`, `endUserId`, `environment`, `release`, and `tags` to connect related traces.
+- **Automatic release:** When `release` is not set, the client uses `UNCOIL_RELEASE`, then the commit variable of the deploy platform (Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions, GitLab CI), then the short commit of the local git checkout. The local lookup runs once in Node, times out quickly and is skipped when git is missing or in edge and browser runtimes. It needs Node 20.16+ or 22.3+ (`process.getBuiltinModule`); on older Node it is skipped and the release stays empty.
 
 ## Feedback and evaluation scores
 
@@ -214,6 +215,16 @@ const uncoil = new UncoilClient({
 });
 ```
 
+### Keep message content out
+
+Set `UNCOIL_CAPTURE_CONTENT=false` (also `0`, `no` or `off`, any case) to record runs without any message text. Names, timings, token counts, cost, status and the error type are still sent; prompts, answers, tool inputs and outputs, error messages and feedback or score comments, stack traces and text score values are not. Metadata you attach yourself is still sent. Any other value, or no value, captures as before.
+
+```ts
+const client = new UncoilClient({ captureContent: false }); // overrides the environment variable
+```
+
+The variable is read when the client is created. Spans sent this way carry `contentRecorded: false` in their metadata.
+
 ### Short scripts and serverless functions
 
 Spans are sent in the background so tracing never slows your app down. A serverless function or short script can end before those sends finish, which drops the last spans of a run. Wait for them before returning:
@@ -234,6 +245,8 @@ Spans that report an error are kept even when their run was not sampled (`keepEr
 
 When a project reaches its monthly or daily plan limit, `onError` gets a `plan_limit_reached` or `daily_limit_reached` error that says when data is saved again and links to the plans page. A lower `sampleRate` does not lift a plan limit.
 
+A plain `402` response is reported as `plan_limit`: your plan's limit was reached and new spans are not recorded until you upgrade on the billing page or the limit resets.
+
 When a run wrapped in `traceAgent` fails, the SDK prints one line with the step that failed and a link to the run, for example `Uncoil: run failed at step "search_docs" -> https://eu.cloud.uncoil.dev/dashboard/<project>/tracing/<run>`. The link needs the project id (`projectId` or `UNCOIL_PROJECT_ID`, which `login` saves); without it the line shows the run id instead. Passing runs print nothing. The line is off when `NODE_ENV` or `environment` is `"production"`; set `failureLinks: false` (or `true`) to choose yourself.
 
 ### Sign in from the terminal
@@ -247,6 +260,14 @@ Opens your browser so you can sign in (or create a free account), pick or create
 `npx @uncoil.dev/sdk <command>` runs the package's CLI directly. Once the package is installed, the same CLI is also available as `uncoil` and `uncoil-doctor`.
 
 `npx @uncoil.dev/sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
+
+## Project check
+
+```bash
+npx @uncoil.dev/sdk init
+```
+
+Looks at the `package.json` in the current folder and prints one line: the language, the framework (Next.js, Vite or plain Node), the package manager, the model libraries it found (OpenAI, Anthropic, Vercel AI SDK, LangChain) and the file where tracing should start, e.g. `Found: TypeScript · Next.js · pnpm · OpenAI · tracing goes in src/instrumentation.ts (new file)`. It does not change any file. Add `--json` for machine-readable output.
 
 ## Setup checker
 

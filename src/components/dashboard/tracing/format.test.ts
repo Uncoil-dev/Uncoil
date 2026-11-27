@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   chatMessages,
   compactNumber,
+  emptyTracesState,
   listPaging,
   formatCost,
   formatDuration,
@@ -171,4 +172,12 @@ test("traceRowLabel: names the trace, its status and its start time for screen r
   const started = "2026-11-20T10:15:00Z";
   assert.equal(traceRowLabel({ traceName: "checkout agent", runId: "run_1", errorCount: 0, startedAt: started }), `checkout agent, succeeded, ${formatTime(started)}`);
   assert.equal(traceRowLabel({ traceName: "", runId: "run_abcdefghijklmnop", errorCount: 2, startedAt: started }), `run_abcdefgh, failed, ${formatTime(started)}`);
+});
+
+test("emptyTracesState: setup guide only for the full 90 days, otherwise name the empty range", () => {
+  assert.deepEqual(emptyTracesState({ filtered: false, range: "90d", rangeLabel: "Last 90 days", custom: false }), { kind: "setup" });
+  assert.deepEqual(emptyTracesState({ filtered: false, range: "1h", rangeLabel: "Last hour", custom: false }), { kind: "range", title: "No traces in the last hour" });
+  assert.deepEqual(emptyTracesState({ filtered: false, range: "7d", rangeLabel: "Last 7 days", custom: false }), { kind: "range", title: "No traces in the last 7 days" });
+  assert.deepEqual(emptyTracesState({ filtered: false, range: "90d", rangeLabel: "Last 90 days", custom: true }), { kind: "range", title: "No traces in this time window" });
+  assert.deepEqual(emptyTracesState({ filtered: true, range: "1h", rangeLabel: "Last hour", custom: false }), { kind: "filtered" });
 });

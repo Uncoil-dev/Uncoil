@@ -10,7 +10,7 @@ const path = "/tools";
 
 export const metadata = pageMetadata({
   title: "Free tools for AI agent builders",
-  description: "Free tools for people building AI agents: a log checker, token counter, model price comparison, prompt cost checker, context window checker, tool definition checker, AI API status, JSON fixer and rate limit calculator.",
+  description: "Free tools for AI agent builders: check agent logs, count tokens, compare model prices, estimate costs, fix broken LLM JSON and see if an AI API is down.",
   path,
 });
 

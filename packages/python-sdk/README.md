@@ -93,6 +93,7 @@ avoid sending anything else you would not want stored.
 - **Cost Tracking:** Monitor your infrastructure spend in real-time.
 - **Asynchronous & Synchronous Support:** Works with `async/await` or standard functions.
 - **Session context:** Attach `session_id`, `end_user_id`, `environment`, `release`, and `tags` to connect related traces.
+- **Automatic release:** When `release` is not set, the client uses `UNCOIL_RELEASE`, then the commit variable of the deploy platform (Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions, GitLab CI), then the short commit of the local git checkout. The local lookup runs once, times out quickly and is skipped when git is missing.
 
 ## Feedback and evaluation scores
 

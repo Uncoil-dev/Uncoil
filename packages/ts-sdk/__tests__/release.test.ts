@@ -63,8 +63,10 @@ describe("local git lookup", () => {
     expect(Date.now() - started).toBeLessThan(2000);
   });
 
-  it("runs at most once per process", () => {
-    const first = localGitRelease();
-    expect(localGitRelease()).toBe(first);
+  it("runs git once per process and returns the first result afterwards", () => {
+    const exec = vi.fn<ExecFileSync>(() => "abc1234\n");
+    expect(localGitRelease(exec)).toBe("abc1234");
+    expect(localGitRelease(exec)).toBe("abc1234");
+    expect(exec).toHaveBeenCalledTimes(1);
   });
 });

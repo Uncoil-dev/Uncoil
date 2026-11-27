@@ -40,10 +40,10 @@ let gitChecked = false;
 let gitRelease: string | undefined;
 
 /** The git lookup runs at most once per process. */
-export function localGitRelease(): string | undefined {
+export function localGitRelease(exec?: ExecFileSync | null): string | undefined {
   if (!gitChecked) {
     gitChecked = true;
-    gitRelease = lookupGitRelease();
+    gitRelease = exec === undefined ? lookupGitRelease() : lookupGitRelease(exec);
   }
   return gitRelease;
 }

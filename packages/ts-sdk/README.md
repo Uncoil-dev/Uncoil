@@ -107,7 +107,7 @@ avoid sending anything else you would not want stored.
 - **Environment Aware:** Automatically picks up API keys from `process.env`.
 - **Lightweight:** Minimal dependencies. Runs on Node.js (it uses async context to keep concurrent runs apart), so use the Node.js runtime rather than the edge runtime.
 - **Session context:** Add `sessionId`, `endUserId`, `environment`, `release`, and `tags` to connect related traces.
-- **Automatic release:** When `release` is not set, the client uses `UNCOIL_RELEASE`, then the commit variable of the deploy platform (Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions, GitLab CI), then the short commit of the local git checkout. The local lookup runs once in Node, times out quickly and is skipped when git is missing or in edge and browser runtimes.
+- **Automatic release:** When `release` is not set, the client uses `UNCOIL_RELEASE`, then the commit variable of the deploy platform (Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions, GitLab CI), then the short commit of the local git checkout. The local lookup runs once in Node, times out quickly and is skipped when git is missing or in edge and browser runtimes. It needs Node 20.16+ or 22.3+ (`process.getBuiltinModule`); on older Node it is skipped and the release stays empty.
 
 ## Feedback and evaluation scores
 

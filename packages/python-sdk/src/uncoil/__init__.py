@@ -467,7 +467,7 @@ class UncoilClient:
             return
         span = {
             "spanId": str(uuid.uuid4()),
-            "createdAt": datetime.utcnow().isoformat() + "Z",
+            "createdAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "metadata": {},
             **kwargs
         }

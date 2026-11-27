@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { captureAnalytics } from "@/lib/analytics";
 
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
 import { getOneTimeApiKey } from "@/lib/onboarding-client-state";
+import { copyText } from "@/lib/clipboard";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 import { useMutation } from "convex/react";
 import { api } from "convex/_generated/api";
@@ -21,6 +22,8 @@ const isPostHogConfigured = Boolean(
 export function ApiKeyStep() {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [copyBlocked, setCopyBlocked] = useState(false);
+  const keyRef = useRef<HTMLElement>(null);
   const [confirmSkip, setConfirmSkip] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [initialized, setInitialized] = useState(false);
@@ -41,7 +44,17 @@ export function ApiKeyStep() {
 
   async function copyKey() {
     if (!apiKey) return;
-    await navigator.clipboard.writeText(apiKey);
+    if (!(await copyText(apiKey))) {
+      // Blocked clipboard: select the key so a keyboard copy works, and never mark it copied.
+      const key = keyRef.current;
+      const selection = window.getSelection();
+      if (key && selection) {
+        selection.selectAllChildren(key);
+      }
+      setCopyBlocked(true);
+      return;
+    }
+    setCopyBlocked(false);
     if (isPostHogConfigured) {
       captureAnalytics("api_key_copied", { issuance_flow: "onboarding" });
     }
@@ -75,7 +88,7 @@ export function ApiKeyStep() {
         <>
           <div className="relative border border-black bg-[#090909] p-5 font-mono text-sm text-[#eceae3]">
             <span className="absolute right-3 top-3 font-mono text-[9px] uppercase tracking-[0.14em] text-white/40">shown once</span>
-            <code className="mt-3 block break-all">{apiKey}</code>
+            <code ref={keyRef} className="mt-3 block break-all">{apiKey}</code>
           </div>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
@@ -104,6 +117,7 @@ export function ApiKeyStep() {
               {!copied && confirmSkip ? "Continue without copying →" : "Continue →"}
             </button>
           </div>
+          {copyBlocked ? <p className="mt-3 font-sans text-sm text-[#92400E]" role="status">Your browser blocked copying. The key is selected: press Ctrl+C (or Cmd+C on a Mac).</p> : null}
           {confirmSkip && !copied ? <p className="mt-3 font-sans text-sm text-[#92400E]">You only see this key once. Copy it first, or continue and rotate it later from settings.</p> : null}
         </>
       ) : (

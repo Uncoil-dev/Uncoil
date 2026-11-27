@@ -4,9 +4,12 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { BookOpen, ChevronRight } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 
-const DOCS = {
+/** In-app docs content; links point into the given project. */
+export function docsSections(projectId: string) {
+  return {
   quickstart: {
     title: "Quickstart",
     content: `
@@ -26,22 +29,32 @@ pip install uncoil-sdk
 npm install @uncoil.dev/sdk
 \`\`\`
 
-## 2. Instrument your Agent
+## 2. Set your API key
 
-Wrap your agent's main execution loop with the \`@trace_agent\` decorator.
+Keep the key in a server-side environment variable. The SDK reads \`UNCOIL_API_KEY\` automatically. Create one on the [API keys](/dashboard/${projectId}/api-keys) page.
+
+\`\`\`bash
+export UNCOIL_API_KEY=uncoil_sk_live_...
+\`\`\`
+
+Never put the key in browser code.
+
+## 3. Instrument your Agent
+
+Wrap your agent's main function with the \`@trace_agent\` decorator. Each call becomes one run.
 
 \`\`\`python
 from uncoil import trace_agent
 
-@trace_agent()
+@trace_agent(name="support-agent")
 def run_agent(task):
     # Your agent logic here
     pass
 \`\`\`
 
-## 3. View your Traces
+## 4. View your Traces
 
-Once your agent runs, traces will appear in the [Runs](/dashboard/runs) list in real-time.
+Once your agent runs, traces appear on the [Tracing](/dashboard/${projectId}/tracing) page within a minute.
     `,
   },
   sdk_python: {
@@ -51,25 +64,37 @@ Once your agent runs, traces will appear in the [Runs](/dashboard/runs) list in 
 
 The Uncoil Python SDK provides deep instrumentation for LLM-based agents.
 
-## Core Decorators
+## \`@trace_agent\`
 
-### \`@trace_agent\`
-Traces a full agentic run.
+Decorator that traces a full agent run. Each call of the decorated function is one trace.
 - \`name\`: (Optional) Custom name for the run.
-- \`metadata\`: (Optional) Dict of additional data.
+- \`environment\`, \`release\`, \`deployment_id\`: (Optional) Where and what version ran.
+- \`session_id\`, \`end_user_id\`, \`tags\`: (Optional) Grouping and filtering.
 
-### \`@llm_call\`
-Traces an individual LLM request.
-- \`model\`: The model ID (e.g., "gpt-4").
-- \`tags\`: (Optional) List of strings for filtering.
+## \`llm_call\` and \`tool_call\`
 
-### \`@tool_call\`
-Traces a tool or function execution by the agent.
-- \`tool_name\`: Name of the tool.
+Plain functions that record a finished model or tool call inside the current run.
 
-## Advanced Usage
+\`\`\`python
+from uncoil import llm_call, tool_call
 
-Use \`llm_call\` and \`tool_call\` helpers when you need explicit spans for model and tool work.
+llm_call(
+    input_data=question,
+    output_data=reply.text,
+    model_id="your-model-id",
+    cost_usd=0.002,
+    latency_ms=800,
+)
+
+tool_call(
+    tool_name="web_search",
+    input_data={"q": question},
+    output_data=results,
+    latency_ms=1200,
+)
+\`\`\`
+
+Both also accept \`tags\` and \`metadata\`; \`llm_call\` takes \`input_tokens\` and \`output_tokens\` too.
     `,
   },
   sdk_ts: {
@@ -116,13 +141,18 @@ Send each partial as a span with \`isStreamChunk: true\`, an increasing \`stream
 
 ## Privacy and retention
 
-Redaction is enabled by default and configurable under **Project settings → Privacy & Retention**. Data older than your plan keeps (Free 7 days, Pro 30, Team 90) is removed every day by a built-in schedule. You can also run it with \`POST /api/retention\` and the \`x-retention-secret\` header; set \`UNCOIL_RETENTION_SECRET\` in the deployment environment.
+Obvious secrets are removed from inputs and outputs by default. Data older than your plan keeps (Free 7 days, Pro 30, Team 90) is removed every day by a built-in schedule. You can also run it with \`POST /api/retention\` and the \`x-retention-secret\` header; set \`UNCOIL_RETENTION_SECRET\` in the deployment environment.
     `,
   },
-};
+  };
+}
+
+type DocId = keyof ReturnType<typeof docsSections>;
 
 export function DocsViewer() {
-  const [activeTab, setActiveTab] = useState<keyof typeof DOCS>("quickstart");
+  const { projectId } = useParams<{ projectId: string }>();
+  const DOCS = docsSections(projectId);
+  const [activeTab, setActiveTab] = useState<DocId>("quickstart");
 
   return (
     <div className="flex h-full min-h-[600px] border border-black/15 bg-[#f3f2ed] font-mono">
@@ -136,7 +166,7 @@ export function DocsViewer() {
           {Object.entries(DOCS).map(([id, doc]) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id as keyof typeof DOCS)}
+              onClick={() => setActiveTab(id as DocId)}
               className={cn(
                 "flex w-full items-center justify-between px-3 py-2 text-[12px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset",
                 activeTab === id

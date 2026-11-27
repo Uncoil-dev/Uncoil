@@ -17,6 +17,7 @@ import {
   toCsv,
 } from "./format";
 import { RANGES, TimeRangePicker } from "./time-range-picker";
+import { stepsShortcut } from "./steps-shortcuts";
 import { TracePanel, TRACE_VIEWS, type TraceView } from "./trace-panel";
 import { TypeIcon } from "./trace-views";
 import { SampleSteps } from "../empty/samples";
@@ -241,17 +242,12 @@ export function StepsExplorer({
   }, [live, query.from, query.to, query.range, key, url]);
   useEffect(() => {
     const keydown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.target instanceof HTMLSelectElement
-      )
-        return;
-      if (e.key === "/") {
+      const shortcut = stepsShortcut(e);
+      if (shortcut === "search") {
         e.preventDefault();
         search.current?.focus();
       }
-      if (e.key === "Escape")
+      if (shortcut === "close")
         setQuery((current) => {
           const next = { ...current };
           delete next.trace;

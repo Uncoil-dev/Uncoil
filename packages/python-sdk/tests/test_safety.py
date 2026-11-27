@@ -80,6 +80,7 @@ def test_network_failure_does_not_raise(monkeypatch):
     client._http = None
     monkeypatch.setattr("uncoil._requests_fallback.post", boom)
     client.ingest(spanType="llm_call", runId="r1")
+    client.flush()
     assert seen[0].code == "network"
 
 
@@ -91,6 +92,7 @@ def test_us_key_without_region_sends_to_the_us_host(monkeypatch):
     client = UncoilClient(api_key="uncoil_sk_live_us_abcdefghijklmnop", on_error=lambda e: None)
     client._http = None
     client.ingest(spanType="llm_call", runId="r1")
+    client.flush()
     assert urls == ["https://us.cloud.uncoil.dev/api/ingest"]
 
 

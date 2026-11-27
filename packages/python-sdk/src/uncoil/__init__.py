@@ -1,5 +1,8 @@
 import os
 import time
+import atexit
+import queue
+import weakref
 import json
 import uuid
 import functools
@@ -296,7 +299,23 @@ def _run_with_timeout(
     return result[0]
 
 
+# Clients with a background sender, flushed briefly at interpreter exit so short scripts keep their last spans.
+_LIVE_CLIENTS: "weakref.WeakSet[UncoilClient]" = weakref.WeakSet()
+
+
+def flush(timeout: float = 10) -> bool:
+    """Wait until every client has sent its queued spans. Returns False if some are still waiting after ``timeout`` seconds."""
+    deadline = time.monotonic() + timeout
+    return all([live.flush(max(0.0, deadline - time.monotonic())) for live in list(_LIVE_CLIENTS)])
+
+
+atexit.register(flush, 2)
+
+
 class UncoilClient:
+    # Spans waiting to be sent; when full, new spans are dropped instead of slowing the app.
+    MAX_QUEUED_SPANS = 1000
+    SENDER_IDLE_SECONDS = 5
     REGION_HOSTS = {
         "eu": "https://eu.cloud.uncoil.dev",
         "us": "https://us.cloud.uncoil.dev",
@@ -339,6 +358,9 @@ class UncoilClient:
         self._http = httpx.Client(timeout=10) if _HAS_HTTPX else None
         self._last_fail_open = False
         self._prompt_cache: Dict[str, Any] = {}
+        self._queue: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=self.MAX_QUEUED_SPANS)
+        self._sender: Optional[threading.Thread] = None
+        self._sender_lock = threading.Lock()
 
     @staticmethod
     def _api_key_region(api_key: str) -> Optional[str]:
@@ -385,6 +407,48 @@ class UncoilClient:
         return sample_bucket(span.get("runId") or "") >= self.sample_rate
 
     def _send_span(self, span: Dict[str, Any]):
+        """Hand the span to the background sender so tracing never waits on the network."""
+        with self._sender_lock:
+            # The thread check also restarts the sender in a forked child, where threads do not survive.
+            if self._sender is None or not self._sender.is_alive():
+                self._sender = threading.Thread(target=self._send_queued, name="uncoil-sender", daemon=True)
+                self._sender.start()
+                _LIVE_CLIENTS.add(self)
+            try:
+                self._queue.put_nowait(span)
+                return
+            except queue.Full:
+                pass
+        self._report(UncoilError("queue_full", "Too many spans are waiting to be sent to Uncoil, so new ones are dropped.", "Check your network and the host setting, or lower the volume with sample_rate."))
+
+    def _send_queued(self):
+        # The sender stops after a few idle seconds, so clients that are no longer used do not keep a thread.
+        while True:
+            try:
+                span = self._queue.get(timeout=self.SENDER_IDLE_SECONDS)
+            except queue.Empty:
+                with self._sender_lock:
+                    if self._queue.empty():
+                        self._sender = None
+                        return
+                continue
+            try:
+                self._post_span(span)
+            finally:
+                self._queue.task_done()
+
+    def flush(self, timeout: float = 10) -> bool:
+        """Wait until queued spans are sent. Returns False if some are still waiting after ``timeout`` seconds."""
+        deadline = time.monotonic() + timeout
+        with self._queue.all_tasks_done:
+            while self._queue.unfinished_tasks:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return False
+                self._queue.all_tasks_done.wait(remaining)
+        return True
+
+    def _post_span(self, span: Dict[str, Any]):
         try:
             headers = {
                 "Authorization": f"Bearer {self.api_key}",

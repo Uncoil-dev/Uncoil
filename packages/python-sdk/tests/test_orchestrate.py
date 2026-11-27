@@ -1,6 +1,7 @@
 import time
 import json
 import pytest
+import uncoil
 from unittest.mock import patch, MagicMock, PropertyMock
 from uncoil import (
     UncoilClient,
@@ -19,6 +20,12 @@ except ImportError:
     _HAS_HTTPX = False
 
 MOCK_TARGET = "uncoil.httpx.Client.post" if _HAS_HTTPX else "uncoil._requests_fallback.post"
+
+
+@pytest.fixture(autouse=True)
+def no_network(monkeypatch):
+    # Spans queued during a test can be sent after its own mock is removed; keep those off the network too.
+    monkeypatch.setattr(MOCK_TARGET, MagicMock(return_value=MagicMock(status_code=202)))
 
 
 class TestRuntimePolicy:
@@ -112,6 +119,7 @@ class TestUncoilClient:
             costUsd=0.001,
             latencyMs=100,
         )
+        client.flush()
 
         mock_http.assert_called_once()
         payload = mock_http.call_args.kwargs.get("json") or mock_http.call_args[1].get("json")
@@ -120,6 +128,18 @@ class TestUncoilClient:
         assert payload["modelId"] == "gpt-4o"
         assert payload["costUsd"] == 0.001
         assert payload["latencyMs"] == 100
+
+    @patch(MOCK_TARGET)
+    def test_ingest_does_not_wait_for_a_slow_network(self, mock_http):
+        mock_http.side_effect = lambda *args, **kwargs: (time.sleep(1), MagicMock(status_code=202))[1]
+        client = UncoilClient(api_key="test-key")
+
+        started = time.perf_counter()
+        client.ingest(runId="run-1", spanType="llm_call", input="hello")
+        assert time.perf_counter() - started < 0.05
+
+        assert uncoil.flush(timeout=5) is True
+        mock_http.assert_called_once()
 
     @patch(MOCK_TARGET)
     def test_ingest_preserves_custom_metadata(self, mock_http):
@@ -136,6 +156,7 @@ class TestUncoilClient:
             latencyMs=100,
             metadata={"customKey": "customValue"},
         )
+        client.flush()
 
         mock_http.assert_called_once()
         payload = mock_http.call_args.kwargs.get("json") or mock_http.call_args[1].get("json")
@@ -153,6 +174,7 @@ class TestUncoilClient:
         )
 
         client.ingest(runId="run-1", spanType="llm_call")
+        client.flush()
 
         payload = mock_http.call_args.kwargs.get("json") or mock_http.call_args[1].get("json")
         assert payload["release"] == "release-42"
@@ -285,7 +307,10 @@ class TestUncoilClient:
     def test_orchestrate_success_resets_failopen_flag(self, mock_http):
         call_count = {"n": 0}
 
-        def side_effect(*args, **kwargs):
+        def side_effect(url, *args, **kwargs):
+            # Spans are posted from a background thread, so only check-cost calls are counted.
+            if not url.endswith("/check-cost"):
+                return MagicMock(status_code=202)
             call_count["n"] += 1
             if call_count["n"] <= 2:
                 fail_resp = MagicMock()

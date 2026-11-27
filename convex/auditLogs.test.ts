@@ -1,9 +1,14 @@
 import { convexTest } from "convex-test";
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import schema from "./schema";
 
 const modules = import.meta.glob("./**/*.ts");
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 async function setup() {
   const t = convexTest(schema, modules);
@@ -17,68 +22,108 @@ async function setup() {
   return {
     t,
     projectId,
-    member: t.withIdentity({ subject: "member", orgId: "org", email: "m@example.com" }),
+    member: t.withIdentity({
+      subject: "member",
+      orgId: "org",
+      email: "member@example.com",
+    }),
     outsider: t.withIdentity({ subject: "outsider", orgId: "other" }),
   };
 }
 
-async function seed(t: Awaited<ReturnType<typeof setup>>["t"], projectId: Awaited<ReturnType<typeof setup>>["projectId"], count: number) {
+async function seed(
+  t: Awaited<ReturnType<typeof setup>>["t"],
+  projectId: Id<"projects">,
+  count: number,
+) {
   await t.run(async (ctx) => {
-    for (let i = 0; i < count; i++) {
+    for (let i = 1; i <= count; i++) {
       await ctx.db.insert("auditLogs", {
         projectId,
-        actorId: "member",
-        action: `a${i}`,
-        resource: "key",
-        summary: `entry ${i}`,
-        createdAt: 1_000 + i,
+        actorId: "owner",
+        action: "test.seed",
+        resource: `item-${i}`,
+        summary: `Entry ${i}`,
+        createdAt: i,
       });
     }
   });
 }
 
 test("record stores actor, action, resource and summary for a member", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(1_700_000_000_000);
   const { member, projectId } = await setup();
   await member.mutation(api.auditLogs.record, {
     projectId,
-    action: "key.create",
-    resource: "api-key",
-    summary: "Created key",
+    action: "apiKey.create",
+    resource: "key-1",
+    summary: "Created an API key",
+    metadata: { source: "dashboard" },
   });
-  const [row] = await member.query(api.auditLogs.listByProject, { projectId });
-  expect(row).toMatchObject({
+  const [entry] = await member.query(api.auditLogs.listByProject, {
+    projectId,
+  });
+  expect(entry).toMatchObject({
+    projectId,
     actorId: "member",
-    actorEmail: "m@example.com",
-    action: "key.create",
-    resource: "api-key",
-    summary: "Created key",
+    actorEmail: "member@example.com",
+    action: "apiKey.create",
+    resource: "key-1",
+    summary: "Created an API key",
+    metadata: { source: "dashboard" },
+    createdAt: 1_700_000_000_000,
   });
 });
 
-test("record rejects people outside the project", async () => {
-  const { outsider, projectId } = await setup();
-  await expect(
-    outsider.mutation(api.auditLogs.record, { projectId, action: "x", resource: "y", summary: "z" }),
-  ).rejects.toThrow("access denied");
-});
-
-test("listByProject returns newest entries first", async () => {
-  const { t, member, projectId } = await setup();
-  await seed(t, projectId, 3);
+test("listByProject returns entries newest first", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  const { member, projectId } = await setup();
+  for (const [i, summary] of ["first", "second", "third"].entries()) {
+    vi.setSystemTime(1_700_000_000_000 + i * 1000);
+    await member.mutation(api.auditLogs.record, {
+      projectId,
+      action: "test.action",
+      resource: "res",
+      summary,
+    });
+  }
   const rows = await member.query(api.auditLogs.listByProject, { projectId });
-  expect(rows.map((r) => r.action)).toEqual(["a2", "a1", "a0"]);
+  expect(rows.map((r) => r.summary)).toEqual(["third", "second", "first"]);
 });
 
 test("limit is clamped between 1 and 250", async () => {
   const { t, member, projectId } = await setup();
   await seed(t, projectId, 260);
-  expect(await member.query(api.auditLogs.listByProject, { projectId, limit: 0 })).toHaveLength(1);
-  expect(await member.query(api.auditLogs.listByProject, { projectId, limit: 1000 })).toHaveLength(250);
-  expect(await member.query(api.auditLogs.listByProject, { projectId })).toHaveLength(100);
+  const list = (limit?: number) =>
+    member.query(api.auditLogs.listByProject, { projectId, limit });
+  expect(await list(0)).toHaveLength(1);
+  expect(await list(-5)).toHaveLength(1);
+  expect(await list(10)).toHaveLength(10);
+  expect(await list(1000)).toHaveLength(250);
+  expect(await list()).toHaveLength(100);
+  const [newest] = await list(0);
+  expect(newest.summary).toBe("Entry 260");
 });
 
-test("listByProject returns an empty list for people outside the project", async () => {
-  const { t, outsider, projectId } = await setup();
-  await seed(t, projectId, 2);
-  expect(await outsider.query(api.auditLogs.listByProject, { projectId })).toEqual([]);
+test("people outside the project get an empty list and cannot record", async () => {
+  const { t, member, outsider, projectId } = await setup();
+  await member.mutation(api.auditLogs.record, {
+    projectId,
+    action: "test.action",
+    resource: "res",
+    summary: "visible to members only",
+  });
+  expect(
+    await outsider.query(api.auditLogs.listByProject, { projectId }),
+  ).toEqual([]);
+  expect(await t.query(api.auditLogs.listByProject, { projectId })).toEqual([]);
+  await expect(
+    outsider.mutation(api.auditLogs.record, {
+      projectId,
+      action: "test.action",
+      resource: "res",
+      summary: "nope",
+    }),
+  ).rejects.toThrow("access denied");
 });

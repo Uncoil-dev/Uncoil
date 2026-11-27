@@ -11,6 +11,7 @@ import { changePercent, costPerThousandTokens, cumulative, stackSeries, type Sta
 import type { CostBreakdown, CostDimension, CostGroup } from "@/lib/tinybird";
 import { SampleCosts } from "../empty/samples";
 import { EmptyNotice } from "../empty/empty-notice";
+import { CostsError } from "./costs-error";
 
 type Query = Record<string, string>;
 type Data = CostBreakdown;
@@ -56,6 +57,8 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
   const [query, setQuery] = useState<Query>(initialQuery);
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Bumped by Try again so a fixed window, whose request key does not move with the clock, still refetches.
+  const [attempt, setAttempt] = useState(0);
   const [settledKey, setSettledKey] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [clock, setClock] = useState(() => Date.now());
@@ -110,7 +113,7 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
         setSettledKey(requestKey);
       });
     return () => controller.abort();
-  }, [base, requestKey]);
+  }, [attempt, base, requestKey]);
 
   // Live updates: for relative ranges, quietly refetch with the window moved forward. Skipped while paused, for fixed
   // windows, hidden tabs and pending loads; a good poll clears an earlier error, failures back off from 5s to 60s.
@@ -205,7 +208,7 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
         </div>
       ) : null}
 
-      {error ? <div role="alert" className="border-b border-[#4A2A2A] bg-[#1A1111] px-4 py-2 text-xs text-[#FF8A8A]">{error}</div> : null}
+      {error ? <CostsError message={error} onRetry={() => { setNow(Date.now()); setAttempt((n) => n + 1); }} /> : null}
 
       {loading ? (
         <div className="grid gap-px p-4" aria-busy="true"><div className="h-40 animate-pulse bg-[#111418]" /><div className="mt-4 h-56 animate-pulse bg-[#111418]" /></div>

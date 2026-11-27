@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   chatMessages,
   compactNumber,
+  contentNotRecorded,
   emptyTracesState,
   listPaging,
   formatCost,
@@ -180,4 +181,14 @@ test("emptyTracesState: setup guide only for the full 90 days, otherwise name th
   assert.deepEqual(emptyTracesState({ filtered: false, range: "7d", rangeLabel: "Last 7 days", custom: false }), { kind: "range", title: "No traces in the last 7 days" });
   assert.deepEqual(emptyTracesState({ filtered: false, range: "90d", rangeLabel: "Last 90 days", custom: true }), { kind: "range", title: "No traces in this time window" });
   assert.deepEqual(emptyTracesState({ filtered: true, range: "1h", rangeLabel: "Last hour", custom: false }), { kind: "filtered" });
+});
+
+test("contentNotRecorded: only spans the SDK marked with contentRecorded false", () => {
+  assert.equal(contentNotRecorded('{"contentRecorded":false,"team":"a"}'), true);
+  assert.equal(contentNotRecorded({ contentRecorded: false }), true);
+  assert.equal(contentNotRecorded('{"contentRecorded":true}'), false);
+  assert.equal(contentNotRecorded('{"contentRecorded":"false"}'), false);
+  assert.equal(contentNotRecorded("{}"), false);
+  assert.equal(contentNotRecorded("not json"), false);
+  assert.equal(contentNotRecorded(undefined), false);
 });

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildSpanTree, type SpanTreeNode } from "@/lib/uncoil-ports/treeBuilding";
 import { slowestStep } from "@/lib/trace-critical-path";
-import { chatMessages, compactNumber, downloadFile, formatCost, formatDuration, formatTime, parsePayload } from "./format";
+import { chatMessages, compactNumber, contentNotRecorded, downloadFile, formatCost, formatDuration, formatTime, parsePayload } from "./format";
 import { AskAiPanel } from "./ask-ai-panel";
 import { escapeSearch } from "./search-escape";
 import { ScoreRunButton } from "../scores/score-run-button";
@@ -357,6 +357,7 @@ function toIso(value: string) {
 function StepDetail({ span }: { span: Span }) {
   const [raw, setRaw] = useState(false);
   const failed = span.spanType === "error" || Boolean(span.errorType);
+  const withheld = contentNotRecorded(span.metadata);
   const attributes: Array<[string, string]> = [
     ["Type", span.spanType], ["Started", formatTime(span.createdAt)], ["Latency", formatDuration(span.latencyMs)],
     ["Time to first token", span.ttftMs ? formatDuration(span.ttftMs) : ""], ["Model", span.modelId ?? ""], ["Tool", span.toolName ?? ""],
@@ -376,12 +377,12 @@ function StepDetail({ span }: { span: Span }) {
       {failed ? (
         <div role="alert" className="rounded-lg border border-[#5A2A2A] bg-[#1E1314] p-3 text-sm">
           <p className="font-medium text-[#FF8A8A]">{span.errorType || "Error"}{span.timedOut ? " · timed out" : ""}</p>
-          {span.errorMessage ? <p className="mt-1 text-[#E6C3C3]">{span.errorMessage}</p> : null}
+          {span.errorMessage ? <p className="mt-1 text-[#E6C3C3]">{span.errorMessage}</p> : withheld ? <p className="mt-1 text-[#C9A0A0]">Content not recorded</p> : null}
           {span.stackTrace ? <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-[#C9A0A0]">{span.stackTrace}</pre> : null}
         </div>
       ) : null}
-      <Payload title="Input" raw={raw} value={span.input} />
-      <Payload title="Output" raw={raw} value={span.output} />
+      <Payload title="Input" raw={raw} value={span.input} notRecorded={withheld} />
+      <Payload title="Output" raw={raw} value={span.output} notRecorded={withheld} />
       <section>
         <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-[#8B93A1]">Attributes</h4>
         <dl className="grid grid-cols-[minmax(0,140px)_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-sm">
@@ -393,7 +394,7 @@ function StepDetail({ span }: { span: Span }) {
   );
 }
 
-function Payload({ title, value, raw }: { title: string; value?: string; raw: boolean }) {
+function Payload({ title, value, raw, notRecorded }: { title: string; value?: string; raw: boolean; notRecorded?: boolean }) {
   const [copied, setCopied] = useState(false);
   const parsed = parsePayload(value);
   const messages = raw ? null : chatMessages(parsed);
@@ -404,7 +405,7 @@ function Payload({ title, value, raw }: { title: string; value?: string; raw: bo
         <h4 className="text-xs font-medium uppercase tracking-wide text-[#8B93A1]">{title}</h4>
         {!empty ? <button type="button" onClick={() => { void navigator.clipboard?.writeText(typeof parsed === "string" ? parsed : JSON.stringify(parsed, null, 2)); setCopied(true); setTimeout(() => setCopied(false), 1200); }} className="text-xs text-[#8B93A1] hover:text-white" aria-label={`Copy ${title.toLowerCase()}`}>{copied ? "Copied" : "Copy"}</button> : null}
       </div>
-      {empty ? <p className="text-sm text-[#4A5260]">Nothing recorded</p> : messages ? (
+      {empty ? <p className="text-sm text-[#4A5260]">{notRecorded ? "Content not recorded" : "Nothing recorded"}</p> : messages ? (
         <div className="flex flex-col gap-2">
           {messages.map((message, index) => (
             <div key={index} className={`rounded-lg border p-3 ${message.role === "assistant" ? "border-[#3A3420] bg-[#16140C]" : "border-[#1F242C] bg-[#111418]"}`}>

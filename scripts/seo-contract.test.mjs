@@ -28,6 +28,13 @@ test("the tools hub description fits search results without trimming or padding"
   assert.equal(fitDescription(description), description);
 });
 
+test("the docs index description mentions one-prompt setup and fits search results", async () => {
+  const { fitDescription } = await import("../src/lib/seo.ts");
+  const description = read(`${app}/docs/page.tsx`).match(/description: "([^"]+)"/)[1];
+  assert.match(description, /Claude Code, Cursor or Codex/);
+  assert.equal(fitDescription(description), description);
+});
+
 test("root layout does not force a homepage og:url on every page", () => {
   assert.doesNotMatch(read(`${app}/layout.tsx`), /url: "\/",\s*\n\s*locale/);
 });

@@ -248,6 +248,11 @@ Opens your browser so you can sign in (or create a free account), pick or create
 
 `npx @uncoil.dev/sdk doctor` also reads `.env.local`/`.env`, and now tells you which project traces will land in (`Traces will land in: <name>`). It fails if `UNCOIL_PROJECT_ID` points at a different project than the key.
 
+### Topics
+
+`npx @uncoil.dev/sdk topics` lists what your traces are about: topic names, counts, error rates and sample trace ids. It reads `UNCOIL_API_KEY` like `doctor` and accepts `--key`, `--region`, `--host` and `--json`. The same data is available read-only over HTTP: `GET /api/sdk/topics` with `Authorization: Bearer <api key>` returns `{ total, sampled, topics }` and accepts the same filter query parameters as the trace list.
+
+
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:

@@ -9,7 +9,6 @@ import { getUncoilRegion } from "@/lib/regions";
 import { runRetention } from "@/lib/retention-job";
 import { sendTransactionalEmail } from "@/lib/transactional-email";
 import { renderNoTraceEmail } from "@/lib/email-templates";
-import { buildDiscordAlertPayload } from "@/lib/discord-alert";
 
 /**
  * Milestone 2 activation pipeline:
@@ -79,15 +78,13 @@ export const processSpan = inngest.createFunction(
       if (span.spanType === "error") {
         await inngest.send({
           name: "uncoil/alert.triggered",
-          // Inngest drops events that repeat an id, so a failed run with several error spans alerts once.
-          id: `run_failed:${span.projectDocId}:${span.runId}`,
           data: {
             projectId: span.projectDocId,
             runId: span.runId,
             type: "run_failed",
             message: `Run ${span.runId} encountered an error span.`,
             triggeredAt: new Date().toISOString(),
-            failingStep: span.toolName || span.errorType || undefined,
+            failingStep: span.toolName || undefined,
           },
         });
       }
@@ -127,6 +124,7 @@ export const processAlert = inngest.createFunction(
         type: alert.type,
         message: alert.message,
         triggeredAt: alert.triggeredAt,
+        failingStep: typeof alert.failingStep === "string" ? alert.failingStep : undefined,
       });
     });
 
@@ -208,30 +206,6 @@ export const processAlert = inngest.createFunction(
             ],
           }),
         });
-      }
-    });
-
-    await step.run("notify-discord", async () => {
-      const convex = getConvexClient();
-      const project = await convex.query(api.projects.getById, {
-        id: alert.projectId as Id<"projects">,
-      });
-
-      if (project?.discordWebhookUrl) {
-        const response = await fetch(project.discordWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(buildDiscordAlertPayload({
-            projectName: project.name,
-            ruleLabel: alert.type.replace(/_/g, " "),
-            message: alert.message,
-            failingStep: typeof alert.failingStep === "string" ? alert.failingStep : undefined,
-            runUrl: `${getUncoilRegion().origin}/dashboard/${alert.projectId}/runs/${alert.runId}`,
-          })),
-          redirect: "manual",
-          signal: AbortSignal.timeout(10_000),
-        });
-        if (!response.ok) console.error("[alerts] discord returned", response.status);
       }
     });
 

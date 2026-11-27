@@ -20,7 +20,7 @@ export function ProjectNotifications({ projectId }: { projectId: string }) {
   const channels = [
     { name: "Slack", on: Boolean(project.slackWebhookUrl) },
     { name: "Microsoft Teams", on: Boolean(project.teamsWebhookUrl) },
-    { name: "Discord", on: Boolean(project.discordWebhookUrl) },
+    { name: "Discord", on: project.hasDiscordWebhook },
   ];
   const emails = [
     { key: "operational" as const, title: "Setup help", text: "Welcome, setup, first-trace and important account messages." },

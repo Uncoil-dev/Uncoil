@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 function getOrgId(identity: unknown) {
   const orgId = (identity as { orgId?: unknown; org_id?: unknown }).orgId ??
@@ -27,8 +28,10 @@ export const create = mutation({
     message: v.string(),
     triggeredAt: v.string(),
     state: v.optional(v.union(v.literal("active"), v.literal("resolved"), v.literal("muted"))),
+    // Only used for the Discord message; not stored on the alert.
+    failingStep: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { failingStep, ...args }) => {
     const existing = await ctx.db
       .query("alerts")
       .withIndex("by_projectId", (q) => q.eq("projectId", args.projectId))
@@ -43,7 +46,20 @@ export const create = mutation({
       return duplicate._id;
     }
 
-    return await ctx.db.insert("alerts", { ...args, state: args.state ?? "active" });
+    const alertId = await ctx.db.insert("alerts", { ...args, state: args.state ?? "active" });
+
+    // Only a newly recorded alert is delivered, so a run that raises several error spans posts once.
+    const project = await ctx.db.get(args.projectId);
+    if (project?.discordWebhookUrl) {
+      await ctx.scheduler.runAfter(0, internal.discordAlerts.deliver, {
+        projectId: args.projectId,
+        runId: args.runId,
+        type: args.type,
+        message: args.message,
+        failingStep,
+      });
+    }
+    return alertId;
   },
 });
 

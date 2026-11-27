@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDiscordAlertPayload, DISCORD_LIMITS } from "./discord-alert";
+import { buildDiscordAlertPayload, DISCORD_LIMITS } from "./discordAlert";
 
 const base = { projectName: "Support bot", ruleLabel: "run failed", runUrl: "https://uncoil.dev/dashboard/p1/runs/r1" };
 

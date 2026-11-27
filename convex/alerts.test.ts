@@ -1,5 +1,5 @@
 import { convexTest } from "convex-test";
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import schema from "./schema";
@@ -98,4 +98,38 @@ test("listByProject returns alerts to the owner and nothing to others", async ()
 
   expect(await outsider.query(api.alerts.listByProject, { projectId })).toEqual([]);
   expect(await t.query(api.alerts.listByProject, { projectId })).toEqual([]);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+test("a new failed-run alert posts to the project's Discord channel exactly once", async () => {
+  const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
+  vi.stubGlobal("fetch", fetchMock);
+  const { t, projectId } = await setup();
+  const url = "https://discord.com/api/webhooks/1/secret";
+  await t.run((ctx) => ctx.db.patch(projectId, { discordWebhookUrl: url }));
+
+  const args = { projectId, runId: "run-1", type: "run_failed", message: "boom", triggeredAt: "2026-01-01T00:00:00.000Z", failingStep: "search_tool" };
+  await t.mutation(api.alerts.create, args);
+  await t.mutation(api.alerts.create, args); // a second error span in the same run
+  await t.finishAllScheduledFunctions(() => {});
+
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  const [target, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+  expect(target).toBe(url);
+  expect(init.redirect).toBe("manual");
+  const body = JSON.parse(String(init.body));
+  expect(body.allowed_mentions).toEqual({ parse: [] });
+  expect(body.embeds[0].fields).toContainEqual({ name: "Failing step", value: "search_tool", inline: true });
+});
+
+test("no Discord post is made when the project has no Discord link", async () => {
+  const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
+  vi.stubGlobal("fetch", fetchMock);
+  const { t, projectId } = await setup();
+  await t.mutation(api.alerts.create, { projectId, runId: "run-2", type: "run_failed", message: "boom", triggeredAt: "2026-01-01T00:00:00.000Z" });
+  await t.finishAllScheduledFunctions(() => {});
+  expect(fetchMock).not.toHaveBeenCalled();
 });

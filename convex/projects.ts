@@ -349,7 +349,7 @@ function publicProject(project: Doc<"projects">) {
     maxStallMinutes: project.maxStallMinutes,
     slackWebhookUrl: project.slackWebhookUrl ?? null,
     teamsWebhookUrl: project.teamsWebhookUrl ?? null,
-    discordWebhookUrl: project.discordWebhookUrl ?? null,
+    hasDiscordWebhook: Boolean(project.discordWebhookUrl),
     runtimePolicy: project.runtimePolicy ?? null,
     redactionEnabled: project.redactionEnabled ?? true,
     redactionRules: project.redactionRules ?? [],
@@ -1037,11 +1037,12 @@ export const sendTestAlert = action({
     }
 
     if (channel === "discord") {
-      if (!project.discordWebhookUrl) {
+      const target = await ctx.runQuery(internal.discordAlerts.webhookForProject, { projectId });
+      if (!target) {
         throw new Error("Add a Discord webhook URL before sending a test alert");
       }
 
-      const response = await fetch(project.discordWebhookUrl, {
+      const response = await fetch(target.url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1049,6 +1050,7 @@ export const sendTestAlert = action({
           allowed_mentions: { parse: [] },
         }),
         redirect: "manual",
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (!response.ok) {

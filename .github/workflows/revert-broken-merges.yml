@@ -1,0 +1,44 @@
+name: Revert broken merges
+
+# Hourly: finds commits merged to main in the last 24 hours whose checks failed
+# and were not fixed by a later commit, and opens up to 3 revert pull requests.
+# Reverts that touch sensitive paths are left for the owner to review.
+
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+concurrency:
+  group: revert-broken-merges
+  cancel-in-progress: false
+
+jobs:
+  revert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # A token other than the default one lets the revert PR trigger checks.
+      GH_TOKEN: ${{ secrets.REVERT_BOT_TOKEN || github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          submodules: false
+          token: ${{ secrets.REVERT_BOT_TOKEN || github.token }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Open revert pull requests
+        run: node scripts/revert-broken-merges.mjs

@@ -1,3 +1,4 @@
+import { releaseFieldsFromRow } from "./error-group-release";
 import { validTraceSort, TRACE_SORT_FIELDS } from "./trace-sort";
 import { DURATION_EXPR, ERROR_COUNT_EXPR, IS_ERROR, LEAN_AGGREGATE, inPageOrder, isLeanSort, leanCountSql, leanPageSql, pageRowsSql } from "./trace-list-sql";
 export { IS_ERROR };
@@ -672,6 +673,8 @@ export async function traceStats(projectId: string, filters: TraceListFilters): 
 export type ErrorGroup = {
   id: string; tool: string; errorType: string; message: string; sample: string;
   count: number; traces: number; firstSeen: string; lastSeen: string;
+  /** Release of the earliest and latest error in the group; only present when those steps carry a release. */
+  firstRelease?: string; lastRelease?: string;
   /** A trace that contains this error, used to open an example. */
   sampleRunId?: string;
   /** Set when a member marked the group resolved and no newer error has appeared. */
@@ -687,10 +690,11 @@ export type ErrorGroup = {
 export async function traceErrorGroups(projectId: string, filters: TraceListFilters, resolvedAt: ResolvedAtBySignature = {}) {
   const { where, having } = traceListClauses(projectId, filters);
   const unresolved = unresolvedGroupCondition(resolvedAt, "id", "max(createdAt)");
-  const rows = await tinybirdRows<ErrorGroup & { totalGroups: number }>(`
+  const rows = await tinybirdRows<ErrorGroup & { totalGroups: number; firstRelease: string; lastRelease: string }>(`
     SELECT ${ERROR_GROUP_ID} AS id, ${ERROR_TOOL} AS tool, errorType, ${ERROR_MESSAGE_KEY} AS message,
       substring(any(errorMessage), 1, 300) AS sample, argMax(runId, createdAt) AS sampleRunId, count() AS count, uniqExact(runId) AS traces,
-      min(createdAt) AS firstSeen, max(createdAt) AS lastSeen, count() OVER () AS totalGroups
+      min(createdAt) AS firstSeen, max(createdAt) AS lastSeen,
+      argMinIf(release, createdAt, release != '') AS firstRelease, argMaxIf(release, createdAt, release != '') AS lastRelease, count() OVER () AS totalGroups
     FROM spans
     WHERE ${where} AND ${IS_ERROR} AND runId IN (${matchingRunIds(where, having)})
     GROUP BY id, tool, errorType, message${unresolved ? `\n    HAVING ${unresolved}` : ""}
@@ -700,7 +704,7 @@ export async function traceErrorGroups(projectId: string, filters: TraceListFilt
     total: Number(rows[0]?.totalGroups ?? 0),
     groups: rows.map((row): ErrorGroup => ({
       id: row.id, tool: row.tool, errorType: row.errorType, message: row.message, sample: row.sample, sampleRunId: row.sampleRunId || undefined,
-      count: Number(row.count), traces: Number(row.traces), firstSeen: row.firstSeen, lastSeen: row.lastSeen,
+      count: Number(row.count), traces: Number(row.traces), firstSeen: row.firstSeen, lastSeen: row.lastSeen, ...releaseFieldsFromRow(row),
     })),
   };
 }

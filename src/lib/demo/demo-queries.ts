@@ -1,3 +1,4 @@
+import { groupReleases } from "@/lib/error-group-release";
 import { FACET_KEYS, TOPIC_TRACE_LIMIT, activityTimeZone, type ActivityDay, type ErrorGroup, type FacetCounts, type FacetKey, type HistogramBucket, type TraceListFilters, type TraceStats } from "@/lib/tinybird";
 import { groupTraceTopics, mergeTopicsByName, topicRunIds } from "@/lib/trace-topics";
 import { flowGraph, flowPairId, type FlowStep } from "@/lib/trace-flow";
@@ -179,19 +180,20 @@ export function demoFacets(filters: TraceListFilters, nowMs = Date.now()): Facet
 }
 
 export function demoErrorGroups(runs: DemoRun[]) {
-  const groups = new Map<string, ErrorGroup & { runs: Set<string> }>();
+  const groups = new Map<string, ErrorGroup & { runs: Set<string>; sightings: Array<{ release: string; at: string }> }>();
   for (const run of runs) {
     for (const error of run.errors) {
       const id = demoGroupId(error.tool, error.type, error.message);
-      const group = groups.get(id) ?? { id, tool: error.tool, errorType: error.type, message: error.message, sample: error.sample, count: 0, traces: 0, firstSeen: stamp(run.startMs), lastSeen: stamp(run.startMs), sampleRunId: run.runId, runs: new Set<string>() };
+      const group = groups.get(id) ?? { id, tool: error.tool, errorType: error.type, message: error.message, sample: error.sample, count: 0, traces: 0, firstSeen: stamp(run.startMs), lastSeen: stamp(run.startMs), sampleRunId: run.runId, runs: new Set<string>(), sightings: [] };
       group.count++;
+      group.sightings.push({ release: run.release, at: stamp(run.startMs) });
       group.runs.add(run.runId);
       if (stamp(run.startMs) < group.firstSeen) group.firstSeen = stamp(run.startMs);
       if (stamp(run.startMs) > group.lastSeen) { group.lastSeen = stamp(run.startMs); group.sampleRunId = run.runId; }
       groups.set(id, group);
     }
   }
-  const sorted = [...groups.values()].map(({ runs: set, ...group }) => ({ ...group, traces: set.size })).sort((a, b) => b.count - a.count || b.traces - a.traces || a.id.localeCompare(b.id));
+  const sorted = [...groups.values()].map(({ runs: set, sightings, ...group }) => ({ ...group, ...groupReleases(sightings), traces: set.size })).sort((a, b) => b.count - a.count || b.traces - a.traces || a.id.localeCompare(b.id));
   return { total: sorted.length, groups: sorted.slice(0, 20) };
 }
 

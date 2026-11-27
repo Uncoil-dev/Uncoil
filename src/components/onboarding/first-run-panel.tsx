@@ -54,7 +54,7 @@ export function FirstRunPanel({
           <span style={{ backgroundColor: "#050505", color: "#f4d44d" }} className="grid size-11 shrink-0 place-items-center font-mono text-2xl leading-none" aria-hidden="true">✓</span>
           <div className="min-w-0">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-black/70">Found in {clock(elapsed)}</p>
-            <p className="font-pixel text-[clamp(1.6rem,4vw,2.25rem)] leading-none tracking-[-0.05em]">First run received.</p>
+            <p className="font-pixel text-[clamp(1.6rem,4vw,2.25rem)] leading-none tracking-[-0.05em]">{run.status === "failed" ? "Your agent failed. See where." : "First run received."}</p>
           </div>
         </div>
         <dl className="mt-5 grid grid-cols-3 gap-px border border-[#050505] bg-[#050505]">

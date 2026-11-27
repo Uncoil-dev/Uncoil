@@ -1,6 +1,7 @@
-// The setup prompt and the by-hand route. The prompt is the one the live homepage hands out; the
-// by-hand snippets follow the quickstarts in packages/ts-sdk/README.md and
-// packages/python-sdk/README.md (`init()` traces OpenAI and Anthropic calls with no wrapping).
+// The setup prompt and the by-hand route. The prompt matches the one the previous homepage hands
+// out (src/components/marketing/landing/agent-setup.tsx); the by-hand snippets follow the
+// quickstarts in packages/ts-sdk/README.md and packages/python-sdk/README.md (`init()` traces
+// OpenAI and Anthropic calls with no wrapping).
 
 export const SETUP_STEPS = [
   "Install the Uncoil SDK: `@uncoil.dev/sdk` for a JavaScript or TypeScript project, `uncoil-sdk` for a Python project.",

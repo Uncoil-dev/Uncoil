@@ -40,6 +40,9 @@ class UncoilCallbackHandler(BaseCallbackHandler):
     def on_tool_start(self, serialized, input_str, *, run_id, parent_run_id=None, **kwargs): self._start("tool_call", kwargs.get("name") or (serialized or {}).get("name") or "tool", input_str, run_id, parent_run_id)
     def on_tool_end(self, output, *, run_id, **kwargs): self._end(run_id, output)
     def on_tool_error(self, error, *, run_id, **kwargs): self._end(run_id, error=error)
+    def on_retriever_start(self, serialized, query, *, run_id, parent_run_id=None, **kwargs): self._start("retrieval", kwargs.get("name") or (serialized or {}).get("name") or "retriever", query, run_id, parent_run_id)
+    def on_retriever_end(self, documents, *, run_id, **kwargs): self._end(run_id, [getattr(doc, "page_content", doc) for doc in documents or []])
+    def on_retriever_error(self, error, *, run_id, **kwargs): self._end(run_id, error=error)
     def on_llm_start(self, serialized, prompts, *, run_id, parent_run_id=None, **kwargs):
         model = (kwargs.get("invocation_params") or {}).get("model") or (serialized or {}).get("name") or "model"
         self._start("llm_call", model, prompts, run_id, parent_run_id, model)

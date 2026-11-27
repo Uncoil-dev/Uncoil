@@ -97,6 +97,11 @@ export default defineSchema({
   }).index("by_projectId_and_ownerId", ["projectId", "ownerId"])
     .index("by_projectId_and_shared", ["projectId", "shared"]),
 
+  // When a project member marked an error group (by its signature id) resolved. Rows are only ever updated.
+  resolvedErrorGroups: defineTable({
+    projectId: v.id("projects"), signature: v.string(), resolvedAt: v.number(), resolvedBy: v.string(),
+  }).index("by_projectId_and_signature", ["projectId", "signature"]),
+
   agentRuns: defineTable({
     runId: v.string(),
     status: v.union(

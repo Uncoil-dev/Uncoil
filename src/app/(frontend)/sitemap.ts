@@ -19,6 +19,11 @@ const PAGE_LAST_MODIFIED: Record<string, Date> = {
   "/status": new Date("2026-11-08T03:29:55.000Z"),
 };
 const pageLastModified = (path: string) => PAGE_LAST_MODIFIED[path] ?? SITE_REVIEWED;
+// Docs carry their own lastUpdated date in frontmatter; docs without a valid one use the baseline.
+const docLastModified = (lastUpdated?: string) => {
+  const date = new Date(lastUpdated ?? "");
+  return Number.isNaN(date.getTime()) ? SITE_REVIEWED : date;
+};
 const INTERNAL_POSTS = new Set(["how-to-write-uncoil-blog-posts"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -34,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const useCases = ["research", "support", "automation", "tool-calling", "coding", "rag", "voice", "browser", "multi-agent", "mcp", "chatbot", "sales", "sql", "documents", "cost-control", "release", "copilot"];
-  const documentation = getPublicDocs().map((doc) => doc.slug);
+  const documentation = getPublicDocs();
 
   return [
     { url: baseUrl, lastModified: pageLastModified("/"), changeFrequency: "weekly", priority: 1.0 },
@@ -59,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/answers`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },
     ...answers.map((a) => ({ url: `${baseUrl}/answers/${a.slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     { url: `${baseUrl}/glossary`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },
-    ...documentation.map((slug) => ({ url: `${baseUrl}/docs/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
+    ...documentation.map((doc) => ({ url: `${baseUrl}/docs/${doc.slug}`, lastModified: docLastModified(doc.lastUpdated), changeFrequency: "monthly" as const, priority: 0.7 })),
     ...productFeatureSlugs.map((slug) => ({ url: `${baseUrl}/product/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.8 })),
     ...useCases.map((slug) => ({ url: `${baseUrl}/use-cases/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     { url: `${baseUrl}/best-llm-observability-tools`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },

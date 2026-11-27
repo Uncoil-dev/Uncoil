@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { searchSpans, splitMatch, type SearchableSpan } from "./span-search.ts";
+import { clampCursor, searchSpans, splitMatch, type SearchableSpan } from "./span-search.ts";
 
 const spans: SearchableSpan[] = [
   { spanId: "root", parentSpanId: "", spanType: "agent", toolName: "", modelId: "", errorMessage: "" },
@@ -43,4 +43,11 @@ test("splitMatch separates the matched text", () => {
   assert.deepEqual(splitMatch("web_Search", "SEARCH"), ["web_", "Search", ""]);
   assert.deepEqual(splitMatch("abc", "z"), ["abc", "", ""]);
   assert.deepEqual(splitMatch("abc", ""), ["abc", "", ""]);
+});
+
+test("clampCursor keeps the cursor inside a shrinking match list", () => {
+  assert.equal(clampCursor(null, 3), null);
+  assert.equal(clampCursor(1, 3), 1);
+  assert.equal(clampCursor(4, 3), 2);
+  assert.equal(clampCursor(2, 0), null);
 });

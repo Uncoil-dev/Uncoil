@@ -53,3 +53,12 @@ export function splitMatch(text: string, query: string): [string, string, string
   if (index < 0) return [text, "", ""];
   return [text.slice(0, index), text.slice(index, index + needle.length), text.slice(index + needle.length)];
 }
+
+/**
+ * Keeps a match cursor valid when the match list changes length (for example while a run is
+ * still streaming spans): clamps to the last match, or null when nothing matches.
+ */
+export function clampCursor(cursor: number | null, count: number): number | null {
+  if (cursor === null || count <= 0) return null;
+  return Math.min(cursor, count - 1);
+}

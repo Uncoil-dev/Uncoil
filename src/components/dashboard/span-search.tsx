@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Search } from "lucide-react";
-import { searchSpans, splitMatch, type SearchableSpan } from "@/lib/span-search";
+import { clampCursor, searchSpans, splitMatch, type SearchableSpan } from "@/lib/span-search";
 
 export type SpanSearchState = {
   query: string;
@@ -37,9 +37,10 @@ function isTypingTarget(target: EventTarget | null) {
  */
 export function SpanSearch({ spans, children }: { spans: SearchableSpan[]; children: (state: SpanSearchState) => ReactNode }) {
   const [query, setQuery] = useState("");
-  const [cursor, setCursor] = useState<number | null>(null);
+  const [rawCursor, setCursor] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const result = useMemo(() => searchSpans(spans, query), [spans, query]);
+  const cursor = clampCursor(rawCursor, result.matches.length);
   const activeId = cursor === null ? null : (result.matches[cursor] ?? null);
 
   useEffect(() => {

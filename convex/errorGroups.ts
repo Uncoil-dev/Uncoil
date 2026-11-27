@@ -37,6 +37,7 @@ export const listResolved = query({
     const rows = await ctx.db
       .query("resolvedErrorGroups")
       .withIndex("by_projectId_and_signature", (q) => q.eq("projectId", projectId))
+      // Bounded read; only this many resolved groups per project are honored.
       .take(1000);
     return Object.fromEntries(rows.map((row) => [row.signature, row.resolvedAt]));
   },

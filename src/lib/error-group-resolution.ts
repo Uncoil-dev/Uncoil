@@ -25,3 +25,21 @@ export function applyResolutions<T extends { id: string; lastSeen: string }>(
   });
   return showResolved ? out : out.filter((group) => !group.resolved);
 }
+
+/** Most resolved groups passed into a query; matches the bound on the stored list. */
+export const MAX_RESOLVED_IN_QUERY = 1000;
+
+/**
+ * SQL condition for a HAVING clause that drops a group whose id is resolved and whose latest error is at or
+ * before its resolve time. Ids must be hex signatures and times finite numbers, so nothing needs quoting;
+ * anything else is skipped. Returns null when there is nothing to exclude.
+ */
+export function unresolvedGroupCondition(resolvedAt: ResolvedAtBySignature, idExpr: string, lastSeenExpr: string): string | null {
+  const pairs = Object.entries(resolvedAt)
+    .filter(([id, at]) => /^[0-9a-f]{1,32}$/.test(id) && Number.isFinite(at) && at > 0)
+    .slice(0, MAX_RESOLVED_IN_QUERY);
+  if (pairs.length === 0) return null;
+  const ids = pairs.map(([id]) => `'${id}'`).join(",");
+  const times = pairs.map(([, at]) => Math.floor(at)).join(",");
+  return `toUnixTimestamp(${lastSeenExpr}) * 1000 > transform(${idExpr}, [${ids}], [${times}], 0)`;
+}

@@ -6,6 +6,7 @@ import { flowGraph, collapseFlowReturns, flowPairId, median, type FlowEdge, type
 import { createHash } from "node:crypto";
 import { getJsonCache, setJsonCache } from "./redis-cache";
 import { topicRunIds } from "./trace-topics";
+import { unresolvedGroupCondition, type ResolvedAtBySignature } from "./error-group-resolution";
 /**
  * ClickHouse query client (the file name is historical).
  * All span analytics queries go through here — never Convex.
@@ -679,16 +680,20 @@ export type ErrorGroup = {
   cameBack?: boolean;
 };
 
-/** The 20 most frequent error groups among the steps of every trace matching the filters. */
-export async function traceErrorGroups(projectId: string, filters: TraceListFilters) {
+/**
+ * The 20 most frequent error groups among the steps of every trace matching the filters. Groups resolved at the
+ * given times (ms by group id) are excluded before the limit unless no times are passed, so the page stays full.
+ */
+export async function traceErrorGroups(projectId: string, filters: TraceListFilters, resolvedAt: ResolvedAtBySignature = {}) {
   const { where, having } = traceListClauses(projectId, filters);
+  const unresolved = unresolvedGroupCondition(resolvedAt, "id", "max(createdAt)");
   const rows = await tinybirdRows<ErrorGroup & { totalGroups: number }>(`
     SELECT ${ERROR_GROUP_ID} AS id, ${ERROR_TOOL} AS tool, errorType, ${ERROR_MESSAGE_KEY} AS message,
       substring(any(errorMessage), 1, 300) AS sample, argMax(runId, createdAt) AS sampleRunId, count() AS count, uniqExact(runId) AS traces,
       min(createdAt) AS firstSeen, max(createdAt) AS lastSeen, count() OVER () AS totalGroups
     FROM spans
     WHERE ${where} AND ${IS_ERROR} AND runId IN (${matchingRunIds(where, having)})
-    GROUP BY id, tool, errorType, message
+    GROUP BY id, tool, errorType, message${unresolved ? `\n    HAVING ${unresolved}` : ""}
     ORDER BY count DESC, traces DESC, id
     LIMIT 20`);
   return {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NAV_MENUS, NAV_PRICING } from "../nav-links";
-import { buildTrace, findHere, onLine, pitch, reaches } from "./trace";
+import { barCells, buildTrace, findHere, onLine, pitch, reaches } from "./trace";
 
 describe("phone menu: the site as a trace", () => {
   const { sections, total } = buildTrace();
@@ -41,5 +41,14 @@ describe("phone menu: the site as a trace", () => {
     expect(pitch(89, total, 12)).toBe(3);
     expect(pitch(89, 6, 12)).toBe(12);
     expect(pitch(10, total, 12)).toBe(2);
+  });
+
+  it("draws a one-page step as long as the longest step, but never past the lane", () => {
+    // 320px wide phone: a 72-cell lane at 2 cells a page. Pricing starts at page 24.
+    const longest = Math.max(...sections.map((s) => s.len));
+    const p = pitch(72, total, 12);
+    const pricing = sections.at(-1)!;
+    expect(barCells(pricing.len, p, longest * p - 1, 72 - pricing.start * p)).toBe(barCells(longest, p, 6, 72));
+    expect(barCells(1, p, longest * p - 1, 4)).toBe(4);
   });
 });

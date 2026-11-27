@@ -12,16 +12,23 @@
 .list { grid-area: list; }
 .acts { grid-area: acts; }
 
+/* Held sideways: the list takes the full height on the left, with each name beside its bar; the
+   scene and the buttons share the right-hand column. On the shortest screens the scene steps aside
+   so the buttons keep their full size. */
 @media (orientation: landscape) and (max-height: 520px) {
   .shell {
-    grid-template: "head head" auto "sky acts" auto "list acts" minmax(0, 1fr) / minmax(0, 1fr) minmax(248px, 34%);
+    grid-template: "head head" auto "list sky" auto "list acts" minmax(0, 1fr) / minmax(0, 1fr) minmax(248px, 34%);
   }
   .pair { grid-template-columns: minmax(0, 1fr); }
+  .sky { border-left: var(--c) solid rgb(236 234 227 / 0.15); }
   .acts {
-    align-self: end;
-    border-top: 0 !important;
+    align-content: end;
+    box-shadow: none !important;
     border-left: var(--c) solid rgb(236 234 227 / 0.15);
   }
+}
+@media (orientation: landscape) and (max-height: 359px) {
+  .sky { display: none; }
 }
 
 .rise {

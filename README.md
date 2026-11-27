@@ -1,5 +1,7 @@
 # Uncoil
 
+[![npm](https://img.shields.io/npm/v/@uncoil.dev/sdk?label=%40uncoil.dev%2Fsdk)](https://www.npmjs.com/package/@uncoil.dev/sdk) [![PyPI](https://img.shields.io/pypi/v/uncoil-sdk?label=uncoil-sdk)](https://pypi.org/project/uncoil-sdk/) [![License: MIT](https://img.shields.io/badge/license-MIT-black)](LICENSE)
+
 **See what your AI agents did, why they failed, and stop it happening again.**
 
 Uncoil records every agent run: each model call, tool call, cost, and error. You can open any run, find the step that broke, and add a check so it does not break again.
@@ -94,6 +96,22 @@ Let Claude Code set up and debug tracing for you:
 ```
 
 See [Uncoil plugin for Claude Code](https://www.uncoil.dev/docs/claude-plugin).
+
+## Works with your framework
+
+Already using a framework or provider? One line of setup is usually enough. Each guide has the full copy-paste code.
+
+| Framework | Setup | Guide |
+| --- | --- | --- |
+| OpenAI, Anthropic (Python) | `uncoil.init()` | [OpenAI](https://www.uncoil.dev/integrations/openai) · [Anthropic](https://www.uncoil.dev/integrations/anthropic) |
+| OpenAI, Anthropic (TypeScript) | `init()` | [OpenAI](https://www.uncoil.dev/integrations/openai) · [Anthropic](https://www.uncoil.dev/integrations/anthropic) |
+| LangChain, LangGraph | `uncoil.init()` (Python) or `callbacks: [new UncoilLangGraphHandler()]` (TypeScript) | [LangChain](https://www.uncoil.dev/integrations/langchain) · [LangGraph](https://www.uncoil.dev/integrations/langgraph) |
+| Vercel AI SDK | `wrapLanguageModel({ model, middleware: uncoilMiddleware() })` | [Vercel AI SDK](https://www.uncoil.dev/integrations/vercel-ai-sdk) |
+| OpenAI Agents SDK, CrewAI, Pydantic AI | `uncoil.init()` plus `@uncoil.trace_agent` | [OpenAI Agents](https://www.uncoil.dev/integrations/openai-agents-sdk) · [CrewAI](https://www.uncoil.dev/integrations/crewai) · [Pydantic AI](https://www.uncoil.dev/integrations/pydantic-ai) |
+| Mastra | `traceAgent()` | [Mastra](https://www.uncoil.dev/integrations/mastra) |
+| Anything with OpenTelemetry | OTLP over HTTP (JSON) | [OpenTelemetry](https://www.uncoil.dev/integrations/opentelemetry) |
+
+All guides: [uncoil.dev/integrations](https://www.uncoil.dev/integrations). Runnable starters: [TypeScript](packages/ts-sdk/templates) and [Python](packages/python-sdk/templates).
 
 ## How it works
 

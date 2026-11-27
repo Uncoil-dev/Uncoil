@@ -201,6 +201,16 @@ If no API key is set, the client prints one warning and records nothing; decorat
 
 Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, pass `redact={"pii": False}`.
 
+## Keep message content out
+
+Set `UNCOIL_CAPTURE_CONTENT=false` (also `0`, `no` or `off`, any case) to record runs without any message text. Names, timings, token counts, cost, status and the error type are still sent; prompts, answers, tool inputs and outputs, error messages and feedback or score comments are not. Any other value, or no value, captures as before.
+
+```python
+client = uncoil.UncoilClient(capture_content=False)  # overrides the environment variable
+```
+
+The variable is read when the client is created. Spans sent this way carry `contentRecorded: false` in their metadata.
+
 ## Sending spans in the background
 
 Spans are queued and sent from a background thread, so tracing never waits on the network. Spans still queued when the program exits get up to two seconds to send. In short scripts, serverless handlers or workers that are frozen between requests, call `flush()` before returning:

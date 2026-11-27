@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { readFileSync } from "node:fs";
 import { integrationGuides, KEY_STEP } from "./integration-guides";
 import { comparisons, formatLastChecked, integrationPages } from "./seo-pages";
 
@@ -20,6 +21,14 @@ test("integration page slugs are unique across hand-written pages and setup guid
   const dupes = slugs.filter((s, i) => slugs.indexOf(s) !== i);
   expect(dupes).toEqual([]);
   for (const guide of integrationGuides) expect(slugs, guide.slug).toContain(guide.slug);
+});
+
+test("llms.txt links every integration page once", () => {
+  const llms = readFileSync(new URL("../../public/llms.txt", import.meta.url), "utf8");
+  for (const page of integrationPages) {
+    const link = `(https://www.uncoil.dev/integrations/${page.slug})`;
+    expect(llms.split(link).length - 1, page.slug).toBe(1);
+  }
 });
 
 test("every setup guide has a title and at least one step with code and a language", () => {

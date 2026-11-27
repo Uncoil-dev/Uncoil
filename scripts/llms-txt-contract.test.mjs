@@ -11,7 +11,8 @@ test("llms.txt is concise, canonical, and points to core public resources", asyn
   const links = [...source.matchAll(/\[[^\]]+\]\((https?:\/\/[^)]+)\)/g)].map((match) => match[1]);
 
   assert.match(source, /^# Uncoil\r?\n\r?\n> \S/m);
-  assert.ok(source.length < 10_000, "llms.txt should remain a curated index, not a content dump");
+  // One link per public docs and integration page, mostly full canonical URLs, fits in about 12 KB.
+  assert.ok(source.length < 12_000, "llms.txt should remain a curated index, not a content dump");
   assert.ok(links.length > 0, "llms.txt should contain resource links");
   assert.equal(new Set(links).size, links.length, "llms.txt should not contain duplicate links");
 
@@ -45,4 +46,21 @@ test("llms.txt lists the start-here setup docs", async () => {
   for (const slug of ["quickstart", "cli", "data-regions"]) {
     assert.ok(source.includes(`(${CANONICAL_ORIGIN}/docs/${slug})`), `llms.txt should list /docs/${slug}`);
   }
+});
+
+test("llms.txt lists the observe, evaluate, plans and plugin docs", async () => {
+  const source = await readFile(LLMS_PATH, "utf8");
+  const slugs = [
+    "alerts", "costs", "tool-calls", "tags-and-metadata", "redaction", "export",
+    "datasets", "prompts", "playground", "release-gates", "annotation-queues", "resilience-testing",
+    "plans-and-limits", "switching", "health-report", "coding-agent-plugins",
+  ];
+  for (const slug of slugs) {
+    assert.ok(source.includes(`(${CANONICAL_ORIGIN}/docs/${slug})`), `llms.txt should list /docs/${slug}`);
+  }
+});
+
+test("llms.txt says every docs page has a Markdown copy", async () => {
+  const source = await readFile(LLMS_PATH, "utf8");
+  assert.ok(source.includes(`${CANONICAL_ORIGIN}/docs/<slug>.md`), "llms.txt should describe the /docs/<slug>.md Markdown copies");
 });

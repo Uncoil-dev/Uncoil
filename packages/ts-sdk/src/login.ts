@@ -62,15 +62,16 @@ function insideGitRepo(dir: string) {
   }
 }
 
-/** Reads UNCOIL_* variables from env files into process.env without overriding values already set. Used by the CLI only. */
+/** Reads UNCOIL_* variables from env files into process.env without overriding values already set. Used by the CLI and by the client when no key is set. Empty values count as unset. */
 export function loadUncoilEnv(cwd: string, files = [".env.local", ".env"]) {
   for (const file of files) {
     let text: string;
     try { text = fs.readFileSync(path.resolve(cwd, file), "utf8"); } catch { continue; }
     for (const line of text.split(/\r?\n/)) {
       const match = /^\s*(?:export\s+)?(UNCOIL_[A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);
-      if (!match || process.env[match[1]] !== undefined) continue;
-      process.env[match[1]] = match[2].replace(/^(["'])(.*)\1$/, "$2");
+      if (!match || process.env[match[1]]) continue;
+      const value = match[2];
+      process.env[match[1]] = /^(["']).*\1$/.test(value) ? value.slice(1, -1) : value.replace(/\s+#.*$/, "");
     }
   }
 }

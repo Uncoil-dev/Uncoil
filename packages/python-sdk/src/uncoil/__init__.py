@@ -323,6 +323,21 @@ def flush(timeout: float = 10) -> bool:
 atexit.register(flush, 2)
 
 
+def load_uncoil_env(cwd: Optional[str] = None) -> None:
+    """Copies UNCOIL_* lines from .env.local, then .env, in the working folder into os.environ. Non-empty values already set win; nothing else is read."""
+    for name in (".env.local", ".env"):
+        try:
+            with open(os.path.join(cwd or os.getcwd(), name), encoding="utf-8") as handle:
+                lines = handle.read().splitlines()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for line in lines:
+            match = re.match(r"^\s*(?:export\s+)?(UNCOIL_[A-Z0-9_]+)\s*=\s*(.*?)\s*$", line)
+            if match and not os.environ.get(match.group(1)):
+                value = match.group(2)
+                os.environ[match.group(1)] = value[1:-1] if re.match(r"^([\"']).*\1$", value) else re.sub(r"\s+#.*$", "", value)
+
+
 class UncoilClient:
     # Spans waiting to be sent; when full, new spans are dropped instead of slowing the app.
     MAX_QUEUED_SPANS = 1000
@@ -336,10 +351,12 @@ class UncoilClient:
         self.on_error = on_error
         self.capture_content = resolve_capture_content(capture_content)
         self._warned: set = set()
+        if not api_key and not (os.environ.get("UNCOIL_API_KEY") or os.environ.get("TRACIFY_API_KEY")):
+            load_uncoil_env()
         self.api_key = (api_key or (os.environ.get("UNCOIL_API_KEY") or os.environ.get("TRACIFY_API_KEY")) or "").strip()
         if not self.api_key:
             # Without a key the client records nothing, so tracing never stops the app from running.
-            self._report(UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", "Pass api_key=... to UncoilClient or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard."))
+            self._report(UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", "Pass api_key=... to UncoilClient, set the UNCOIL_API_KEY environment variable, or add it to .env or .env.local. You can create a key on the API keys page of your dashboard."))
         elif not re.match(r"^(uncoil|tracify)_sk_", self.api_key):
             self._report(UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."))
         if not isinstance(sample_rate, (int, float)) or isinstance(sample_rate, bool) or not 0 <= sample_rate <= 1:

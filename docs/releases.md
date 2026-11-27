@@ -7,6 +7,7 @@ Every pull request description has a Changelog section: one ticked category and 
 ## [Unreleased]
 
 ### Features
+- Both SDK clients read `UNCOIL_API_KEY` (and other `UNCOIL_*` values) from `.env.local` and `.env` in the working folder when it is not set in the environment. Real environment values always win.
 - Failed runs have a Copy fix prompt button in the run header. It copies a ready-to-paste prompt for a coding agent with the first failing step, its error and input, with secrets redacted.
 - Steps sent with `UNCOIL_CAPTURE_CONTENT=false` show "Content not recorded" on the run page instead of an empty input and output.
 - Error groups have a Resolve button. Resolved groups are hidden from the list (Show resolved brings them back), and a group that errors again after it was resolved reappears with a Came back tag.

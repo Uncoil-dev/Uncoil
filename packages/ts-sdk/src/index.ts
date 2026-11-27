@@ -27,6 +27,11 @@ export interface UncoilConfig {
   redact?: RedactionOptions;
   /** Called instead of printing a warning when the SDK has a problem sending data. */
   onError?: (error: UncoilError) => void;
+  /**
+   * Print one line with a link to the run when a traced run fails. On by default, except when
+   * NODE_ENV or `environment` is "production".
+   */
+  failureLinks?: boolean;
 }
 
 export interface RedactionOptions {
@@ -329,6 +334,7 @@ export class UncoilClient {
   private redactor?: (text: string) => string;
   private onError?: (error: UncoilError) => void;
   private warned = new Set<string>();
+  private failureLinks: boolean;
   private pending = new Set<Promise<unknown>>();
 
   constructor(config: UncoilConfig = {}) {
@@ -362,6 +368,7 @@ export class UncoilClient {
     this.sessionId = config.sessionId;
     this.endUserId = config.endUserId;
     this.tags = config.tags;
+    this.failureLinks = config.failureLinks ?? (process.env.NODE_ENV !== 'production' && config.environment !== 'production');
     try { new URL(this.host); } catch {
       throw new UncoilError("bad_host", `The host "${this.host}" is not a valid web address.`, 'Use a full address such as "https://eu.cloud.uncoil.dev", or drop the host option and use region: "eu" or "us".');
     }
@@ -381,6 +388,14 @@ export class UncoilClient {
     if (this.onError) {
       try { this.onError(error); } catch { /* a faulty handler must never break the app */ }
     } else console.warn(`Uncoil Warning: ${error.message}`);
+  }
+
+  /** Prints where a run failed, with a link to it when the project is known. Internal: called by root steps. */
+  announceFailedRun(runId: string, stepName: string) {
+    if (!this.failureLinks || !this.apiKey) return;
+    const project = this.projectId || (process.env.UNCOIL_PROJECT_ID ?? '').trim();
+    const where = project ? ` -> ${this.host}/dashboard/${encodeURIComponent(project)}/tracing/${encodeURIComponent(runId)}` : ` (run ${runId})`;
+    console.warn(`Uncoil: run failed at step "${stepName}"${where}`);
   }
 
   /** True when this span should be dropped by sampling. */
@@ -777,9 +792,12 @@ export async function span<T>(name: string, fn: (step: Step) => T | Promise<T>, 
   const inheritedRun = options.runId || parent?.runId || currentRunId();
   const runId = inheritedRun === "unknown" ? createId() : inheritedRun;
   const started = Date.now();
+  const client = options.client ?? parent?.client ?? defaultClient();
   const finish = (error?: unknown) => {
     const failed = error !== undefined;
-    (options.client ?? parent?.client ?? defaultClient()).ingest({
+    if (failed && options.root) client.announceFailedRun(runId, failedStepName(error) ?? name);
+    else if (failed) markFailedStep(error, name);
+    client.ingest({
       spanId: step.id,
       runId,
       parentSpanId: options.root ? undefined : parent?.spanId,
@@ -809,6 +827,17 @@ export async function span<T>(name: string, fn: (step: Step) => T | Promise<T>, 
       throw error;
     }
   });
+}
+
+// The innermost step that threw tags the error with its name, so the run's root can say where it failed.
+const FAILED_STEP = Symbol('uncoil.failedStep');
+function markFailedStep(error: unknown, name: string) {
+  if (error && typeof error === 'object' && !(FAILED_STEP in error)) {
+    try { Object.defineProperty(error, FAILED_STEP, { value: name }); } catch { /* frozen errors keep the root name */ }
+  }
+}
+function failedStepName(error: unknown): string | undefined {
+  return error && typeof error === 'object' ? (error as Record<symbol, string | undefined>)[FAILED_STEP] : undefined;
 }
 
 /** Wrap a function so each call is recorded as a step, with its arguments and result. */

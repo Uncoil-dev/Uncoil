@@ -1,7 +1,9 @@
+// The design the site root renders. Only this one is imported, so the other design's code is not
+// shipped with the homepage. To go back to the previous homepage (still at /classic), change this
+// import to `import { LandingPage as HomePage } from "@/components/marketing/landing/landing-page";`
+// and set HOME_DESIGN to "classic" in src/lib/homepage.ts, which also moves the nav back.
 import { HomePage } from "@/components/marketing/home/home-page";
-import { LandingPage } from "@/components/marketing/landing/landing-page";
 import type { Metadata } from "next";
-import { HOME_DESIGN } from "@/lib/homepage";
 import { ogImageUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -13,15 +15,6 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  if (HOME_DESIGN === "classic") {
-    return (
-      <div className="min-h-screen bg-[#090909]">
-        <main id="main-content">
-          <LandingPage />
-        </main>
-      </div>
-    );
-  }
   return (
     <main id="main-content" className="min-h-screen bg-[#090909]">
       <HomePage />

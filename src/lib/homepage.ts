@@ -1,5 +1,6 @@
 // Which design the site root renders. The previous homepage stays in the codebase and stays
-// viewable at CLASSIC_HOME_PATH (unlisted and noindex), so going back is this one constant.
+// viewable at CLASSIC_HOME_PATH (unlisted and noindex). Going back to it is this constant plus the
+// one import in src/app/(frontend)/page.tsx; a test keeps the two in step.
 
 export type HomeDesign = "current" | "classic";
 

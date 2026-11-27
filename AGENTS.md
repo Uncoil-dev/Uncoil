@@ -80,7 +80,7 @@ This repository is public. Keep plans, task lists, memory files, scratch work an
 
 ## Existing Pages
 ### Marketing (public)
-`/` — Homepage, told as one example run (`src/components/marketing/home/`): Hero → Works with → Where it broke → Logs or Uncoil → Trace view → Fix → What you get → Setup → Price → FAQ → Note from the builder → Closing. The previous landing page (`src/components/marketing/landing/`) stays at the unlisted, noindex `/classic`; `HOME_DESIGN` in `src/lib/homepage.ts` switches `/` back to it.
+`/` — Homepage, told as one example run (`src/components/marketing/home/`): Hero → Works with → Where it broke → Logs or Uncoil → Trace view → Fix → What you get → Setup → Price → FAQ → Note from the builder → Closing. The previous landing page (`src/components/marketing/landing/`) stays at the unlisted, noindex `/classic`; switching `/` back to it is the import in `src/app/(frontend)/page.tsx` plus `HOME_DESIGN` in `src/lib/homepage.ts` (a test keeps them in step).
 `/pricing` — Free/Pro/Team/Enterprise
 `/product/[feature]` — Feature pages with demos, setup code and FAQs (trace-viewer, cost-dashboard, tool-calls, llm-calls, failures, runtime-control, evaluation-engine)
 `/use-cases/[slug]` — Use case pages (research, support, automation, tool-calling)

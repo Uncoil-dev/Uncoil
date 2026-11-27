@@ -70,6 +70,16 @@ export function renderNoTraceEmail(args: { name?: string; projectName?: string; 
   return { subject: "Your Uncoil project is waiting for its first trace", html, text };
 }
 
+/** Short day-three follow-up when there is still no trace: a plain note from the founder offering help. */
+export function renderNoTraceFollowUpEmail(args: { name?: string; projectId?: string; origin: string }): RenderedEmail {
+  const hi = `Hi ${firstName(args.name)},`;
+  const url = args.projectId ? `${args.origin}/dashboard/${encodeURIComponent(args.projectId)}/quickstart` : `${args.origin}/onboarding`;
+  const p = (body: string) => `<p style="margin:0 0 16px;font-family:${SANS};font-size:15px;line-height:24px;color:${INK};">${body}</p>`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"></head><body style="margin:0;background:${CREAM};"><div style="max-width:560px;padding:28px 20px;">${p(escapeHtml(hi))}${p("Your project still hasn't sent a trace. If something is in the way, reply with what you see, even just the error or your stack, and I'll help you get it working.")}${p(`Or pick up the setup here: <a href="${escapeHtml(url)}" style="color:${INK};font-weight:700;">${escapeHtml(url)}</a>`)}${signoff()}</div></body></html>`;
+  const text = `${hi}\n\nYour project still hasn't sent a trace. If something is in the way, reply with what you see, even just the error or your stack, and I'll help you get it working.\n\nOr pick up the setup here: ${url}\n\nKristoffer\nFounder, Uncoil`;
+  return { subject: "Can I help you get your first trace in?", html, text };
+}
+
 export function renderFirstTraceEmail(args: { name?: string; projectId: string; runId: string; origin: string; assets?: string }): RenderedEmail {
   const hi = `Hi ${firstName(args.name)},`;
   const project = `${args.origin}/dashboard/${encodeURIComponent(args.projectId)}`;

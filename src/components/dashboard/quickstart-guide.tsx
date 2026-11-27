@@ -32,9 +32,10 @@ const BARS = [
   { name: "llm.chat", left: 60, width: 38 },
 ] as const;
 
-export const SNIPPETS: Record<Lang, { install: string; code: string; file: string }> = {
+export const SNIPPETS: Record<Lang, { install: string; doctor: string; code: string; file: string }> = {
   python: {
     install: "pip install uncoil-sdk",
+    doctor: "python -m uncoil doctor",
     file: "agent.py",
     code: `import uncoil
 
@@ -45,6 +46,7 @@ uncoil.init()  # reads UNCOIL_API_KEY, traces OpenAI, Anthropic and LangChain
   },
   typescript: {
     install: "npm install @uncoil.dev/sdk",
+    doctor: "npx @uncoil.dev/sdk doctor",
     file: "agent.ts",
     code: `import { init } from "@uncoil.dev/sdk";
 
@@ -197,7 +199,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
                       </div>
                     ))}
                   </div>
-                  <div className="border-t border-[#2a2a2a] px-4 py-3 text-[11px] text-[#8a8a84]">{arrived ? "Your agent is connected." : "Nothing yet. Run your agent once."}</div>
+                  <div className="border-t border-[#2a2a2a] px-4 py-3 text-[11px] text-[#8a8a84]">{arrived ? "Your agent is connected." : <>Nothing yet? Run <code className="font-mono text-[#eceae3]">{snippet.doctor}</code> to check your setup.</>}</div>
                 </div>
               ) : null}
             </div>

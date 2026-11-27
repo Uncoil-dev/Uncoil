@@ -17,4 +17,9 @@ describe("quickstart instrument snippets", () => {
     expect(code).toMatch(/^main\(\);/m);
     expect(code).not.toContain("What is Uncoil?");
   });
+
+  it("points to the setup check command for each language while waiting for the first trace", () => {
+    expect(SNIPPETS.python.doctor).toBe("python -m uncoil doctor");
+    expect(SNIPPETS.typescript.doctor).toBe("npx @uncoil.dev/sdk doctor");
+  });
 });

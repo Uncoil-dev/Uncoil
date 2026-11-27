@@ -12,7 +12,7 @@ const PAGE_FONT = "font-[family-name:var(--font-geist-pixel-square)]";
 export function UserProfile({ view, id }: { view: GroupView; id: string }) {
   const { projectId, basePath, clock, stats } = view;
   const { detail, runs, error, retry, row, loaded, runRows } = useGroupDetail(projectId, "user", id, view.selectedRow);
-  const { copied, copy } = useCopy();
+  const { label: copyText, copy } = useCopy();
   const tracingBase = `${basePath}/tracing`;
   const encoded = encodeURIComponent(encodeURIComponent(id));
   const share = row && stats?.totalCostUsd ? row.totalCostUsd / stats.totalCostUsd : null;
@@ -21,8 +21,8 @@ export function UserProfile({ view, id }: { view: GroupView; id: string }) {
       <div className="flex items-center gap-2 border-b border-[#2A2A25] px-4 py-3">
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#f4d44d]">User profile</span>
         <span className="flex-1" />
-        <button type="button" className={chip} onClick={() => copy("id", id)}>{copied === "id" ? "Copied" : "Copy id"}</button>
-        <button type="button" className={chip} onClick={() => copy("link", window.location.href)}>{copied === "link" ? "Copied" : "Copy link"}</button>
+        <button type="button" className={chip} onClick={() => copy("id", id)}>{copyText("id", "Copy id")}</button>
+        <button type="button" className={chip} onClick={() => copy("link", window.location.href)}>{copyText("link", "Copy link")}</button>
         <button type="button" className={chip} onClick={() => view.selectIndex(-1)} aria-label="Previous user">↑</button>
         <button type="button" className={chip} onClick={() => view.selectIndex(1)} aria-label="Next user">↓</button>
         <button type="button" className={chip} onClick={() => view.update({ id: "" }, false)} aria-label="Close profile">×</button>

@@ -14,11 +14,11 @@ import { WaitingLinks } from "@/components/onboarding/waiting-links";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
 import { clearOneTimeApiKey, getOneTimeApiKey, secondsSinceSignup } from "@/lib/onboarding-client-state";
+import { getStoredOnboardingProjectId } from "@/lib/onboarding-navigation";
 import { latestAgentRun } from "@/lib/onboarding-runs";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 import { setTemporaryTitle } from "@/lib/document-title";
 
-const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
 const PROJECT_NAME_STORAGE_KEY = "uncoil.onboarding.projectName";
 const INSTALL_READY_STORAGE_KEY = "uncoil.onboarding.installReady";
 const FALLBACK_PROJECT_NAME = "your-project";
@@ -37,7 +37,7 @@ export function InstallStep() {
   // Session storage is only readable after mount.
   useEffect(() => {
     const id = window.setTimeout(() => {
-      setProjectId(window.sessionStorage.getItem(PROJECT_ID_STORAGE_KEY) ?? "");
+      setProjectId(getStoredOnboardingProjectId());
       setFallbackName(window.sessionStorage.getItem(PROJECT_NAME_STORAGE_KEY) ?? FALLBACK_PROJECT_NAME);
       setApiKey(getOneTimeApiKey());
       window.sessionStorage.setItem(INSTALL_READY_STORAGE_KEY, "true");

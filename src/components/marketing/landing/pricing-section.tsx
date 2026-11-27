@@ -5,19 +5,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { pricingCheckoutHref } from "@/lib/billing-links";
+import { pricingCheckoutHref, type BillingInterval } from "@/lib/billing-links";
+import { formatPrice, monthlyPrice, plans } from "@/lib/pricing-plans";
 
-// Plans and prices mirror the /pricing page. Change them there first.
-const plans = [
-  { name: "Free", monthly: 0, line: "Try it on a real agent.", spans: "10k", retention: "7 days", members: "1", projects: "2", features: ["Trace viewer", "Cost visibility", "Ready-made Ask AI questions", "Community support"] },
-  { name: "Pro", monthly: 19, line: "For a builder shipping agents.", spans: "500k", retention: "30 days", members: "5", projects: "3", features: ["Alerts (email + Slack)", "Ask AI, any question", "Evaluations + datasets", "Prompt versions"] },
-  { name: "Team", monthly: 39, line: "For teams running agents in prod.", spans: "2m", retention: "90 days", members: "20", projects: "Unlimited", features: ["Release gates", "Collaboration + reviews", "Priority support"] },
-] as const;
+export function landingPriceLabels(interval: BillingInterval) {
+  return plans.map((plan) => formatPrice(monthlyPrice(plan, interval)));
+}
 
 export function PricingSection() {
   const [annual, setAnnual] = useState(false);
   const reduce = useReducedMotion();
-  const interval = annual ? "annual" : "monthly";
+  const interval: BillingInterval = annual ? "annual" : "monthly";
 
   return (
     <section id="pricing" className="bg-[#eceae3] mk-section px-5 text-black md:px-10">
@@ -43,11 +41,10 @@ export function PricingSection() {
         <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.12em] text-black/55 md:hidden">Swipe to compare plans →</p>
         <div className="-mx-5 mt-3 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:mt-[var(--mk-gap)] md:grid md:grid-cols-2 md:gap-[2px] md:overflow-visible md:border-2 md:border-black md:bg-black md:p-0 lg:grid-cols-4">
           {plans.map((plan) => {
-            const price = annual ? plan.monthly * 0.8 : plan.monthly;
-            const label = `$${price % 1 ? price.toFixed(2) : price}`;
-            const featured = plan.name === "Pro";
+            const label = formatPrice(monthlyPrice(plan, interval));
+            const featured = plan.id === "pro";
             return (
-              <div key={plan.name} className={`flex w-[80vw] shrink-0 snap-start flex-col border-2 border-black p-6 transition-colors md:w-auto md:border-0 md:p-7 ${featured ? "bg-black text-[#eceae3]" : "bg-[#eceae3] hover:bg-[#f4d44d]"}`}>
+              <div key={plan.id} className={`flex w-[80vw] shrink-0 snap-start flex-col border-2 border-black p-6 transition-colors md:w-auto md:border-0 md:p-7 ${featured ? "bg-black text-[#eceae3]" : "bg-[#eceae3] hover:bg-[#f4d44d]"}`}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-pixel text-4xl tracking-[-0.06em]">{plan.name}</h3>
                   {featured && <span className="bg-[#f4d44d] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-black">Popular</span>}
@@ -78,10 +75,10 @@ export function PricingSection() {
                 </ul>
                 <span className="block h-7 shrink-0" aria-hidden="true" />
                 <Link
-                  href={plan.name === "Free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.name.toLowerCase() as "pro" | "team", interval))}
+                  href={plan.id === "free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.id, interval))}
                   className={`mt-auto flex min-h-12 items-center justify-between px-4 font-mono text-[10px] uppercase tracking-[0.13em] ${featured ? "bg-[#f4d44d] text-black hover:bg-white" : "border-2 border-black hover:bg-black hover:text-white"}`}
                 >
-                  {plan.name === "Free" ? "Start free" : `Get ${plan.name}`}
+                  {plan.id === "free" ? "Start free" : `Get ${plan.name}`}
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               </div>

@@ -716,6 +716,20 @@ export async function traceTopicInputs(projectId: string, filters: TraceListFilt
   };
 }
 
+/** Newest traces matching the filters whose last span is over 5 minutes old, with their id and the time of the last span. */
+export async function finishedTraceRunIds(projectId: string, filters: TraceListFilters, limit: number) {
+  const { where, having } = traceListClauses(projectId, filters);
+  const quiet = "max(createdAt) < now() - INTERVAL 5 MINUTE";
+  const rows = await tinybirdRows<{ runId: string }>(`
+    SELECT runId FROM (
+      SELECT runId, min(createdAt) AS startedAt, ${DURATION_EXPR} AS durationMs, ${ERROR_COUNT_EXPR} AS errorCount,
+        sum(costUsd) AS totalCostUsd, sum(inputTokens) AS inputTokens, sum(outputTokens) AS outputTokens
+      FROM spans WHERE ${where} GROUP BY runId ${having ? `${having} AND ${quiet}` : `HAVING ${quiet}`})
+    ORDER BY startedAt DESC, runId
+    LIMIT ${Math.max(1, Math.floor(limit))}`);
+  return rows.map((row) => row.runId);
+}
+
 export type MapNode = { id: string; kind: string; name: string; count: number; traces: number; errors: number; p50LatencyMs: number };
 export type MapEdge = { source: string; target: string; count: number; back?: number; errors: number; traces: number; errorRate: number; p50LatencyMs: number };
 export const MAP_NODE_LIMIT = 40;

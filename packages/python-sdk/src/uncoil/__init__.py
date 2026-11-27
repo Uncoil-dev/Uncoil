@@ -27,6 +27,8 @@ except ImportError:
 
 import requests as _requests_fallback
 
+from .privacy import resolve_capture_content, strip_feedback_content, strip_span_content
+
 
 
 # The current run and step for this thread or async task. Context variables keep concurrent runs apart, so
@@ -330,8 +332,9 @@ class UncoilClient:
         "us": "https://us.cloud.uncoil.dev",
     }
 
-    def __init__(self, api_key: Optional[str] = None, host: Optional[str] = None, project_id: Optional[str] = None, region: Optional[str] = None, release: Optional[str] = None, environment: Optional[str] = None, deployment_id: Optional[str] = None, session_id: Optional[str] = None, end_user_id: Optional[str] = None, tags: Optional[List[str]] = None, sample_rate: float = 1.0, keep_errors: bool = True, redact: Optional[Dict[str, Any]] = None, on_error: Optional[Callable[["UncoilError"], None]] = None, failure_links: Optional[bool] = None):
+    def __init__(self, api_key: Optional[str] = None, host: Optional[str] = None, project_id: Optional[str] = None, region: Optional[str] = None, release: Optional[str] = None, environment: Optional[str] = None, deployment_id: Optional[str] = None, session_id: Optional[str] = None, end_user_id: Optional[str] = None, tags: Optional[List[str]] = None, sample_rate: float = 1.0, keep_errors: bool = True, redact: Optional[Dict[str, Any]] = None, on_error: Optional[Callable[["UncoilError"], None]] = None, failure_links: Optional[bool] = None, capture_content: Optional[bool] = None):
         self.on_error = on_error
+        self.capture_content = resolve_capture_content(capture_content)
         self._warned: set = set()
         self.api_key = (api_key or (os.environ.get("UNCOIL_API_KEY") or os.environ.get("TRACIFY_API_KEY")) or "").strip()
         if not self.api_key:
@@ -498,10 +501,12 @@ class UncoilClient:
         if not span.get("parentSpanId") and parent and parent != span["spanId"]:
             span["parentSpanId"] = parent
         for key in ("input", "output"):
-            if key in span:
+            if key in span and self.capture_content:
                 span[key] = _payload(span[key])
                 if self._redactor and span[key]:
                     span[key] = self._redactor(span[key])
+        if not self.capture_content:
+            span = strip_span_content(span)
         span.setdefault("release", self.release or (os.environ.get("UNCOIL_RELEASE") or os.environ.get("TRACIFY_RELEASE")))
         span.setdefault("environment", self.environment or (os.environ.get("UNCOIL_ENVIRONMENT") or os.environ.get("TRACIFY_ENVIRONMENT")))
         span.setdefault("deploymentId", self.deployment_id)
@@ -541,6 +546,8 @@ class UncoilClient:
         if not self.project_id:
             print("Uncoil Warning: project_id is required for feedback and score helpers. Pass project_id= to UncoilClient; the id is in the dashboard URL and in project settings.")
             return
+        if not self.capture_content:
+            payload = strip_feedback_content(payload)
         try:
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
             if self._http:

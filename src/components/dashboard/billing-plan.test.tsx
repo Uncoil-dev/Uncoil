@@ -2,7 +2,6 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CheckoutButton, buildPlanCards, requestCheckoutUrl } from "./billing-plan";
-import { formatPrice, monthlyPrice, planById } from "@/lib/pricing-plans";
 
 describe("CheckoutButton", () => {
   it("labels the button with the plan name", () => {
@@ -27,16 +26,28 @@ describe("requestCheckoutUrl", () => {
 });
 
 describe("buildPlanCards", () => {
-  it("lists every shared Pro feature and the annual price on the Pro card", () => {
-    const pro = planById("pro");
-    const card = buildPlanCards("annual").find((c) => c.id === "pro");
-    expect(card?.features).toEqual(expect.arrayContaining([...pro.features]));
-    expect(card?.price).toBe(formatPrice(monthlyPrice(pro, "annual")));
-    expect(card?.price).toBe("$15");
+  const price = (id: string, interval: "monthly" | "annual") => buildPlanCards(interval).find((c) => c.id === id)?.price;
+
+  it.each([
+    ["free", "monthly", "$0"],
+    ["free", "annual", "$0"],
+    ["pro", "monthly", "$19"],
+    ["pro", "annual", "$15"],
+    ["team", "monthly", "$39"],
+    ["team", "annual", "$31"],
+  ] as const)("%s %s price is %s", (id, interval, expected) => {
+    expect(price(id, interval)).toBe(expected);
   });
 
-  it("keeps Enterprise as a custom-priced card", () => {
-    expect(buildPlanCards("monthly").map((c) => c.id)).toEqual(["free", "pro", "team", "enterprise"]);
-    expect(buildPlanCards("monthly").find((c) => c.id === "team")?.price).toBe("$39");
+  it("shows no per-month note on Free and lists Prompt versions on Pro", () => {
+    const cards = buildPlanCards("monthly");
+    expect(cards.find((c) => c.id === "free")?.note).toBeUndefined();
+    expect(cards.find((c) => c.id === "pro")?.features).toContain("Prompt versions");
+  });
+
+  it("keeps the span limit casing and Enterprise card", () => {
+    const cards = buildPlanCards("monthly");
+    expect(cards.find((c) => c.id === "team")?.features[0]).toBe("2M spans / month");
+    expect(cards.map((c) => c.id)).toEqual(["free", "pro", "team", "enterprise"]);
   });
 });

@@ -11,10 +11,10 @@ import { Panel, StatTile, adminButton, adminButtonPrimary } from "@/components/d
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { BillingInterval } from "@/lib/billing-links";
-import { formatPrice, monthlyPrice, planById, plans } from "@/lib/pricing-plans";
+import { formatPrice, monthlyPrice, planById, plans, type PlanId } from "@/lib/pricing-plans";
 
 type PlanCardData = {
-  id: string;
+  id: PlanId | "enterprise";
   name: string;
   price: string;
   note?: string;
@@ -24,7 +24,7 @@ type PlanCardData = {
   features: readonly string[];
 };
 
-const PLAN_ICONS: Partial<Record<string, LucideIcon>> = { pro: BarChart3, team: Users };
+const PLAN_ICONS: Partial<Record<PlanId, LucideIcon>> = { pro: BarChart3, team: Users };
 
 const ENTERPRISE_CARD: PlanCardData = {
   id: "enterprise",
@@ -47,7 +47,7 @@ export function buildPlanCards(interval: BillingInterval): PlanCardData[] {
     popular: plan.id === "pro",
     icon: PLAN_ICONS[plan.id],
     features: [
-      `${plan.spans} spans / month`,
+      `${plan.spans.toUpperCase()} spans / month`,
       `${plan.retention.replace(" days", "-day")} retention`,
       plan.projects === "Unlimited" ? "Unlimited projects" : `${plan.projects} projects`,
       `${plan.members} team ${plan.members === "1" ? "member" : "members"}`,

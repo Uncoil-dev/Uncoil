@@ -7,6 +7,7 @@ Every pull request description has a Changelog section: one ticked category and 
 ## [Unreleased]
 
 ### Features
+- New How we work page at /how-we-work: public pricing, the MIT license, where data is stored, export and deletion, support by email, and what Uncoil does not do. Each line links to the page that shows it.
 - Pro and Team plan cards, the in-app upgrade card and the usage banner now show the free trial: 7 days free, once per project.
 - New topics endpoint, `GET /api/projects/{projectId}/topics`, groups the traces matching the traces-list filters by what they were asked to do, with error rates and example traces. The public demo shows topics too.
 - Codex and OpenCode plugins send each finished coding-agent turn to Uncoil as a trace, with tool calls, token use and cost. Install steps are in the docs.

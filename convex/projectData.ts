@@ -81,7 +81,7 @@ export const exportPage = query({
   },
 });
 
-const SECRET_FIELDS = ["apiKeyHash", "stripeCustomerId", "stripeSubscriptionId", "stripePriceId", "slackWebhookUrl", "teamsWebhookUrl"];
+const SECRET_FIELDS = ["apiKeyHash", "stripeCustomerId", "stripeSubscriptionId", "stripePriceId", "slackWebhookUrl", "teamsWebhookUrl", "discordWebhookUrl"];
 
 /** The project record without secrets (key hash, billing ids, webhook addresses). */
 export const exportProject = query({

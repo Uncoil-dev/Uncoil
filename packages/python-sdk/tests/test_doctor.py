@@ -7,7 +7,7 @@ KEY = "uncoil_sk_live_eu_abcdefghijklmnop"
 
 @pytest.fixture(autouse=True)
 def clean_env(monkeypatch):
-    for name in ("UNCOIL_API_KEY", "UNCOIL_REGION", "UNCOIL_HOST"):
+    for name in ("UNCOIL_API_KEY", "UNCOIL_REGION", "UNCOIL_HOST", "UNCOIL_PROJECT_ID"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -19,7 +19,9 @@ class Calls(list):
 def calls(monkeypatch):
     made = Calls()
 
-    def fake(ingest=200, reach="ok"):
+    def fake(ingest=200, reach="ok", whoami=None):
+        monkeypatch.setattr(doctor, "_get_json", lambda url, timeout, headers: whoami if url.endswith("/api/sdk/whoami") else None)
+
         def request(method, url, timeout, headers=None, body=None):
             made.append((method, url, headers, body))
             if url.endswith("/api/ingest"):
@@ -113,3 +115,17 @@ def test_uncoil_command_runs_doctor_without_a_key(calls, capsys):
 
     assert main(["doctor", "--no-send"]) == 1
     assert "UNCOIL_API_KEY" in capsys.readouterr().out
+
+
+def test_names_the_project_the_key_sends_to(calls):
+    calls.fake(whoami={"projectId": "p1", "projectName": "Support bot"})
+    result = doctor.run_doctor(api_key=KEY)
+    assert status(result, "project") == "ok"
+    assert "Traces will land in: Support bot" in doctor.format_report(result)
+
+
+def test_fails_when_the_project_id_points_elsewhere(calls, monkeypatch):
+    calls.fake(whoami={"projectId": "p1", "projectName": "Support bot"})
+    monkeypatch.setenv("UNCOIL_PROJECT_ID", "p2")
+    result = doctor.run_doctor(api_key=KEY)
+    assert status(result, "project") == "fail" and not [c for c in calls if c[0] == "POST"]

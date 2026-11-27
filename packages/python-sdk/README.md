@@ -211,10 +211,10 @@ Up to 1,000 spans can wait at once; past that, new spans are dropped and reporte
 
 ## Setup checker
 
-Not seeing traces? One command checks your key, region and network, then sends a test trace:
+Not seeing traces? One command checks your key, region, network and project, then sends a test trace:
 
 ```bash
 uncoil doctor            # or: uncoil-doctor, or python -m uncoil doctor
 ```
 
-It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. If the key is missing from the environment but `.env.local` or `.env` in the current folder sets it, the check names that file so you can export the variable or load the file (for example with python-dotenv). It never prints the key. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.
+It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), shows which project traces will land in, tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. If `UNCOIL_PROJECT_ID` is set to a different project than the key's, the check fails. If the key is missing from the environment but `.env.local` or `.env` in the current folder sets it, the check names that file so you can export the variable or load the file (for example with python-dotenv). It never prints the key. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.

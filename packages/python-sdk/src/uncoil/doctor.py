@@ -1,6 +1,6 @@
 """Setup checker: `uncoil-doctor` or `python -m uncoil.doctor`.
 
-Checks the API key, region and network, then sends one test trace.
+Checks the API key, region, network and project, then sends one test trace.
 """
 import argparse
 import json
@@ -58,6 +58,17 @@ def _request(method: str, url: str, timeout: float, headers: Optional[Dict[str, 
     return response.status_code
 
 
+def _get_json(url: str, timeout: float, headers: Dict[str, str]) -> Optional[Dict[str, Any]]:
+    """GETs a JSON object; returns None for any failure, non-2xx answer or non-object body."""
+    try:
+        import httpx
+        response = httpx.get(url, headers=headers, timeout=timeout, follow_redirects=False)
+        data = response.json() if 200 <= response.status_code < 300 else None
+    except Exception:  # the trace check reports connection problems; this check is best-effort
+        return None
+    return data if isinstance(data, dict) else None
+
+
 def _error_text(error: BaseException) -> str:
     text = str(error) or error.__class__.__name__
     return text if len(text) < 160 else text[:157] + "..."
@@ -109,6 +120,16 @@ def run_doctor(api_key: Optional[str] = None, region: Optional[str] = None, host
     except Exception as error:  # network trouble of any kind is the thing being diagnosed
         add("network", "Network", "fail", f"Could not reach {target} ({_error_text(error)}).", "Check your internet connection, firewall, proxy settings and the host setting.")
         return report()
+
+    # Which project does this key send to? Older servers have no such route, so anything unexpected is skipped quietly.
+    whoami = _get_json(f"{target}/api/sdk/whoami", timeout, {"Authorization": f"Bearer {key}"})
+    if whoami and whoami.get("projectId"):
+        name = whoami.get("projectName") or whoami["projectId"]
+        expected = (os.environ.get("UNCOIL_PROJECT_ID") or "").strip()
+        if expected and expected != whoami["projectId"]:
+            add("project", "Project", "fail", f'UNCOIL_PROJECT_ID points at a different project than this key ("{name}").', "Copy the key and the project id from the same project in your dashboard.")
+            return report()
+        add("project", "Project", "ok", f"Traces will land in: {name}")
 
     if not send:
         add("trace", "Test trace", "skip", "Skipped (--no-send).")

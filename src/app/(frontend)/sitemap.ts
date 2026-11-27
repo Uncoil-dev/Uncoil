@@ -70,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/best-llm-observability-tools`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/compare`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/switch`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
-    ...comparisons.map((c) => ({ url: `${baseUrl}/compare/${c.slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.8 })),
+    ...comparisons.map((c) => ({ url: `${baseUrl}/compare/${c.slug}`, lastModified: new Date(`${c.lastChecked}T00:00:00.000Z`), changeFrequency: "monthly" as const, priority: 0.8 })),
     ...integrationPages.map((p) => ({ url: `${baseUrl}/integrations/${p.slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     ...glossaryTerms.map((t) => ({ url: `${baseUrl}/glossary/${t.slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.6 })),
     ...blogPosts,

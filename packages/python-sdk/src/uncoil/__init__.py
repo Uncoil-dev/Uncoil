@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import atexit
 import queue
@@ -11,7 +12,9 @@ import threading
 import re
 import contextlib
 import contextvars
+from urllib.parse import quote
 from datetime import datetime, timezone
+from .release import resolve_release
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -329,7 +332,7 @@ class UncoilClient:
         "us": "https://us.cloud.uncoil.dev",
     }
 
-    def __init__(self, api_key: Optional[str] = None, host: Optional[str] = None, project_id: Optional[str] = None, region: Optional[str] = None, release: Optional[str] = None, environment: Optional[str] = None, deployment_id: Optional[str] = None, session_id: Optional[str] = None, end_user_id: Optional[str] = None, tags: Optional[List[str]] = None, sample_rate: float = 1.0, keep_errors: bool = True, redact: Optional[Dict[str, Any]] = None, on_error: Optional[Callable[["UncoilError"], None]] = None, capture_content: Optional[bool] = None):
+    def __init__(self, api_key: Optional[str] = None, host: Optional[str] = None, project_id: Optional[str] = None, region: Optional[str] = None, release: Optional[str] = None, environment: Optional[str] = None, deployment_id: Optional[str] = None, session_id: Optional[str] = None, end_user_id: Optional[str] = None, tags: Optional[List[str]] = None, sample_rate: float = 1.0, keep_errors: bool = True, redact: Optional[Dict[str, Any]] = None, on_error: Optional[Callable[["UncoilError"], None]] = None, failure_links: Optional[bool] = None, capture_content: Optional[bool] = None):
         self.on_error = on_error
         self.capture_content = resolve_capture_content(capture_content)
         self._warned: set = set()
@@ -356,12 +359,15 @@ class UncoilClient:
         if key_region and host_region and key_region != host_region:
             raise UncoilError("region_mismatch", f"Uncoil API key region mismatch: this key belongs to {key_region.upper()}, but the client is configured for {host_region.upper()}.", f"Set region='{key_region}' (or UNCOIL_REGION={key_region}), or create a key in the {host_region.upper()} region.")
         self.project_id = project_id or (os.environ.get("UNCOIL_PROJECT_ID") or "").strip() or None
-        self.release = release
+        self.release = resolve_release(release)
         self.environment = environment
         self.deployment_id = deployment_id
         self.session_id = session_id
         self.end_user_id = end_user_id
         self.tags = tags or []
+        # One line with a run link when a traced run fails; off by default in production.
+        env = (environment or os.environ.get("UNCOIL_ENVIRONMENT") or "").strip().lower()
+        self.failure_links = failure_links if failure_links is not None else env != "production"
         self.ingest_url = f"{self.host}/api/ingest"
         self.check_cost_url = f"{self.host}/api/orchestration/check-cost"
         self._http = httpx.Client(timeout=10) if _HAS_HTTPX else None
@@ -407,6 +413,14 @@ class UncoilClient:
             self._report(UncoilError("server_error", f"Uncoil had a problem on its side ({status}).", "Your app is not affected; data from this moment may be missing. Check the status page if it keeps happening.", status))
         else:
             self._report(UncoilError("rejected", f"Uncoil did not accept a span ({status}).", "Update the SDK to the latest version; if it still happens, contact support.", status))
+
+    def _announce_failed_run(self, run_id: str, step_name: str):
+        """Print where a run failed, with a link to it when the project is known. Called by root steps."""
+        if not self.failure_links:
+            return
+        project = (self.project_id or os.environ.get("UNCOIL_PROJECT_ID") or "").strip()
+        where = f" -> {self.host}/dashboard/{quote(project, safe='')}/tracing/{quote(run_id, safe='')}" if project else f" (run {run_id})"
+        print(f'Uncoil: run failed at step "{step_name}"{where}', file=sys.stderr)
 
     def _sampled_out(self, span: Dict[str, Any]) -> bool:
         if self.sample_rate >= 1:
@@ -790,6 +804,9 @@ class Span:
         return self
 
 
+_FAILED_STEP = "_uncoil_failed_step"
+
+
 @contextlib.contextmanager
 def span(name: str, type: str = "span", input: Any = None, metadata: Optional[Dict[str, Any]] = None,
          client: Optional[UncoilClient] = None, run_id: Optional[str] = None, root: bool = False, **fields: Any):
@@ -831,6 +848,14 @@ def span(name: str, type: str = "span", input: Any = None, metadata: Optional[Di
         if error is not None and not isinstance(error, (GeneratorExit, KeyboardInterrupt)):
             payload["errorType"] = error.__class__.__name__
             payload["errorMessage"] = _payload(str(error))
+            if root:
+                _client(client)._announce_failed_run(current_run_id(), getattr(error, _FAILED_STEP, None) or name)
+            elif not hasattr(error, _FAILED_STEP):
+                # The innermost step that raised tags the error, so the run's root can say where it failed.
+                try:
+                    setattr(error, _FAILED_STEP, name)
+                except Exception:
+                    pass
         try:
             _client(client).ingest(**payload)
         finally:

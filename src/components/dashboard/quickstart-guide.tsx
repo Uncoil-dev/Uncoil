@@ -63,6 +63,12 @@ main(); // run it once to send your first trace
   },
 };
 
+const NO_KEY_HINT = "Your full key was shown only once, when it was made. Create a new key, then put it in your agent's environment.";
+
+export function quickstartSteps(mode: "agent" | "manual"): StepId[] {
+  return mode === "agent" ? ["method", "key", "prompt", "verify"] : ["method", "install", "instrument", "key", "verify"];
+}
+
 function useCopy() {
   const [done, setDone] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
@@ -98,7 +104,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
   const { done, copy } = useCopy();
   const snippet = SNIPPETS[lang];
 
-  const steps: StepId[] = mode === "agent" ? ["method", "prompt", "verify"] : ["method", "install", "instrument", "key", "verify"];
+  const steps = quickstartSteps(mode);
   const current = steps[Math.min(step, steps.length - 1)];
   const info = STEP_INFO[current];
   const isLast = step >= steps.length - 1;
@@ -111,7 +117,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
 
   const shownEnv = keyEnvLines(`${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}`, region.id);
   const copyEnv = keyEnvLines(apiKey || "YOUR_API_KEY", region.id);
-  const agentPrompt = `Set up Uncoil tracing in this project.\n\n1. Install: ${snippet.install}\n2. Wrap the main agent function with the Uncoil tracing helper and record each model call.\n3. Read UNCOIL_API_KEY and UNCOIL_REGION=${region.id} from the environment. Never print or commit the key.\n4. Run the agent once and tell me where to see the trace.`;
+  const agentPrompt = `Set up Uncoil tracing in this project.\n\n1. Install: ${snippet.install}\n2. Wrap the main agent function with the Uncoil tracing helper and record each model call.\n3. Read UNCOIL_API_KEY and UNCOIL_REGION=${region.id} from the environment. If UNCOIL_API_KEY is not set, run \`npx @uncoil.dev/sdk login\`. Never print or commit the key.\n4. Run the agent once and tell me where to see the trace.`;
   function pickLang(value: Lang) {
     setPickedLang(value);
     if (projectId) void updateProgress({ projectId: projectId as Id<"projects">, sdk: value }).catch(() => undefined);
@@ -148,7 +154,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
           <div className="flex-1">
             <span className="font-pixel text-[72px] leading-none tracking-[-0.06em] text-[#f4d44d]">{String(step + 1).padStart(2, "0")}</span>
             <h2 className="mt-4 font-pixel text-[clamp(2rem,4vw,3.25rem)] leading-[0.95] tracking-[-0.06em] text-[#f4f3ee]">{info.title}</h2>
-            <p className="mt-4 max-w-[52ch] font-sans text-[15px] leading-relaxed text-[#9b9b95]">{info.hint}</p>
+            <p className="mt-4 max-w-[52ch] font-sans text-[15px] leading-relaxed text-[#9b9b95]">{current === "key" && !apiKey ? NO_KEY_HINT : info.hint}</p>
 
             <div className="mt-8">
               {current === "method" ? (
@@ -179,12 +185,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
               ) : null}
               {current === "install" ? <Code code={snippet.install} id="install" file="terminal" copied={done === "install"} onCopy={() => copy("install", snippet.install)} /> : null}
               {current === "instrument" ? <Code code={snippet.code} id="code" file={snippet.file} copied={done === "code"} onCopy={() => copy("code", snippet.code)} /> : null}
-              {current === "key" ? (
-                <div className="space-y-4">
-                  <Code code={shownEnv.dotenv} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", copyEnv.dotenv)} />
-                  <Code code={shownEnv.powershell} id="powershell" file="Windows PowerShell" copied={done === "powershell"} onCopy={() => copy("powershell", copyEnv.powershell)} />
-                </div>
-              ) : null}
+              {current === "key" ? <KeyStep projectId={projectId} shown={shownEnv} hasKey={Boolean(apiKey)} done={done} onCopy={(id, text) => copy(id, text)} copyEnv={copyEnv} /> : null}
               {current === "verify" ? (
                 <div className="max-w-[560px] border border-[#3a3a3a] bg-[#000000cc] font-mono" role="status" aria-live="polite">
                   <div className="flex items-center justify-between border-b border-[#2a2a2a] px-4 py-3 text-[10px] uppercase tracking-[0.16em]">
@@ -245,17 +246,34 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
   );
 }
 
-function Code({ code, file, copied, onCopy }: { code: string; id: string; file: string; copied: boolean; onCopy: () => void }) {
+type EnvLines = ReturnType<typeof keyEnvLines>;
+
+/** The .env step: copies the one-time key while the session still holds it, otherwise points to creating a new key. */
+export function KeyStep({ projectId, shown, copyEnv, hasKey, done, onCopy }: { projectId: string; shown: EnvLines; copyEnv: EnvLines; hasKey: boolean; done: string | null; onCopy: (id: string, text: string) => void }) {
+  return (
+    <div className="space-y-4">
+      <Code code={shown.dotenv} id="env" file=".env" copied={hasKey && done === "env"} onCopy={hasKey ? () => onCopy("env", copyEnv.dotenv) : undefined} />
+      <Code code={shown.powershell} id="powershell" file="Windows PowerShell" copied={hasKey && done === "powershell"} onCopy={hasKey ? () => onCopy("powershell", copyEnv.powershell) : undefined} />
+      {hasKey ? null : (
+        <Link href={`/dashboard/${projectId}/api-keys`} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-5 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">Create a key <ArrowRight className="size-4" /></Link>
+      )}
+    </div>
+  );
+}
+
+function Code({ code, file, copied, onCopy }: { code: string; id: string; file: string; copied: boolean; onCopy?: () => void }) {
   return (
     <div className="overflow-hidden border border-[#2a2a2a] bg-[#050505]">
       <div className="flex items-center justify-between border-b border-[#2a2a2a] bg-[#0c0c0c] px-3 py-2">
         <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8a8a84]">
           <span className="size-1.5 bg-[#f4d44d]" /> {file}
         </span>
-        <button type="button" onClick={onCopy} className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] !text-[#c9c9c2] hover:!text-[#f4d44d]" aria-label={`Copy ${file}`}>
-          {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-          {copied ? "Copied" : "Copy"}
-        </button>
+        {onCopy ? (
+          <button type="button" onClick={onCopy} className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] !text-[#c9c9c2] hover:!text-[#f4d44d]" aria-label={`Copy ${file}`}>
+            {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        ) : null}
       </div>
       <pre className="overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed text-[#eceae3]">{code}</pre>
     </div>

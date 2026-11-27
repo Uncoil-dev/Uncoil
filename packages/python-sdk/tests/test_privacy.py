@@ -115,3 +115,33 @@ def test_option_overrides_env_and_env_is_read_at_creation(requests_sent, monkeyp
     assert later.flush(30)
     kept_span, later_span = spans(requests_sent, kept)
     assert SECRET in kept_span["input"] and later_span["input"] == ""
+
+
+def feedback_bodies(sent):
+    return [body for url, body in sent if url.endswith("/api/feedback")]
+
+
+def test_off_text_score_and_string_thumb_values_are_not_sent(requests_sent):
+    client = make(capture_content=False)
+    client.score("t1", "tone", SECRET)
+    client.feedback("t1", SECRET, kind="thumb")
+    client.score("t1", "label", "good", data_type="categorical")
+    bodies = feedback_bodies(requests_sent)
+    assert len(bodies) == 3 and SECRET not in json.dumps(bodies)
+    assert bodies[0]["value"] == "[not recorded]" and bodies[1]["value"] == "[not recorded]"
+    assert bodies[2]["value"] == "good"
+
+
+def test_off_stack_trace_is_not_sent(requests_sent):
+    client = make(capture_content=False)
+    client.ingest(spanType="error", toolName="t", errorType="ValueError", stackTrace=SECRET)
+    sent = spans(requests_sent, client)
+    assert SECRET not in json.dumps(sent) and "stackTrace" not in sent[0]
+
+
+def test_explicit_false_beats_env_true(requests_sent, monkeypatch):
+    monkeypatch.setenv("UNCOIL_CAPTURE_CONTENT", "true")
+    client = make(capture_content=False)
+    uncoil.llm_call(SECRET, SECRET, "m", 0, 1, client=client)
+    sent = spans(requests_sent, client)
+    assert SECRET not in json.dumps(sent)

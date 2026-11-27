@@ -12,6 +12,7 @@ import {
   parseTime,
   previewText,
   relativeTime,
+  stepRowLabel,
   stepKind,
   toCsv,
 } from "./format.ts";
@@ -113,6 +114,12 @@ test("relativeTime: buckets by elapsed time", () => {
   assert.equal(relativeTime("2024-01-02 09:00:00", now), "3h ago");
   assert.doesNotMatch(relativeTime("2023-12-01 09:00:00", now), /ago|just now/);
   assert.equal(relativeTime("garbage", now), "garbage");
+});
+
+test("stepRowLabel: names the step, its type, its status and when it ran for screen readers", () => {
+  const at = "2026-11-20T10:15:00Z";
+  assert.equal(stepRowLabel({ name: "search_docs", type: "tool", errors: 0, createdAt: at }), `search_docs, tool, succeeded, ${formatTime(at)}`);
+  assert.equal(stepRowLabel({ name: "gpt-5 call", type: "llm", errors: 3, createdAt: at }), `gpt-5 call, llm, failed, ${formatTime(at)}`);
 });
 
 test("toCsv: quotes cells, escapes quotes and neutralises formulas", () => {

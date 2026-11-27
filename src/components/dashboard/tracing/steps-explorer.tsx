@@ -13,6 +13,7 @@ import {
   formatDuration,
   formatTime,
   relativeTime,
+  stepRowLabel,
   toCsv,
 } from "./format";
 import { RANGES, TimeRangePicker } from "./time-range-picker";
@@ -633,9 +634,17 @@ export function StepsExplorer({
                     <tr
                       key={grouped ? `${r.type}:${r.name}` : r.spanId}
                       className={`${fresh.has(r.spanId) ? "bg-[#1F2A1F]" : "hover:bg-[#12161C]"} cursor-pointer`}
+                      tabIndex={0}
+                      aria-label={stepRowLabel(r)}
                       onClick={() =>
                         update({ trace: r.runId, step: r.spanId }, false)
                       }
+                      onKeyDown={(e) => {
+                        // Enter or Space on the row itself opens it; the name button inside keeps its own action.
+                        if (e.target !== e.currentTarget || (e.key !== "Enter" && e.key !== " ")) return;
+                        e.preventDefault();
+                        update({ trace: r.runId, step: r.spanId }, false);
+                      }}
                     >
                       {columns.map((c) => (
                         <td

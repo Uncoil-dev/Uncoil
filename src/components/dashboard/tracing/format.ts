@@ -51,6 +51,11 @@ export function relativeTime(value: string, now: number) {
   return formatTime(value);
 }
 
+/** Accessible name for a step row: its name, type, whether it failed, and when it ran. */
+export function stepRowLabel(row: { name: string; type: string; errors: number; createdAt: string }) {
+  return `${row.name}, ${row.type}, ${Number(row.errors) > 0 ? "failed" : "succeeded"}, ${formatTime(row.createdAt)}`;
+}
+
 /** RFC 4180 CSV; cells are quoted and leading formula characters are neutralised for spreadsheet safety. */
 export function toCsv(header: string[], rows: Array<Array<string | number>>) {
   const cell = (value: string | number) => {

@@ -217,6 +217,17 @@ def test_feedback_uses_the_project_id_from_the_environment(monkeypatch):
     assert UncoilClient(api_key=KEY, project_id="proj_given").project_id == "proj_given"
 
 
+def test_span_timestamps_are_utc_without_deprecation_warnings():
+    import re
+    import warnings
+
+    client = Recorder()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        client.ingest(spanType="llm_call", runId="r1")
+    assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z", client.sent[0]["createdAt"])
+
+
 def test_prompt_and_feedback_errors_say_how_to_fix_them(capsys):
     class NotFound:
         status_code = 404

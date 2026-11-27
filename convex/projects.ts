@@ -151,6 +151,33 @@ export function validateTeamsWebhookUrl(value: string | undefined) {
   return value;
 }
 
+/** Accepts only Discord's own webhook host over https, so alert text is never posted to another server. */
+export function validateDiscordWebhookUrl(value: string | undefined) {
+  if (!value) return undefined;
+  const error = "Discord webhook must be a valid Discord webhook URL";
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(error);
+  }
+
+  const hosts = ["discord.com", "discordapp.com", "canary.discord.com", "ptb.discord.com"];
+  if (
+    parsed.protocol !== "https:" ||
+    !hosts.includes(parsed.hostname) ||
+    parsed.port !== "" ||
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    !parsed.pathname.startsWith("/api/webhooks/")
+  ) {
+    throw new Error(error);
+  }
+
+  return value;
+}
+
 function validateProjectSettings(args: {
   name?: string;
   clientName?: string;
@@ -160,6 +187,7 @@ function validateProjectSettings(args: {
   maxStallMinutes?: number;
   slackWebhookUrl?: string;
   teamsWebhookUrl?: string;
+  discordWebhookUrl?: string;
   redactionEnabled?: boolean;
   redactionRules?: string[];
   retentionDays?: number;
@@ -211,6 +239,7 @@ function validateProjectSettings(args: {
     maxStallMinutes: args.maxStallMinutes,
     slackWebhookUrl: validateSlackWebhookUrl(args.slackWebhookUrl),
     teamsWebhookUrl: validateTeamsWebhookUrl(args.teamsWebhookUrl),
+    discordWebhookUrl: validateDiscordWebhookUrl(args.discordWebhookUrl),
     redactionEnabled: args.redactionEnabled,
     redactionRules: args.redactionRules?.slice(0, 20),
     retentionDays: args.retentionDays,
@@ -320,6 +349,7 @@ function publicProject(project: Doc<"projects">) {
     maxStallMinutes: project.maxStallMinutes,
     slackWebhookUrl: project.slackWebhookUrl ?? null,
     teamsWebhookUrl: project.teamsWebhookUrl ?? null,
+    discordWebhookUrl: project.discordWebhookUrl ?? null,
     runtimePolicy: project.runtimePolicy ?? null,
     redactionEnabled: project.redactionEnabled ?? true,
     redactionRules: project.redactionRules ?? [],
@@ -859,6 +889,7 @@ export const updateProject = mutation({
     maxStallMinutes: v.optional(v.number()),
     slackWebhookUrl: v.optional(v.string()),
     teamsWebhookUrl: v.optional(v.string()),
+    discordWebhookUrl: v.optional(v.string()),
     redactionEnabled: v.optional(v.boolean()),
     redactionRules: v.optional(v.array(v.string())),
     retentionDays: v.optional(v.number()),
@@ -896,6 +927,8 @@ export const updateProject = mutation({
     }
     await ctx.db.patch(projectId, {
       ...updates,
+      // Forms that do not know about Discord leave it out; only an explicit empty string clears it.
+      discordWebhookUrl: args.discordWebhookUrl === undefined ? project.discordWebhookUrl : updates.discordWebhookUrl,
       updatedAt: Date.now(),
     });
     await ctx.db.insert("auditLogs", {
@@ -992,7 +1025,7 @@ export const getRuntimePolicyByApiKey = query({
 export const sendTestAlert = action({
   args: {
     projectId: v.id("projects"),
-    channel: v.optional(v.union(v.literal("slack"), v.literal("teams"))),
+    channel: v.optional(v.union(v.literal("slack"), v.literal("teams"), v.literal("discord"))),
   },
   handler: async (ctx, { projectId, channel = "slack" }) => {
     const project = await ctx.runQuery(api.projects.getProjectForAdmin, {
@@ -1001,6 +1034,29 @@ export const sendTestAlert = action({
 
     if (!project) {
       throw new Error("Project not found or access denied");
+    }
+
+    if (channel === "discord") {
+      if (!project.discordWebhookUrl) {
+        throw new Error("Add a Discord webhook URL before sending a test alert");
+      }
+
+      const response = await fetch(project.discordWebhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: `uncoil test alert: project ${project.name} is connected to this Discord channel.`,
+          allowed_mentions: { parse: [] },
+        }),
+        redirect: "manual",
+      });
+
+      if (!response.ok) {
+        console.error("Discord test alert failed", { status: response.status });
+        throw new Error("Discord test alert failed");
+      }
+
+      return { ok: true };
     }
 
     if (channel === "teams") {

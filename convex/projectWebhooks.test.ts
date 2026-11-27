@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { validateSlackWebhookUrl, validateTeamsWebhookUrl } from "./projects";
+import { validateDiscordWebhookUrl, validateSlackWebhookUrl, validateTeamsWebhookUrl } from "./projects";
 
 const SLACK_ERROR = "Slack webhook must be a valid Slack webhook URL";
 const TEAMS_ERROR = "Teams webhook must be a valid Microsoft Teams webhook URL";
@@ -49,5 +49,33 @@ describe("validateTeamsWebhookUrl", () => {
   test("empty input returns undefined", () => {
     expect(validateTeamsWebhookUrl(undefined)).toBeUndefined();
     expect(validateTeamsWebhookUrl("")).toBeUndefined();
+  });
+});
+
+describe("validateDiscordWebhookUrl", () => {
+  const DISCORD_ERROR = "Discord webhook must be a valid Discord webhook URL";
+
+  test.each(["discord.com", "discordapp.com", "canary.discord.com", "ptb.discord.com"])("accepts an https %s /api/webhooks/ address unchanged", (host) => {
+    const url = `https://${host}/api/webhooks/123/${fakePath}`;
+    expect(validateDiscordWebhookUrl(url)).toBe(url);
+  });
+
+  test.each([
+    "http://discord.com/api/webhooks/1/x",
+    "https://evil.example/api/webhooks/1/x",
+    "https://discord.com.evil.example/api/webhooks/1/x",
+    "https://evil.example/?u=https://discord.com/api/webhooks/1/x",
+    "https://user@evil.example/api/webhooks/1/x",
+    "https://discord.com:8443/api/webhooks/1/x",
+    "https://discord.com/channels/1/2",
+    "https://hooks.slack.com/services/T/B/x",
+    "not a url",
+  ])("rejects %s", (url) => {
+    expect(() => validateDiscordWebhookUrl(url)).toThrow(DISCORD_ERROR);
+  });
+
+  test("treats empty as not set", () => {
+    expect(validateDiscordWebhookUrl(undefined)).toBeUndefined();
+    expect(validateDiscordWebhookUrl("")).toBeUndefined();
   });
 });

@@ -76,7 +76,7 @@ export function PromptDetail({ projectId, prompt, tab, onTab, usage, links, onNe
             <div key={label} className="bg-[#0B0D10] px-4 py-3">
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-[#6B7380]"><span className={`size-1.5 rounded-full ${production ? "bg-[#5BE3A0]" : label === "staging" ? "bg-[#F4D44D]" : "bg-[#6B7380]"}`} />{label}{index < 2 ? <span aria-hidden className="ml-auto text-[#3A424E]">→</span> : null}</div>
               <div className="mt-1.5 font-mono text-lg">{version ? `v${version.version}` : "–"}</div>
-              <div className="mt-1 text-[11px] text-[#6B7380]">{version ? (version.commitMessage ?? when(version.createdAt)) : "Nothing here yet"}</div>
+              <div className="mt-1 text-[11px] text-[#6B7380]">{version ? (version.commitMessage ?? when(version.createdAt)) : `No version in ${label} yet.${production ? "" : " Point a version here to use it."}`}</div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {production ? (
                   version ? <button type="button" onClick={() => drop("production", version)} className="h-6 rounded border border-[#5B2B2B] px-2 text-[11px] text-[#FF8A8A]" title="Take production off this version, for example to roll back">Roll back</button>

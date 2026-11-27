@@ -1,3 +1,7 @@
+# Install: pip install "uncoil-sdk[anthropic]"
+# Keys: set UNCOIL_API_KEY and ANTHROPIC_API_KEY
+# Run: python anthropic_agent.py
+
 from anthropic import Anthropic
 import uncoil
 

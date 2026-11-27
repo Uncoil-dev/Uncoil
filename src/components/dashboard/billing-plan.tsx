@@ -195,22 +195,33 @@ function PlanCard({
   );
 }
 
-function CheckoutButton({ projectId, plan, interval }: { projectId: string; plan: "pro" | "team"; interval: "monthly" | "annual" }) {
+export async function requestCheckoutUrl(projectId: string, plan: "pro" | "team", interval: "monthly" | "annual") {
+  const response = await fetch("/api/stripe/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ projectId, plan, interval }) });
+  const data = await response.json() as { url?: string; error?: string };
+  if (!response.ok || !data.url) throw new Error(data.error ?? "Checkout unavailable");
+  return data.url;
+}
+
+export function CheckoutButton({ projectId, plan, interval }: { projectId: string; plan: "pro" | "team"; interval: "monthly" | "annual" }) {
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const startCheckout = async () => {
     if (!projectId) return;
     setPending(true);
+    setError(null);
     try {
-      const response = await fetch("/api/stripe/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ projectId, plan, interval }) });
-      const data = await response.json() as { url?: string; error?: string };
-      if (!response.ok || !data.url) throw new Error(data.error ?? "Checkout unavailable");
-      window.location.assign(data.url);
-    } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Checkout unavailable");
+      window.location.assign(await requestCheckoutUrl(projectId, plan, interval));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Checkout unavailable");
       setPending(false);
     }
   };
-  return <button type="button" onClick={startCheckout} disabled={pending} className={`${adminButtonPrimary} mt-6`}>{pending ? "Opening checkout…" : `Choose ${plan}`}</button>;
+  return (
+    <>
+      <button type="button" onClick={startCheckout} disabled={pending} className={`${adminButtonPrimary} mt-6`}>{pending ? "Opening checkout…" : `Choose ${planById(plan).name}`}</button>
+      {error ? <p role="alert" className="mt-2 font-mono text-[11px] text-[#8B93A1]">{error}</p> : null}
+    </>
+  );
 }
 
 function PortalButton({ projectId }: { projectId: string }) {

@@ -20,7 +20,7 @@ export default async function BillingPage({
     <div className="flex flex-col gap-6">
       <DashboardTopbar
         title="Billing & Plan"
-        description="Real usage, current plan, and beta plan access."
+        description="Your usage this month and your plan."
       />
 
       <AdminShell projectId={projectId} active="billing">

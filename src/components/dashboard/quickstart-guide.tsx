@@ -9,6 +9,7 @@ import { ArrowRight, BookOpen, Check, Copy } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { DitherEmber } from "@/components/marketing/landing/dither-ember";
+import { buildAgentPrompt } from "@/lib/quickstart-agent-prompt";
 import { keyEnvLines } from "@/lib/quickstart-env";
 import { scoreSnippet } from "@/lib/score-snippets";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
@@ -117,7 +118,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
 
   const shownEnv = keyEnvLines(`${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}`, region.id);
   const copyEnv = keyEnvLines(apiKey || "YOUR_API_KEY", region.id);
-  const agentPrompt = `Set up Uncoil tracing in this project.\n\n1. Install: ${snippet.install}\n2. Wrap the main agent function with the Uncoil tracing helper and record each model call.\n3. Read UNCOIL_API_KEY and UNCOIL_REGION=${region.id} from the environment. If UNCOIL_API_KEY is not set, run \`npx @uncoil.dev/sdk login\`. Never print or commit the key.\n4. Run the agent once and tell me where to see the trace.`;
+  const agentPrompt = buildAgentPrompt({ lang, region: region.id });
   function pickLang(value: Lang) {
     setPickedLang(value);
     if (projectId) void updateProgress({ projectId: projectId as Id<"projects">, sdk: value }).catch(() => undefined);

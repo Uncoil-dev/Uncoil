@@ -4,15 +4,30 @@ const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
 const LAST_PROJECT_STORAGE_KEY = "uncoil.lastProjectId";
 const API_KEY_COPIED_STORAGE_KEY = "uncoil.onboarding.apiKeyCopied";
 
+function readStoredProjectId() {
+  return (
+    window.sessionStorage.getItem(PROJECT_ID_STORAGE_KEY) ||
+    window.localStorage.getItem(LAST_PROJECT_STORAGE_KEY) ||
+    ""
+  );
+}
+
+/**
+ * The project onboarding works on: the one created in this tab, else the last
+ * project opened, so a new tab on step 3 still listens for the right project.
+ */
+export function getStoredOnboardingProjectId() {
+  if (typeof window === "undefined") return "";
+  const id = readStoredProjectId();
+  return id === "no-project" ? "" : id;
+}
+
 export function getOnboardingHref(projectId?: string) {
   if (typeof window === "undefined") {
     return "/onboarding/project";
   }
 
-  const sessionProjectId =
-    window.sessionStorage.getItem(PROJECT_ID_STORAGE_KEY) ?? "";
-  const lastProjectId = window.localStorage.getItem(LAST_PROJECT_STORAGE_KEY) ?? "";
-  const effectiveProjectId = projectId || sessionProjectId || lastProjectId;
+  const effectiveProjectId = projectId || readStoredProjectId();
 
   if (!effectiveProjectId || effectiveProjectId === "no-project") {
     return "/onboarding/project";

@@ -19,7 +19,11 @@ class Calls(list):
 def calls(monkeypatch):
     made = Calls()
 
-    def fake(ingest=200, reach="ok"):
+    def fake(ingest=200, reach="ok", whoami=None):
+        def get_json(url, timeout, headers=None):
+            made.append(("GET", url, headers, None))
+            return whoami
+
         def request(method, url, timeout, headers=None, body=None):
             made.append((method, url, headers, body))
             if url.endswith("/api/ingest"):
@@ -28,6 +32,7 @@ def calls(monkeypatch):
                 raise OSError("Name or service not known")
             return 200
         monkeypatch.setattr(doctor, "_request", request)
+        monkeypatch.setattr(doctor, "_get_json", get_json)
     made.fake = fake
     return made
 
@@ -45,6 +50,21 @@ def test_passes_and_sends_one_tagged_trace(calls):
     assert posts[0][2]["Authorization"] == f"Bearer {KEY}"
     assert posts[0][3]["tags"] == ["uncoil-doctor"] and posts[0][3]["spanType"] == "llm_call"
     assert "All good" in doctor.format_report(result)
+
+
+def test_reports_the_project_traces_land_in(calls):
+    calls.fake(whoami={"projectId": "proj_1", "projectName": "My agent"})
+    result = doctor.run_doctor(api_key=KEY)
+    project = next(c for c in result["checks"] if c["id"] == "project")
+    assert project["status"] == "ok" and project["message"] == "Traces will land in: My agent"
+    whoami = next(c for c in calls if c[1].endswith("/api/sdk/whoami"))
+    assert whoami[2]["Authorization"] == f"Bearer {KEY}"
+
+
+def test_skips_the_project_check_when_the_server_does_not_say(calls):
+    calls.fake()
+    result = doctor.run_doctor(api_key=KEY)
+    assert status(result, "project") is None and result["ok"]
 
 
 def test_reads_key_from_environment(calls, monkeypatch):

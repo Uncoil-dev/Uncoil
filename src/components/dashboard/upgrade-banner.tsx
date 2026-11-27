@@ -28,7 +28,7 @@ export function UpgradeBanner({ projectId }: { projectId: string }) {
   if (level === "ok") return null;
   const ratio = usage.spans / plan.spanLimit;
 
-  const next = usage.planTier === "free" ? "pro" : usage.planTier === "pro" ? "team" : null;
+  const next = usage.planTier === "free" && usage.trialAvailable ? "pro" : usage.planTier === "pro" ? "team" : null;
   const over = level !== "warn";
   const percent = Math.min(999, Math.round(ratio * 100));
   const message = `You've used ${percent}% of this month's ${plan.spans} spans on the ${plan.name} plan.`;

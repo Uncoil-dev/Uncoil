@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { resolveSettingsTab } from "@/features/dashboard-workspace/settings-tabs";
+import { resolveSettingsTab, SETTINGS_TAB_GROUPS } from "@/features/dashboard-workspace/settings-tabs";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
@@ -637,12 +637,7 @@ function PromptPlaygroundSurface({ workspace, onReadOnly }: { workspace: Dashboa
 function SettingsSurface({ workspace, onReadOnly, onSave, dataPanel, tabPanels }: { workspace: DashboardWorkspace; onReadOnly: (action: string) => void; onSave?: (input: { name: string }) => Promise<void>; dataPanel?: ReactNode; tabPanels?: Record<string, ReactNode> }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const groups: { label: string; items: string[] }[] = [
-    { label: "Project", items: ["General", "Members", "Data"] },
-    { label: "Access", items: ["API Keys", "LLM Connections", "Model Definitions", "MCP & CLI"] },
-    { label: "Quality", items: ["Scores", "Batch Actions"] },
-    { label: "Connect", items: ["Integrations", "Notifications", "Audit log"] },
-  ];
+  const groups = SETTINGS_TAB_GROUPS;
   const tabs = groups.flatMap((group) => group.items);
   const requestedTab = searchParams.get("tab");
   const normalizedTab = resolveSettingsTab(requestedTab, tabs);

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { clamp, type StageProps } from "./page-kit";
+import { traceSpans, traceSummary } from "./trace-stage-data";
 
 const mono = "font-mono text-[10px] uppercase tracking-[0.14em]";
 const Fade = ({ k, children }: { k: string | number; children: React.ReactNode }) => (
@@ -23,20 +24,12 @@ const Head = ({ left, right }: { left: string; right: string }) => (
 
 /* ---------- Trace viewer: a waterfall that plays as you scroll ---------- */
 
-const spans = [
-  ["agent.run", 0, 100, "root"],
-  ["llm.plan", 2, 16, "model"],
-  ["tool.search", 16, 42, "tool"],
-  ["tool.search  retry", 42, 66, "error"],
-  ["llm.answer", 66, 94, "model"],
-] as const;
-
 export function TraceStage({ p, active }: StageProps) {
   return (
     <div>
       <Head left="run_7f3a · production · v2.14" right="2.84s · $0.031" />
       <div className="space-y-3">
-        {spans.map(([name, a, b, kind], i) => {
+        {traceSpans.map(([name, a, b, kind], i) => {
           const f = clamp((p * 1.5 - i * 0.12) / 0.2);
           const err = kind === "error";
           return (
@@ -57,7 +50,12 @@ export function TraceStage({ p, active }: StageProps) {
         <Fade k={active}>
           {active === 0 ? (
             <div>
-              <Chip>4 spans</Chip> <Chip>2 model calls</Chip> <Chip>1 retry</Chip>
+              {traceSummary(traceSpans).map((label, i) => (
+                <span key={label}>
+                  {i > 0 ? " " : null}
+                  <Chip>{label}</Chip>
+                </span>
+              ))}
               <p className="mt-3 text-black/70">Filtered to production, release 2.14. This is the run a customer flagged.</p>
             </div>
           ) : active === 1 ? (

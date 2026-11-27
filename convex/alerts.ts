@@ -39,11 +39,13 @@ export const create = mutation({
       (alert) => alert.runId === args.runId && alert.type === args.type,
     );
 
+    // `created` tells callers whether this is a new alert, so a run with many error spans notifies once.
     if (duplicate) {
-      return duplicate._id;
+      return { alertId: duplicate._id, created: false };
     }
 
-    return await ctx.db.insert("alerts", { ...args, state: args.state ?? "active" });
+    const alertId = await ctx.db.insert("alerts", { ...args, state: args.state ?? "active" });
+    return { alertId, created: true };
   },
 });
 

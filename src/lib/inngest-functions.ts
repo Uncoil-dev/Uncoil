@@ -106,6 +106,9 @@ export const onboardingReminder = inngest.createFunction(
   },
 );
 
+/** A webhook that does not answer within this time is cut off, so it cannot hold the alert job. */
+const WEBHOOK_TIMEOUT_MS = 10_000;
+
 export const processAlert = inngest.createFunction(
   {
     id: "process-alert",
@@ -115,9 +118,9 @@ export const processAlert = inngest.createFunction(
   async ({ event, step }) => {
     const alert = event.data;
 
-    await step.run("log-to-convex", async () => {
+    const logged = await step.run("log-to-convex", async () => {
       const convex = getConvexClient();
-      await convex.mutation(api.alerts.create, {
+      return await convex.mutation(api.alerts.create, {
         projectId: alert.projectId as Id<"projects">,
         runId: alert.runId,
         type: alert.type,
@@ -125,6 +128,9 @@ export const processAlert = inngest.createFunction(
         triggeredAt: alert.triggeredAt,
       });
     });
+
+    // Every error span in a run raises this event; only the first one for the run posts to Slack and Teams.
+    if (!logged.created) return { ok: true, duplicate: true };
 
     await step.run("notify-slack", async () => {
       const convex = getConvexClient();
@@ -136,6 +142,7 @@ export const processAlert = inngest.createFunction(
         await fetch(project.slackWebhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS),
           body: JSON.stringify({
             blocks: [
               {
@@ -183,6 +190,7 @@ export const processAlert = inngest.createFunction(
         await fetch(project.teamsWebhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS),
           body: JSON.stringify({
             "@type": "MessageCard",
             "@context": "http://schema.org/extensions",

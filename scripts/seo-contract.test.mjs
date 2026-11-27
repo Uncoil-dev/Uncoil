@@ -32,6 +32,14 @@ test("root layout does not force a homepage og:url on every page", () => {
   assert.doesNotMatch(read(`${app}/layout.tsx`), /url: "\/",\s*\n\s*locale/);
 });
 
+test("the status description names only the regions that are open", async () => {
+  const { UNCOIL_REGIONS } = await import("../src/lib/regions.ts");
+  const description = read(`${app}/status/page.tsx`).match(/description: "([^"]+)"/)[1];
+  for (const region of Object.values(UNCOIL_REGIONS)) {
+    assert.equal(new RegExp(`\\b${region.shortName}\\b`).test(description), region.available, `${region.shortName} in "${description}"`);
+  }
+});
+
 test("sitemap lists every public legal page", () => {
   const sitemap = read(`${app}/sitemap.ts`);
   for (const path of ["/privacy", "/terms", "/cookie-policy"]) assert.ok(sitemap.includes(path), path);

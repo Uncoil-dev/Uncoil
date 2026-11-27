@@ -21,14 +21,15 @@ test.describe("lead capture", () => {
     await expect(response.json()).resolves.toEqual({ ok: true });
   });
 
-  test("rejects invalid and oversized submissions generically", async ({ request }) => {
+  test("rejects invalid and oversized submissions with a reason", async ({ request }) => {
     const missing = await request.post("/api/leads", { headers: { "x-forwarded-for": "203.0.113.12" }, data: { email: "bad" } });
     expect(missing.status()).toBe(422);
     const oversized = await request.post("/api/leads", { headers: { "x-forwarded-for": "203.0.113.13" }, data: { ...validLead, message: "x".repeat(4001) } });
     expect(oversized.status()).toBe(422);
-    await expect(oversized.json()).resolves.toEqual({ error: "Invalid request" });
+    await expect(oversized.json()).resolves.toEqual({ error: "Message is too long (4000 characters max)" });
     const invalidEmail = await request.post("/api/leads", { headers: { "x-forwarded-for": "203.0.113.15" }, data: { ...validLead, email: "not-an-email" } });
     expect(invalidEmail.status()).toBe(422);
+    await expect(invalidEmail.json()).resolves.toEqual({ error: "Enter a valid email address" });
     const missingMessage = await request.post("/api/leads", { headers: { "x-forwarded-for": "203.0.113.16" }, data: { name: "No message", email: "valid@example.com" } });
     expect(missingMessage.status()).toBe(422);
     const wrongShape = await request.post("/api/leads", { headers: { "x-forwarded-for": "203.0.113.17" }, data: ["not", "an", "object"] });

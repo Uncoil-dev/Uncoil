@@ -89,6 +89,29 @@ export class UncoilLangGraphHandler {
   handleToolError(error: unknown, id: string) {
     this.end(id, undefined, error);
   }
+  handleRetrieverStart(
+    retriever: any,
+    query: string,
+    id: string,
+    parent?: string,
+    _tags?: string[],
+    _metadata?: any,
+    name?: string,
+  ) {
+    this.start(
+      "retrieval",
+      name ?? retriever?.name ?? retriever?.id?.at(-1) ?? "retriever",
+      query,
+      id,
+      parent,
+    );
+  }
+  handleRetrieverEnd(documents: unknown, id: string) {
+    this.end(id, documents);
+  }
+  handleRetrieverError(error: unknown, id: string) {
+    this.end(id, undefined, error);
+  }
   handleLLMStart(
     llm: any,
     input: unknown,
@@ -123,7 +146,9 @@ export class UncoilLangGraphHandler {
     const usage =
       output?.llmOutput?.tokenUsage ?? generation?.message?.usage_metadata;
     if (usage)
+      // Keep the whole usage object (total_tokens, input_token_details.cache_read, ...) in metadata.
       run?.usage({
+        ...usage,
         input_tokens: usage.input_tokens ?? usage.promptTokens,
         output_tokens: usage.output_tokens ?? usage.completionTokens,
       });

@@ -54,6 +54,17 @@ describe("traced", () => {
 });
 
 describe("wrap clients", () => {
+  it("records structured-output parse() calls like create()", async () => {
+    const { sent, client } = telemetry();
+    const result = { model: "real-model", choices: [{ message: { content: "{}" } }], usage: { prompt_tokens: 4, completion_tokens: 1 } };
+    const wrapped = wrapOpenAI({ chat: { completions: { parse: vi.fn(async () => result) } }, responses: { parse: vi.fn(async () => result) } }, { client });
+    await wrapped.chat.completions.parse({ model: "m", messages: [] });
+    await wrapped.responses.parse({ model: "m", input: "hi" });
+    const calls = sent.filter((span) => span.spanType === "llm_call");
+    expect(calls).toHaveLength(2);
+    expect(calls.map((span) => span.inputTokens)).toEqual([4, 4]);
+  });
+
   it("records usage and output from a resolved promise result", async () => {
     const { sent, client } = telemetry();
     const create = vi.fn(async () => ({

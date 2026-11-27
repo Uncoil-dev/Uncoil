@@ -1,19 +1,14 @@
 import { redirect } from "next/navigation";
 
-import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
-import { SuccessStep } from "@/components/onboarding/success-step";
+import { onboardingSuccessTarget } from "@/lib/onboarding-redirect";
 
+// The first-run confirmation lives in the install step now. Old links go straight
+// to the run when it is known, otherwise back to install.
 export default async function OnboardingSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string; runId?: string }>;
+  searchParams: Promise<{ projectId?: string | string[]; runId?: string | string[] }>;
 }) {
   const { projectId, runId } = await searchParams;
-  if (!projectId || !runId) redirect("/onboarding/waiting");
-
-  return (
-    <OnboardingShell currentStep="success">
-      <SuccessStep projectId={projectId} runId={runId} />
-    </OnboardingShell>
-  );
+  redirect(onboardingSuccessTarget(projectId, runId));
 }

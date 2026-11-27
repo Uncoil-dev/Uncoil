@@ -22,11 +22,27 @@ class FakeResponse:
 
 def test_missing_key_explains_the_fix(monkeypatch):
     monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
-    with pytest.raises(UncoilError) as caught:
-        UncoilClient()
-    assert caught.value.code == "missing_key"
-    assert "UNCOIL_API_KEY" in str(caught.value)
-    assert isinstance(caught.value, ValueError)  # older code catching ValueError keeps working
+    seen = []
+    UncoilClient(on_error=seen.append)
+    assert seen[0].code == "missing_key"
+    assert "UNCOIL_API_KEY" in str(seen[0])
+    assert isinstance(seen[0], ValueError)  # older code catching ValueError keeps working
+
+
+def test_traced_function_runs_without_a_key(monkeypatch, capsys):
+    monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
+    posts = []
+    monkeypatch.setattr("httpx.Client.post", lambda self, *args, **kwargs: posts.append(args))
+
+    @uncoil.trace_agent()
+    def agent(question):
+        uncoil.llm_call("hi", "hello", "gpt-4o", 0, 5)
+        return f"answer to {question}"
+
+    assert agent("a") == "answer to a"
+    assert agent("b") == "answer to b"
+    assert posts == []
+    assert capsys.readouterr().out.count("No Uncoil API key") == 1
 
 
 def test_odd_key_is_flagged_without_failing():
@@ -66,6 +82,23 @@ def test_network_failure_does_not_raise(monkeypatch):
     client.ingest(spanType="llm_call", runId="r1")
     client.flush()
     assert seen[0].code == "network"
+
+
+def test_us_key_without_region_sends_to_the_us_host(monkeypatch):
+    for name in ("UNCOIL_REGION", "TRACIFY_REGION", "UNCOIL_HOST", "TRACIFY_HOST"):
+        monkeypatch.delenv(name, raising=False)
+    urls = []
+    monkeypatch.setattr("uncoil._requests_fallback.post", lambda url, **k: urls.append(url) or FakeResponse(200))
+    client = UncoilClient(api_key="uncoil_sk_live_us_abcdefghijklmnop", on_error=lambda e: None)
+    client._http = None
+    client.ingest(spanType="llm_call", runId="r1")
+    assert urls == ["https://us.cloud.uncoil.dev/api/ingest"]
+
+
+def test_key_from_another_region_than_the_configured_one_is_rejected():
+    with pytest.raises(UncoilError) as caught:
+        UncoilClient(api_key="uncoil_sk_live_us_abcdefghijklmnop", region="eu")
+    assert caught.value.code == "region_mismatch"
 
 
 def test_status_codes_map_to_helpful_messages():
@@ -168,3 +201,39 @@ def test_templates_are_valid_python():
     assert files, "templates are missing"
     for file in files:
         py_compile.compile(str(file), doraise=True)
+
+
+def test_feedback_uses_the_project_id_from_the_environment(monkeypatch):
+    import json
+    import httpx
+
+    monkeypatch.setenv("UNCOIL_PROJECT_ID", "proj_from_env")
+    sent = []
+    client = UncoilClient(api_key=KEY)
+    client._http = httpx.Client(transport=httpx.MockTransport(lambda request: sent.append(json.loads(request.content)) or httpx.Response(200)))
+    client.feedback("trace-1", True)
+    assert sent[0]["projectId"] == "proj_from_env"
+    assert UncoilClient(api_key=KEY, project_id="proj_given").project_id == "proj_given"
+
+
+def test_prompt_and_feedback_errors_say_how_to_fix_them(capsys):
+    class NotFound:
+        status_code = 404
+        text = "not found"
+
+    class Http:
+        def get(self, *a, **k):
+            return NotFound()
+
+    client = UncoilClient(api_key=KEY)
+    client._http = Http()
+    with pytest.raises(RuntimeError) as caught:
+        client.get_prompt("support-reply", environment="staging")
+    assert "404" in str(caught.value)
+    assert "'support-reply'" in str(caught.value) and "'staging'" in str(caught.value)
+    assert "Prompts page" in str(caught.value)
+
+    client.feedback("trace-1", True)
+    warning = capsys.readouterr().out
+    assert "project_id=" in warning and "UncoilClient" in warning
+    assert "dashboard URL" in warning and "project settings" in warning

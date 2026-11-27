@@ -25,6 +25,8 @@ On Windows PowerShell:
 $env:UNCOIL_API_KEY="uncoil_sk_live_..."
 ```
 
+The SDK sends to the region your key belongs to, so a US key needs no extra setting. Set `region` (or `UNCOIL_REGION`) only to pin a region; a key from the other region then fails with `region_mismatch`.
+
 3. Instrument your agent:
 
 ```python
@@ -94,7 +96,7 @@ avoid sending anything else you would not want stored.
 
 ## Feedback and evaluation scores
 
-Pass `project_id` when constructing the client to attach end-user feedback and typed scores to traces:
+Feedback and typed scores need the project id. The client reads `UNCOIL_PROJECT_ID` (which `npx @uncoil.dev/sdk login` writes to `.env.local`), or you can pass `project_id` when constructing the client:
 
 ```python
 client = UncoilClient(project_id="your-project-id")
@@ -146,11 +148,11 @@ graph.invoke(inputs, config={"callbacks": [uncoil.langgraph_callback()]})
 Wrap sync or async clients once. Supported: OpenAI chat completions and Responses `create` APIs,
 including streams; Anthropic messages `create`/`stream` and beta equivalents, including sync/async
 context managers, text streams and final messages. Close streams when stopping early. Raw response
-resources and unsupported convenience methods are passed through without instrumentation.
+resources and unsupported convenience methods are passed through without instrumentation. A model call that stopped at its token limit (OpenAI `finish_reason="length"`, Anthropic `stop_reason="max_tokens"`) gets the tag `truncated`.
 
 Calls inside `trace_agent`/`span` inherit their run/parent and custom client. Standalone calls receive
 an independent completed root. LangGraph callbacks preserve graph/node/tool/model parent IDs and
-concurrent runs. Avoid using both framework model callbacks and a provider wrapper for the same call.
+concurrent runs. A LangGraph `interrupt()` ends the run as paused (`metadata.interrupted`), not failed. Avoid using both framework model callbacks and a provider wrapper for the same call.
 Provider packages remain optional; newer framework extras may require a newer Python than the core SDK.
 
 Options: `client=custom_client`, `name="my-agent"`, `capture_input=False`, `capture_output=False`.
@@ -193,6 +195,8 @@ client = uncoil.UncoilClient(
 )
 ```
 
+If no API key is set, the client prints one warning and records nothing; decorated functions still run and return as usual.
+
 Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, pass `redact={"pii": False}`.
 
 ## Sending spans in the background
@@ -210,7 +214,7 @@ Up to 1,000 spans can wait at once; past that, new spans are dropped and reporte
 Not seeing traces? One command checks your key, region and network, then sends a test trace:
 
 ```bash
-uncoil-doctor            # or: python -m uncoil doctor
+uncoil doctor            # or: uncoil-doctor, or python -m uncoil doctor
 ```
 
 It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. If the key is missing from the environment but `.env.local` or `.env` in the current folder sets it, the check names that file so you can export the variable or load the file (for example with python-dotenv). It never prints the key. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.

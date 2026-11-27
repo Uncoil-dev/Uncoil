@@ -11,6 +11,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
+    "sdk": "dist/cli.js",
     "uncoil": "dist/cli.js",
     "uncoil-doctor": "dist/cli.js"
   },

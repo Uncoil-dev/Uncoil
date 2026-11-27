@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-const disallow = ["/admin/", "/dashboard/", "/onboarding/", "/api/", "/sign-in", "/sign-up", "/forgot-password", "/reset-password", "/accept-invitation", "/auth/", "/alternative", "/library", "/operations-preview", "/uncoil-preview", "/tracing-preview", "/cloud/", "/pricing/checkout", "/health-report/r/", "/dash"];
+// Only API and private admin routes are blocked. Sign-in, dashboard, onboarding and preview pages
+// carry a noindex tag instead: blocking them would hide that tag, and Google would keep the bare URLs.
+const disallow = ["/admin/", "/api/", "/auth/", "/pricing/checkout"];
 
 // AI search and assistant crawlers are welcomed explicitly so public docs, guides and comparisons can be found and cited.
 const aiCrawlers = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-User", "Claude-SearchBot", "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot-Extended", "CCBot", "Amazonbot", "DuckAssistBot", "MistralAI-User", "Meta-ExternalAgent"];

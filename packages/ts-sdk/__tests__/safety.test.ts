@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { UncoilClient, UncoilError, buildRedactor, sampleBucket, uncoilMiddleware, traceTools } from "../src/index";
+import { UncoilClient, UncoilError, buildRedactor, sampleBucket, uncoilMiddleware, traceTools, traceAgent, flush as flushAll } from "../src/index";
 
 const KEY = "uncoil_sk_live_eu_abcdefghijklmnop";
 let sent: any[] = [];
@@ -41,6 +41,39 @@ describe("clear errors", () => {
     expect(seen[0].code).toBe("bad_key");
     expect(seen[0].status).toBe(401);
   });
+  it("explains a paused key and how to replace it", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "This API key was paused.", code: "key_paused" }, { status: 403 })));
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    expect(seen[0].code).toBe("key_paused");
+    expect(seen[0].hint).toContain("API keys page");
+  });
+  it("includes the server's reason when a span is rejected", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "latencyMs must be a non-negative number" }, { status: 422 })));
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    expect(seen[0].code).toBe("rejected");
+    expect(seen[0].message).toContain("latencyMs must be a non-negative number");
+  });
+  it("explains a reached plan limit with the reset time and upgrade link", async () => {
+    vi.useFakeTimers({ now: new Date("2026-11-20T12:00:00Z"), toFake: ["Date"] });
+    const body = { error: "This project has used its 10,000 free spans for the month.", code: "plan_limit_reached", limit: 10000, retryAfterSeconds: 86400, upgradeUrl: "https://www.uncoil.dev/pricing" };
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(body), { status: 429 })));
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    vi.useRealTimers();
+    expect(seen[0].code).toBe("plan_limit_reached");
+    expect(seen[0].message).toContain("10,000 spans");
+    expect(seen[0].hint).toContain("2026-11-21 12:00 UTC");
+    expect(seen[0].hint).toContain("https://www.uncoil.dev/pricing");
+    expect(seen[0].hint).not.toContain("sampleRate");
+  });
   it("reports an unreachable network without throwing", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
     const seen: UncoilError[] = [];
@@ -48,6 +81,18 @@ describe("clear errors", () => {
     await client.ingest({ spanType: "llm_call", runId: "r1" });
     await flush();
     expect(seen[0].code).toBe("network");
+  });
+  it("gives up on a hung request and reports it as a network problem", async () => {
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => AbortSignal.abort(new DOMException("timed out", "TimeoutError")));
+    vi.stubGlobal("fetch", vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      if (init.signal?.aborted) reject(init.signal.reason);
+      init.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+    })));
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    expect(seen[0]?.code).toBe("network");
   });
 });
 
@@ -149,5 +194,53 @@ describe("framework helpers", () => {
     expect(llm.find((s) => s.output === "hello")).toMatchObject({ modelId: "gpt-test", inputTokens: 5, outputTokens: 2 });
     expect(llm.find((s) => s.output === "ab")).toMatchObject({ inputTokens: 3, outputTokens: 4 });
     expect(llm.some((s) => s.errorMessage?.includes("rate limit"))).toBe(true);
+  });
+  it("reads token totals from AI SDK v6+ usage objects", async () => {
+    mockFetch();
+    const mw = uncoilMiddleware({ client: new UncoilClient({ apiKey: KEY }) });
+    const model = { provider: "openai.responses", modelId: "gpt-test" };
+    const usage = { inputTokens: { total: 8, noCache: 8, cacheRead: 0 }, outputTokens: { total: 3, text: 3, reasoning: 0 } };
+    await mw.wrapGenerate({ model, params: {}, doGenerate: async () => ({ content: [{ type: "text", text: "nested" }], usage, finishReason: "stop" }) });
+    const parts = [{ type: "text-delta", delta: "s" }, { type: "finish", usage }];
+    const streamed = await mw.wrapStream({ model, params: {}, doStream: async () => ({ stream: new ReadableStream({ start(c) { parts.forEach((p) => c.enqueue(p)); c.close(); } }) }) });
+    const reader = streamed.stream.getReader();
+    while (!(await reader.read()).done);
+    await flush();
+    expect(sent.find((s) => s.output === "nested")).toMatchObject({ inputTokens: 8, outputTokens: 3 });
+    expect(sent.find((s) => s.output === "s")).toMatchObject({ inputTokens: 8, outputTokens: 3 });
+  });
+});
+
+describe("flush", () => {
+  function slowFetch(ms: number) {
+    const done: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
+      await new Promise((resolve) => setTimeout(resolve, ms));
+      done.push(JSON.parse(String(init.body)).spanType);
+      return new Response("{}", { status: 202 });
+    }));
+    return done;
+  }
+  it("waits for a delayed send to settle", async () => {
+    const done = slowFetch(30);
+    const client = new UncoilClient({ apiKey: KEY });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    expect(done).toEqual([]);
+    await expect(client.flush()).resolves.toBe(true);
+    expect(done).toEqual(["llm_call"]);
+  });
+  it("waits for spans sent by traceAgent from the top-level flush", async () => {
+    const done = slowFetch(30);
+    const run = traceAgent(async () => "ok", { apiKey: KEY, name: "short-job" });
+    await expect(run()).resolves.toBe("ok");
+    expect(done).toEqual([]);
+    await flushAll();
+    expect(done).toEqual(["run_end"]);
+  });
+  it("gives up after the timeout when a send hangs", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
+    const client = new UncoilClient({ apiKey: KEY });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await expect(client.flush(20)).resolves.toBe(false);
   });
 });

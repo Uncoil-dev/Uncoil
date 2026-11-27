@@ -6,6 +6,7 @@ import {
   compactNumber,
   formatCost,
   formatDuration,
+  formatTime,
   parsePayload,
   parseTime,
   previewText,
@@ -72,6 +73,27 @@ test("parseTime: treats space-separated timestamps as UTC", () => {
   assert.equal(parseTime("2024-01-02 03:04:05"), Date.UTC(2024, 0, 2, 3, 4, 5));
   assert.equal(parseTime("2024-01-02T03:04:05Z"), Date.UTC(2024, 0, 2, 3, 4, 5));
   assert.ok(Number.isNaN(parseTime("not a date")));
+});
+
+test("parseTime: reads ISO offsets and fractional database timestamps as UTC", () => {
+  assert.equal(parseTime("2024-01-02T05:04:05+02:00"), Date.UTC(2024, 0, 2, 3, 4, 5));
+  assert.equal(parseTime("2024-01-02 03:04:05.250"), Date.UTC(2024, 0, 2, 3, 4, 5, 250));
+  assert.ok(Number.isNaN(parseTime("")));
+});
+
+test("formatTime: shows database UTC times in the viewer's zone and returns invalid input unchanged", () => {
+  const zone = process.env.TZ;
+  try {
+    process.env.TZ = "UTC";
+    assert.match(formatTime("2024-01-02 03:04:05"), /03:04:05/);
+    process.env.TZ = "Asia/Tokyo";
+    assert.match(formatTime("2024-01-02 03:04:05"), /12:04:05/);
+  } finally {
+    if (zone === undefined) delete process.env.TZ;
+    else process.env.TZ = zone;
+  }
+  assert.equal(formatTime("not a date"), "not a date");
+  assert.equal(formatTime(""), "");
 });
 
 test("relativeTime: buckets by elapsed time", () => {

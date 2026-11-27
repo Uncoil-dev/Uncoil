@@ -11,6 +11,7 @@ import { EXCLUDE_PREFIX, parseSearch } from "@/lib/trace-search";
 import { SearchBox } from "./search-box";
 import { FeedbackCell, useFeedback, type FeedbackState } from "./feedback";
 import { RANGES, TimeRangePicker } from "./time-range-picker";
+import { traceShortcut } from "./shortcuts";
 import { ColumnsMenu, DEFAULT_COLUMNS, columnLabel, extraCell, extraIdsFor, isKnownColumn, metaKeysFor, orderColumns, type TraceRowExtras } from "./trace-columns";
 import { FirstTraceEmpty } from "../first-trace-empty";
 import { TraceCharts, TracesOverTime, type ChartBucket } from "./trace-charts";
@@ -28,6 +29,8 @@ type TraceRow = TraceRowExtras & {
 type Stats = { traces: number; errors: number; p50DurationMs: number; p95DurationMs: number; totalCostUsd: number; inputTokens: number; outputTokens: number; runningTraces: number };
 type ListResponse = {
   rows: TraceRow[]; total: number; page: number; pageSize: number;
+  /** The topic filter was worked out from the newest traces only. */
+  sampled?: boolean;
   histogram: { bucketSeconds: number; buckets: ChartBucket[] }; stats?: Stats; facets?: FacetCounts | null;
   errorGroups?: ErrorGroups | null; range: { from: number; to: number }; error?: string;
 };
@@ -243,12 +246,11 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      const target = event.target as HTMLElement | null;
-      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
-      if (event.key === "/") { event.preventDefault(); searchRef.current?.focus(); return; }
-      if (event.key === "Escape" && selected) update({ trace: "" }, false);
-      if (event.key === "ArrowDown" || event.key === "j") { event.preventDefault(); selectIndex(1); }
-      if (event.key === "ArrowUp" || event.key === "k") { event.preventDefault(); selectIndex(-1); }
+      const shortcut = traceShortcut(event);
+      if (shortcut === "search") { event.preventDefault(); searchRef.current?.focus(); }
+      if (shortcut === "close" && selected) update({ trace: "" }, false);
+      if (shortcut === "next") { event.preventDefault(); selectIndex(1); }
+      if (shortcut === "previous") { event.preventDefault(); selectIndex(-1); }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

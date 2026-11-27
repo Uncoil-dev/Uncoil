@@ -1,4 +1,5 @@
-import { FACET_KEYS, activityTimeZone, type ActivityDay, type ErrorGroup, type FacetCounts, type FacetKey, type HistogramBucket, type TraceListFilters, type TraceStats } from "@/lib/tinybird";
+import { FACET_KEYS, TOPIC_TRACE_LIMIT, activityTimeZone, type ActivityDay, type ErrorGroup, type FacetCounts, type FacetKey, type HistogramBucket, type TraceListFilters, type TraceStats } from "@/lib/tinybird";
+import { groupTraceTopics, topicRunIds } from "@/lib/trace-topics";
 import { flowGraph, flowPairId, type FlowStep } from "@/lib/trace-flow";
 import { validTraceSort } from "@/lib/trace-sort";
 import type { GroupFilters, GroupKind } from "@/lib/group-filters";
@@ -58,6 +59,12 @@ export function demoFilter(filters: TraceListFilters, ownFacet?: FacetKey, nowMs
   if (filters.maxCostUsd !== undefined) runs = runs.filter((run) => run.totalCostUsd <= filters.maxCostUsd!);
   if (filters.minTokens !== undefined) runs = runs.filter((run) => tokens(run) >= filters.minTokens!);
   if (filters.maxTokens !== undefined) runs = runs.filter((run) => tokens(run) <= filters.maxTokens!);
+  if (filters.topic) {
+    // Same membership rule as the real query: topics are grouped over the newest matching runs.
+    const newest = [...runs].sort((a, b) => b.startMs - a.startMs).slice(0, TOPIC_TRACE_LIMIT);
+    const members = new Set(topicRunIds(newest.map((run) => ({ runId: run.runId, input: run.input, hasError: run.errorCount > 0, timedOut: run.timeouts > 0 })), filters.topic));
+    runs = runs.filter((run) => members.has(run.runId));
+  }
   return runs;
 }
 
@@ -186,6 +193,12 @@ export function demoErrorGroups(runs: DemoRun[]) {
   }
   const sorted = [...groups.values()].map(({ runs: set, ...group }) => ({ ...group, traces: set.size })).sort((a, b) => b.count - a.count || b.traces - a.traces || a.id.localeCompare(b.id));
   return { total: sorted.length, groups: sorted.slice(0, 20) };
+}
+
+/** Topics of the demo runs, grouped by what each run was asked to do. */
+export function demoTopics(runs: DemoRun[]) {
+  const traces = [...runs].sort((a, b) => b.startMs - a.startMs).slice(0, TOPIC_TRACE_LIMIT);
+  return { ...groupTraceTopics(traces.map((run) => ({ runId: run.runId, input: run.input, hasError: run.errorCount > 0, timedOut: run.timeouts > 0 }))), sampled: runs.length > traces.length };
 }
 
 export function demoActivity(filters: TraceListFilters, timeZone: string, nowMs = Date.now()): ActivityDay[] {

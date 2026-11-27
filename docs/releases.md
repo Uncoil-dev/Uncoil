@@ -7,6 +7,7 @@ Every pull request description has a Changelog section: one ticked category and 
 ## [Unreleased]
 
 ### Features
+- New topics endpoint, `GET /api/projects/{projectId}/topics`, groups the traces matching the traces-list filters by what they were asked to do, with error rates and example traces. The public demo shows topics too.
 - Codex and OpenCode plugins send each finished coding-agent turn to Uncoil as a trace, with tool calls, token use and cost. Install steps are in the docs.
 - The pricing page calculator now links to the tracing bill calculator, which compares the monthly bill across tools for the same traffic.
 - New Startups page with discounted plans for early-stage startups, students and educators, and open-source projects. See /startups.
@@ -29,7 +30,7 @@ Every pull request description has a Changelog section: one ticked category and 
 - New sign-up question: "What do you want to fix with Uncoil?" on the first-project step. It is optional, and the team reads the answers in the admin page under Goals.
 
 ### Fixes
-- None.
+- The traces list topic filter is faster on repeat loads, and the list response now says when a topic was worked out from the newest traces only. The demo project's traces list respects the topic filter.
 
 ### SDK changes
 - None.

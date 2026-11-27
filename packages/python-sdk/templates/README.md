@@ -7,6 +7,7 @@ Copy one file into your project, install what it needs, set your key, and run it
 | `openai_agent.py` | An OpenAI chat call with one tool, traced end to end | `pip install 'uncoil-sdk[openai]'` | `python openai_agent.py` |
 | `anthropic_agent.py` | The same with Anthropic | `pip install 'uncoil-sdk[anthropic]'` | `python anthropic_agent.py` |
 | `langgraph_agent.py` | A small LangGraph graph | `pip install 'uncoil-sdk[langgraph]'` | `python langgraph_agent.py` |
+| `openai_agents_sdk.py` | An OpenAI Agents SDK agent with one function tool | `pip install uncoil-sdk openai-agents` | `python openai_agents_sdk.py` |
 | `private_by_default.py` | Sampling and redaction turned on | `pip install uncoil-sdk` | `python private_by_default.py` |
 
 ## 1. Set your key

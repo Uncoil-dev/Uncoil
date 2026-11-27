@@ -204,6 +204,14 @@ def test_templates_are_valid_python():
         py_compile.compile(str(file), doraise=True)
 
 
+def test_templates_are_listed_in_the_readme():
+    import pathlib
+    folder = pathlib.Path(__file__).resolve().parent.parent / "templates"
+    readme = (folder / "README.md").read_text()
+    missing = [f.name for f in sorted(folder.glob("*.py")) if f"`{f.name}`" not in readme]
+    assert not missing, f"templates missing from templates/README.md: {missing}"
+
+
 def test_feedback_uses_the_project_id_from_the_environment(monkeypatch):
     import json
     import httpx

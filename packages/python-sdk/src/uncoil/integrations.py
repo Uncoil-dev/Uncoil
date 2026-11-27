@@ -220,6 +220,10 @@ def _observe_result(result, obs):
         return _StreamManager(result, obs)
     obs.collect(result)
     value = _dict(result)
+    if obs.data["spanType"] == "retrieval":
+        # Embedding vectors are large and not useful in a trace, so only their count is recorded.
+        obs.finish(dict(embeddings=len(value.get("data") or [])))
+        return result
     obs.finish(value.get("choices", value.get("output", value.get("content", value))))
     return result
 
@@ -236,6 +240,7 @@ def _traced_call(provider, path, value, args, kwargs, options):
     if params.get("system"): input_data = [dict(role="system", content=params["system"])] + list(params.get("messages", []))
     if params.get("instructions"): input_data = dict(instructions=params["instructions"], input=params.get("input"))
     obs = Observation(provider, params.get("model", ""), input_data, options)
+    if path == "embeddings.create": obs.data["spanType"] = "retrieval"
     try: result = value(*args, **params)
     except BaseException as error:
         obs.finish(error=error)
@@ -265,14 +270,14 @@ class _ClientProxy:
     def __getattr__(self, key):
         value = getattr(self._target, key)
         path = self._path + ("." if self._path else "") + key
-        allowed = ("chat.completions.create", "responses.create") if self._provider == "openai" else ("messages.create", "messages.stream", "beta.messages.create", "beta.messages.stream")
+        allowed = ("chat.completions.create", "responses.create", "embeddings.create") if self._provider == "openai" else ("messages.create", "messages.stream", "beta.messages.create", "beta.messages.stream")
         if path in allowed and callable(value):
             def call(*args, **kwargs):
                 token = _inside_wrapped.set(True)
                 try: return _traced_call(self._provider, path, value, args, kwargs, self._options)
                 finally: _inside_wrapped.reset(token)
             return call
-        if path in ("chat", "chat.completions", "responses", "messages", "beta", "beta.messages"):
+        if path in ("chat", "chat.completions", "responses", "embeddings", "messages", "beta", "beta.messages"):
             if path not in self._cache: self._cache[path] = _ClientProxy(value, self._provider, self._options, path, self._cache)
             return self._cache[path]
         return value

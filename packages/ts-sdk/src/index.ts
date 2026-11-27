@@ -1,4 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 export interface UncoilConfig {
   apiKey?: string;
@@ -50,6 +52,12 @@ export class UncoilError extends Error {
     this.hint = hint;
     this.status = status;
   }
+}
+
+function promptError(name: string, environment: string, status: number, reason?: string) {
+  if (status === 401) return new UncoilError("bad_key", "Uncoil rejected the API key while resolving a prompt (401).", "Check UNCOIL_API_KEY, or create a new key on the API keys page if this one was revoked.", status);
+  if (status === 404) return new UncoilError("prompt_not_found", `Prompt "${name}" has no version deployed to "${environment}" (404).`, "Check that the prompt name and environment label exist on the Prompts page.", status);
+  return new UncoilError("prompt_failed", `Prompt resolution failed (${status})${reason ? `: ${reason}` : ""}.`, "Try again shortly; if it keeps happening, check the status page.", status);
 }
 
 export type UncoilRegion = "eu" | "us";
@@ -231,6 +239,9 @@ function createId() {
   return `span_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
 }
 
+/** Longest an ingest, feedback or score request may take, so a hung network cannot hold sockets open. */
+const REQUEST_TIMEOUT_MS = 10_000;
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -264,6 +275,37 @@ function isRetryableError(error: unknown, retryableErrors: string[]): boolean {
   return false;
 }
 
+/** True when .env.local in the working folder sets UNCOIL_API_KEY; `login` saves the key there, but plain Node does not read the file. */
+function envLocalSetsKey(): boolean {
+  try {
+    return /^\s*(?:export\s+)?UNCOIL_API_KEY\s*=\s*\S/m.test(readFileSync(resolve(process.cwd(), ".env.local"), "utf8"));
+  } catch {
+    return false;
+  }
+}
+
+const pendingSends = new Set<Promise<unknown>>();
+
+async function waitFor(sends: Set<Promise<unknown>>, timeoutMs: number): Promise<boolean> {
+  if (sends.size === 0) return true;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<false>((resolve) => { timer = setTimeout(() => resolve(false), timeoutMs); });
+  try {
+    return await Promise.race([Promise.allSettled([...sends]).then(() => true), timedOut]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Wait until every span sent by any Uncoil client so far has finished sending.
+ * Call it before a short script or serverless request handler returns.
+ * Resolves to false if sends are still in flight after `timeoutMs`.
+ */
+export function flush(timeoutMs = 5_000): Promise<boolean> {
+  return waitFor(pendingSends, timeoutMs);
+}
+
 function isLatencyAbort(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
@@ -287,6 +329,7 @@ export class UncoilClient {
   private redactor?: (text: string) => string;
   private onError?: (error: UncoilError) => void;
   private warned = new Set<string>();
+  private pending = new Set<Promise<unknown>>();
 
   constructor(config: UncoilConfig = {}) {
     this.apiKey = (config.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || '').trim();
@@ -298,7 +341,10 @@ export class UncoilClient {
     this.keepErrors = config.keepErrors ?? true;
     this.redactor = buildRedactor(config.redact);
     if (!this.apiKey) {
-      this.report(new UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", "Pass { apiKey } to the client or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard."));
+      const hint = envLocalSetsKey()
+        ? "Your .env.local sets UNCOIL_API_KEY, but this app did not load it. Run it with node --env-file=.env.local (for example node --env-file=.env.local app.js), or load the file with dotenv."
+        : "Pass { apiKey } to the client or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard.";
+      this.report(new UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", hint));
     } else if (!/^(uncoil|tracify)_sk_/.test(this.apiKey)) {
       this.report(new UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."));
     }
@@ -344,14 +390,35 @@ export class UncoilClient {
     return sampleBucket(runId) >= this.sampleRate;
   }
 
+  /** A 429 with a plan or daily limit code means the project ran out of spans, which a lower sampleRate does not fix. */
+  private async reportPlanLimit(response: Response) {
+    const body = await response.json().catch(() => null) as { code?: string; limit?: number; retryAfterSeconds?: number; upgradeUrl?: string } | null;
+    if (body?.code !== "plan_limit_reached" && body?.code !== "daily_limit_reached") return false;
+    const period = body.code === "daily_limit_reached" ? "daily" : "monthly";
+    const limit = typeof body.limit === "number" ? ` of ${body.limit.toLocaleString("en-US")} spans` : "";
+    const resets = typeof body.retryAfterSeconds === "number" ? `from ${new Date(Date.now() + body.retryAfterSeconds * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC` : `when the ${period === "daily" ? "day" : "month"} resets`;
+    const upgradeUrl = body.upgradeUrl || "https://www.uncoil.dev/pricing";
+    this.report(new UncoilError(body.code, `This project reached its ${period} plan limit${limit}, so new spans are not saved (429).`, `Data is saved again ${resets}. To keep recording now, upgrade the plan: ${upgradeUrl}`, 429));
+    return true;
+  }
+
   private async checkIngestResponse(response: Response) {
     if (response.ok) return;
     const status = response.status;
-    if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
-    else if (status === 403) this.report(new UncoilError("forbidden", "This API key is not allowed to send data (403).", "Check that the key belongs to the project you expect and has not been disabled.", status));
+    // 4xx bodies carry `{ error }` saying what was wrong with the span; show it so the fix is obvious.
+    // Read a clone so later handlers can still read the body.
+    const body: { error?: unknown; code?: unknown } | undefined = status >= 400 && status < 500
+      ? await response.clone().json().catch(() => undefined)
+      : undefined;
+    const reason = typeof body?.error === "string" && body.error ? `: ${body.error}` : "";
+    // The ingest route pauses a key after repeated rate-limit errors and says so with code "key_paused".
+    if (status === 403 && body?.code === "key_paused") this.report(new UncoilError("key_paused", "This API key was paused after repeated rate-limit errors (403).", "Create a new key on the API keys page of your dashboard and update UNCOIL_API_KEY.", status));
+    else if (status === 401) this.report(new UncoilError("bad_key", "Uncoil rejected the API key (401).", "The key is wrong, was revoked, or belongs to another region. Check UNCOIL_API_KEY and UNCOIL_REGION.", status));
+    else if (status === 403) this.report(new UncoilError("forbidden", `This API key is not allowed to send data (403${reason}).`, "Check that the key belongs to the project you expect and has not been disabled.", status));
+    else if (status === 429 && (await this.reportPlanLimit(response))) return;
     else if (status === 429) this.report(new UncoilError("rate_limited", "Uncoil is receiving too much data from this app (429).", "Lower the volume with sampleRate (for example 0.2), or upgrade your plan.", status));
     else if (status >= 500) this.report(new UncoilError("server_error", `Uncoil had a problem on its side (${status}).`, "Your app is not affected; data from this moment may be missing. Check the status page if it keeps happening.", status));
-    else this.report(new UncoilError("rejected", `Uncoil did not accept a span (${status}).`, "Update the SDK to the latest version; if it still happens, contact support.", status));
+    else this.report(new UncoilError("rejected", `Uncoil did not accept a span (${status}${reason}).`, "Update the SDK to the latest version; if it still happens, contact support.", status));
   }
 
   async ingest(data: SpanData) {
@@ -373,36 +440,48 @@ export class UncoilClient {
       output: this.clean(data.output),
       release: data.release ?? this.release,
       environment: data.environment ?? this.environment,
-      deploymentId: data.metadata?.deploymentId ?? this.deploymentId,
+      deploymentId: data.deploymentId ?? data.metadata?.deploymentId ?? this.deploymentId,
       sessionId: data.sessionId ?? this.sessionId,
       endUserId: data.endUserId ?? this.endUserId,
       tags: data.tags ?? this.tags,
     };
 
     try {
-      fetch(this.ingestUrl, {
+      const send = fetch(this.ingestUrl, {
         method: 'POST',
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(span),
       }).then((response) => this.checkIngestResponse(response)).catch((err) => this.report(new UncoilError("network", `Could not reach Uncoil (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
+      this.pending.add(send);
+      pendingSends.add(send);
+      send.finally(() => { this.pending.delete(send); pendingSends.delete(send); });
     } catch {
       // Ignore errors in telemetry
     }
   }
 
+  /**
+   * Wait until the spans this client has sent have finished sending.
+   * Resolves to false if sends are still in flight after `timeoutMs`.
+   */
+  flush(timeoutMs = 5_000): Promise<boolean> {
+    return waitFor(this.pending, timeoutMs);
+  }
+
   /** Resolve a prompt version labeled for an environment without redeploying application code. */
   async getPrompt(name: string, environment = "production", options: PromptResolutionOptions = {}): Promise<PromptResolution> {
-    if (!this.apiKey) throw new Error("An Uncoil API key is required to resolve prompts");
+    if (!this.apiKey) throw new UncoilError("missing_key", "An Uncoil API key is required to resolve prompts.", "Set UNCOIL_API_KEY or pass apiKey to UncoilClient.");
     const key = `${name}:${environment}`;
     const cached = this.promptCache.get(key);
     if (cached && cached.expiresAt > Date.now()) return cached.value;
     try {
       const response = await fetch(`${this.host}/api/prompts/${encodeURIComponent(name)}?environment=${encodeURIComponent(environment)}`, { headers: { Authorization: `Bearer ${this.apiKey}` } });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error || `Prompt resolution failed (${response.status})`);
+      if (!response.ok) throw promptError(name, environment, response.status, data?.error);
       const value = data as PromptResolution;
       this.promptCache.set(key, { value, expiresAt: Date.now() + (options.cacheTtlMs ?? 60_000) });
       return value;
@@ -416,13 +495,13 @@ export class UncoilClient {
   /** Attach end-user feedback to a trace or span. The request is fire-and-forget like span ingestion. */
   feedback(traceId: string, value: boolean | number | string, options: { kind?: 'thumb' | 'star' | 'text'; spanId?: string; reason?: string; comment?: string; endUserId?: string; dedupeKey?: string; projectId?: string } = {}) {
     if (!this.apiKey || !(options.projectId || this.projectId)) return;
-    fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
+    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
   }
 
   /** Attach a typed score to a trace or span through the feedback API. */
   score(traceId: string, name: string, value: boolean | number | string, options: { dataType?: 'numeric' | 'boolean' | 'categorical' | 'text'; spanId?: string; comment?: string; projectId?: string } = {}) {
     if (!this.apiKey || !(options.projectId || this.projectId)) return;
-    fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
+    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
   }
 
   /**
@@ -681,7 +760,8 @@ export interface StepOptions {
 }
 
 let defaultClientInstance: UncoilClient | undefined;
-function defaultClient() {
+/** The shared client used when no client is passed and no trace is active, so setup warnings print once. */
+export function defaultClient() {
   return (defaultClientInstance ??= new UncoilClient());
 }
 
@@ -751,16 +831,19 @@ export function traceAgent<T extends (...args: any[]) => Promise<any>>(
   return ((...args: any[]) => span(name, () => func(...args), { type: 'agent', client, runId: createId(), root: true })) as T;
 }
 
+/** The client of the active trace (for example the one traceAgent was given), or the shared default. */
+const currentClient = () => currentTraceContext()?.client ?? defaultClient();
+
 /** Record a finished model call. It is attached to the step it was made in. */
 export const llmCall = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'llm_call' });
+  currentClient().ingest({ ...data, spanType: 'llm_call' });
 
 /** Record a finished tool call. It is attached to the step it was made in. */
 export const toolCall = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'tool_call' });
+  currentClient().ingest({ ...data, spanType: 'tool_call' });
 
 export const decision = (data: Omit<SpanData, 'spanType'>) =>
-  defaultClient().ingest({ ...data, spanType: 'decision' });
+  currentClient().ingest({ ...data, spanType: 'decision' });
 
 export { wrapOpenAI, wrapAnthropic, type IntegrationOptions } from "./integrations/providers";
 export { UncoilLangGraphHandler } from "./integrations/langgraph";

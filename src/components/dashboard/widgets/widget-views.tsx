@@ -52,9 +52,9 @@ export function WidgetBody({ id, traces, stats, scores }: { id: string; traces: 
         return <><Headline value={compactCost(total)} note="in this period" /><Columns label="Cost per day" format={compactCost} points={data.dailyCosts.map((day) => ({ label: new Date(`${day.day}T00:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" }), value: day.totalCostUsd }))} /></>;
       }}</State>;
     case "cost_by_model":
-      return <State remote={stats}>{() => <Ranking empty="No model spend in this period." format={compactCost} rows={(stats as { data: StatsData }).data.modelCosts.filter((row) => row.modelId).slice(0, 6).map((row) => ({ label: row.modelId, value: row.totalCostUsd, note: `${compactNumber(row.spanCount)} calls` }))} />}</State>;
+      return <State remote={stats}>{() => <Ranking empty="No model calls in this period. They show up when your agent uses a wrapped client or records a model step." format={compactCost} rows={(stats as { data: StatsData }).data.modelCosts.filter((row) => row.modelId).slice(0, 6).map((row) => ({ label: row.modelId, value: row.totalCostUsd, note: `${compactNumber(row.spanCount)} calls` }))} />}</State>;
     case "cost_by_tool":
-      return <State remote={stats}>{() => <Ranking empty="No tool calls in this period." format={compactCost} rows={(stats as { data: StatsData }).data.toolCosts.filter((row) => row.toolName).slice(0, 6).map((row) => ({ label: row.toolName, value: row.totalCostUsd, note: `${compactNumber(row.spanCount)} calls` }))} />}</State>;
+      return <State remote={stats}>{() => <Ranking empty="No tool calls in this period. They show up when your agent records tool steps." format={compactCost} rows={(stats as { data: StatsData }).data.toolCosts.filter((row) => row.toolName).slice(0, 6).map((row) => ({ label: row.toolName, value: row.totalCostUsd, note: `${compactNumber(row.spanCount)} calls` }))} />}</State>;
     case "top_users":
       return <State remote={stats}>{() => <Ranking empty="No end users recorded. Send an end user id with your steps." format={compactCost} rows={(stats as { data: StatsData }).data.userCosts.filter((row) => row.endUserId).slice(0, 6).map((row) => ({ label: row.endUserId, value: row.totalCostUsd, note: `${compactNumber(row.totalTokens)} tokens` }))} />}</State>;
     case "quality_scores":

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const LLMS_PATH = new URL("../public/llms.txt", import.meta.url);
+const DOCS_DIR = new URL("../content/docs/", import.meta.url);
 const CANONICAL_ORIGIN = "https://www.uncoil.dev";
 
 test("llms.txt is concise, canonical, and points to core public resources", async () => {
@@ -20,5 +21,28 @@ test("llms.txt is concise, canonical, and points to core public resources", asyn
 
   for (const path of ["/docs", "/blog", "/pricing", "/security", "/status"]) {
     assert.ok(links.includes(`${CANONICAL_ORIGIN}${path}`), `missing core resource: ${path}`);
+  }
+});
+
+test("llms.txt docs links point at existing docs pages", async () => {
+  const source = await readFile(LLMS_PATH, "utf8");
+  const files = (await readdir(DOCS_DIR)).filter((file) => file.endsWith(".mdoc"));
+  const slugs = new Set();
+  for (const file of files) {
+    const frontmatter = (await readFile(new URL(file, DOCS_DIR), "utf8")).split(/^---\s*$/m)[1] ?? "";
+    const slug = frontmatter.match(/^slug:\s*["']?([^"'\r\n]+?)["']?\s*$/m)?.[1];
+    if (slug) slugs.add(slug);
+  }
+  assert.ok(slugs.size > 0, "content/docs has no docs; run git submodule update --init");
+
+  const docLinks = [...source.matchAll(/\]\(https:\/\/www\.uncoil\.dev\/docs\/([^)#?]+)/g)].map((match) => match[1]);
+  assert.ok(docLinks.length > 0, "llms.txt should link individual docs pages");
+  for (const slug of docLinks) assert.ok(slugs.has(slug), `llms.txt links a missing doc: /docs/${slug}`);
+});
+
+test("llms.txt lists the start-here setup docs", async () => {
+  const source = await readFile(LLMS_PATH, "utf8");
+  for (const slug of ["quickstart", "cli", "data-regions"]) {
+    assert.ok(source.includes(`(${CANONICAL_ORIGIN}/docs/${slug})`), `llms.txt should list /docs/${slug}`);
   }
 });

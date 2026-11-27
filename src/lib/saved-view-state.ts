@@ -39,6 +39,7 @@ const KEYS = new Set([
   "node",
   "edge",
   "errorGroup",
+  "topic",
 ]);
 export function savedViewQuery(query: Record<string, string>) {
   return Object.fromEntries(
@@ -85,4 +86,25 @@ export function columnsFromUrl(raw?: string) {
   } catch {
     return null;
   }
+}
+type SavedViewBody = Record<string, unknown>;
+/** Reads a saved-view POST body and rejects input problems the backend would only report as a generic failure. */
+export async function readSavedViewRequest(
+  request: Request,
+): Promise<{ body: SavedViewBody } | { error: string }> {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return { error: "Invalid JSON body" };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body))
+    return { error: "Invalid JSON body" };
+  const view = body as SavedViewBody;
+  if (
+    view.action !== "delete" &&
+    (typeof view.name !== "string" || !view.name.trim())
+  )
+    return { error: "Give the view a name" };
+  return { body: view };
 }

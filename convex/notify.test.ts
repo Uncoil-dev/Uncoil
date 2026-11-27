@@ -1,8 +1,8 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { explainFailure, postJson } from "./notify";
+import { explainFailure, postJson, sendEmail } from "./notify";
 import { slackEscape, slackPayload, webhookPayload } from "./alertMessages";
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
 
 const reply = (status: number, body = "") => new Response(status === 204 ? null : body, { status });
 
@@ -63,4 +63,36 @@ test("webhook messages keep a stable shape for each event", () => {
   const base = { ruleId: "r1", ruleName: "R", metric: "failed_runs", threshold: 2, value: 3, message: "m", projectId: "p1", dashboardUrl: "u", at: "t" };
   expect(webhookPayload({ ...base, event: "alert.resolved" })).toEqual({ event: "alert.resolved", rule: { id: "r1", name: "R", metric: "failed_runs", threshold: 2 }, value: 3, message: "m", projectId: "p1", dashboardUrl: "u", firedAt: "t" });
   expect(webhookPayload({ event: "alert.test", ruleName: "R", metric: "failed_runs", threshold: 2, message: "m", projectId: "p1", dashboardUrl: "u", at: "t" }).value).toBeNull();
+});
+
+const email = { to: ["a@example.com"], subject: "Hi", text: "t", html: "<p>t</p>", idempotencyKey: "k1" };
+
+test("sendEmail says ok when the provider accepts the email", async () => {
+  vi.stubEnv("RESEND_API_KEY", "re_test");
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(reply(200, "{}"));
+  expect(await sendEmail(email)).toEqual({ ok: true, status: 200 });
+});
+
+test("sendEmail reports a provider error instead of hiding it", async () => {
+  vi.stubEnv("RESEND_API_KEY", "re_test");
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(reply(422, "{}"));
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  expect(await sendEmail(email)).toMatchObject({ ok: false, status: 422 });
+});
+
+test("sendEmail reports a network failure without throwing", async () => {
+  vi.stubEnv("RESEND_API_KEY", "re_test");
+  vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("boom"));
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  const result = await sendEmail(email);
+  expect(result.ok).toBe(false);
+  expect(result.error).toBeTruthy();
+});
+
+test("sendEmail without an email key sends nothing and says so", async () => {
+  vi.stubEnv("RESEND_API_KEY", "");
+  const fetchMock = vi.spyOn(globalThis, "fetch");
+  vi.spyOn(console, "info").mockImplementation(() => {});
+  expect(await sendEmail(email)).toEqual({ ok: false, error: "Email is not set up" });
+  expect(fetchMock).not.toHaveBeenCalled();
 });

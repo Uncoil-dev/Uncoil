@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearOneTimeApiKey, setOneTimeApiKey } from "@/lib/onboarding-client-state";
-import { getOnboardingHref } from "./onboarding-navigation";
+import { continueSetupHref, getOnboardingHref } from "./onboarding-navigation";
 
 function createStorage() {
   const data = new Map<string, string>();
@@ -11,6 +11,20 @@ function createStorage() {
     clear: () => data.clear(),
   };
 }
+
+describe("continueSetupHref", () => {
+  it("sends a project waiting for its first run straight to the install step", () => {
+    expect(continueSetupHref("p1", "waiting")).toBe("/onboarding/install");
+    expect(continueSetupHref("p1", "install")).toBe("/onboarding/install");
+  });
+
+  it("resumes the key step, falls back to the quickstart, and starts with a project when there is none", () => {
+    expect(continueSetupHref("p1", "api-key")).toBe("/onboarding/api-key");
+    expect(continueSetupHref("p1", "success")).toBe("/dashboard/p1/quickstart");
+    expect(continueSetupHref("p1", null)).toBe("/dashboard/p1/quickstart");
+    expect(continueSetupHref("", "waiting")).toBe("/onboarding/project");
+  });
+});
 
 describe("getOnboardingHref", () => {
   let session: ReturnType<typeof createStorage>;

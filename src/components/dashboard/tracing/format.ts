@@ -20,6 +20,14 @@ export function compactNumber(value: number | null | undefined) {
   return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value ?? 0));
 }
 
+export const PAGE_SIZES = [25, 50, 100, 200];
+
+/** Page and rows per page from the URL: only the offered page sizes (default 50) and whole pages from 0 up. */
+export function listPaging(query: { page?: string; pageSize?: string }) {
+  const page = Number(query.page ?? 0), pageSize = Number(query.pageSize ?? 50);
+  return { page: Number.isInteger(page) && page >= 0 ? page : 0, pageSize: PAGE_SIZES.includes(pageSize) ? pageSize : 50 };
+}
+
 /** Tinybird returns "YYYY-MM-DD hh:mm:ss" in UTC; show it in the viewer's local time. */
 export function formatTime(value: string) {
   const parsed = parseTime(value);
@@ -41,6 +49,11 @@ export function relativeTime(value: string, now: number) {
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86_400) return `${Math.floor(seconds / 3600)}h ago`;
   return formatTime(value);
+}
+
+/** Accessible name for a step row: its name, type, whether it failed, and when it ran. */
+export function stepRowLabel(row: { name: string; type: string; errors: number; createdAt: string }) {
+  return `${row.name}, ${row.type}, ${Number(row.errors) > 0 ? "failed" : "succeeded"}, ${formatTime(row.createdAt)}`;
 }
 
 /** RFC 4180 CSV; cells are quoted and leading formula characters are neutralised for spreadsheet safety. */
@@ -111,4 +124,23 @@ export const TYPE_ALIASES: Record<string, string> = {
 export function stepKind(type: string) {
   const lower = (type || "").toLowerCase();
   return TYPE_ALIASES[lower] ?? lower;
+}
+
+/** Accessible name for a trace row: its name (or short run id), whether it failed, and when it started. */
+export function traceRowLabel(row: { traceName: string; runId: string; errorCount: number; startedAt: string }) {
+  return `${row.traceName || row.runId.slice(0, 12)}, ${Number(row.errorCount) > 0 ? "failed" : "succeeded"}, ${formatTime(row.startedAt)}`;
+}
+
+
+export type EmptyTraces = { kind: "setup" } | { kind: "filtered" } | { kind: "range"; title: string };
+
+/**
+ * Picks the empty state for a trace list with no rows. The setup guide only shows when the
+ * widest range (90 days) is empty, so a quiet short range never looks like a project with no data.
+ */
+export function emptyTracesState({ filtered, range, rangeLabel, custom }: { filtered: boolean; range?: string; rangeLabel?: string; custom: boolean }): EmptyTraces {
+  if (filtered) return { kind: "filtered" };
+  if (custom || !rangeLabel) return { kind: "range", title: "No traces in this time window" };
+  if (range === "90d") return { kind: "setup" };
+  return { kind: "range", title: `No traces in the ${rangeLabel.toLowerCase()}` };
 }

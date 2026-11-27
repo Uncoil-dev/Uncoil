@@ -124,3 +124,53 @@ def test_run_id_falls_back_to_environment_outside_a_step(monkeypatch):
     monkeypatch.delenv("UNCOIL_CURRENT_RUN_ID")
     assert uncoil.current_run_id() == "unknown"
     assert uncoil.current_span_id() is None
+
+
+def test_last_run_id_names_the_run_a_traced_call_just_sent(client):
+    @uncoil.trace_agent(client=client)
+    def answer():
+        return "ok"
+
+    @uncoil.trace_agent(client=client)
+    async def answer_async():
+        return "ok"
+
+    answer()
+    assert uncoil.last_run_id() == client.sent[-1]["runId"]
+    async def check():
+        await answer_async()
+        return uncoil.last_run_id()
+    assert asyncio.run(check()) == client.sent[-1]["runId"] != client.sent[0]["runId"]
+
+
+def _failure_lines(capsys, fail=True, **options):
+    client = Recorder()
+    client.project_id = "proj_1"
+    client.failure_links = options.pop("failure_links", client.failure_links)
+
+    @uncoil.trace_agent(client=client, name="answer")
+    def run():
+        with uncoil.span("search_docs", type="tool", client=client):
+            if fail:
+                raise ValueError("404")
+
+    try:
+        run()
+    except ValueError:
+        pass
+    return client, [line for line in capsys.readouterr().err.splitlines() if line.startswith("Uncoil:")]
+
+
+def test_failed_run_prints_one_line_with_a_link(capsys):
+    client, lines = _failure_lines(capsys)
+    run_id = by_name(client.sent)["answer"]["runId"]
+    assert lines == [f'Uncoil: run failed at step "search_docs" -> https://eu.cloud.uncoil.dev/dashboard/proj_1/tracing/{run_id}']
+
+
+def test_failure_line_is_silent_for_passing_runs_production_and_opt_out(capsys, monkeypatch):
+    assert _failure_lines(capsys, fail=False)[1] == []
+    assert _failure_lines(capsys, failure_links=False)[1] == []
+    monkeypatch.setenv("UNCOIL_ENVIRONMENT", "production")
+    assert _failure_lines(capsys)[1] == []
+    assert UncoilClient(api_key="uncoil_sk_live_eu_test", environment="production").failure_links is False
+    assert UncoilClient(api_key="uncoil_sk_live_eu_test", environment="production", failure_links=True).failure_links is True

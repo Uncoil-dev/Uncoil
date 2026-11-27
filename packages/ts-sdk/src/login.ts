@@ -167,6 +167,7 @@ export async function runLogin(options: LoginOptions = {}): Promise<LoginResult>
       const projectName = String(polled.data.projectName ?? "");
       const message = `Connected to project "${projectName}" (${region.toUpperCase()}). Key saved to ${envFile}.${ignored ? ` Added ${path.basename(envFile)} to .gitignore.` : ""}`;
       say("connected", message, { projectId: String(polled.data.projectId), projectName, envFile });
+      if (!options.json) out("Next: call init() once at startup, then run `npx @uncoil.dev/sdk doctor` to send a test trace.");
       return { ok: true, message, projectId: String(polled.data.projectId), projectName, envFile };
     }
   }

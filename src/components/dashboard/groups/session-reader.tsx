@@ -63,7 +63,7 @@ function Transcript({ runs, tracingBase }: { runs: Run[]; tracingBase: string })
 export function SessionReader({ view, id }: { view: GroupView; id: string }) {
   const { projectId, basePath, clock } = view;
   const { detail, runs, error, retry, row, loaded, runRows } = useGroupDetail(projectId, "session", id, view.selectedRow);
-  const { copied, copy } = useCopy();
+  const { label: copyText, copy } = useCopy();
   const tracingBase = `${basePath}/tracing`;
   const encoded = encodeURIComponent(encodeURIComponent(id));
   return (
@@ -73,8 +73,8 @@ export function SessionReader({ view, id }: { view: GroupView; id: string }) {
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#55534a]">Session transcript</div>
           <h2 className={`${PAGE_FONT} mt-1 break-all text-2xl leading-tight`} title={id}>{id}</h2>
         </div>
-        <button type="button" className={ghost} onClick={() => copy("id", id)}>{copied === "id" ? "Copied" : "Copy id"}</button>
-        <button type="button" className={ghost} onClick={() => copy("link", window.location.href)}>{copied === "link" ? "Copied" : "Copy link"}</button>
+        <button type="button" className={ghost} onClick={() => copy("id", id)}>{copyText("id", "Copy id")}</button>
+        <button type="button" className={ghost} onClick={() => copy("link", window.location.href)}>{copyText("link", "Copy link")}</button>
         <button type="button" className={ghost} onClick={view.selectIndex.bind(null, -1)} aria-label="Previous session">↑</button>
         <button type="button" className={ghost} onClick={view.selectIndex.bind(null, 1)} aria-label="Next session">↓</button>
         <button type="button" className={ghost} onClick={() => view.update({ id: "" }, false)} aria-label="Close transcript">×</button>

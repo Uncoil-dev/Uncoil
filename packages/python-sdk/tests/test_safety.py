@@ -110,6 +110,29 @@ def test_status_codes_map_to_helpful_messages():
     assert [e.code for e in seen] == ["forbidden", "rate_limited", "server_error", "rejected"]
 
 
+def test_plan_limit_explains_the_reset_and_upgrade_link(monkeypatch):
+    body = {"error": "This project has used its 10,000 free spans for the month.", "code": "plan_limit_reached", "limit": 10000, "retryAfterSeconds": 86400, "upgradeUrl": "https://www.uncoil.dev/pricing"}
+
+    class LimitResponse:
+        status_code = 429
+
+        def json(self):
+            return body
+
+    seen = []
+    client = UncoilClient(api_key=KEY, on_error=seen.append)
+    client._http = None
+    monkeypatch.setattr("uncoil._requests_fallback.post", lambda *a, **k: LimitResponse())
+    monkeypatch.setattr("uncoil.time.time", lambda: 1795176000.0)  # 2026-11-20 12:00 UTC
+    client.ingest(spanType="llm_call", runId="r1")
+    client.flush()
+    assert seen[0].code == "plan_limit_reached"
+    assert "10,000 spans" in str(seen[0])
+    assert "2026-11-21 12:00 UTC" in seen[0].hint
+    assert "https://www.uncoil.dev/pricing" in seen[0].hint
+    assert "sample_rate" not in seen[0].hint
+
+
 def test_sampling_is_stable_and_proportional():
     assert sample_bucket("run-a") == sample_bucket("run-a")
     kept = sum(1 for i in range(2000) if sample_bucket(f"run-{i}") < 0.25)
@@ -204,6 +227,14 @@ def test_templates_are_valid_python():
         py_compile.compile(str(file), doraise=True)
 
 
+def test_templates_are_listed_in_the_readme():
+    import pathlib
+    folder = pathlib.Path(__file__).resolve().parent.parent / "templates"
+    readme = (folder / "README.md").read_text()
+    missing = [f.name for f in sorted(folder.glob("*.py")) if f"`{f.name}`" not in readme]
+    assert not missing, f"templates missing from templates/README.md: {missing}"
+
+
 def test_feedback_uses_the_project_id_from_the_environment(monkeypatch):
     import json
     import httpx
@@ -215,6 +246,17 @@ def test_feedback_uses_the_project_id_from_the_environment(monkeypatch):
     client.feedback("trace-1", True)
     assert sent[0]["projectId"] == "proj_from_env"
     assert UncoilClient(api_key=KEY, project_id="proj_given").project_id == "proj_given"
+
+
+def test_span_timestamps_are_utc_without_deprecation_warnings():
+    import re
+    import warnings
+
+    client = Recorder()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        client.ingest(spanType="llm_call", runId="r1")
+    assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z", client.sent[0]["createdAt"])
 
 
 def test_prompt_and_feedback_errors_say_how_to_fix_them(capsys):

@@ -45,7 +45,7 @@ function subscribeView(listener: () => void) {
   return () => { viewListeners.delete(listener); };
 }
 
-export function AlertsWorkspace({ projectId }: { projectId: string }) {
+export function AlertsWorkspace({ projectId, startCreating = false }: { projectId: string; startCreating?: boolean }) {
   const data = useQuery(api.alertRules.overview, { projectId: projectId as Id<"projects"> });
   const setEnabled = useMutation(api.alertRules.setEnabled);
   const setTags = useMutation(api.alertRules.setTags);
@@ -75,7 +75,7 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
   }
   function applyView(view: SavedView) { setStatus(view.status); setTag(view.tag); setQuery(view.query); }
   const isFiltered = status !== "all" || tag !== null || query.trim() !== "";
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(startCreating);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
 
   function chooseView(next: View) {
@@ -228,7 +228,7 @@ export function AlertsWorkspace({ projectId }: { projectId: string }) {
         </>
       )}
       {creating && data?.planTier === "free" ? <UpgradePrompt feature="Alerts" plan="pro" onClose={() => setCreating(false)}>Get told by email or Slack the moment your agent fails, slows down or costs too much.</UpgradePrompt> : null}
-      {creating && data?.planTier !== "free" ? <AlertRuleForm projectId={projectId} defaultEmail={session?.user?.email ?? ""} onClose={() => setCreating(false)} /> : null}
+      {creating && data && data.planTier !== "free" ? <AlertRuleForm projectId={projectId} defaultEmail={session?.user?.email ?? ""} onClose={() => setCreating(false)} /> : null}
     </div>
   );
 }

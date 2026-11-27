@@ -1,3 +1,7 @@
+# Install: pip install "uncoil-sdk[langgraph]"
+# Keys: set UNCOIL_API_KEY
+# Run: python langgraph_agent.py
+
 from typing import TypedDict
 from langgraph.graph import StateGraph, START, END
 import uncoil

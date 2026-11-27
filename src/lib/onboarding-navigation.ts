@@ -27,3 +27,11 @@ export function getOnboardingHref(projectId?: string) {
 
   return "/onboarding/install";
 }
+
+/** Where "Continue setup" goes for a project's saved onboarding step. The old waiting page folds into the install step. */
+export function continueSetupHref(projectId: string, step: string | null | undefined) {
+  if (!projectId) return "/onboarding/project";
+  if (step === "api-key") return "/onboarding/api-key";
+  if (step === "install" || step === "waiting") return "/onboarding/install";
+  return `/dashboard/${projectId}/quickstart`;
+}

@@ -13,9 +13,10 @@ import { FirstRunPanel } from "@/components/onboarding/first-run-panel";
 import { WaitingLinks } from "@/components/onboarding/waiting-links";
 import { publishOnboardingDraft } from "@/components/onboarding/onboarding-draft";
 import { OnboardingHeader } from "@/components/onboarding/onboarding-shell";
-import { clearOneTimeApiKey, getOneTimeApiKey } from "@/lib/onboarding-client-state";
+import { clearOneTimeApiKey, getOneTimeApiKey, secondsSinceSignup } from "@/lib/onboarding-client-state";
 import { latestAgentRun } from "@/lib/onboarding-runs";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
+import { setTemporaryTitle } from "@/lib/document-title";
 
 const PROJECT_ID_STORAGE_KEY = "uncoil.onboarding.projectId";
 const PROJECT_NAME_STORAGE_KEY = "uncoil.onboarding.projectName";
@@ -76,10 +77,11 @@ export function InstallStep() {
     }
     captureAnalytics("first_trace_received", {
       elapsed_seconds: elapsed,
+      seconds_since_signup: secondsSinceSignup(session?.user.createdAt),
       source: probeState === "accepted" ? "onboarding_probe" : "agent",
       region: region.id,
     });
-  }, [elapsed, onboardingState, projectId, realFirstRun, probeState, region.id, session?.user.email, session?.user.name, updateProgress]);
+  }, [elapsed, onboardingState, projectId, realFirstRun, probeState, region.id, session?.user.createdAt, session?.user.email, session?.user.name, updateProgress]);
 
   // Tell the server we reached this step, so the dashboard can send people back here.
   const savedStep = useRef(false);
@@ -97,6 +99,13 @@ export function InstallStep() {
         ? `uncoil_sk_live_...${apiKey.slice(-4)}`
         : "uncoil_sk_live_...";
   const arrived = realFirstRun !== null;
+
+  // People watching their terminal notice the tab change when the first run lands.
+  useEffect(() => {
+    if (!arrived) return;
+    return setTemporaryTitle(document, "First run in · Uncoil");
+  }, [arrived]);
+
   const projectReady = !projectId || onboardingState === null ? "fail" : onboardingState === undefined ? "checking" : "pass";
 
   return (

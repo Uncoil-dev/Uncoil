@@ -7,6 +7,8 @@ Every pull request description has a Changelog section: one ticked category and 
 ## [Unreleased]
 
 ### Features
+- Very large step inputs and outputs (over 20,000 characters) open collapsed in the run view, with a preview and the size. Show all reveals the full text, and Copy still copies all of it.
+- The TypeScript and Python SDKs now fill in the release when none is set: from `UNCOIL_RELEASE`, then the commit variable of Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions or GitLab CI, then the local git commit. An explicit `release` option still wins.
 - Pro and Team plan cards, the in-app upgrade card and the usage banner now show the free trial: 7 days free, once per project.
 - New homepage, told as one example agent run: it fails at step 06, Uncoil walks it back to the step that caused it at step 04, and the page follows that run through your logs, the trace view, the fix, setup and pricing. The sign-in and sign-up pages share its pixel art. On phones, the menu is now a full-screen view of the site drawn as a trace.
 - New topics endpoint, `GET /api/projects/{projectId}/topics`, groups the traces matching the traces-list filters by what they were asked to do, with error rates and example traces. The public demo shows topics too.
@@ -16,26 +18,23 @@ Every pull request description has a Changelog section: one ticked category and 
 - Error groups have a Suggest a fix button. It opens an example trace with Ask AI ready to explain the likely cause and the change to make.
 - RSS feed for the changelog at /changelog/rss.xml.
 - New Pro and Team subscriptions start with a 7-day free trial. A card is added at checkout and is charged when the trial ends; each project gets one trial.
-- The pricing page calculator now links to the tracing bill calculator, which compares the monthly bill across tools for the same traffic.
-- New Pro and Team subscriptions start with a 7-day free trial. A card is added at checkout and is charged when the trial ends; each project gets one trial.
-- Error groups have a Suggest a fix button. It opens an example trace with Ask AI ready to explain the likely cause and the change to make.
 - Free projects get one email when they reach 80% of the month's spans. Refused requests at the monthly or daily limit now include a link to the plans.
 - Updated plan limits: Free is now 10,000 spans a month, 2,000 a day, 2 projects and 300 requests a minute.
 - Alerts, custom Ask AI questions and date ranges over 7 days are part of Pro.
-- Release-log and SharePoint discovery foundations.
 - New free tool: a tracing bill calculator that compares the monthly cost on Langfuse, LangSmith, Helicone and Uncoil for the same traffic.
 - New Switch to Uncoil guide for teams moving from Langfuse, LangSmith, Helicone or OpenTelemetry.
 - Agent health report: a one-off $79 report on cost, errors and slow steps, built from a file of runs, with ranked fixes, a private link and a print-ready PDF. See /health-report.
 - New free tool: prompt caching savings calculator.
 - New comparison pages: Uncoil vs Opik, AgentOps and Pydantic Logfire.
 - Landing page: a clickable sample weekly agent report (cost, errors, slow steps) that links into the public demo project, no sign-up needed.
-- New sign-up question: "What do you want to fix with Uncoil?" on the first-project step. It is optional, and the team reads the answers in the admin page under Goals.
+- New sign-up question: "What do you want to fix with Uncoil?" on the first-project step. It is optional.
 
 ### Fixes
 - The traces list topic filter is faster on repeat loads, and the list response now says when a topic was worked out from the newest traces only. The demo project's traces list respects the topic filter.
 
 ### SDK changes
-- None.
+- TypeScript SDK: setting `UNCOIL_CAPTURE_CONTENT=false` (or `captureContent: false` on the client) keeps prompts, answers, tool inputs and outputs, error messages, stack traces and feedback text out of everything the SDK sends. Names, timings, tokens, cost, status and error type are still recorded. Metadata you attach yourself is still sent.
+- Python SDK: setting `UNCOIL_CAPTURE_CONTENT=false` (or `capture_content=False` on the client) keeps prompts, answers, tool inputs and outputs, error messages, stack traces and feedback text out of everything the SDK sends. Names, timings, tokens, cost, status and error type are still recorded. Metadata you attach yourself is still sent.
 
 ### Breaking changes
 - None.
@@ -44,10 +43,10 @@ Every pull request description has a Changelog section: one ticked category and 
 - None.
 
 ### Security and operations
-- SharePoint exports exclude secrets, customer data, caches, worktrees, and scratch files.
+- None.
 
 ### Known limitations
-- Direct SharePoint synchronization requires Microsoft 365 access and a target site.
+- None.
 
 ### Deployment and rollback
 - No deployment or publication is associated with this unreleased entry.

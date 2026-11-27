@@ -125,7 +125,7 @@ export function ColumnsMenu({ projectId, rangeParams, columns, onToggle, onReset
               <h4 className="px-1.5 py-1 text-[10px] font-medium uppercase tracking-wide text-[#6B7380]">Metadata{keys ? ` · ${keys.length}` : ""}</h4>
               {keys === null && !keysError ? <p className="px-1.5 py-1 text-[11px] text-[#6B7380]">Looking for metadata keys…</p> : null}
               {keysError ? <p role="alert" className="px-1.5 py-1 text-[11px] text-[#FF8A8A]">Metadata keys are unavailable right now.</p> : null}
-              {keys && !shownKeys.length ? <p className="px-1.5 py-1 text-[11px] text-[#6B7380]">{needle ? "No metadata key matches." : "No metadata keys in this range."}</p> : null}
+              {keys && !shownKeys.length ? <p className="px-1.5 py-1 text-[11px] text-[#6B7380]">{needle ? "No metadata key matches." : "No metadata in this range. Add metadata to your steps to get extra columns."}</p> : null}
               {shownKeys.map((item) => {
                 const id = metaColumn(item.key);
                 const checked = columns.includes(id);

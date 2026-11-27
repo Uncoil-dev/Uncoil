@@ -1,5 +1,7 @@
 # Uncoil
 
+[![npm](https://img.shields.io/npm/v/@uncoil.dev/sdk?label=%40uncoil.dev%2Fsdk)](https://www.npmjs.com/package/@uncoil.dev/sdk) [![PyPI](https://img.shields.io/pypi/v/uncoil-sdk?label=uncoil-sdk)](https://pypi.org/project/uncoil-sdk/) [![License: MIT](https://img.shields.io/badge/license-MIT-black)](LICENSE)
+
 **See what your AI agents did, why they failed, and stop it happening again.**
 
 Uncoil records every agent run: each model call, tool call, cost, and error. You can open any run, find the step that broke, and add a check so it does not break again.
@@ -21,13 +23,18 @@ capture → diagnose → assign → fix → verify → prevent
 
 ## Quickstart
 
-Get a key in the [dashboard](https://eu.cloud.uncoil.dev/dashboard), then:
+New here? [Sign up](https://eu.cloud.uncoil.dev/sign-up) and copy your key. Already have an account? Get a key on the [API keys page](https://eu.cloud.uncoil.dev/dashboard/api-keys). The Free plan covers 10k spans a month and needs no card.
 
 ### TypeScript
 
 ```bash
 npm install @uncoil.dev/sdk
 export UNCOIL_API_KEY=uncoil_sk_live_...
+```
+
+```powershell
+# Windows PowerShell
+$env:UNCOIL_API_KEY="uncoil_sk_live_..."
 ```
 
 ```typescript
@@ -49,14 +56,22 @@ pip install uncoil-sdk
 export UNCOIL_API_KEY=uncoil_sk_live_...
 ```
 
+```powershell
+# Windows PowerShell
+$env:UNCOIL_API_KEY="uncoil_sk_live_..."
+```
+
 ```python
+import asyncio
 from uncoil import trace_agent, llm_call, tool_call
 
 @trace_agent(environment="development", release="quickstart")
 async def run_agent(question: str):
-    llm_call(input_data=question, output_data="I will look that up.", model_id="gpt-4o-mini", cost_usd=0.001)
+    llm_call(input_data=question, output_data="I will look that up.", model_id="gpt-4o-mini", cost_usd=0.001, latency_ms=450)
     tool_call(tool_name="search", input_data={"query": question}, output_data="Done", latency_ms=120)
     return "Done"
+
+asyncio.run(run_agent("What is agent observability?"))
 ```
 
 ### OpenTelemetry
@@ -81,6 +96,22 @@ Let Claude Code set up and debug tracing for you:
 ```
 
 See [Uncoil plugin for Claude Code](https://www.uncoil.dev/docs/claude-plugin).
+
+## Works with your framework
+
+Already using a framework or provider? One line of setup is usually enough. Each guide has the full copy-paste code.
+
+| Framework | Setup | Guide |
+| --- | --- | --- |
+| OpenAI, Anthropic (Python) | `uncoil.init()` | [OpenAI](https://www.uncoil.dev/integrations/openai) · [Anthropic](https://www.uncoil.dev/integrations/anthropic) |
+| OpenAI, Anthropic (TypeScript) | `init()` | [OpenAI](https://www.uncoil.dev/integrations/openai) · [Anthropic](https://www.uncoil.dev/integrations/anthropic) |
+| LangChain, LangGraph | `uncoil.init()` (Python) or `callbacks: [new UncoilLangGraphHandler()]` (TypeScript) | [LangChain](https://www.uncoil.dev/integrations/langchain) · [LangGraph](https://www.uncoil.dev/integrations/langgraph) |
+| Vercel AI SDK | `wrapLanguageModel({ model, middleware: uncoilMiddleware() })` | [Vercel AI SDK](https://www.uncoil.dev/integrations/vercel-ai-sdk) |
+| OpenAI Agents SDK, CrewAI, Pydantic AI | `uncoil.init()` plus `@uncoil.trace_agent` | [OpenAI Agents](https://www.uncoil.dev/integrations/openai-agents-sdk) · [CrewAI](https://www.uncoil.dev/integrations/crewai) · [Pydantic AI](https://www.uncoil.dev/integrations/pydantic-ai) |
+| Mastra | `traceAgent()` | [Mastra](https://www.uncoil.dev/integrations/mastra) |
+| Anything with OpenTelemetry | OTLP over HTTP (JSON) | [OpenTelemetry](https://www.uncoil.dev/integrations/opentelemetry) |
+
+All guides: [uncoil.dev/integrations](https://www.uncoil.dev/integrations). Runnable starters: [TypeScript](packages/ts-sdk/templates) and [Python](packages/python-sdk/templates).
 
 ## How it works
 

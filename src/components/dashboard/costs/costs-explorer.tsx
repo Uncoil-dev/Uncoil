@@ -5,11 +5,13 @@ import { FirstTraceEmpty } from "../first-trace-empty";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RANGES, TimeRangePicker } from "../tracing/time-range-picker";
 import { decodeValues, encodeValues } from "../tracing/facet-filter";
-import { compactNumber, downloadFile, formatDuration, relativeTime, toCsv } from "../tracing/format";
+import { compactNumber, downloadFile, formatDuration, toCsv } from "../tracing/format";
+import { StartedAt } from "./started-at";
 import { changePercent, costPerThousandTokens, cumulative, stackSeries, type StackedSeries } from "@/lib/cost-breakdown";
 import type { CostBreakdown, CostDimension, CostGroup } from "@/lib/tinybird";
 import { SampleCosts } from "../empty/samples";
 import { EmptyNotice } from "../empty/empty-notice";
+import { CostsError } from "./costs-error";
 
 type Query = Record<string, string>;
 type Data = CostBreakdown;
@@ -55,6 +57,8 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
   const [query, setQuery] = useState<Query>(initialQuery);
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Bumped by Try again so a fixed window, whose request key does not move with the clock, still refetches.
+  const [attempt, setAttempt] = useState(0);
   const [settledKey, setSettledKey] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [clock, setClock] = useState(() => Date.now());
@@ -109,7 +113,7 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
         setSettledKey(requestKey);
       });
     return () => controller.abort();
-  }, [base, requestKey]);
+  }, [attempt, base, requestKey]);
 
   // Live updates: for relative ranges, quietly refetch with the window moved forward. Skipped while paused, for fixed
   // windows, hidden tabs and pending loads; a good poll clears an earlier error, failures back off from 5s to 60s.
@@ -204,7 +208,7 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
         </div>
       ) : null}
 
-      {error ? <div role="alert" className="border-b border-[#4A2A2A] bg-[#1A1111] px-4 py-2 text-xs text-[#FF8A8A]">{error}</div> : null}
+      {error ? <CostsError message={error} onRetry={() => { setNow(Date.now()); setAttempt((n) => n + 1); }} /> : null}
 
       {loading ? (
         <div className="grid gap-px p-4" aria-busy="true"><div className="h-40 animate-pulse bg-[#111418]" /><div className="mt-4 h-56 animate-pulse bg-[#111418]" /></div>
@@ -294,7 +298,7 @@ export function CostsExplorer({ projectId, initialQuery }: { projectId: string; 
                       <td className="max-w-[160px] truncate py-1.5 text-[#C9CED6]">{trace.modelId || "–"}</td>
                       <td className="py-1.5 text-right text-[#C9CED6]">{compactNumber(trace.inputTokens + trace.outputTokens)}</td>
                       <td className="py-1.5 text-right text-[#C9CED6]">{formatDuration(trace.durationMs)}</td>
-                      <td className="py-1.5 pl-3 text-[#8B93A1]" title={trace.startedAt}>{relativeTime(trace.startedAt, clock)}</td>
+                      <td className="py-1.5 pl-3 text-[#8B93A1]"><StartedAt value={trace.startedAt} clock={clock} /></td>
                       <td className="py-1.5 pl-3"><div className="flex items-center justify-end gap-2"><span aria-hidden="true" className="h-1 flex-1 bg-[#1A1F27]"><span className="block h-full bg-[#F4D44D]" style={{ width: `${data.totals.maxTraceCostUsd > 0 ? (trace.costUsd / data.totals.maxTraceCostUsd) * 100 : 0}%` }} /></span><span className="w-20 text-right text-[#E6E9EE]">{money(trace.costUsd)}</span></div></td>
                     </tr>
                   ))}

@@ -34,6 +34,8 @@ export default defineSchema({
     apiKeyCreatedAt: v.optional(v.number()),
     // Month (UTC, "2026-11") for which the owner was already emailed about nearing the Free span limit.
     usageWarnedMonth: v.optional(v.string()),
+    // Month for which the owner was already emailed that new data is paused at the Free span limit.
+    usagePausedMonth: v.optional(v.string()),
     apiKeyLastUsedAt: v.optional(v.number()),
     onboardingStep: v.optional(v.union(v.literal("project"), v.literal("api-key"), v.literal("install"), v.literal("waiting"), v.literal("success"))),
     onboardingDismissedAt: v.optional(v.number()),
@@ -94,6 +96,11 @@ export default defineSchema({
     query: v.record(v.string(), v.string()), columns: v.array(v.string()), updatedAt: v.number(),
   }).index("by_projectId_and_ownerId", ["projectId", "ownerId"])
     .index("by_projectId_and_shared", ["projectId", "shared"]),
+
+  // When a project member marked an error group (by its signature id) resolved. Rows are only ever updated.
+  resolvedErrorGroups: defineTable({
+    projectId: v.id("projects"), signature: v.string(), resolvedAt: v.number(), resolvedBy: v.string(),
+  }).index("by_projectId_and_signature", ["projectId", "signature"]),
 
   agentRuns: defineTable({
     runId: v.string(),

@@ -4,6 +4,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "convex/_generated/api";
 import { ogImageUrl } from "@/lib/seo";
 import { formatCurrency } from "@/lib/utils";
+import { redactForShare } from "@/lib/redaction";
 import { getSpansForRun } from "@/lib/tinybird";
 import { SharedTraceView, type SharedSpan } from "@/components/share/shared-trace-view";
 
@@ -53,13 +54,13 @@ export default async function SharedTracePage({ params }: { params: Promise<{ to
       parentSpanId: span.parentSpanId || "",
       spanType: span.spanType,
       label: span.modelId || span.toolName || span.spanType,
-      input: span.input ?? "",
-      output: span.output ?? "",
+      input: redactForShare(span.input ?? ""),
+      output: redactForShare(span.output ?? ""),
       latencyMs: Number(span.latencyMs) || 0,
       costUsd: Number(span.costUsd) || 0,
       inputTokens: Number(span.inputTokens) || 0,
       outputTokens: Number(span.outputTokens) || 0,
-      errorMessage: span.errorMessage ?? "",
+      errorMessage: redactForShare(span.errorMessage ?? ""),
       createdAt: span.createdAt,
     }));
   } catch {

@@ -29,6 +29,8 @@ type TraceRow = TraceRowExtras & {
 type Stats = { traces: number; errors: number; p50DurationMs: number; p95DurationMs: number; totalCostUsd: number; inputTokens: number; outputTokens: number; runningTraces: number };
 type ListResponse = {
   rows: TraceRow[]; total: number; page: number; pageSize: number;
+  /** The topic filter was worked out from the newest traces only. */
+  sampled?: boolean;
   histogram: { bucketSeconds: number; buckets: ChartBucket[] }; stats?: Stats; facets?: FacetCounts | null;
   errorGroups?: ErrorGroups | null; range: { from: number; to: number }; error?: string;
 };

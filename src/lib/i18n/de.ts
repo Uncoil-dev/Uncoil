@@ -119,7 +119,7 @@ export const de: Copy = {
         ["Spans pro Monat", "10.000", "500.000", "2.000.000", "Eine Span ist ein Schritt deines Agenten. Die Zähler starten jeden Monat (UTC) neu."],
         ["Spans pro Tag", "2.000", "Kein Tageslimit", "Kein Tageslimit", "Bei Free kann eine Endlosschleife nicht den ganzen Monat an einem Tag verbrauchen."],
         ["Am Monatslimit", "Neue Daten stoppen bis zum nächsten Monat", "10 % Puffer, dann Stopp", "10 % Puffer, dann Stopp", "Es wird nie extra berechnet. Gespeicherte Daten bleiben."],
-        ["Anfragen pro Minute", "600", "6.000", "6.000", "Pro Projekt."],
+        ["Anfragen pro Minute", "300", "6.000", "6.000", "Pro Projekt."],
         ["Span-Größe", "256 KB, längerer Text wird gekürzt", "1 MB pro Anfrage", "1 MB pro Anfrage", "Gekürzte Spans erscheinen trotzdem, nur kürzer."]
       ] },
       { title: "Menschen und Daten", rows: [

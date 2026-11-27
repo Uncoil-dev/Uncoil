@@ -21,7 +21,11 @@ type Body = {
 export async function POST(request: NextRequest) {
   let body: Body;
   try { body = await request.json() as Body; } catch { return Response.json({ error: "Invalid JSON body" }, { status: 422 }); }
-  if (!body.projectId || !body.traceId || body.value === undefined) return Response.json({ error: "projectId, traceId, and value are required" }, { status: 422 });
+  for (const field of ["projectId", "traceId"] as const) {
+    if (!body[field]) return Response.json({ error: `${field} is required` }, { status: 422 });
+  }
+  if (body.value === undefined) return Response.json({ error: "value is required" }, { status: 422 });
+  if (!["number", "boolean", "string"].includes(typeof body.value)) return Response.json({ error: "value must be a number, true/false, or text" }, { status: 422 });
   const bearer = request.headers.get("authorization");
   if (bearer?.startsWith("Bearer ") && isUncoilApiKey(bearer.slice(7).trim())) {
     const apiKey = bearer.slice(7).trim();

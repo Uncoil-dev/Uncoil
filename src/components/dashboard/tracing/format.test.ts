@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   chatMessages,
   compactNumber,
+  listPaging,
   formatCost,
   formatDuration,
   formatTime,
@@ -67,6 +68,13 @@ test("compactNumber: small, zero, negative and large values", () => {
   assert.equal(compactNumber(3_000_000_000), "3B");
   assert.equal(compactNumber(7e12), "7T");
   assert.equal(compactNumber(1e15), "1000T");
+});
+
+test("listPaging: keeps known page sizes and a non-negative page, and falls back otherwise", () => {
+  assert.deepEqual(listPaging({ page: "2", pageSize: "100" }), { page: 2, pageSize: 100 });
+  assert.deepEqual(listPaging({}), { page: 0, pageSize: 50 });
+  assert.deepEqual(listPaging({ page: "-3", pageSize: "abc" }), { page: 0, pageSize: 50 });
+  assert.deepEqual(listPaging({ page: "1.5", pageSize: "30" }), { page: 0, pageSize: 50 });
 });
 
 test("parseTime: treats space-separated timestamps as UTC", () => {

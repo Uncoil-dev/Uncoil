@@ -6,6 +6,7 @@ import { columnsFromUrl } from "@/lib/saved-view-state";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { stepLabel } from "./agent-map";
+import { PAGE_SIZES, listPaging } from "./format";
 import { traceCsv } from "@/lib/trace-csv";
 import { EXCLUDE_PREFIX, parseSearch } from "@/lib/trace-search";
 import { SearchBox } from "./search-box";
@@ -124,6 +125,10 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
     for (const [key, value] of Object.entries(query)) {
       if (!VIEW_KEYS.includes(key)) params.set(key, value);
     }
+    // Hand-edited URLs (?pageSize=abc, ?page=-3) are clamped before they reach the API.
+    const paging = listPaging(query);
+    if (query.page) params.set("page", String(paging.page));
+    if (query.pageSize) params.set("pageSize", String(paging.pageSize));
     return params;
   }, [query, now]);
   // The activity grid follows the filters but ignores the time range.
@@ -233,8 +238,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
   }, [fresh]);
 
   const total = data?.total ?? 0;
-  const page = Number(query.page ?? 0);
-  const pageSize = Number(query.pageSize ?? 50);
+  const { page, pageSize } = listPaging(query);
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   const selectIndex = useCallback((delta: number) => {
@@ -467,7 +471,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2">Rows
                 <select value={pageSize} onChange={(event) => update({ pageSize: event.target.value })} className="h-7 rounded-md border border-[#262C35] bg-[#111418] px-2 text-[#E6E9EE]">
-                  {[25, 50, 100, 200].map((size) => <option key={size} value={size}>{size}</option>)}
+                  {PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
                 </select>
               </label>
               <span>Page {page + 1} of {pageCount}</span>

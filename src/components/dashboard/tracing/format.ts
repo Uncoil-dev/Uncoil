@@ -20,6 +20,14 @@ export function compactNumber(value: number | null | undefined) {
   return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value ?? 0));
 }
 
+export const PAGE_SIZES = [25, 50, 100, 200];
+
+/** Page and rows per page from the URL: only the offered page sizes (default 50) and whole pages from 0 up. */
+export function listPaging(query: { page?: string; pageSize?: string }) {
+  const page = Number(query.page ?? 0), pageSize = Number(query.pageSize ?? 50);
+  return { page: Number.isInteger(page) && page >= 0 ? page : 0, pageSize: PAGE_SIZES.includes(pageSize) ? pageSize : 50 };
+}
+
 /** Tinybird returns "YYYY-MM-DD hh:mm:ss" in UTC; show it in the viewer's local time. */
 export function formatTime(value: string) {
   const parsed = parseTime(value);

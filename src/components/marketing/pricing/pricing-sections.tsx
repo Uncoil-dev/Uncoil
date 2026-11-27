@@ -5,7 +5,7 @@ import { Reveal } from "@/components/marketing/landing/reveal";
 import { appHref } from "@/lib/app-links";
 import { getCopy, type Locale } from "@/lib/i18n";
 import { pricingFaqEntries } from "@/lib/pricing-faq";
-import { exampleBills, limitRows } from "@/lib/pricing-examples";
+import { exampleBills, limitRows, type LimitRow } from "@/lib/pricing-examples";
 import { formatPrice } from "@/lib/pricing-plans";
 import { PAID_GRACE } from "@/lib/plan-limits";
 
@@ -19,6 +19,12 @@ export function PricingLimits() {
   const bills = exampleBills();
   const rows = limitRows();
   const paid = rows.filter((row) => row.plan.monthly > 0);
+  const cells: [string, (row: LimitRow) => string][] = [
+    ["Data kept for", (row) => `${row.retentionDays} days`],
+    ["Spans per day", (row) => (row.daily === null ? "No daily cap" : number(row.daily))],
+    ["Spans per month", (row) => number(row.included)],
+    ["Monthly limit applies at", (row) => number(row.stopsAt)],
+  ];
   return (
     <section className="border-t-2 border-black bg-[#eceae3] px-5 py-14 text-black md:px-10 md:py-16" aria-labelledby="limits-title">
       <div className="mx-auto max-w-[1320px]">
@@ -36,7 +42,7 @@ export function PricingLimits() {
           ))}
         </ul>
         <div className="mt-8 overflow-x-auto border-2 border-black">
-          <table className="w-full border-collapse text-left md:min-w-[640px]">
+          <table className="w-full border-collapse text-left min-w-[560px]">
             <caption className="sr-only">Retention and span limits per plan</caption>
             <thead>
               <tr className="bg-black text-[#eceae3]">
@@ -45,22 +51,17 @@ export function PricingLimits() {
               </tr>
             </thead>
             <tbody className="font-mono text-[10px] md:text-xs">
-              {[
-                ["Data kept for", (row: (typeof rows)[number]) => `${row.retentionDays} days`],
-                ["Spans per day", (row: (typeof rows)[number]) => (row.daily === null ? "No daily cap" : number(row.daily))],
-                ["Spans per month", (row: (typeof rows)[number]) => number(row.included)],
-                ["New spans refused at", (row: (typeof rows)[number]) => number(row.stopsAt)],
-              ].map(([label, cell]) => (
-                <tr key={label as string} className="border-t border-black/25">
-                  <th scope="row" className="p-2.5 text-left text-xs font-medium md:px-5 md:py-3.5 md:text-sm">{label as string}</th>
-                  {rows.map((row) => <td key={row.plan.id} className="border-l border-black/25 p-2.5 md:px-5 md:py-3.5">{(cell as (r: (typeof rows)[number]) => string)(row)}</td>)}
+              {cells.map(([label, cell]) => (
+                <tr key={label} className="border-t border-black/25">
+                  <th scope="row" className="p-2.5 text-left text-xs font-medium md:px-5 md:py-3.5 md:text-sm">{label}</th>
+                  {rows.map((row) => <td key={row.plan.id} className="border-l border-black/25 p-2.5 md:px-5 md:py-3.5">{cell(row)}</td>)}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <p className="mt-6 max-w-3xl text-sm leading-6 text-black/70">
-          When a limit is hit, new spans are not saved and the request gets a 429 error: <span className="font-mono text-xs">plan_limit_reached</span> at the monthly limit, <span className="font-mono text-xs">daily_limit_reached</span> on Free at the daily cap. Everything already saved stays until its retention time is up. Counts reset at the start of each UTC month, or at midnight UTC for the daily cap. {paid.map((row) => row.plan.name).join(" and ")} refuse new spans only after a {buffer} buffer above the included amount. Your price never goes up for going over.
+          When a limit is hit, new spans are not saved and the request gets a 429 error: <span className="font-mono text-xs">plan_limit_reached</span> at the monthly limit, <span className="font-mono text-xs">daily_limit_reached</span> on Free at the daily cap. Everything already saved stays until its retention time is up. Counts reset at the start of each UTC month, or at midnight UTC for the daily cap. {paid.map((row) => row.plan.name).join(" and ")} get a {buffer} buffer above the included spans before the monthly limit applies. Going over never adds a charge: you are never billed extra, and data already saved stays. A batch that would cross the limit is refused as a whole.
         </p>
       </div>
     </section>

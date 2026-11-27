@@ -4,7 +4,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { getCopy } from "@/lib/i18n";
-import { exampleBills } from "@/lib/pricing-examples";
+import { exampleBills, limitRows } from "@/lib/pricing-examples";
+import { formatPrice } from "@/lib/pricing-plans";
 import { PricingClose, PricingFaq, PricingLimits } from "./pricing-sections";
 
 const t = getCopy("en").pricing;
@@ -30,8 +31,20 @@ describe("pricing page server sections", () => {
     for (const bill of exampleBills()) {
       expect(html).toContain(bill.label);
       expect(html).toContain(`${bill.spans.toLocaleString("en-US")} spans`);
+      expect(html).toContain(formatPrice(bill.monthly));
     }
+    for (const row of limitRows()) expect(html).toContain(row.stopsAt.toLocaleString("en-US"));
+    expect(html).toContain("Monthly limit applies at");
     expect(html).toContain("plan_limit_reached");
     expect(html).toContain("daily_limit_reached");
+  });
+
+  it("keeps the limits table in step with the plan comparison table", () => {
+    const rows = limitRows();
+    const group = t.compareGroups.flatMap((g) => g.rows);
+    const compare = (label: string) => group.find((r) => r[0] === label)?.slice(1, 4);
+    expect(compare("Spans per month")).toEqual(rows.map((r) => r.included.toLocaleString("en-US")));
+    expect(compare("Spans per day")).toEqual(rows.map((r) => (r.daily === null ? "No daily cap" : r.daily.toLocaleString("en-US"))));
+    expect(compare("Retention")).toEqual(rows.map((r) => `${r.retentionDays} days`));
   });
 });

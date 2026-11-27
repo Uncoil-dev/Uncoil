@@ -223,7 +223,7 @@ Set `UNCOIL_CAPTURE_CONTENT=false` (also `0`, `no` or `off`, any case) to record
 const client = new UncoilClient({ captureContent: false }); // overrides the environment variable
 ```
 
-The variable is read when the client is created. Spans sent this way carry `contentRecorded: false` in their metadata.
+The variable is read when the client is created. Spans sent this way carry `contentRecorded: false` in their metadata. The run page labels their input and output "Content not recorded".
 
 ### Short scripts and serverless functions
 

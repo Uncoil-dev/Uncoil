@@ -28,6 +28,25 @@ describe("client config validation", () => {
     expect(() => make({ host: "not a url" })).toThrowError(expect.objectContaining({ code: "bad_host" }));
   });
 
+  it("sends to the key's region when no region is configured", async () => {
+    const saved = { UNCOIL_REGION: process.env.UNCOIL_REGION, TRACIFY_REGION: process.env.TRACIFY_REGION, UNCOIL_HOST: process.env.UNCOIL_HOST, TRACIFY_HOST: process.env.TRACIFY_HOST };
+    for (const name of Object.keys(saved)) delete process.env[name];
+    const urls: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => { urls.push(url); return new Response("{}", { status: 200 }); }));
+    try {
+      const client = new UncoilClient({ apiKey: "uncoil_sk_live_us_abc", onError: () => {} });
+      await client.ingest({ spanType: "llm_call", runId: "run-1" });
+    } finally {
+      vi.unstubAllGlobals();
+      for (const [name, value] of Object.entries(saved)) if (value !== undefined) process.env[name] = value;
+    }
+    expect(urls).toEqual(["https://us.cloud.uncoil.dev/api/ingest"]);
+  });
+
+  it("still rejects a key whose region disagrees with the configured one", () => {
+    expect(() => make({ apiKey: "uncoil_sk_live_us_abc", region: "eu" })).toThrowError(expect.objectContaining({ code: "region_mismatch" }));
+  });
+
   it("reports a missing key once through onError", () => {
     const seen: string[] = [];
     const saved = process.env.UNCOIL_API_KEY;

@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { resolveCaptureContent, stripFeedbackContent, stripSpanContent } from "./privacy";
 
 export interface UncoilConfig {
   apiKey?: string;
@@ -32,6 +33,8 @@ export interface UncoilConfig {
    * NODE_ENV or `environment` is "production".
    */
   failureLinks?: boolean;
+  /** Send prompts, outputs, tool data, error messages and feedback text. Defaults to true unless UNCOIL_CAPTURE_CONTENT is false, 0, no or off. */
+  captureContent?: boolean;
 }
 
 export interface RedactionOptions {
@@ -335,11 +338,13 @@ export class UncoilClient {
   private onError?: (error: UncoilError) => void;
   private warned = new Set<string>();
   private failureLinks: boolean;
+  private captureContent: boolean;
   private pending = new Set<Promise<unknown>>();
 
   constructor(config: UncoilConfig = {}) {
     this.apiKey = (config.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || '').trim();
     this.onError = config.onError;
+    this.captureContent = resolveCaptureContent(config.captureContent);
     if (config.sampleRate !== undefined && !(config.sampleRate >= 0 && config.sampleRate <= 1)) {
       throw new UncoilError("bad_sample_rate", `sampleRate must be a number from 0 to 1, but got ${String(config.sampleRate)}.`, "Use 1 to record every run, 0.1 to record about one in ten.");
     }
@@ -444,7 +449,7 @@ export class UncoilClient {
     const spanId = data.spanId || createId();
     if (this.sampledOut(data.runId || currentRunId(), data)) return;
     const parentSpanId = data.parentSpanId || (context?.spanId && context.spanId !== spanId ? context.spanId : undefined);
-    const span = {
+    const built = {
       ...data,
       spanId,
       runId: data.runId || currentRunId(),
@@ -452,8 +457,8 @@ export class UncoilClient {
       parentSpanId,
       createdAt: data.createdAt || new Date().toISOString(),
       metadata: data.metadata || {},
-      input: this.clean(data.input),
-      output: this.clean(data.output),
+      input: this.captureContent ? this.clean(data.input) : '',
+      output: this.captureContent ? this.clean(data.output) : '',
       release: data.release ?? this.release,
       environment: data.environment ?? this.environment,
       deploymentId: data.deploymentId ?? data.metadata?.deploymentId ?? this.deploymentId,
@@ -461,6 +466,7 @@ export class UncoilClient {
       endUserId: data.endUserId ?? this.endUserId,
       tags: data.tags ?? this.tags,
     };
+    const span = this.captureContent ? built : stripSpanContent(built);
 
     try {
       const doFetch = () => fetch(this.ingestUrl, {
@@ -517,16 +523,20 @@ export class UncoilClient {
     }
   }
 
+  private feedbackBody<T extends object>(body: T): T {
+    return this.captureContent ? body : stripFeedbackContent(body);
+  }
+
   /** Attach end-user feedback to a trace or span. The request is fire-and-forget like span ingestion. */
   feedback(traceId: string, value: boolean | number | string, options: { kind?: 'thumb' | 'star' | 'text'; spanId?: string; reason?: string; comment?: string; endUserId?: string; dedupeKey?: string; projectId?: string } = {}) {
     if (!this.apiKey || !(options.projectId || this.projectId)) return;
-    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
+    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(this.feedbackBody({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey })) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
   }
 
   /** Attach a typed score to a trace or span through the feedback API. */
   score(traceId: string, name: string, value: boolean | number | string, options: { dataType?: 'numeric' | 'boolean' | 'categorical' | 'text'; spanId?: string; comment?: string; projectId?: string } = {}) {
     if (!this.apiKey || !(options.projectId || this.projectId)) return;
-    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
+    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(this.feedbackBody({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment })) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
   }
 
   /**

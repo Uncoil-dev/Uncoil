@@ -4,7 +4,7 @@
 
 import { CREAM, INK, RED, YELLOW, type Px } from "./pixels";
 import { board } from "./steps-art";
-import { PLATE, boardBox, ropeCells, tailCells, type WhereLayout } from "./where-layout";
+import { PLATE, boardBox, ropeCells, scanStop, tailCells, type WhereLayout } from "./where-layout";
 
 /** 7x7 icons, one per step kind, drawn in ink on the plate. */
 export const ICONS = {
@@ -41,7 +41,7 @@ export function drawWhere(px: Px, l: WhereLayout, icons: readonly IconName[], { 
   const along = (x: number, y: number) => (l.vertical ? y : x);
   const scanAt = Math.round(along(c6.x, c6.y) + (along(c4.x, c4.y) - along(c6.x, c6.y)) * scan);
   const scanning = scan > 0.02;
-  const found = scan >= 0.92;
+  const found = scanStop(scan) === 3;
 
   // The rope, drawing in from step 01; the read-back part glows yellow on an ink shadow.
   const shown = Math.floor(cells.length * Math.min(1, t / ENTER.rope));
@@ -92,18 +92,28 @@ export function drawWhere(px: Px, l: WhereLayout, icons: readonly IconName[], { 
     for (const [x, y] of tailCells(l)) px.set(x, y, RED);
   }
 
-  // Uncoil's scan: yellow brackets on an ink shadow, closing in on step 04 when it gets there.
+  // Uncoil's scan: a corner frame, tightening on step 04 once it is found.
   if (scanning) {
+    // The frame always sits squarely on a step: it reads 06, hops to 05, then locks on 04. It
+    // wraps the plate and its number board together, so its corners never land on either.
+    const i = scanStop(scan);
+    const c = l.centers[i];
     const half = PLATE >> 1;
-    const pos = { x: Math.round(c6.x + (c4.x - c6.x) * scan) - half, y: Math.round(c6.y + (c4.y - c6.y) * scan) - half, w: PLATE, h: PLATE };
-    const pad = found ? 2 : 3;
-    for (const [color, d] of [[INK, 1], [YELLOW, 0]] as const) {
-      const l0 = pos.x - pad + d;
-      const r0 = pos.x + PLATE - 1 + pad + d;
-      const t0 = pos.y - pad + d;
-      const b0 = pos.y + PLATE - 1 + pad + d;
+    const b = boardBox(l, i);
+    const x0 = Math.min(c.x - half, b.x);
+    const y0 = Math.min(c.y - half, b.y);
+    const x1 = Math.max(c.x + half, b.x + b.w - 1);
+    const y1 = Math.max(c.y + half, b.y + b.h - 1);
+    // Two cells thick: an ink outer line with a yellow line inside it, so it reads on cream.
+    const out = found ? 2 : 3;
+    for (const [color, pad] of [[INK, out], [YELLOW, out - 1]] as const) {
+      const l0 = x0 - pad;
+      const r0 = x1 + pad;
+      const t0 = y0 - pad;
+      const b0 = y1 + pad;
+      const arm = 3 + pad;
       for (const [cx, cy, sx, sy] of [[l0, t0, 1, 1], [r0, t0, -1, 1], [l0, b0, 1, -1], [r0, b0, -1, -1]] as const)
-        for (let k = 0; k < 3; k++) {
+        for (let k = 0; k < arm; k++) {
           px.set(cx + sx * k, cy, color);
           px.set(cx, cy + sy * k, color);
         }

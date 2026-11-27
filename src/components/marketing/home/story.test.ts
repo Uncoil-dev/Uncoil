@@ -10,7 +10,7 @@ import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanA
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
 import { promptFor } from "./prompt.ts";
 import { snapCell, targetCell } from "./grid.ts";
-import { PLATE, boardBox, ropeCells, tailCells, whereLayout } from "./where-layout.ts";
+import { PLATE, boardBox, ropeCells, scanStop, tailCells, whereLayout } from "./where-layout.ts";
 import { pebbles } from "./soil.ts";
 import { PLANK_LEFT, PLANK_STUB, spriteCells } from "./plank.ts";
 import { callCost, getModel } from "../../../lib/tools/models.ts";
@@ -199,4 +199,25 @@ test("the loose rope end under step 06 hangs down on phones instead of curling s
   assert.ok(tail.every(([x]) => x < b.x));
   // And it fits inside the figure.
   assert.ok(tail.every(([, y]) => y < l.rows));
+});
+
+test("the scan frame only ever sits on a step: 06, then 05, then 04", () => {
+  const stops = Array.from({ length: 101 }, (_, i) => scanStop(i / 100));
+  assert.deepEqual([...new Set(stops)], [5, 4, 3]);
+  assert.equal(scanStop(0), 5);
+  assert.equal(scanStop(1), 3);
+});
+
+test("the scan frame fits inside the figure on every step it visits", () => {
+  for (const vertical of [true, false]) {
+    const l = whereLayout(vertical ? 80 : 240, vertical);
+    for (const i of [3, 4, 5]) {
+      const c = l.centers[i];
+      const b = boardBox(l, i);
+      const half = PLATE >> 1;
+      assert.ok(Math.min(c.x - half, b.x) - 3 >= 0, `left edge, step ${i + 1}`);
+      assert.ok(Math.min(c.y - half, b.y) - 3 >= 0, `top edge, step ${i + 1}`);
+      assert.ok(Math.max(c.y + half, b.y + b.h - 1) + 3 < l.rows, `bottom edge, step ${i + 1}`);
+    }
+  }
 });

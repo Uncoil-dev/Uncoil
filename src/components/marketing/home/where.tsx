@@ -8,7 +8,7 @@ import { AFTER_EYEBROW, AFTER_HEADLINE, DUR, EASE, H2, LABEL, SECTION, WRAP } fr
 import { useCalm } from "./use-calm";
 import { useCell, useGridCanvas } from "./use-grid";
 import { ENTER, drawWhere, type IconName } from "./where-art";
-import { WHERE_ROWS, boardBox, whereLayout } from "./where-layout";
+import { WHERE_ROWS, boardBox, scanStop, whereLayout } from "./where-layout";
 import { segment } from "./math";
 
 // One example run, the same one the hero calls out. Step 4 is where it went wrong; step 6 is where it showed.
@@ -61,8 +61,8 @@ function Plate({ vertical, scan, className }: { vertical: boolean; scan: MotionV
           const c = l.centers[i];
           const above = !vertical && i % 2 === 0;
           const style = vertical
-            ? { left: (b.x + b.w + 3) * cell, top: (c.y + 0.5) * cell, transform: "translateY(-50%)" }
-            : { left: (c.x + 0.5) * cell, top: (above ? b.y - 1 : b.y + b.h + 1) * cell, transform: above ? "translate(-50%,-100%)" : "translateX(-50%)" };
+            ? { left: (b.x + b.w + 5) * cell, top: (c.y + 0.5) * cell, transform: "translateY(-50%)" }
+            : { left: (c.x + 0.5) * cell, top: (above ? b.y - 4 : b.y + b.h + 4) * cell, transform: above ? "translate(-50%,-100%)" : "translateX(-50%)" };
           return (
             <motion.p
               key={s.name + i}
@@ -93,7 +93,7 @@ export function Where() {
   const still = useMotionValue(1);
   const scan = calm ? still : scrolled;
   const [read, setRead] = useState(0);
-  useMotionValueEvent(scrolled, "change", (k) => setRead(k < 0.35 ? 0 : k < 0.92 ? 1 : 2));
+  useMotionValueEvent(scrolled, "change", (k) => setRead((5 - scanStop(k)) as 0 | 1 | 2));
   const line = calm ? 2 : read;
 
   return (

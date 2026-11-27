@@ -18,7 +18,7 @@ export function whereLayout(cols: number, vertical: boolean): WhereLayout {
   const centers = Array.from({ length: 6 }, (_, i) => {
     const wave = Math.round(Math.sin(i * 1.1) * (vertical ? 2 : 3));
     const drop = i === 5 ? 2 : 0;
-    return vertical ? { x: 8 + wave + drop, y: 10 + i * 28 } : { x: 10 + Math.round((i * (cols - 32)) / 5), y: 29 + wave + drop };
+    return vertical ? { x: 11 + wave + drop, y: 10 + i * 28 } : { x: 10 + Math.round((i * (cols - 32)) / 5), y: 29 + wave + drop };
   });
   return { vertical, cols, rows, centers };
 }
@@ -79,4 +79,9 @@ export function tailCells(l: WhereLayout): [number, number][] {
   const h = PLATE >> 1;
   if (l.vertical) return TAIL_DOWN.map(([dx, dy]) => [c.x + dx, c.y + h + dy]);
   return TAIL_ACROSS.map(([dx, dy]) => [c.x + h + dx, c.y + dy]);
+}
+
+/** Which plate (as an index into the steps) the scan frame sits on for a given scan progress. */
+export function scanStop(scan: number): 3 | 4 | 5 {
+  return scan < 0.35 ? 5 : scan < 0.92 ? 4 : 3;
 }

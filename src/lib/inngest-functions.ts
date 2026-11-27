@@ -8,7 +8,7 @@ import { persistSpan, type SpanEvent } from "@/lib/span-pipeline";
 import { getUncoilRegion } from "@/lib/regions";
 import { runRetention } from "@/lib/retention-job";
 import { sendTransactionalEmail } from "@/lib/transactional-email";
-import { renderNoTraceEmail } from "@/lib/email-templates";
+import { renderNoTraceEmail, renderNoTraceFollowUpEmail } from "@/lib/email-templates";
 
 /**
  * Milestone 2 activation pipeline:
@@ -102,7 +102,13 @@ export const onboardingReminder = inngest.createFunction(
     const origin = getUncoilRegion().origin;
     const email = renderNoTraceEmail({ name: event.data.name, projectName: event.data.projectName, projectId: event.data.projectId, origin });
     await step.run("send-reminder", async () => sendTransactionalEmail({ to: event.data.email, ...email, idempotencyKey: `onboarding-reminder-${event.data.projectId}` }));
-    return { skipped: false };
+    // Day three: one shorter follow-up from the founder, only if there is still no trace.
+    await step.sleep("wait-two-more-days", "2d");
+    const later = await step.run("check-activation-again", async () => getConvexClient().query(api.agentRuns.getProjectOnboardingState, { projectId: event.data.projectId as Id<"projects"> }));
+    if (later?.hasReceivedFirstSpan) return { skipped: false, followUp: false };
+    const followUp = renderNoTraceFollowUpEmail({ name: event.data.name, projectId: event.data.projectId, origin });
+    await step.run("send-follow-up", async () => sendTransactionalEmail({ to: event.data.email, ...followUp, idempotencyKey: `onboarding-follow-up-${event.data.projectId}` }));
+    return { skipped: false, followUp: true };
   },
 );
 

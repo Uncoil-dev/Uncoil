@@ -1,14 +1,11 @@
-// The setup prompt and the by-hand route. The prompt matches the one the previous homepage hands
-// out (src/components/marketing/landing/agent-setup.tsx); the by-hand snippets follow the
+// The setup prompt and the by-hand route. The steps come from the shared setup-prompt module, so the
+// homepage, the earlier homepage and the phone menu hand out the same instructions; the by-hand snippets follow the
 // quickstarts in packages/ts-sdk/README.md and packages/python-sdk/README.md (`init()` traces
 // OpenAI and Anthropic calls with no wrapping).
 
-export const SETUP_STEPS = [
-  "Install the Uncoil SDK: `@uncoil.dev/sdk` for a JavaScript or TypeScript project, `uncoil-sdk` for a Python project.",
-  "Run `npx @uncoil.dev/sdk login` so I can sign in or sign up in the browser and pick this project.",
-  "Add the one-line init() call at the start of the app.",
-  "Run `npx @uncoil.dev/sdk doctor` (JavaScript or TypeScript) or `python -m uncoil doctor` (Python), then send one test trace and tell me where to see it.",
-] as const;
+import { SETUP_STEPS } from "../landing/setup-prompt.ts";
+
+export { SETUP_STEPS };
 
 export const AGENTS = ["Claude Code", "Cursor", "Codex"] as const;
 export type Agent = (typeof AGENTS)[number];

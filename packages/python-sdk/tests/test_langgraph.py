@@ -132,3 +132,25 @@ def test_real_graph_interrupt_ends_the_run_as_paused_not_failed():
     root, = spans(recorder, "run_end")
     node, = spans(recorder, "agent")
     assert root["metadata"]["interrupted"] is True and node["metadata"]["interrupted"] is True
+
+
+
+def test_real_retriever_run_emits_one_retrieval_span():
+    from langchain_core.documents import Document
+    from langchain_core.retrievers import BaseRetriever
+
+    sys.modules.pop("uncoil.langgraph", None)
+    from uncoil.langgraph import UncoilCallbackHandler
+
+    class Docs(BaseRetriever):
+        def _get_relevant_documents(self, query, *, run_manager):
+            return [Document(page_content=f"about {query}")]
+
+    recorder = Recorder()
+    with uncoil.span("agent", type="agent", client=recorder):
+        Docs().invoke("refunds", config={"callbacks": [UncoilCallbackHandler(client=recorder)]})
+
+    retrieval, = spans(recorder, "retrieval")
+    assert retrieval["toolName"] == "Docs"
+    assert "refunds" in retrieval["input"] and "about refunds" in retrieval["output"]
+    assert retrieval["parentSpanId"] == spans(recorder, "agent")[0]["spanId"]

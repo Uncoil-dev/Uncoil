@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { RunsTable } from "./runs-table";
 import { OrchestrationSavings } from "./orchestration-savings";
+import { spendDetail } from "./overview-metrics";
 import { FailOpenAlert } from "./fail-open-alert";
 import { useProjectStats } from "@/hooks/use-project-stats";
 import { AnalyticsRefreshControl } from "./analytics-refresh-control";
@@ -137,13 +138,6 @@ export function DashboardOverview({ projectId }: DashboardOverviewProps) {
   const dailyCosts = analyticsDailyCosts.length
     ? analyticsDailyCosts
     : buildDailyCostSeries(range, recentRuns);
-
-  const latestDailySpend = dailyCosts.at(-1)?.totalCostUsd ?? 0;
-
-  const couldHaveSavedUsd = dailyCosts.reduce(
-    (sum, day) => sum + Math.max(day.totalCostUsd - latestDailySpend, 0),
-    0,
-  );
 
   const activeRuns = summary?.totals.activeRuns ?? recentRuns.filter((r) => r.status === "running").length;
 
@@ -268,7 +262,7 @@ export function DashboardOverview({ projectId }: DashboardOverviewProps) {
           value={formatGraphCurrency(totalSpend)}
           icon={DollarSign}
           href={`/dashboard/${projectId}/costs`}
-          detail={useSavedFallback ? "Saved summary" : `Could save ${formatGraphCurrency(couldHaveSavedUsd)}`}
+          detail={spendDetail(range, Boolean(useSavedFallback))}
         />
         <DashboardMetric
           label="Spans"

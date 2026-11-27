@@ -842,6 +842,66 @@ def get_weather(city: str) -> str:
     ],
   },
   {
+    slug: "agno",
+    name: "Agno",
+    title: "Trace Agno agents",
+    description: "Trace Agno agents in Uncoil: every OpenAI model call, tool call, token count and failure in one run. Python setup with copy-paste code.",
+    answer: "To trace an Agno agent with Uncoil, call uncoil.init() once at startup and wrap agent.run in trace_agent. Every model call Agno makes through the OpenAI library joins one run, and trace_tools adds your tools as steps.",
+    captures: ["One run per agent.run call", "OpenAI model calls with tokens and time", "Tool calls with input and output", "Errors in the order they happened"],
+    language: "python",
+    code: `import uncoil
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+
+uncoil.init()  # once, at startup
+
+agent = Agent(model=OpenAIChat(id="gpt-4o-mini"))
+
+@uncoil.trace_agent(name="agno-support")
+def ask(question: str) -> str:
+    return agent.run(question).content`,
+    steps: [
+      { title: "Install", body: "The Uncoil SDK sits next to Agno and the OpenAI library that Agno's OpenAI models use.", language: "bash", code: `pip install uncoil-sdk agno openai`, time: "1 min" },
+      KEY_STEP,
+      { title: "Switch tracing on", body: "Call init() once at startup. Agno's OpenAIChat model calls OpenAI through the official library, so every model call it makes is recorded with tokens, time and errors.", language: "python", code: `import uncoil
+
+uncoil.init()`, time: "1 min" },
+      { title: "Wrap the run and your tools", body: "trace_agent turns one agent.run call into one run. Wrap each tool function with trace_tools before you hand it to the agent; the docstring and type hints are kept, so Agno builds the same tool description.", language: "python", code: `import uncoil
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+
+uncoil.init()
+
+def get_order(order_id: str) -> str:
+    """Look up an order by id."""
+    return fetch_order(order_id)
+
+tools = uncoil.trace_tools({"get_order": get_order})
+
+agent = Agent(
+    model=OpenAIChat(id="gpt-4o-mini"),
+    tools=[tools["get_order"]],
+    instructions="Answer in one sentence.",
+)
+
+@uncoil.trace_agent(name="agno-support")
+def ask(question: str) -> str:
+    return agent.run(question).content
+
+print(ask("Where is order A1?"))`, time: "2 min" },
+      verify("Your agent run"),
+    ],
+    notes: [
+      { title: "Which model calls are recorded", body: "init() records calls that go through the official OpenAI and Anthropic libraries. An Agno model that reaches its provider another way is not recorded by init(); the run and your traced tools still are." },
+    ],
+    doc: "python",
+    faq: [
+      { q: "Does tracing change what my Agno agent does?", a: "No. The SDK records a copy of each call and passes your request and the answer through unchanged. If Uncoil is unreachable, the agent keeps running." },
+      { q: "Will I see each tool call?", a: "Yes, for tools wrapped with trace_tools. Each call is its own step between the model calls, with its input, output and time." },
+      { q: "Do I need to change my agent?", a: "No. init(), one decorator around agent.run and trace_tools around your functions are enough. Instructions and models stay as they are." },
+    ],
+  },
+  {
     slug: "nextjs",
     name: "Next.js",
     title: "Trace Next.js AI routes and Server Actions",

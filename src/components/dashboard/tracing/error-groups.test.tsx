@@ -21,4 +21,26 @@ describe("ErrorGroupsPanel", () => {
     expect(rowFor(html, "fresh")).toContain(">New<");
     expect(rowFor(html, "old")).not.toContain(">New<");
   });
+
+  const render = (groups: ErrorGroup[], extra: Record<string, unknown> = {}) => renderToStaticMarkup(createElement(ErrorGroupsPanel, {
+    data: { total: groups.length, groups }, open: true, loading: false, clock, onToggle: () => {}, onSelect: () => {}, ...extra,
+  }));
+
+  it("hides resolved groups until Show resolved is on, and offers Resolve only on open ones", () => {
+    const groups = [{ ...group("open", "2026-11-20 01:00:00"), resolved: false }, { ...group("done", "2026-11-20 01:00:00"), resolved: true }];
+    const hidden = render(groups, { onResolve: () => {}, onToggleShowResolved: () => {}, showResolved: false });
+    expect(hidden).toContain("limit open");
+    expect(hidden).not.toContain("limit done");
+    expect(hidden).toContain("Show resolved");
+    const shown = render(groups, { onResolve: () => {}, onToggleShowResolved: () => {}, showResolved: true });
+    expect(shown).toContain("limit done");
+    expect(rowFor(shown, "done")).not.toContain(">Resolve<");
+    expect(rowFor(shown, "open")).toContain(">Resolve<");
+  });
+
+  it("tags groups that reopened as Came back", () => {
+    const html = render([{ ...group("back", "2026-11-20 01:00:00"), cameBack: true }, group("plain", "2026-11-20 01:00:00")]);
+    expect(rowFor(html, "back")).toContain(">Came back<");
+    expect(rowFor(html, "plain")).not.toContain(">Came back<");
+  });
 });

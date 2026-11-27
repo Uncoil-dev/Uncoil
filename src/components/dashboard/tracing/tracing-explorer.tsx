@@ -4,7 +4,10 @@ import { SavedViews } from "./saved-views";
 import { DEMO_BASE_PATH, DEMO_PROJECT_ID } from "@/lib/demo/demo-config";
 import { columnsFromUrl } from "@/lib/saved-view-state";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import { useMutation } from "convex/react";
+import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
 import { stepLabel } from "./agent-map";
 import { PAGE_SIZES, listPaging } from "./format";
 import { traceCsv } from "@/lib/trace-csv";
@@ -66,6 +69,22 @@ function readColumns(): string[] {
     if (Array.isArray(stored)) return orderColumns(stored.filter((id): id is string => typeof id === "string" && isKnownColumn(id)));
   } catch {}
   return DEFAULT_COLUMNS;
+}
+
+type PanelProps = ComponentProps<typeof ErrorGroupsPanel>;
+
+/** The error groups list with resolving wired to the project; the public demo project stays read-only. */
+function GroupsPanel({ projectId, onResolved, onToggleShowResolved, ...props }: Omit<PanelProps, "onResolve"> & { projectId: string; onResolved: () => void }) {
+  if (projectId === DEMO_PROJECT_ID) return <ErrorGroupsPanel {...props} />;
+  return <ResolvableGroupsPanel projectId={projectId} onResolved={onResolved} onToggleShowResolved={onToggleShowResolved} {...props} />;
+}
+
+function ResolvableGroupsPanel({ projectId, onResolved, ...props }: Omit<PanelProps, "onResolve"> & { projectId: string; onResolved: () => void }) {
+  const resolve = useMutation(api.errorGroups.resolve);
+  return <ErrorGroupsPanel {...props} onResolve={async (group) => {
+    await resolve({ projectId: projectId as Id<"projects">, signature: group.id });
+    onResolved();
+  }} />;
 }
 
 export function TracingExplorer({ projectId, initialQuery }: { projectId: string; initialQuery: TraceQuery }) {
@@ -425,7 +444,8 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
           {chartMode ? null : <TracesOverTime histogram={data?.histogram} range={data?.range} onZoom={(from, to) => update({ from: String(from), to: String(to) })} />}
 
           {chartMode ? null : (
-            <ErrorGroupsPanel data={data ? data.errorGroups : undefined} open={errorsOpen} loading={loading} active={query.errorGroup} clock={clock}
+            <GroupsPanel projectId={projectId} data={data ? data.errorGroups : undefined} open={errorsOpen} loading={loading} active={query.errorGroup} clock={clock}
+              showResolved={query.showResolved === "1"} onResolved={() => setNow(Date.now())} onToggleShowResolved={() => update({ showResolved: query.showResolved === "1" ? "" : "1" })}
               onToggle={toggleErrors} onSuggest={(group) => { if (!group.sampleRunId) return; setFix({ runId: group.sampleRunId, question: fixQuestion(group) }); update({ trace: group.sampleRunId }, false); }} onSelect={(group) => { setPickedGroup({ id: group.id, label: errorGroupLabel(group) }); update({ errorGroup: query.errorGroup === group.id ? "" : group.id }); }} />
           )}
 

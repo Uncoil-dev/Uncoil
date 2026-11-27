@@ -50,11 +50,26 @@ function CopyMessage({ text }: { text: string }) {
   );
 }
 
-export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle, onSelect, onSuggest }: {
-  data: ErrorGroups | null | undefined; open: boolean; loading: boolean; active?: string; clock: number;
+function ResolveButton({ onResolve }: { onResolve: () => void | Promise<void> }) {
+  const [state, setState] = useState<"idle" | "busy" | "failed">("idle");
+  async function resolve() {
+    setState("busy");
+    try { await onResolve(); setState("idle"); } catch { setState("failed"); }
+  }
+  return (
+    <button type="button" disabled={state === "busy"} onClick={() => void resolve()} className="mb-1.5 ml-2 rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#C9CED6] hover:border-[#4A5260] disabled:opacity-60">
+      {state === "failed" ? "Could not resolve" : "Resolve"}
+    </button>
+  );
+}
+
+export function ErrorGroupsPanel({ data, open, loading, active, clock, showResolved = false, onToggle, onSelect, onSuggest, onResolve, onToggleShowResolved }: {
+  data: ErrorGroups | null | undefined; open: boolean; loading: boolean; active?: string; clock: number; showResolved?: boolean;
   onToggle: () => void; onSelect: (group: ErrorGroup) => void; onSuggest?: (group: ErrorGroup) => void;
+  /** Marks a group resolved; without it the list is read-only. */
+  onResolve?: (group: ErrorGroup) => void | Promise<void>; onToggleShowResolved?: () => void;
 }) {
-  const groups = data?.groups ?? [];
+  const groups = (data?.groups ?? []).filter((group) => showResolved || !group.resolved);
   return (
     <section aria-label="Error groups" aria-busy={loading} className="mx-4 mt-3 rounded-lg border border-[#1F242C] bg-[#0E1115]">
       <h2 className="m-0">
@@ -65,6 +80,13 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle,
           <span className="ml-auto hidden sm:inline">similar errors grouped (ids, emails, links and values ignored) · click to filter</span>
         </button>
       </h2>
+      {open && onToggleShowResolved ? (
+        <div className="border-t border-[#1F242C] px-3 py-1.5">
+          <button type="button" aria-pressed={showResolved} onClick={onToggleShowResolved} className="rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#C9CED6] hover:border-[#4A5260]">
+            {showResolved ? "Hide resolved" : "Show resolved"}
+          </button>
+        </div>
+      ) : null}
       {!open ? null : data === undefined || (data === null && loading) ? (
         <p className="border-t border-[#1F242C] px-4 py-3 text-xs text-[#8B93A1]">Loading error groups…</p>
       ) : data === null ? (
@@ -82,7 +104,9 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle,
                   <span className="rounded bg-[#3A1C1F] px-2 py-0.5 font-mono text-xs text-[#FF8A8A]" aria-label={`${group.count} errors`}>{compactNumber(group.count)}</span>
                   <span className="min-w-0">
                     <span className="block truncate text-[13px]"><span className="text-[#8AB4FF]">{group.tool || "—"}</span>{group.errorType ? <span className="text-[#8B93A1]"> · {group.errorType}</span> : null}
-                      {clock - parseTime(group.firstSeen) < NEW_GROUP_MS ? <span className="ml-2 rounded bg-[#F4D44D] px-1.5 py-px font-mono text-[10px] font-medium text-[#0B0D10]" title="First seen in the last 24 hours">New</span> : null}</span>
+                      {clock - parseTime(group.firstSeen) < NEW_GROUP_MS ? <span className="ml-2 rounded bg-[#F4D44D] px-1.5 py-px font-mono text-[10px] font-medium text-[#0B0D10]" title="First seen in the last 24 hours">New</span> : null}
+                      {group.cameBack ? <span className="ml-2 rounded border border-[#F4D44D] px-1.5 py-px font-mono text-[10px] font-medium text-[#F4D44D]" title="Resolved earlier, but seen again since">Came back</span> : null}
+                      {group.resolved ? <span className="ml-2 rounded border border-[#4A5260] px-1.5 py-px font-mono text-[10px] text-[#8B93A1]">Resolved</span> : null}</span>
                     <span className="block truncate font-mono text-[11px] text-[#C9CED6]">{group.message || "No message recorded"}</span>
                     {releaseLabel(group) ? <span className="block truncate font-mono text-[11px] text-[#8B93A1]">{releaseLabel(group)}</span> : null}
                   </span>
@@ -95,12 +119,13 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle,
                     </span>
                   </span>
                 </button>
-                {(onSuggest && group.sampleRunId) || groupCopyText(group) ? (
+                {(onSuggest && group.sampleRunId) || groupCopyText(group) || (onResolve && !group.resolved) ? (
                   <div className="ml-[3.25rem] flex">
                     {onSuggest && group.sampleRunId ? (
                       <button type="button" onClick={() => onSuggest(group)} className="mb-1.5 rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#F4D44D] hover:border-[#F4D44D]">Suggest a fix</button>
                     ) : null}
                     {groupCopyText(group) ? <CopyMessage text={groupCopyText(group)} /> : null}
+                    {onResolve && !group.resolved ? <ResolveButton onResolve={() => onResolve(group)} /> : null}
                   </div>
                 ) : null}
               </li>

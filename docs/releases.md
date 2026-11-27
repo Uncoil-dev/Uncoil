@@ -31,7 +31,7 @@ Every pull request description has a Changelog section: one ticked category and 
 - New sign-up question: "What do you want to fix with Uncoil?" on the first-project step. It is optional, and the team reads the answers in the admin page under Goals.
 
 ### Fixes
-- None.
+- The traces list topic filter is faster on repeat loads, and the list response now says when a topic was worked out from the newest traces only. The demo project's traces list respects the topic filter.
 
 ### SDK changes
 - None.

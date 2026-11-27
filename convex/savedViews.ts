@@ -37,11 +37,20 @@ async function access(ctx: QueryCtx | MutationCtx, projectId: Id<"projects">) {
     throw Error("Project not found or access denied");
   return identity.subject;
 }
+/** Like access, but for reads: returns null instead of throwing, so a query mounted on every dashboard page can't crash it. */
+async function readAccess(ctx: QueryCtx, projectId: Id<"projects">) {
+  try {
+    return await access(ctx, projectId);
+  } catch {
+    return null;
+  }
+}
 export const list = query({
   args: { projectId: v.id("projects") },
   returns: v.array(result),
   handler: async (ctx, { projectId }) => {
-    const ownerId = await access(ctx, projectId);
+    const ownerId = await readAccess(ctx, projectId);
+    if (!ownerId) return [];
     const [own, team] = await Promise.all([
       ctx.db
         .query("savedViews")
@@ -119,8 +128,9 @@ export const get = query({
   args: { projectId: v.id("projects"), id: v.id("savedViews") },
   returns: v.union(result, v.null()),
   handler: async (ctx, { projectId, id }) => {
-    const ownerId = await access(ctx, projectId),
-      row = await ctx.db.get(id);
+    const ownerId = await readAccess(ctx, projectId);
+    if (!ownerId) return null;
+    const row = await ctx.db.get(id);
     if (
       !row ||
       row.projectId !== projectId ||

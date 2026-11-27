@@ -58,6 +58,21 @@ def _request(method: str, url: str, timeout: float, headers: Optional[Dict[str, 
     return response.status_code
 
 
+def _get_json(url: str, timeout: float, headers: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
+    """Returns the JSON body of a successful GET, or None for any other answer or error."""
+    try:
+        try:
+            import httpx
+            response = httpx.get(url, headers=headers, timeout=timeout, follow_redirects=False)
+        except ImportError:
+            import requests
+            response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=False)
+        data = response.json() if 200 <= response.status_code < 300 else None
+    except Exception:
+        return None
+    return data if isinstance(data, dict) else None
+
+
 def _error_text(error: BaseException) -> str:
     text = str(error) or error.__class__.__name__
     return text if len(text) < 160 else text[:157] + "..."
@@ -109,6 +124,11 @@ def run_doctor(api_key: Optional[str] = None, region: Optional[str] = None, host
     except Exception as error:  # network trouble of any kind is the thing being diagnosed
         add("network", "Network", "fail", f"Could not reach {target} ({_error_text(error)}).", "Check your internet connection, firewall, proxy settings and the host setting.")
         return report()
+
+    # Which project does this key send to? Older servers have no such route, so anything unexpected is skipped.
+    who = _get_json(f"{target}/api/sdk/whoami", timeout, {"Authorization": f"Bearer {key}"})
+    if who and who.get("projectId"):
+        add("project", "Project", "ok", f"Traces will land in: {who.get('projectName') or who['projectId']}")
 
     if not send:
         add("trace", "Test trace", "skip", "Skipped (--no-send).")

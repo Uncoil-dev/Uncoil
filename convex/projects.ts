@@ -111,7 +111,7 @@ export function canAdminProject(
   );
 }
 
-function validateSlackWebhookUrl(value: string | undefined) {
+export function validateSlackWebhookUrl(value: string | undefined) {
   if (!value) return undefined;
 
   let parsed: URL;
@@ -132,7 +132,7 @@ function validateSlackWebhookUrl(value: string | undefined) {
   return value;
 }
 
-function validateTeamsWebhookUrl(value: string | undefined) {
+export function validateTeamsWebhookUrl(value: string | undefined) {
   if (!value) return undefined;
 
   let parsed: URL;

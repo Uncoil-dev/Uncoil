@@ -22,6 +22,12 @@ for (const file of ["changelog/page.tsx", "roadmap/page.tsx", "status/page.tsx",
   test(`${file} ships full social metadata`, () => assert.match(read(`${app}/${file}`), /pageMetadata\(/));
 }
 
+test("the tools hub description fits search results without trimming or padding", async () => {
+  const { fitDescription } = await import("../src/lib/seo.ts");
+  const description = read(`${app}/tools/page.tsx`).match(/description: "([^"]+)"/)[1];
+  assert.equal(fitDescription(description), description);
+});
+
 test("root layout does not force a homepage og:url on every page", () => {
   assert.doesNotMatch(read(`${app}/layout.tsx`), /url: "\/",\s*\n\s*locale/);
 });
@@ -82,4 +88,9 @@ test("old domain redirects keep the method for non-GET requests", () => {
   const proxy = read("src/proxy.ts");
   assert.match(proxy, /308/);
   assert.match(proxy, /cloud\\\.tracify\\\.tech/);
+});
+
+test("product pages link the demo at its final URL, not the redirecting /demo front door", () => {
+  // /demo redirects twice before landing on /demo/project (see src/lib/app-links.ts).
+  assert.doesNotMatch(read(`${app}/product/[feature]/page.tsx`), /["'`]\/demo["'`]/);
 });

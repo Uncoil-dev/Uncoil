@@ -20,6 +20,8 @@ yarn add @uncoil.dev/sdk
 npx @uncoil.dev/sdk login
 ```
 
+   Next.js loads `.env.local` for you, so the key is picked up there. Plain Node does not, so start your app with `node --env-file=.env.local app.js` (Node 20.6 or later) or load the file with dotenv.
+
 2. Or copy a key from the [API keys page](https://www.uncoil.dev/dashboard/api-keys) and set it as an environment variable:
 
 ```bash
@@ -31,6 +33,8 @@ export UNCOIL_API_KEY=uncoil_sk_live_...
 # Windows PowerShell
 $env:UNCOIL_API_KEY="uncoil_sk_live_..."
 ```
+
+The SDK sends to the region your key belongs to, so a US key needs no extra setting. Set `region` (or `UNCOIL_REGION`) only to pin a region; a key from the other region then fails with `region_mismatch`.
 
 3. Instrument your agent:
 
@@ -229,6 +233,8 @@ export async function POST(request: Request) {
 Spans that report an error are kept even when their run was not sampled (`keepErrors: false` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, set `redact: { pii: false }`.
 
 When a project reaches its monthly or daily plan limit, `onError` gets a `plan_limit_reached` or `daily_limit_reached` error that says when data is saved again and links to the plans page. A lower `sampleRate` does not lift a plan limit.
+
+When a run wrapped in `traceAgent` fails, the SDK prints one line with the step that failed and a link to the run, for example `Uncoil: run failed at step "search_docs" -> https://eu.cloud.uncoil.dev/dashboard/<project>/tracing/<run>`. The link needs the project id (`projectId` or `UNCOIL_PROJECT_ID`, which `login` saves); without it the line shows the run id instead. Passing runs print nothing. The line is off when `NODE_ENV` or `environment` is `"production"`; set `failureLinks: false` (or `true`) to choose yourself.
 
 ### Sign in from the terminal
 

@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/marketing/page-header";
 import { Reveal } from "@/components/marketing/landing/reveal";
 import { ClosingBand, CreamBand, Eyebrow, HeaderAction, SectionTitle , StatStrip } from "@/components/marketing/company/blocks";
 
-export const metadata = pageMetadata({ title: "Uncoil status: uptime and incidents", description: "Live operational status for Uncoil ingestion, dashboards and API, with regional health checks for the US and EU clouds.", path: "/status" });
+export const metadata = pageMetadata({ title: "Uncoil status: live EU check and incident reports", description: "A live health check for the Uncoil EU cloud, run from your browser, plus how to report incidents. Automated uptime history is not public yet.", path: "/status" });
 
 const services = [
   { name: "Dashboard + authentication", owner: "Application", icon: Activity },
@@ -32,7 +32,7 @@ export default function StatusPage() {
         <HeaderAction href="mailto:hello@uncoil.dev?subject=Service%20incident">Report an incident</HeaderAction>
         <HeaderAction href="/security" kind="secondary">How we handle incidents</HeaderAction>
       </PageHeader>
-      <StatStrip stats={[["2","Surfaces probed live"],["EU","Region online"],["Manual","Review until monitors land"],["Human","Reply to every report"]]} />
+      <StatStrip stats={[["1","Regional probe, live"],["EU","Only region available"],["Manual","Review until monitors land"],["Human","Reply to every report"]]} />
 
       <RegionalStatusBoard />
 

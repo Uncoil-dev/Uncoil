@@ -895,4 +895,43 @@ export default defineSchema({
   })
     .index("by_token", ["token"])
     .index("by_stripeSessionId", ["stripeSessionId"]),
+
+  // One stored topic map per project; topics and per-run summaries live in their own tables.
+  topicMaps: defineTable({
+    projectId: v.id("projects"),
+    filters: v.record(v.string(), v.string()),
+    facets: v.array(v.string()),
+    sampleRate: v.number(),
+    status: v.union(
+      v.literal("building"),
+      v.literal("ready"),
+      v.literal("failed"),
+      v.literal("paused"),
+    ),
+    builtAt: v.number(),
+    // Plain-language note: why the map is paused, or how many more traces it needs.
+    message: v.optional(v.string()),
+    // Live maps are rebuilt every day.
+    live: v.optional(v.boolean()),
+  }).index("by_projectId", ["projectId"]),
+
+  topics: defineTable({
+    projectId: v.id("projects"),
+    facet: v.string(),
+    name: v.string(),
+    description: v.string(),
+    count: v.number(),
+    share: v.number(),
+    sampleRunIds: v.array(v.string()),
+  }).index("by_projectId", ["projectId"]),
+
+  // Per-run facet summaries, kept across topic rebuilds so a run is summarized once.
+  traceSummaries: defineTable({
+    projectId: v.id("projects"),
+    runId: v.string(),
+    intent: v.string(),
+    sentiment: v.string(),
+    outcome: v.string(),
+    issues: v.array(v.string()),
+  }).index("by_projectId_and_runId", ["projectId", "runId"]),
 });

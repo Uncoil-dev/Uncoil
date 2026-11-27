@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   chatMessages,
   compactNumber,
+  listPaging,
   formatCost,
   formatDuration,
   formatTime,
@@ -11,8 +12,10 @@ import {
   parseTime,
   previewText,
   relativeTime,
+  stepRowLabel,
   stepKind,
   toCsv,
+  traceRowLabel,
 } from "./format.ts";
 
 test("formatDuration: zero, negative and invalid values collapse to 0 ms", () => {
@@ -69,6 +72,13 @@ test("compactNumber: small, zero, negative and large values", () => {
   assert.equal(compactNumber(1e15), "1000T");
 });
 
+test("listPaging: keeps known page sizes and a non-negative page, and falls back otherwise", () => {
+  assert.deepEqual(listPaging({ page: "2", pageSize: "100" }), { page: 2, pageSize: 100 });
+  assert.deepEqual(listPaging({}), { page: 0, pageSize: 50 });
+  assert.deepEqual(listPaging({ page: "-3", pageSize: "abc" }), { page: 0, pageSize: 50 });
+  assert.deepEqual(listPaging({ page: "1.5", pageSize: "30" }), { page: 0, pageSize: 50 });
+});
+
 test("parseTime: treats space-separated timestamps as UTC", () => {
   assert.equal(parseTime("2024-01-02 03:04:05"), Date.UTC(2024, 0, 2, 3, 4, 5));
   assert.equal(parseTime("2024-01-02T03:04:05Z"), Date.UTC(2024, 0, 2, 3, 4, 5));
@@ -105,6 +115,12 @@ test("relativeTime: buckets by elapsed time", () => {
   assert.equal(relativeTime("2024-01-02 09:00:00", now), "3h ago");
   assert.doesNotMatch(relativeTime("2023-12-01 09:00:00", now), /ago|just now/);
   assert.equal(relativeTime("garbage", now), "garbage");
+});
+
+test("stepRowLabel: names the step, its type, its status and when it ran for screen readers", () => {
+  const at = "2026-11-20T10:15:00Z";
+  assert.equal(stepRowLabel({ name: "search_docs", type: "tool", errors: 0, createdAt: at }), `search_docs, tool, succeeded, ${formatTime(at)}`);
+  assert.equal(stepRowLabel({ name: "gpt-5 call", type: "llm", errors: 3, createdAt: at }), `gpt-5 call, llm, failed, ${formatTime(at)}`);
 });
 
 test("toCsv: quotes cells, escapes quotes and neutralises formulas", () => {
@@ -149,4 +165,10 @@ test("stepKind: maps aliases, lowercases and tolerates empty input", () => {
   assert.equal(stepKind("retriever"), "retriever");
   assert.equal(stepKind(""), "");
   assert.equal(stepKind(undefined as unknown as string), "");
+});
+
+test("traceRowLabel: names the trace, its status and its start time for screen readers", () => {
+  const started = "2026-11-20T10:15:00Z";
+  assert.equal(traceRowLabel({ traceName: "checkout agent", runId: "run_1", errorCount: 0, startedAt: started }), `checkout agent, succeeded, ${formatTime(started)}`);
+  assert.equal(traceRowLabel({ traceName: "", runId: "run_abcdefghijklmnop", errorCount: 2, startedAt: started }), `run_abcdefgh, failed, ${formatTime(started)}`);
 });

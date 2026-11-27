@@ -39,3 +39,10 @@ test("llms.txt docs links point at existing docs pages", async () => {
   assert.ok(docLinks.length > 0, "llms.txt should link individual docs pages");
   for (const slug of docLinks) assert.ok(slugs.has(slug), `llms.txt links a missing doc: /docs/${slug}`);
 });
+
+test("llms.txt lists the start-here setup docs", async () => {
+  const source = await readFile(LLMS_PATH, "utf8");
+  for (const slug of ["quickstart", "cli", "data-regions"]) {
+    assert.ok(source.includes(`(${CANONICAL_ORIGIN}/docs/${slug})`), `llms.txt should list /docs/${slug}`);
+  }
+});

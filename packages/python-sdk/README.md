@@ -100,6 +100,8 @@ Feedback and typed scores need the project id. The client reads `UNCOIL_PROJECT_
 
 ```python
 client = UncoilClient(project_id="your-project-id")
+run_agent("Where is my order?")   # a function decorated with @uncoil.trace_agent
+run_id = uncoil.last_run_id()     # the run that call just recorded
 client.feedback(run_id, True, kind="thumb", comment="Helpful answer")
 client.score(run_id, "answer_quality", 0.92, data_type="numeric")
 ```
@@ -146,13 +148,13 @@ graph.invoke(inputs, config={"callbacks": [uncoil.langgraph_callback()]})
 ```
 
 Wrap sync or async clients once. Supported: OpenAI chat completions and Responses `create` APIs,
-including streams; Anthropic messages `create`/`stream` and beta equivalents, including sync/async
+including streams; OpenAI `embeddings.create` as a retrieval step (token usage and the number of vectors, not the vectors); Anthropic messages `create`/`stream` and beta equivalents, including sync/async
 context managers, text streams and final messages. Close streams when stopping early. Raw response
 resources and unsupported convenience methods are passed through without instrumentation. A model call that stopped at its token limit (OpenAI `finish_reason="length"`, Anthropic `stop_reason="max_tokens"`) gets the tag `truncated`.
 
 Calls inside `trace_agent`/`span` inherit their run/parent and custom client. Standalone calls receive
-an independent completed root. LangGraph callbacks preserve graph/node/tool/model parent IDs and
-concurrent runs. A LangGraph `interrupt()` ends the run as paused (`metadata.interrupted`), not failed. Avoid using both framework model callbacks and a provider wrapper for the same call.
+an independent completed root. LangGraph callbacks preserve graph/node/tool/retriever/model parent IDs and
+concurrent runs, and record retriever calls as retrieval steps with the query and returned documents. A LangGraph `interrupt()` ends the run as paused (`metadata.interrupted`), not failed. Avoid using both framework model callbacks and a provider wrapper for the same call.
 Provider packages remain optional; newer framework extras may require a newer Python than the core SDK.
 
 Options: `client=custom_client`, `name="my-agent"`, `capture_input=False`, `capture_output=False`.
@@ -199,6 +201,16 @@ If no API key is set, the client prints one warning and records nothing; decorat
 
 Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, pass `redact={"pii": False}`.
 
+## Sending spans in the background
+
+Spans are queued and sent from a background thread, so tracing never waits on the network. Spans still queued when the program exits get up to two seconds to send. In short scripts, serverless handlers or workers that are frozen between requests, call `flush()` before returning:
+
+```python
+uncoil.flush(timeout=5)  # waits for every client; client.flush() waits for one. Returns False if spans were still waiting.
+```
+
+Up to 1,000 spans can wait at once; past that, new spans are dropped and reported once through `on_error` (code `queue_full`).
+
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:
@@ -207,4 +219,4 @@ Not seeing traces? One command checks your key, region and network, then sends a
 uncoil doctor            # or: uncoil-doctor, or python -m uncoil doctor
 ```
 
-It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. If the key is missing from the environment but `.env.local` or `.env` in the current folder sets it, the check names that file so you can export the variable or load the file (for example with python-dotenv). It never prints the key. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan.
+It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. If the key is missing from the environment but `.env.local` or `.env` in the current folder sets it, the check names that file so you can export the variable or load the file (for example with python-dotenv). It never prints the key. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan. It also tells you which project traces will land in (`Traces will land in: <name>`).

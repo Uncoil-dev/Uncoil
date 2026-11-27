@@ -6,8 +6,10 @@ import { columnsFromUrl } from "@/lib/saved-view-state";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { stepLabel } from "./agent-map";
+import { PAGE_SIZES, listPaging } from "./format";
 import { traceCsv } from "@/lib/trace-csv";
 import { EXCLUDE_PREFIX, parseSearch } from "@/lib/trace-search";
+import { LoadError } from "./load-error";
 import { SearchBox } from "./search-box";
 import { FeedbackCell, useFeedback, type FeedbackState } from "./feedback";
 import { RANGES, TimeRangePicker } from "./time-range-picker";
@@ -17,9 +19,11 @@ import { FirstTraceEmpty } from "../first-trace-empty";
 import { TraceCharts, TracesOverTime, type ChartBucket } from "./trace-charts";
 import { ErrorGroupsPanel, errorGroupLabel, fixQuestion, type ErrorGroups } from "./error-groups";
 import { FACETS, FacetGroup, decodeValues, encodeValues, type FacetCounts } from "./facet-filter";
+import { LiveToggle, useTracingLive } from "./live-toggle";
 import { TRACE_VIEWS, TracePanel, type TraceView } from "./trace-panel";
-import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime } from "./format";
+import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime, traceRowLabel } from "./format";
 import { EmptyNotice } from "../empty/empty-notice";
+import { loadErrorMessage, readJson } from "@/lib/safe-json";
 
 type TraceRow = TraceRowExtras & {
   runId: string; traceName: string; startedAt: string; durationMs: number; spanCount: number; errorCount: number;
@@ -29,6 +33,8 @@ type TraceRow = TraceRowExtras & {
 type Stats = { traces: number; errors: number; p50DurationMs: number; p95DurationMs: number; totalCostUsd: number; inputTokens: number; outputTokens: number; runningTraces: number };
 type ListResponse = {
   rows: TraceRow[]; total: number; page: number; pageSize: number;
+  /** The topic filter was worked out from the newest traces only. */
+  sampled?: boolean;
   histogram: { bucketSeconds: number; buckets: ChartBucket[] }; stats?: Stats; facets?: FacetCounts | null;
   errorGroups?: ErrorGroups | null; range: { from: number; to: number }; error?: string;
 };
@@ -76,7 +82,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
   const [columns, setColumns] = useState<string[]>(DEFAULT_COLUMNS);
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [now, setNow] = useState(() => Date.now());
-  const [live] = useState(true);
+  const [live, setLive] = useTracingLive();
   const [clock, setClock] = useState(() => Date.now());
   const [fresh, setFresh] = useState<Set<string>>(() => new Set());
   const [errorsOpen, setErrorsOpen] = useState(true);
@@ -122,6 +128,10 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
     for (const [key, value] of Object.entries(query)) {
       if (!VIEW_KEYS.includes(key)) params.set(key, value);
     }
+    // Hand-edited URLs (?pageSize=abc, ?page=-3) are clamped before they reach the API.
+    const paging = listPaging(query);
+    if (query.page) params.set("page", String(paging.page));
+    if (query.pageSize) params.set("pageSize", String(paging.pageSize));
     return params;
   }, [query, now]);
   // The activity grid follows the filters but ignores the time range.
@@ -157,8 +167,9 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
     params.set("facets", "1");
     fetch(`/api/projects/${encodeURIComponent(projectId)}/traces?${params}`, { cache: "no-store" })
       .then(async (response) => {
-        const body = (await response.json()) as ListResponse;
-        if (!response.ok) throw new Error(body.error ?? `Request failed (${response.status})`);
+        const body = await readJson<ListResponse>(response);
+        // A proxy error page or an empty body has no rows; report its status instead of a JSON parse error.
+        if (!response.ok || !Array.isArray(body.rows)) throw new Error(loadErrorMessage(body, response.status, "Tracing"));
         return body;
       })
       .then((body) => {
@@ -231,8 +242,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
   }, [fresh]);
 
   const total = data?.total ?? 0;
-  const page = Number(query.page ?? 0);
-  const pageSize = Number(query.pageSize ?? 50);
+  const { page, pageSize } = listPaging(query);
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   const selectIndex = useCallback((delta: number) => {
@@ -348,6 +358,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
           onPreset={(id) => { setNow(Date.now()); update({ range: id, from: "", to: "" }); }}
           onCustom={(from, to) => { const current = Date.now(); setNow(current); update({ from: String(from), to: String(Math.min(to, current)) }); }}
           onReset={() => update({ from: "", to: "" })} />
+        <LiveToggle live={live} fixedWindow={Boolean(query.from || query.to)} onToggle={() => { if (!live) setNow(Date.now()); setLive(!live); }} />
         <button type="button" onClick={() => setNow(Date.now())} className="h-8 rounded-md border border-[#262C35] px-2.5 text-xs text-[#C9CED6] hover:border-[#4A5260]">Refresh</button>
       </header>
 
@@ -413,14 +424,10 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
           )}
 
           <div className="min-h-0 flex-1 overflow-auto px-4">
-            {chartMode ? (
-              error ? <p role="alert" className="my-6 text-sm text-[#FF8A8A]">{error}</p>
-                : <TraceCharts projectId={projectId} filterParams={activityParams} histogram={data?.histogram} range={data?.range} onZoom={(from, to) => update({ from: String(from), to: String(to) })} />
-            ) : error ? (
-              <div role="alert" className="my-6 rounded-lg border border-[#5A2A2A] bg-[#1E1314] p-4 text-sm">
-                <p className="font-medium text-[#FF8A8A]">{error}</p>
-                <button type="button" className="mt-3 rounded-md border border-[#5A2A2A] px-3 py-1.5 text-xs hover:bg-[#2A1A1C]" onClick={() => setNow(Date.now())}>Try again</button>
-              </div>
+            {error ? (
+              <LoadError message={error} onRetry={() => setNow(Date.now())} />
+            ) : chartMode ? (
+              <TraceCharts projectId={projectId} filterParams={activityParams} histogram={data?.histogram} range={data?.range} onZoom={(from, to) => update({ from: String(from), to: String(to) })} />
             ) : !loading && rows.length === 0 && !activeFilters.length && !query.q && projectId !== DEMO_PROJECT_ID ? (
               <FirstTraceEmpty projectId={projectId} title="Every run of your agent will land here" description="Each trace shows the steps, the model calls, what it cost and where it failed. Send one and this page fills in within seconds." />
             ) : !loading && rows.length === 0 ? (
@@ -448,9 +455,15 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
                 </thead>
                 <tbody className={loading ? "opacity-60" : ""}>
                   {rows.map((row) => (
-                    <tr key={row.runId} aria-selected={selected === row.runId}
+                    <tr key={row.runId} aria-selected={selected === row.runId} tabIndex={0} aria-label={traceRowLabel(row)}
                       className={`cursor-pointer transition-colors duration-700 ${selected === row.runId ? "bg-[#161B22] shadow-[inset_3px_0_0_#F4D44D]" : fresh.has(row.runId) ? "bg-[#1F2A1F]" : Number(row.errorCount) > 0 ? "bg-[#1A1012] shadow-[inset_3px_0_0_#FF8A8A] hover:bg-[#241518]" : "hover:bg-[#12161C]"}`}
-                      onClick={() => update({ trace: row.runId }, false)}>
+                      onClick={() => update({ trace: row.runId }, false)}
+                      onKeyDown={(event) => {
+                        // Enter or Space on the row itself opens it; keys on links and buttons inside the row keep their own action.
+                        if (event.target !== event.currentTarget || (event.key !== "Enter" && event.key !== " ")) return;
+                        event.preventDefault();
+                        update({ trace: row.runId }, false);
+                      }}>
                       {columns.map((id) => <td key={id} className="max-w-[320px] truncate border-b border-[#171B21] px-2.5 py-1.5 align-middle">{cell(id, row, update, clock, feedback, projectId, costScale)}</td>)}
                     </tr>
                   ))}
@@ -465,7 +478,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2">Rows
                 <select value={pageSize} onChange={(event) => update({ pageSize: event.target.value })} className="h-7 rounded-md border border-[#262C35] bg-[#111418] px-2 text-[#E6E9EE]">
-                  {[25, 50, 100, 200].map((size) => <option key={size} value={size}>{size}</option>)}
+                  {PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
                 </select>
               </label>
               <span>Page {page + 1} of {pageCount}</span>

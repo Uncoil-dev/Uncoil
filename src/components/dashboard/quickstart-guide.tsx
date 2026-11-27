@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, BookOpen, Check, Copy } from "lucide-react";
 
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { DitherEmber } from "@/components/marketing/landing/dither-ember";
+import { keyEnvLines } from "@/lib/quickstart-env";
 import { scoreSnippet } from "@/lib/score-snippets";
 import { getDeploymentRegion, getUncoilRegion } from "@/lib/regions";
 
@@ -17,7 +18,7 @@ type Lang = "python" | "typescript";
 type StepId = "method" | "prompt" | "install" | "instrument" | "key" | "verify";
 
 const STEP_INFO: Record<StepId, { label: string; title: string; hint: string }> = {
-  method: { label: "Start", title: "How do you want to connect?", hint: "Both take about five minutes. Pick what suits you." },
+  method: { label: "Start", title: "How do you want to connect?", hint: "Both take about two minutes. Pick what suits you." },
   prompt: { label: "Paste", title: "Paste this into your coding agent", hint: "Claude Code, Cursor or Codex will install, wire up and send the first trace." },
   install: { label: "Install", title: "Install the library", hint: "One package, no config files." },
   instrument: { label: "Instrument", title: "Instrument your agent", hint: "Put this at the top of your agent's main file. Every model call it makes is then recorded." },
@@ -32,9 +33,10 @@ const BARS = [
   { name: "llm.chat", left: 60, width: 38 },
 ] as const;
 
-export const SNIPPETS: Record<Lang, { install: string; code: string; file: string }> = {
+export const SNIPPETS: Record<Lang, { install: string; doctor: string; code: string; file: string }> = {
   python: {
     install: "pip install uncoil-sdk",
+    doctor: "python -m uncoil doctor",
     file: "agent.py",
     code: `import uncoil
 
@@ -45,6 +47,7 @@ uncoil.init()  # reads UNCOIL_API_KEY, traces OpenAI, Anthropic and LangChain
   },
   typescript: {
     install: "npm install @uncoil.dev/sdk",
+    doctor: "npx @uncoil.dev/sdk doctor",
     file: "agent.ts",
     code: `import { init } from "@uncoil.dev/sdk";
 
@@ -73,6 +76,11 @@ function useCopy() {
   return { done, copy };
 }
 
+/** Where the last setup step leads: the run that just arrived, or the tracing list while waiting. */
+export function lastStepHref(projectId: string, runId?: string) {
+  return runId ? `/dashboard/${projectId}/tracing/${encodeURIComponent(runId)}` : `/dashboard/${projectId}/tracing`;
+}
+
 export function QuickstartGuide({ projectId, apiKey, embedded = false }: { projectId: string; apiKey?: string; embedded?: boolean }) {
   const reduce = useReducedMotion();
   const region = getUncoilRegion(getDeploymentRegion());
@@ -81,7 +89,9 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
   const firstRun = useMemo(() => (runs ?? []).filter((run) => !run.runId.startsWith("onboarding-")).at(-1) ?? null, [runs]);
   const arrived = Boolean(firstRun);
 
-  const [lang, setLang] = useState<Lang>("python");
+  const updateProgress = useMutation(api.projects.updateOnboardingProgress);
+  const [pickedLang, setPickedLang] = useState<Lang | null>(null);
+  const lang: Lang = pickedLang ?? project?.onboardingSdk ?? "python";
   const [mode, setMode] = useState<"agent" | "manual">("agent");
   const [step, setStep] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -99,9 +109,13 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
     return () => window.clearInterval(id);
   }, [arrived, current]);
 
-  const keyLine = `UNCOIL_API_KEY=${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}\nUNCOIL_REGION=${region.id}`;
-  const envCopy = `UNCOIL_API_KEY=${apiKey || "YOUR_API_KEY"}\nUNCOIL_REGION=${region.id}`;
+  const shownEnv = keyEnvLines(`${project?.apiKeyPrefix || `uncoil_sk_live_${region.id}_`}••••••••${project?.apiKeyLast4 || "••••"}`, region.id);
+  const copyEnv = keyEnvLines(apiKey || "YOUR_API_KEY", region.id);
   const agentPrompt = `Set up Uncoil tracing in this project.\n\n1. Install: ${snippet.install}\n2. Wrap the main agent function with the Uncoil tracing helper and record each model call.\n3. Read UNCOIL_API_KEY and UNCOIL_REGION=${region.id} from the environment. Never print or commit the key.\n4. Run the agent once and tell me where to see the trace.`;
+  function pickLang(value: Lang) {
+    setPickedLang(value);
+    if (projectId) void updateProgress({ projectId: projectId as Id<"projects">, sdk: value }).catch(() => undefined);
+  }
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const ss = String(elapsed % 60).padStart(2, "0");
 
@@ -110,7 +124,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
       {/* Progress */}
       <div className="mb-3 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8a84]">
         <span>Setup · step {Math.min(step + 1, steps.length)} of {steps.length}</span>
-        <span>{arrived ? "Connected" : "About 5 minutes"}</span>
+        <span>{arrived ? "Connected" : "About 2 minutes"}</span>
       </div>
       <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }} aria-label="Setup progress">
         {steps.map((id, i) => (
@@ -149,7 +163,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
                   </div>
                   <div role="tablist" aria-label="Language" className="inline-flex gap-1 border border-[#333] bg-[#0c0c0c] p-1">
                     {(["python", "typescript"] as const).map((value) => (
-                      <button key={value} type="button" role="tab" aria-selected={lang === value} onClick={() => setLang(value)} className={`h-9 px-5 font-mono text-[11px] uppercase tracking-widest transition-colors ${lang === value ? "bg-[#f4f3ee] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{value}</button>
+                      <button key={value} type="button" role="tab" aria-selected={lang === value} onClick={() => pickLang(value)} className={`h-9 px-5 font-mono text-[11px] uppercase tracking-widest transition-colors ${lang === value ? "bg-[#f4f3ee] !text-[#090909]" : "text-[#8a8a84] hover:text-[#f4f3ee]"}`}>{value}</button>
                     ))}
                   </div>
                 </div>
@@ -165,12 +179,17 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
               ) : null}
               {current === "install" ? <Code code={snippet.install} id="install" file="terminal" copied={done === "install"} onCopy={() => copy("install", snippet.install)} /> : null}
               {current === "instrument" ? <Code code={snippet.code} id="code" file={snippet.file} copied={done === "code"} onCopy={() => copy("code", snippet.code)} /> : null}
-              {current === "key" ? <Code code={keyLine} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", envCopy)} /> : null}
+              {current === "key" ? (
+                <div className="space-y-4">
+                  <Code code={shownEnv.dotenv} id="env" file=".env" copied={done === "env"} onCopy={() => copy("env", copyEnv.dotenv)} />
+                  <Code code={shownEnv.powershell} id="powershell" file="Windows PowerShell" copied={done === "powershell"} onCopy={() => copy("powershell", copyEnv.powershell)} />
+                </div>
+              ) : null}
               {current === "verify" ? (
                 <div className="max-w-[560px] border border-[#3a3a3a] bg-[#000000cc] font-mono" role="status" aria-live="polite">
                   <div className="flex items-center justify-between border-b border-[#2a2a2a] px-4 py-3 text-[10px] uppercase tracking-[0.16em]">
                     <span className="flex items-center gap-2 text-[#eceae3]">
-                      <span className={`size-2 ${arrived ? "bg-[#5be3a0]" : "animate-pulse bg-[#f4d44d]"}`} />
+                      <span className={`size-2 bg-[#f4d44d] ${arrived ? "" : "animate-pulse"}`} />
                       {arrived ? "Trace received" : "Waiting for first trace"}
                     </span>
                     <span className="text-[#8a8a84]">{arrived ? "connected" : `${mm}:${ss}`}</span>
@@ -191,7 +210,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
                       </div>
                     ))}
                   </div>
-                  <div className="border-t border-[#2a2a2a] px-4 py-3 text-[11px] text-[#8a8a84]">{arrived ? "Your agent is connected." : "Nothing yet. Run your agent once."}</div>
+                  <div className="border-t border-[#2a2a2a] px-4 py-3 text-[11px] text-[#8a8a84]">{arrived ? "Your agent is connected." : <>Nothing yet? Run <code className="font-mono text-[#eceae3]">{snippet.doctor}</code> to check your setup.</>}</div>
                 </div>
               ) : null}
             </div>
@@ -202,7 +221,7 @@ export function QuickstartGuide({ projectId, apiKey, embedded = false }: { proje
             {!isLast ? (
               <button type="button" onClick={() => setStep((v) => v + 1)} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">Next <ArrowRight className="size-4" /></button>
             ) : (
-              <Link href={`/dashboard/${projectId}/tracing`} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">{arrived ? "Open your trace" : "Open tracing"} <ArrowRight className="size-4" /></Link>
+              <Link href={lastStepHref(projectId, firstRun?.runId)} className="inline-flex h-10 items-center gap-2 bg-[#f4d44d] px-6 font-mono text-[11px] uppercase tracking-[0.14em] !text-[#090909] transition-transform hover:-translate-y-0.5">{arrived ? "Open your trace" : "Open tracing"} <ArrowRight className="size-4" /></Link>
             )}
           </div>
         </motion.div>

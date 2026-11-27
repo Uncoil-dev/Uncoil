@@ -12,7 +12,7 @@ import { FrameworkSwitcher } from "@/components/marketing/company/framework-swit
 export const metadata = pageMetadata({ title: "AI agent integrations: trace OpenAI, LangChain, OTel", description: "Trace OpenAI, Anthropic, LangChain, LangGraph, CrewAI, LlamaIndex, AutoGen, Vercel AI SDK and OpenTelemetry agents in Uncoil, plus Slack alerts.", path: "/integrations" });
 
 const faqs = [
-  { q: "Which AI agent frameworks does Uncoil work with?", a: "Anything that speaks OpenTelemetry works through the OTLP endpoint. LangChain, CrewAI, LlamaIndex, AutoGen, Mastra, Pydantic AI and the OpenAI Agents SDK are covered through the Python and TypeScript SDKs or OTel instrumentation." },
+  { q: "Which AI agent frameworks does Uncoil work with?", a: "Anything that speaks OpenTelemetry works through the OTLP endpoint. LangChain, CrewAI, LlamaIndex, AutoGen, Mastra, Pydantic AI, Agno and the OpenAI Agents SDK are covered through the Python and TypeScript SDKs or OTel instrumentation." },
   { q: "Do I need to change my agent code to trace it?", a: "Usually a few lines: install the SDK, set a project key and wrap the client or add the OTel exporter. Provider calls such as OpenAI and Anthropic record model, latency, tokens and cost automatically." },
   { q: "Can I send traces from an OpenTelemetry setup I already have?", a: "Yes. Point an OTLP HTTP JSON exporter at Uncoil with your project key. See the ingest reference in the docs for the endpoint and headers." },
   { q: "Does Uncoil send alerts to Slack?", a: "Yes. Project alerts can post failures and threshold breaches to a validated Slack webhook." },

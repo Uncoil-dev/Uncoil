@@ -7,6 +7,7 @@ Copy one file into your project, install its packages, set your keys, and run it
 | `openai-agent.ts` | An OpenAI chat call with one tool, traced end to end | `npm install @uncoil.dev/sdk openai` | `UNCOIL_API_KEY`, `OPENAI_API_KEY` |
 | `anthropic-agent.ts` | The same with Anthropic | `npm install @uncoil.dev/sdk @anthropic-ai/sdk` | `UNCOIL_API_KEY`, `ANTHROPIC_API_KEY` |
 | `vercel-ai.ts` | The Vercel AI SDK with one line of setup | `npm install @uncoil.dev/sdk ai @ai-sdk/openai` | `UNCOIL_API_KEY`, `OPENAI_API_KEY` |
+| `vercel-ai-agent.ts` | A Vercel AI SDK agent with one tool, traced as one run | `npm install @uncoil.dev/sdk ai @ai-sdk/openai zod` | `UNCOIL_API_KEY`, `OPENAI_API_KEY` |
 | `langgraph-agent.ts` | A small LangGraph graph | `npm install @uncoil.dev/sdk @langchain/langgraph @langchain/core` | `UNCOIL_API_KEY` |
 | `private-by-default.ts` | Sampling and redaction turned on | `npm install @uncoil.dev/sdk` | `UNCOIL_API_KEY` |
 

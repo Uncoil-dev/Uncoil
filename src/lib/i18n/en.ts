@@ -119,7 +119,7 @@ export const en: Copy = {
         ["Spans per month", "10,000", "500,000", "2,000,000", "One span is one step your agent takes. Counts reset at the start of each UTC month."],
         ["Spans per day", "2,000", "No daily cap", "No daily cap", "On Free, one runaway loop cannot burn the whole month in a day."],
         ["At the monthly limit", "New data stops until next month", "10% buffer, then stops", "10% buffer, then stops", "You are never billed extra. Data already saved stays."],
-        ["Requests per minute", "600", "6,000", "6,000", "Per project."],
+        ["Requests per minute", "300", "6,000", "6,000", "Per project."],
         ["Span size", "256 KB, longer text is trimmed", "1 MB per request", "1 MB per request", "Trimmed spans still show up, just shortened."]
       ] },
       { title: "People and data", rows: [

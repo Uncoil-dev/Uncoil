@@ -9,6 +9,7 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 import { pricingCheckoutHref } from "@/lib/billing-links";
+import { trialLine } from "@/lib/checkout-trial";
 import { usageLevel } from "@/lib/plan-limits";
 import { planById, type PlanId } from "@/lib/pricing-plans";
 
@@ -27,7 +28,7 @@ export function UpgradeBanner({ projectId }: { projectId: string }) {
   if (level === "ok") return null;
   const ratio = usage.spans / plan.spanLimit;
 
-  const next = usage.planTier === "free" ? "pro" : usage.planTier === "pro" ? "team" : null;
+  const next = usage.planTier === "free" && usage.trialAvailable ? "pro" : usage.planTier === "pro" ? "team" : null;
   const over = level !== "warn";
   const percent = Math.min(999, Math.round(ratio * 100));
   const message = `You've used ${percent}% of this month's ${plan.spans} spans on the ${plan.name} plan.`;
@@ -46,6 +47,7 @@ export function UpgradeBanner({ projectId }: { projectId: string }) {
           : over
             ? "New data will pause soon. Upgrade to keep everything coming in."
             : "Upgrade before you run out."}
+        {usage.planTier === "free" ? ` ${trialLine()}.` : ""}
       </span>
       <Link
         href={next ? pricingCheckoutHref(next, "monthly") : "/contact"}

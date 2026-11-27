@@ -80,6 +80,7 @@ def test_network_failure_does_not_raise(monkeypatch):
     client._http = None
     monkeypatch.setattr("uncoil._requests_fallback.post", boom)
     client.ingest(spanType="llm_call", runId="r1")
+    client.flush()
     assert seen[0].code == "network"
 
 
@@ -91,6 +92,7 @@ def test_us_key_without_region_sends_to_the_us_host(monkeypatch):
     client = UncoilClient(api_key="uncoil_sk_live_us_abcdefghijklmnop", on_error=lambda e: None)
     client._http = None
     client.ingest(spanType="llm_call", runId="r1")
+    client.flush()
     assert urls == ["https://us.cloud.uncoil.dev/api/ingest"]
 
 
@@ -213,6 +215,17 @@ def test_feedback_uses_the_project_id_from_the_environment(monkeypatch):
     client.feedback("trace-1", True)
     assert sent[0]["projectId"] == "proj_from_env"
     assert UncoilClient(api_key=KEY, project_id="proj_given").project_id == "proj_given"
+
+
+def test_span_timestamps_are_utc_without_deprecation_warnings():
+    import re
+    import warnings
+
+    client = Recorder()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        client.ingest(spanType="llm_call", runId="r1")
+    assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z", client.sent[0]["createdAt"])
 
 
 def test_prompt_and_feedback_errors_say_how_to_fix_them(capsys):

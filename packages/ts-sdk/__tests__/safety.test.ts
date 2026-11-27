@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UncoilClient, UncoilError, buildRedactor, sampleBucket, uncoilMiddleware, traceTools, traceAgent, flush as flushAll } from "../src/index";
 
@@ -74,6 +76,17 @@ describe("clear errors", () => {
     expect(seen[0].hint).toContain("https://www.uncoil.dev/pricing");
     expect(seen[0].hint).not.toContain("sampleRate");
   });
+  it("retries a span once when storage is briefly unavailable", async () => {
+    const statuses = [503, 202];
+    const fetchMock = vi.fn(async () => new Response("{}", { status: statuses.shift(), headers: { "Retry-After": "0" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(seen).toHaveLength(0);
+  });
   it("reports an unreachable network without throwing", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
     const seen: UncoilError[] = [];
@@ -81,6 +94,18 @@ describe("clear errors", () => {
     await client.ingest({ spanType: "llm_call", runId: "r1" });
     await flush();
     expect(seen[0].code).toBe("network");
+  });
+  it("gives up on a hung request and reports it as a network problem", async () => {
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => AbortSignal.abort(new DOMException("timed out", "TimeoutError")));
+    vi.stubGlobal("fetch", vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      if (init.signal?.aborted) reject(init.signal.reason);
+      init.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+    })));
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    expect(seen[0]?.code).toBe("network");
   });
 });
 
@@ -230,5 +255,14 @@ describe("flush", () => {
     const client = new UncoilClient({ apiKey: KEY });
     await client.ingest({ spanType: "llm_call", runId: "r1" });
     await expect(client.flush(20)).resolves.toBe(false);
+  });
+});
+
+describe("templates", () => {
+  it("lists every template in the templates README", () => {
+    const folder = join(__dirname, "..", "templates");
+    const readme = readFileSync(join(folder, "README.md"), "utf8");
+    const missing = readdirSync(folder).filter((name) => name.endsWith(".ts") && !readme.includes(`\`${name}\``));
+    expect(missing).toEqual([]);
   });
 });

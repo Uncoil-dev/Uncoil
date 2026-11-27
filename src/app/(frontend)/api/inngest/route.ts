@@ -1,5 +1,6 @@
 import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest";
+import { buildTopicMap, dailyTopicMaps } from "@/inngest/topics";
 import { processSpan, processAlert, onboardingReminder, dailyRetention } from "@/lib/inngest-functions";
 
 /**
@@ -8,5 +9,5 @@ import { processSpan, processAlert, onboardingReminder, dailyRetention } from "@
  */
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [processSpan, processAlert, onboardingReminder, dailyRetention],
+  functions: [processSpan, processAlert, onboardingReminder, dailyRetention, buildTopicMap, dailyTopicMaps],
 });

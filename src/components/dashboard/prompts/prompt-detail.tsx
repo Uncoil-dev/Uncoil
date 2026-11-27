@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import type { FunctionReturnType } from "convex/server";
 import type { api } from "../../../../convex/_generated/api";
 import { diffSummary, lineDiff } from "@/lib/prompt-utils";
+import { useCopyText } from "@/hooks/use-copy-text";
 
 export type PromptRow = FunctionReturnType<typeof api.prompts.list>[number];
 export type PromptVersion = PromptRow["versions"][number];
@@ -75,7 +76,7 @@ export function PromptDetail({ projectId, prompt, tab, onTab, usage, links, onNe
             <div key={label} className="bg-[#0B0D10] px-4 py-3">
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-[#6B7380]"><span className={`size-1.5 rounded-full ${production ? "bg-[#5BE3A0]" : label === "staging" ? "bg-[#F4D44D]" : "bg-[#6B7380]"}`} />{label}{index < 2 ? <span aria-hidden className="ml-auto text-[#3A424E]">→</span> : null}</div>
               <div className="mt-1.5 font-mono text-lg">{version ? `v${version.version}` : "–"}</div>
-              <div className="mt-1 text-[11px] text-[#6B7380]">{version ? (version.commitMessage ?? when(version.createdAt)) : "Nothing here yet"}</div>
+              <div className="mt-1 text-[11px] text-[#6B7380]">{version ? (version.commitMessage ?? when(version.createdAt)) : `No version in ${label} yet.${production ? "" : " Point a version here to use it."}`}</div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {production ? (
                   version ? <button type="button" onClick={() => drop("production", version)} className="h-6 rounded border border-[#5B2B2B] px-2 text-[11px] text-[#FF8A8A]" title="Take production off this version, for example to roll back">Roll back</button>
@@ -121,6 +122,7 @@ export function PromptDetail({ projectId, prompt, tab, onTab, usage, links, onNe
 
 function TextView({ version, onNewVersion }: { version: PromptVersion; onNewVersion: (version: PromptVersion) => void }) {
   const lines = version.content.split("\n");
+  const copied = useCopyText();
   return (
     <div className="grid gap-3">
       <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#8B93A1]">
@@ -129,7 +131,7 @@ function TextView({ version, onNewVersion }: { version: PromptVersion; onNewVers
         {version.variables.map((name) => <span key={name} className="rounded border border-[#3A3420] bg-[#1A170C] px-1.5 py-0.5 font-mono text-[10px] text-[#F4D44D]">{`{{${name}}}`}</span>)}
         {!version.variables.length ? <span>no variables</span> : null}
         <span className="ml-auto flex gap-1.5">
-          <button type="button" onClick={() => void navigator.clipboard?.writeText(version.content)} className="h-7 rounded border border-[#262C35] px-2 text-[#C9CED6] hover:text-white">Copy text</button>
+          <button type="button" onClick={() => void copied.copy(version.content)} aria-live="polite" className="h-7 rounded border border-[#262C35] px-2 text-[#C9CED6] hover:text-white">{copied.label("Copy text")}</button>
           <button type="button" onClick={() => onNewVersion(version)} className="h-7 rounded border border-[#262C35] px-2 text-[#C9CED6] hover:text-white">Edit as new version</button>
         </span>
       </div>

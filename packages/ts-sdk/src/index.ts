@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 export interface UncoilConfig {
   apiKey?: string;
   host?: string;
-  /** Uncoil Cloud data region. Ignored when `host` is provided. Defaults to UNCOIL_REGION or EU. */
+  /** Uncoil Cloud data region. Ignored when `host` is provided. Defaults to UNCOIL_REGION, then the API key's region, then EU. */
   region?: UncoilRegion;
   projectId?: string;
   /** Release and environment are copied onto observations created by this client. */
@@ -27,6 +27,11 @@ export interface UncoilConfig {
   redact?: RedactionOptions;
   /** Called instead of printing a warning when the SDK has a problem sending data. */
   onError?: (error: UncoilError) => void;
+  /**
+   * Print one line with a link to the run when a traced run fails. On by default, except when
+   * NODE_ENV or `environment` is "production".
+   */
+  failureLinks?: boolean;
 }
 
 export interface RedactionOptions {
@@ -239,6 +244,9 @@ function createId() {
   return `span_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
 }
 
+/** Longest an ingest, feedback or score request may take, so a hung network cannot hold sockets open. */
+const REQUEST_TIMEOUT_MS = 10_000;
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -326,6 +334,7 @@ export class UncoilClient {
   private redactor?: (text: string) => string;
   private onError?: (error: UncoilError) => void;
   private warned = new Set<string>();
+  private failureLinks: boolean;
   private pending = new Set<Promise<unknown>>();
 
   constructor(config: UncoilConfig = {}) {
@@ -345,10 +354,11 @@ export class UncoilClient {
     } else if (!/^(uncoil|tracify)_sk_/.test(this.apiKey)) {
       this.report(new UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."));
     }
-    const configuredRegion = config.region ?? parseRegion((process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)) ?? "eu";
+    // With no region set, the key's own region picks the host, so a US key works without extra config.
+    const keyRegion = apiKeyRegion(this.apiKey);
+    const configuredRegion = config.region ?? parseRegion((process.env.UNCOIL_REGION ?? process.env.TRACIFY_REGION)) ?? keyRegion ?? "eu";
     this.host = (config.host || (process.env.UNCOIL_HOST ?? process.env.TRACIFY_HOST) || UNCOIL_REGION_HOSTS[configuredRegion]).replace(/\/$/, '');
     const selectedHostRegion = Object.entries(UNCOIL_REGION_HOSTS).find(([, host]) => host === this.host)?.[0] as UncoilRegion | undefined;
-    const keyRegion = apiKeyRegion(this.apiKey);
     if (keyRegion && selectedHostRegion && keyRegion !== selectedHostRegion) {
       throw new UncoilError("region_mismatch", `Uncoil API key region mismatch: this key belongs to ${keyRegion.toUpperCase()}, but the client is configured for ${selectedHostRegion.toUpperCase()}.`, `Set region: "${keyRegion}" (or UNCOIL_REGION=${keyRegion}), or create a key in the ${selectedHostRegion.toUpperCase()} region.`);
     }
@@ -359,6 +369,7 @@ export class UncoilClient {
     this.sessionId = config.sessionId;
     this.endUserId = config.endUserId;
     this.tags = config.tags;
+    this.failureLinks = config.failureLinks ?? (process.env.NODE_ENV !== 'production' && config.environment !== 'production');
     try { new URL(this.host); } catch {
       throw new UncoilError("bad_host", `The host "${this.host}" is not a valid web address.`, 'Use a full address such as "https://eu.cloud.uncoil.dev", or drop the host option and use region: "eu" or "us".');
     }
@@ -378,6 +389,14 @@ export class UncoilClient {
     if (this.onError) {
       try { this.onError(error); } catch { /* a faulty handler must never break the app */ }
     } else console.warn(`Uncoil Warning: ${error.message}`);
+  }
+
+  /** Prints where a run failed, with a link to it when the project is known. Internal: called by root steps. */
+  announceFailedRun(runId: string, stepName: string) {
+    if (!this.failureLinks || !this.apiKey) return;
+    const project = this.projectId || (process.env.UNCOIL_PROJECT_ID ?? '').trim();
+    const where = project ? ` -> ${this.host}/dashboard/${encodeURIComponent(project)}/tracing/${encodeURIComponent(runId)}` : ` (run ${runId})`;
+    console.warn(`Uncoil: run failed at step "${stepName}"${where}`);
   }
 
   /** True when this span should be dropped by sampling. */
@@ -444,14 +463,24 @@ export class UncoilClient {
     };
 
     try {
-      const send = fetch(this.ingestUrl, {
+      const doFetch = () => fetch(this.ingestUrl, {
         method: 'POST',
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(span),
-      }).then((response) => this.checkIngestResponse(response)).catch((err) => this.report(new UncoilError("network", `Could not reach Uncoil (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
+      });
+      const send = doFetch().then(async (response) => {
+        // A 503 means storage is briefly unavailable and the route asks for a retry: try once more after Retry-After (at most 5s).
+        if (response.status === 503) {
+          const retryAfter = Number(response.headers.get("Retry-After") ?? 1);
+          await sleep(Math.min(Number.isFinite(retryAfter) && retryAfter >= 0 ? retryAfter : 1, 5) * 1000);
+          response = await doFetch();
+        }
+        return this.checkIngestResponse(response);
+      }).catch((err) => this.report(new UncoilError("network", `Could not reach Uncoil (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
       this.pending.add(send);
       pendingSends.add(send);
       send.finally(() => { this.pending.delete(send); pendingSends.delete(send); });
@@ -491,13 +520,13 @@ export class UncoilClient {
   /** Attach end-user feedback to a trace or span. The request is fire-and-forget like span ingestion. */
   feedback(traceId: string, value: boolean | number | string, options: { kind?: 'thumb' | 'star' | 'text'; spanId?: string; reason?: string; comment?: string; endUserId?: string; dedupeKey?: string; projectId?: string } = {}) {
     if (!this.apiKey || !(options.projectId || this.projectId)) return;
-    fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
+    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: options.kind || (typeof value === 'number' ? 'star' : typeof value === 'boolean' ? 'thumb' : 'text'), value, reason: options.reason, comment: options.comment, endUserId: options.endUserId, dedupeKey: options.dedupeKey }) }).catch((error) => console.warn('Uncoil Warning: Failed to record feedback:', error));
   }
 
   /** Attach a typed score to a trace or span through the feedback API. */
   score(traceId: string, name: string, value: boolean | number | string, options: { dataType?: 'numeric' | 'boolean' | 'categorical' | 'text'; spanId?: string; comment?: string; projectId?: string } = {}) {
     if (!this.apiKey || !(options.projectId || this.projectId)) return;
-    fetch(`${this.host}/api/feedback`, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
+    fetch(`${this.host}/api/feedback`, { method: 'POST', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: options.projectId || this.projectId, traceId, spanId: options.spanId, kind: 'text', name, value, dataType: options.dataType, comment: options.comment }) }).catch((error) => console.warn('Uncoil Warning: Failed to record score:', error));
   }
 
   /**
@@ -773,9 +802,12 @@ export async function span<T>(name: string, fn: (step: Step) => T | Promise<T>, 
   const inheritedRun = options.runId || parent?.runId || currentRunId();
   const runId = inheritedRun === "unknown" ? createId() : inheritedRun;
   const started = Date.now();
+  const client = options.client ?? parent?.client ?? defaultClient();
   const finish = (error?: unknown) => {
     const failed = error !== undefined;
-    (options.client ?? parent?.client ?? defaultClient()).ingest({
+    if (failed && options.root) client.announceFailedRun(runId, failedStepName(error) ?? name);
+    else if (failed) markFailedStep(error, name);
+    client.ingest({
       spanId: step.id,
       runId,
       parentSpanId: options.root ? undefined : parent?.spanId,
@@ -805,6 +837,17 @@ export async function span<T>(name: string, fn: (step: Step) => T | Promise<T>, 
       throw error;
     }
   });
+}
+
+// The innermost step that threw tags the error with its name, so the run's root can say where it failed.
+const FAILED_STEP = Symbol('uncoil.failedStep');
+function markFailedStep(error: unknown, name: string) {
+  if (error && typeof error === 'object' && !(FAILED_STEP in error)) {
+    try { Object.defineProperty(error, FAILED_STEP, { value: name }); } catch { /* frozen errors keep the root name */ }
+  }
+}
+function failedStepName(error: unknown): string | undefined {
+  return error && typeof error === 'object' ? (error as Record<symbol, string | undefined>)[FAILED_STEP] : undefined;
 }
 
 /** Wrap a function so each call is recorded as a step, with its arguments and result. */

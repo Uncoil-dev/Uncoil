@@ -30,4 +30,7 @@ assert.match(source, /href=\{hasFirstTrace \? `\/dashboard\/\$\{effectiveProject
 assert.doesNotMatch(source, /temporary until the trace viewer milestone/, "stale temporary sample-trace copy remains");
 assert.match(source, /seeded example for exploring the workflow/, "seeded demo disclosure is missing");
 
+const quickstart = fs.readFileSync(path.join(root, "src/components/dashboard/quickstart-guide.tsx"), "utf8");
+assert.doesNotMatch(quickstart, /\b(?:five|5) minutes\b/i, "quickstart still promises a five-minute setup");
+
 console.log(`Activation contract passed for ${files.length} user-facing sources.`);

@@ -23,11 +23,12 @@ import { DashboardCommandMenu } from "@/components/dashboard/dashboard-command-m
 import { usePathname, useParams, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DEMO_BASE_PATH } from "@/lib/demo/demo-config";
+import { observeLeaves, type SidebarLeaf } from "@/components/dashboard/sidebar-nav";
 import { FinishSetupCard, PinButton, PinnedSection, recordRecent, useRecents, usePins, useSavedViews } from "@/components/dashboard/sidebar-extras";
 
 type Icon = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
-type NavLeaf = { title: string; href: string; external?: boolean; badge?: "New" };
+type NavLeaf = SidebarLeaf;
 type NavRow = {
   id: string;
   title: string;
@@ -187,13 +188,7 @@ export function DashboardSidebar({
             title: "Observe",
             icon: Activity,
             children: [
-              { title: "Tracing", href: workspaceHref("tracing") },
-              ...(liveProject ? [{ title: "Steps", href: workspaceHref("steps") }] : []),
-              ...(demo ? [{ title: "Costs", href: workspaceHref("costs") }] : []),
-              ...(isSynthetic || demo ? [{ title: "Explore", href: workspaceHref("explore") }] : []),
-              ...(showSessions ? [{ title: "Sessions", href: workspaceHref("sessions") }] : []),
-              { title: "Users", href: workspaceHref("users") },
-              { title: "Alerts", href: workspaceHref("alerts"), badge: "New" as const },
+              ...observeLeaves({ liveProject, demo, synthetic: isSynthetic, showSessions, href: workspaceHref }),
               ...savedViewLeaves,
             ],
           },
@@ -234,7 +229,7 @@ export function DashboardSidebar({
                 icon: Settings2,
                 children: [
                   { title: "General", href: workspaceHref("settings") },
-                  { title: "Members", href: `${workspaceHref("settings")}?tab=members` },
+                  { title: "Members", href: `${workspaceHref("settings")}?tab=Members` },
                   { title: "API keys", href: workspaceHref("api-keys") },
                   { title: "Billing", href: workspaceHref("billing") },
                 ],

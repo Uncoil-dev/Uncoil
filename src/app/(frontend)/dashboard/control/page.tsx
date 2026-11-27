@@ -1,3 +1,6 @@
-import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
-import { ProjectOrchestration } from "@/components/dashboard/project-orchestration";
-export default function Page() { return <div><DashboardTopbar title="Runtime Policy" /><div className="p-6"><ProjectOrchestration projectId="" /></div></div>; }
+import { ProjectlessRedirect } from "@/components/dashboard/projectless-redirect";
+
+// No project version of this page exists, so open the project home.
+export default function Page() {
+  return <ProjectlessRedirect page="" />;
+}

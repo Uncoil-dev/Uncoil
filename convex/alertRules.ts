@@ -234,14 +234,16 @@ export const history = query({
     const project = await ctx.db.get(projectId);
     if (!project || !canAccessProject(project, identity)) return null;
     const alerts = await ctx.db.query("alertRules").withIndex("by_projectId", (q) => q.eq("projectId", projectId)).take(MAX_RULES_PER_PROJECT);
-    const names = new Map(alerts.map((rule) => [rule._id as string, rule.name]));
+    const rulesById = new Map(alerts.map((rule) => [rule._id as string, rule]));
     const rows = await ctx.db.query("alerts").withIndex("by_projectId", (q) => q.eq("projectId", projectId)).order("desc").take(200);
     return {
       now: Date.now(),
       items: rows.map((alert) => ({
         _id: alert._id,
         ruleId: alert.ruleId,
-        ruleName: alert.ruleId ? names.get(alert.ruleId) ?? "Deleted rule" : "Run alert",
+        runId: alert.runId,
+        ruleName: alert.ruleId ? rulesById.get(alert.ruleId)?.name ?? "Deleted rule" : "Run alert",
+        windowMinutes: alert.ruleId ? rulesById.get(alert.ruleId)?.windowMinutes : undefined,
         type: alert.type,
         message: alert.message,
         triggeredAt: alert.triggeredAt,

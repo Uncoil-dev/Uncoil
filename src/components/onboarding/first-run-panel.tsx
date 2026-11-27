@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatCost } from "@/components/dashboard/tracing/format";
 
 type ArrivedRun = {
   runId: string;
@@ -12,6 +13,15 @@ type ArrivedRun = {
 
 function clock(seconds: number) {
   return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+/** The three facts shown for an arrived run; cost stands in when no model was recorded. */
+export function firstRunStats(run: ArrivedRun): Array<[string, string]> {
+  return [
+    ["Spans", String(run.spanCount)],
+    ["Status", run.status],
+    run.primaryModel ? ["Model", run.primaryModel] : ["Cost", formatCost(run.totalCostUsd)],
+  ];
 }
 
 /** Hints get more specific the longer the wait lasts. */
@@ -44,15 +54,11 @@ export function FirstRunPanel({
           <span style={{ backgroundColor: "#050505", color: "#f4d44d" }} className="grid size-11 shrink-0 place-items-center font-mono text-2xl leading-none" aria-hidden="true">✓</span>
           <div className="min-w-0">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-black/70">Found in {clock(elapsed)}</p>
-            <p className="font-pixel text-[clamp(1.6rem,4vw,2.25rem)] leading-none tracking-[-0.05em]">First run received.</p>
+            <p className="font-pixel text-[clamp(1.6rem,4vw,2.25rem)] leading-none tracking-[-0.05em]">{run.status === "failed" ? "Your agent failed. See where." : "First run received."}</p>
           </div>
         </div>
         <dl className="mt-5 grid grid-cols-3 gap-px border border-[#050505] bg-[#050505]">
-          {[
-            ["Spans", String(run.spanCount)],
-            ["Status", run.status],
-            ["Model", run.primaryModel ?? "none"],
-          ].map(([label, value]) => (
+          {firstRunStats(run).map(([label, value]) => (
             <div key={label} className="min-w-0 bg-[#090909] px-3 py-2.5">
               <dt style={{ color: "rgba(236,234,227,.55)" }} className="font-mono text-[9px] uppercase tracking-[0.14em]">{label}</dt>
               <dd style={{ color: "#f4d44d" }} className="mt-1 truncate font-mono text-[12px]">{value}</dd>

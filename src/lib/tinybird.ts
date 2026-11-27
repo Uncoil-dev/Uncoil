@@ -3,6 +3,9 @@ import { DURATION_EXPR, ERROR_COUNT_EXPR, IS_ERROR, LEAN_AGGREGATE, inPageOrder,
 export { IS_ERROR };
 import { TYPE_ALIASES } from "@/components/dashboard/tracing/format";
 import { flowGraph, collapseFlowReturns, flowPairId, median, type FlowEdge, type FlowStep } from "./trace-flow";
+import { createHash } from "node:crypto";
+import { getJsonCache, setJsonCache } from "./redis-cache";
+import { topicRunIds } from "./trace-topics";
 /**
  * ClickHouse query client (the file name is historical).
  * All span analytics queries go through here — never Convex.
@@ -360,6 +363,12 @@ export type TraceListFilters = {
   maxTokens?: number;
   /** Traces containing an error from this group (id from traceErrorGroups). */
   errorGroup?: string;
+  /** Traces in this topic (id from the topics endpoint); resolved to `topicRunIds` before the query runs. */
+  topic?: string;
+  /** Internal: run ids of the chosen topic. */
+  topicRunIds?: string[];
+  /** Internal: the topic was worked out from the newest traces only, because more matched than are read. */
+  topicSampled?: boolean;
   /** Traces containing this agent-map step ("tool:<name>" or "model:<id>"). */
   node?: string;
   /** Traces where step `to` ran directly after step `from` (agent-map arrow). */
@@ -429,6 +438,7 @@ function traceListClauses(projectId: string, filters: TraceListFilters) {
   // Error groups and the agent map are computed from steps inside the range, so their filters use the same range.
   const scope = rangeScope(projectId, filters);
   if (filters.errorGroup) where.push(`runId IN (SELECT runId FROM spans WHERE ${scope} AND ${IS_ERROR} AND ${ERROR_GROUP_ID} = '${sqlString(filters.errorGroup)}')`);
+  if (filters.topic) where.push(filters.topicRunIds?.length ? `runId IN (${filters.topicRunIds.map((id) => `'${sqlString(id)}'`).join(',')})` : '0');
   if (filters.node && !['__start__', '__end__'].includes(filters.node)) where.push(`runId IN (SELECT runId FROM spans WHERE ${scope} AND ${NODE_KEY} = '${sqlString(filters.node)}')`);
   if (filters.edge) where.push(filters.flowRunIds?.length ? `runId IN (${filters.flowRunIds.map((id) => `'${sqlString(id)}'`).join(',')})` : '0');
   const having: string[] = [];
@@ -533,14 +543,14 @@ export async function listTraces(projectId: string, filters: TraceListFilters, o
     ]);
     const runIds = ids.map((row) => row.runId);
     const full = runIds.length ? await tinybirdRows<TraceListRow>(pageRowsSql({ aggregate: TRACE_AGGREGATE, where, runIds, quote: sqlString })) : [];
-    return { rows: await withExtraColumns(projectId, filters, inPageOrder(runIds, full), options), total: Number(totals[0]?.total ?? 0), page, pageSize };
+    return { rows: await withExtraColumns(projectId, filters, inPageOrder(runIds, full), options), total: Number(totals[0]?.total ?? 0), page, pageSize, sampled: filters.topicSampled === true };
   }
   const grouped = `SELECT ${TRACE_AGGREGATE}${expression ? `, ${expression} AS sortValue` : ""} FROM spans WHERE ${where} GROUP BY runId ${having}`;
   const [rows, totals] = await Promise.all([
     tinybirdRows<TraceListRow>(`${grouped} ORDER BY ${sortColumn} ${direction}, runId LIMIT ${pageSize} OFFSET ${page * pageSize}`),
     tinybirdRows<{ total: number }>(`SELECT count() AS total FROM (${grouped})`),
   ]);
-  return { rows: await withExtraColumns(projectId, filters, rows, options), total: Number(totals[0]?.total ?? 0), page, pageSize };
+  return { rows: await withExtraColumns(projectId, filters, rows, options), total: Number(totals[0]?.total ?? 0), page, pageSize, sampled: filters.topicSampled === true };
 }
 
 async function withExtraColumns(projectId: string, filters: TraceListFilters, rows: TraceListRow[], options: ListOptions) {
@@ -686,6 +696,40 @@ export async function traceErrorGroups(projectId: string, filters: TraceListFilt
   };
 }
 
+/** Most traces whose first input is read for topic grouping; older matches are left out. */
+export const TOPIC_TRACE_LIMIT = 2000;
+
+/** The first input and error or timeout flag of the newest traces matching the filters, plus how many traces matched. */
+export async function traceTopicInputs(projectId: string, filters: TraceListFilters) {
+  const { where, having } = traceListClauses(projectId, filters);
+  const rows = await tinybirdRows<{ runId: string; firstInput: string; errorCount: number; timeoutCount: number; matched: number }>(`
+    SELECT runId, firstInput, errorCount, timeoutCount, count() OVER () AS matched FROM (
+      SELECT runId, min(createdAt) AS startedAt, ${DURATION_EXPR} AS durationMs, ${ERROR_COUNT_EXPR} AS errorCount, countIf(timedOut) AS timeoutCount,
+        sum(costUsd) AS totalCostUsd, sum(inputTokens) AS inputTokens, sum(outputTokens) AS outputTokens,
+        substring(if(countIf(parentSpanId = '' AND input != '') > 0, argMinIf(input, createdAt, parentSpanId = '' AND input != ''), argMinIf(input, createdAt, input != '')), 1, 2000) AS firstInput
+      FROM spans WHERE ${where} GROUP BY runId ${having})
+    ORDER BY startedAt DESC, runId
+    LIMIT ${TOPIC_TRACE_LIMIT}`);
+  return {
+    total: Number(rows[0]?.matched ?? 0),
+    traces: rows.map((row) => ({ runId: row.runId, input: row.firstInput, hasError: Number(row.errorCount) > 0, timedOut: Number(row.timeoutCount) > 0 })),
+  };
+}
+
+/** Newest traces matching the filters whose last span is over 5 minutes old, with their id and the time of the last span. */
+export async function finishedTraceRunIds(projectId: string, filters: TraceListFilters, limit: number) {
+  const { where, having } = traceListClauses(projectId, filters);
+  const quiet = "max(createdAt) < now() - INTERVAL 5 MINUTE";
+  const rows = await tinybirdRows<{ runId: string }>(`
+    SELECT runId FROM (
+      SELECT runId, min(createdAt) AS startedAt, ${DURATION_EXPR} AS durationMs, ${ERROR_COUNT_EXPR} AS errorCount,
+        sum(costUsd) AS totalCostUsd, sum(inputTokens) AS inputTokens, sum(outputTokens) AS outputTokens
+      FROM spans WHERE ${where} GROUP BY runId ${having ? `${having} AND ${quiet}` : `HAVING ${quiet}`})
+    ORDER BY startedAt DESC, runId
+    LIMIT ${Math.max(1, Math.floor(limit))}`);
+  return rows.map((row) => row.runId);
+}
+
 export type MapNode = { id: string; kind: string; name: string; count: number; traces: number; errors: number; p50LatencyMs: number };
 export type MapEdge = { source: string; target: string; count: number; back?: number; errors: number; traces: number; errorRate: number; p50LatencyMs: number };
 export const MAP_NODE_LIMIT = 40;
@@ -721,14 +765,39 @@ async function* flowRuns(projectId: string, filters: TraceListFilters) {
   } finally { await reader.cancel(); }
 }
 
+const TOPIC_CACHE_TTL_SECONDS = 60;
+
+/** Run ids of a topic kept for a minute per project, filters and topic; computed directly when Redis is not configured. */
+async function cachedTopicMembers(projectId: string, filters: TraceListFilters, compute: () => Promise<{ runIds: string[]; sampled: boolean }>) {
+  // Paging and sorting do not change which traces belong to a topic.
+  const scope = { ...filters, page: undefined, pageSize: undefined, sort: undefined, direction: undefined };
+  const key = `topic-runs:${projectId}:${createHash("sha256").update(JSON.stringify(scope)).digest("hex")}`;
+  const hit = await getJsonCache<{ runIds: string[]; sampled: boolean; meta?: { updatedAt: number } }>(key);
+  if (hit && Array.isArray(hit.runIds)) return { runIds: hit.runIds, sampled: hit.sampled === true };
+  const value = await compute();
+  await setJsonCache(key, { ...value, meta: { updatedAt: Date.now() } }, TOPIC_CACHE_TTL_SECONDS);
+  return value;
+}
+
 /** Resolve an arrow to traces with the shared caller/return rules before list, facets and stats run. */
 export async function resolveTraceFlowFilters(projectId: string, filters: TraceListFilters): Promise<TraceListFilters> {
-  if (!filters.edge) return filters;
-  const ids: string[] = [], wanted = flowPairId(filters.edge.from, filters.edge.to);
-  for await (const run of flowRuns(projectId, { fromMs: filters.fromMs, toMs: filters.toMs })) {
-    if (flowGraph(run.steps, false).edges.some((edge) => flowPairId(edge.source, edge.target) === wanted)) ids.push(run.runId);
+  let resolved = filters;
+  if (filters.edge) {
+    const ids: string[] = [], wanted = flowPairId(filters.edge.from, filters.edge.to);
+    for await (const run of flowRuns(projectId, { fromMs: filters.fromMs, toMs: filters.toMs })) {
+      if (flowGraph(run.steps, false).edges.some((edge) => flowPairId(edge.source, edge.target) === wanted)) ids.push(run.runId);
+    }
+    resolved = { ...resolved, flowRunIds: ids };
   }
-  return { ...filters, flowRunIds: ids };
+  if (filters.topic) {
+    // Topics are grouped over the traces matching every other filter, the same input the topics endpoint reads.
+    const members = await cachedTopicMembers(projectId, resolved, async () => {
+      const { total, traces } = await traceTopicInputs(projectId, { ...resolved, topic: undefined });
+      return { runIds: topicRunIds(traces, filters.topic!), sampled: total > traces.length };
+    });
+    resolved = { ...resolved, topicRunIds: members.runIds, topicSampled: members.sampled };
+  }
+  return resolved;
 }
 
 /** Every matching run contributes to one agent's Flow; node statistics stay exact in ClickHouse. */

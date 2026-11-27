@@ -74,6 +74,17 @@ describe("clear errors", () => {
     expect(seen[0].hint).toContain("https://www.uncoil.dev/pricing");
     expect(seen[0].hint).not.toContain("sampleRate");
   });
+  it("retries a span once when storage is briefly unavailable", async () => {
+    const statuses = [503, 202];
+    const fetchMock = vi.fn(async () => new Response("{}", { status: statuses.shift(), headers: { "Retry-After": "0" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const seen: UncoilError[] = [];
+    const client = new UncoilClient({ apiKey: KEY, onError: (e) => seen.push(e) });
+    await client.ingest({ spanType: "llm_call", runId: "r1" });
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(seen).toHaveLength(0);
+  });
   it("reports an unreachable network without throwing", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
     const seen: UncoilError[] = [];

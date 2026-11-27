@@ -447,7 +447,7 @@ export class UncoilClient {
     };
 
     try {
-      const send = fetch(this.ingestUrl, {
+      const doFetch = () => fetch(this.ingestUrl, {
         method: 'POST',
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         headers: {
@@ -455,7 +455,16 @@ export class UncoilClient {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(span),
-      }).then((response) => this.checkIngestResponse(response)).catch((err) => this.report(new UncoilError("network", `Could not reach Uncoil (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
+      });
+      const send = doFetch().then(async (response) => {
+        // A 503 means storage is briefly unavailable and the route asks for a retry: try once more after Retry-After (at most 5s).
+        if (response.status === 503) {
+          const retryAfter = Number(response.headers.get("Retry-After") ?? 1);
+          await sleep(Math.min(Number.isFinite(retryAfter) && retryAfter >= 0 ? retryAfter : 1, 5) * 1000);
+          response = await doFetch();
+        }
+        return this.checkIngestResponse(response);
+      }).catch((err) => this.report(new UncoilError("network", `Could not reach Uncoil (${err?.message ?? err}).`, "Check your internet connection and the host setting. Your app keeps running; these spans are dropped.")));
       this.pending.add(send);
       pendingSends.add(send);
       send.finally(() => { this.pending.delete(send); pendingSends.delete(send); });

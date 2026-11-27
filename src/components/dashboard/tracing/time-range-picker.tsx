@@ -176,7 +176,7 @@ export function TimeRangePicker({ range, from, to, now, onPreset, onCustom, onRe
               if (freeProject && item.ms > FREE_RANGE_DAYS * 86_400_000) {
                 return (
                   <li key={item.id}>
-                    <a href={pricingCheckoutHref("pro", "monthly")} title="Longer history is part of Pro" className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-left text-xs text-[#6B7380] hover:bg-[#1A1F27]">{item.label}<span className="bg-[#F4D44D] px-1 font-mono text-[9px] font-bold uppercase text-[#0B0D10]">Pro</span></a>
+                    <a href={pricingCheckoutHref("pro", "monthly", projectId)} title="Longer history is part of Pro" className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-left text-xs text-[#6B7380] hover:bg-[#1A1F27]">{item.label}<span className="bg-[#F4D44D] px-1 font-mono text-[9px] font-bold uppercase text-[#0B0D10]">Pro</span></a>
                   </li>
                 );
               }

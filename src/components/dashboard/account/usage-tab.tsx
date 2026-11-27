@@ -50,7 +50,7 @@ function ProjectUsage({ projectId, name, tier }: { projectId: string; name: stri
             <span className="flex items-center gap-4">
               <Link href={`/dashboard/${projectId}/billing`} className="!text-[#8B93A1] hover:!text-[#F4D44D]">Billing</Link>
               {next && level !== "ok" ? (
-                <Link href={pricingCheckoutHref(next, "monthly")} className="inline-flex items-center gap-1 !text-[#F4D44D]">
+                <Link href={pricingCheckoutHref(next, "monthly", projectId)} className="inline-flex items-center gap-1 !text-[#F4D44D]">
                   Upgrade to {planById(next).name} <ArrowRight className="size-3" />
                 </Link>
               ) : null}

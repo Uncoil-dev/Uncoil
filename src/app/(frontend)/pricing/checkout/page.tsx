@@ -6,7 +6,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { api } from "convex/_generated/api";
-import type { BillingInterval, PaidPlan } from "@/lib/billing-links";
+import { initialCheckoutProjectId, type BillingInterval, type PaidPlan } from "@/lib/billing-links";
 import { CheckoutShell, TrustRow } from "@/components/checkout/checkout-shell";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 import { projectCreateError } from "@/lib/project-errors";
@@ -35,7 +35,7 @@ function PricingCheckout() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const autoStarted = useRef(false);
-  const selectedProjectId = projectId || projects?.[0]?._id || "";
+  const selectedProjectId = projectId || initialCheckoutProjectId(searchParams.get("project"), projects);
   const returnPath = `/pricing/checkout?plan=${plan}&interval=${interval}`;
 
   async function openCheckout(targetProjectId?: string) {

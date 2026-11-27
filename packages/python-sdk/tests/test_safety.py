@@ -110,6 +110,29 @@ def test_status_codes_map_to_helpful_messages():
     assert [e.code for e in seen] == ["forbidden", "rate_limited", "server_error", "rejected"]
 
 
+def test_plan_limit_explains_the_reset_and_upgrade_link(monkeypatch):
+    body = {"error": "This project has used its 10,000 free spans for the month.", "code": "plan_limit_reached", "limit": 10000, "retryAfterSeconds": 86400, "upgradeUrl": "https://www.uncoil.dev/pricing"}
+
+    class LimitResponse:
+        status_code = 429
+
+        def json(self):
+            return body
+
+    seen = []
+    client = UncoilClient(api_key=KEY, on_error=seen.append)
+    client._http = None
+    monkeypatch.setattr("uncoil._requests_fallback.post", lambda *a, **k: LimitResponse())
+    monkeypatch.setattr("uncoil.time.time", lambda: 1795176000.0)  # 2026-11-20 12:00 UTC
+    client.ingest(spanType="llm_call", runId="r1")
+    client.flush()
+    assert seen[0].code == "plan_limit_reached"
+    assert "10,000 spans" in str(seen[0])
+    assert "2026-11-21 12:00 UTC" in seen[0].hint
+    assert "https://www.uncoil.dev/pricing" in seen[0].hint
+    assert "sample_rate" not in seen[0].hint
+
+
 def test_sampling_is_stable_and_proportional():
     assert sample_bucket("run-a") == sample_bucket("run-a")
     kept = sum(1 for i in range(2000) if sample_bucket(f"run-{i}") < 0.25)

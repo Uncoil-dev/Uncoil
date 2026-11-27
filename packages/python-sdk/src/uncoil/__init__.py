@@ -400,6 +400,27 @@ class UncoilClient:
         else:
             print(f"Uncoil Warning: {error}")
 
+    def _report_plan_limit(self, response: Any) -> bool:
+        """A 429 with a plan or daily limit code means the project ran out of spans, which a lower sample_rate does not fix."""
+        try:
+            body = response.json()
+        except Exception:
+            return False
+        code = body.get("code") if isinstance(body, dict) else None
+        if code not in ("plan_limit_reached", "daily_limit_reached"):
+            return False
+        period = "daily" if code == "daily_limit_reached" else "monthly"
+        limit = body.get("limit")
+        limit_text = f" of {limit:,} spans" if isinstance(limit, int) and not isinstance(limit, bool) else ""
+        retry_after = body.get("retryAfterSeconds")
+        if isinstance(retry_after, (int, float)) and not isinstance(retry_after, bool):
+            resets = "from " + datetime.fromtimestamp(time.time() + retry_after, timezone.utc).strftime("%Y-%m-%d %H:%M") + " UTC"
+        else:
+            resets = "when the " + ("day" if period == "daily" else "month") + " resets"
+        upgrade_url = body.get("upgradeUrl") or "https://www.uncoil.dev/pricing"
+        self._report(UncoilError(code, f"This project reached its {period} plan limit{limit_text}, so new spans are not saved (429).", f"Data is saved again {resets}. To keep recording now, upgrade the plan: {upgrade_url}", 429))
+        return True
+
     def _check_response(self, status: int):
         if status < 400:
             return
@@ -481,7 +502,10 @@ class UncoilClient:
                 response = self._http.post(self.ingest_url, headers=headers, json=span)
             else:
                 response = _requests_fallback.post(self.ingest_url, headers=headers, json=span, timeout=2)
-            self._check_response(getattr(response, "status_code", 200))
+            status = getattr(response, "status_code", 200)
+            if status == 429 and self._report_plan_limit(response):
+                return
+            self._check_response(status)
         except Exception as e:
             self._report(UncoilError("network", f"Could not reach Uncoil ({e}).", "Check your internet connection and the host setting. Your app keeps running; these spans are dropped."))
 

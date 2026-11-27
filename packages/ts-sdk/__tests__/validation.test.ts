@@ -94,6 +94,11 @@ describe("client config validation", () => {
     expect(key).toBe(fileKey);
   });
 
+  it("treats an empty environment value as unset and strips trailing comments", () => {
+    const { key } = clientInFolder({ ".env": `UNCOIL_API_KEY=${fileKey} # my key\n` }, { UNCOIL_API_KEY: "" });
+    expect(key).toBe(fileKey);
+  });
+
   it("keeps the environment value over file values", () => {
     const { key } = clientInFolder({ ".env.local": `UNCOIL_API_KEY=${fileKey}\n` }, { UNCOIL_API_KEY: envKey });
     expect(key).toBe(envKey);

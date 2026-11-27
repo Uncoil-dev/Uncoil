@@ -324,7 +324,7 @@ atexit.register(flush, 2)
 
 
 def load_uncoil_env(cwd: Optional[str] = None) -> None:
-    """Copies UNCOIL_* lines from .env.local, then .env, in the working folder into os.environ. Values already set win; nothing else is read."""
+    """Copies UNCOIL_* lines from .env.local, then .env, in the working folder into os.environ. Non-empty values already set win; nothing else is read."""
     for name in (".env.local", ".env"):
         try:
             with open(os.path.join(cwd or os.getcwd(), name), encoding="utf-8") as handle:
@@ -333,8 +333,9 @@ def load_uncoil_env(cwd: Optional[str] = None) -> None:
             continue
         for line in lines:
             match = re.match(r"^\s*(?:export\s+)?(UNCOIL_[A-Z0-9_]+)\s*=\s*(.*?)\s*$", line)
-            if match and match.group(1) not in os.environ:
-                os.environ[match.group(1)] = re.sub(r"^([\"'])(.*)\1$", r"\2", match.group(2))
+            if match and not os.environ.get(match.group(1)):
+                value = match.group(2)
+                os.environ[match.group(1)] = value[1:-1] if re.match(r"^([\"']).*\1$", value) else re.sub(r"\s+#.*$", "", value)
 
 
 class UncoilClient:

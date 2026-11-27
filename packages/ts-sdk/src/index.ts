@@ -333,8 +333,8 @@ export class UncoilClient {
   private pending = new Set<Promise<unknown>>();
 
   constructor(config: UncoilConfig = {}) {
-    if (!config.apiKey && !(process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY)) loadUncoilEnv(process.cwd());
-    this.apiKey = (config.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || '').trim();
+    if (!config.apiKey && !(process.env.UNCOIL_API_KEY || process.env.TRACIFY_API_KEY)) loadUncoilEnv(process.cwd());
+    this.apiKey = (config.apiKey || (process.env.UNCOIL_API_KEY || process.env.TRACIFY_API_KEY) || '').trim();
     this.onError = config.onError;
     this.captureContent = resolveCaptureContent(config.captureContent);
     if (config.sampleRate !== undefined && !(config.sampleRate >= 0 && config.sampleRate <= 1)) {

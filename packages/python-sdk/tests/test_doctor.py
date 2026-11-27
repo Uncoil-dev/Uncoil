@@ -84,8 +84,7 @@ def test_missing_or_odd_key_makes_no_request(calls):
 def test_key_in_env_file_is_used_without_printing_it(calls, monkeypatch, tmp_path):
     calls.fake()
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("UNCOIL_API_KEY", "")  # registers cleanup for the value the env file loads
-    monkeypatch.delenv("UNCOIL_API_KEY")
+    monkeypatch.setenv("UNCOIL_API_KEY", "")
     (tmp_path / ".env.local").write_text(f"OTHER=1\nexport UNCOIL_API_KEY={KEY}\n")
     report = doctor.format_report(doctor.run_doctor())
     assert "No API key" not in report

@@ -41,3 +41,13 @@ test("first-trace email links the trace, suggests a next step and escapes the na
   assert.ok(!email.html.includes("<i>Eve</i>"));
   assert.match(email.html, /#f4d44d/);
 });
+
+test("no-trace email starts the fixes with the login and doctor commands", () => {
+  const email = renderNoTraceEmail({ origin, projectId: "abc123" });
+  for (const body of [email.html, email.text]) {
+    const login = body.indexOf("npx @uncoil.dev/sdk login");
+    const doctor = body.indexOf("npx @uncoil.dev/sdk doctor");
+    assert.ok(login !== -1 && doctor !== -1, "both commands are present");
+    assert.ok(login < body.indexOf("never ran through the wrapper"), "the commands come before the other fixes");
+  }
+});

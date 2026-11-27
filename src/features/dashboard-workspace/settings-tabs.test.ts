@@ -35,4 +35,14 @@ describe("validatePrivacySettings", () => {
       value: { redactionEnabled: false, redactionRules: ["email"], retentionDays: 5 },
     });
   });
+
+  it("rejects an empty rule list while redaction is on, but allows it when off", () => {
+    const on = validatePrivacySettings({ redactionEnabled: true, redactionRules: [], retentionDays: "5", planTier: "free" });
+    expect(on).toEqual({ ok: false, error: "Select at least one rule, or turn redaction off" });
+    expect(validatePrivacySettings({ redactionEnabled: false, redactionRules: [], retentionDays: "5", planTier: "free" }).ok).toBe(true);
+  });
+
+  it.each(["", "0", "1.5", "abc", "3651"])("rejects retention %j", (retentionDays) => {
+    expect(validatePrivacySettings({ redactionEnabled: true, redactionRules: ["email"], retentionDays, planTier: "enterprise" }).ok).toBe(false);
+  });
 });

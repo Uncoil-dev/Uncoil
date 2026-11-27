@@ -20,8 +20,9 @@ type PrivacyProject = {
 
 /** Redaction switch, per-rule toggles and retention days for one project; saves through `projects.updateProject`. */
 export function ProjectPrivacyControls({ projectId }: { projectId: string }) {
-  const project = useQuery(api.projects.getProjectById, { projectId: projectId as Id<"projects"> });
-  if (!project) return <p className="captured-settings-placeholder">Loading privacy settings…</p>;
+  const project = useQuery(api.projects.getProjectForAdmin, { projectId: projectId as Id<"projects"> });
+  if (project === undefined) return <p className="captured-settings-placeholder">Loading privacy settings…</p>;
+  if (project === null) return <p className="captured-settings-placeholder">Only project admins can change privacy settings.</p>;
   return <PrivacyForm projectId={projectId} project={project} />;
 }
 
@@ -38,6 +39,17 @@ function PrivacyForm({ projectId, project }: { projectId: string; project: Priva
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const planDays = planRetentionDays(project.planTier);
+
+  function edit<T>(setter: (value: T) => void) {
+    return (value: T) => {
+      setNotice(null);
+      setError(null);
+      setter(value);
+    };
+  }
+  const changeEnabled = edit(setRedactionEnabled);
+  const changeRules = edit(setRedactionRules);
+  const changeRetention = edit(setRetentionDays);
 
   async function save() {
     const parsed = validatePrivacySettings({ redactionEnabled, redactionRules, retentionDays, planTier: project.planTier });
@@ -62,10 +74,11 @@ function PrivacyForm({ projectId, project }: { projectId: string; project: Priva
     <div className="grid gap-5">
       <p className="captured-settings-placeholder">Sensitive payloads are scrubbed before they leave the ingest boundary.</p>
       <label className="flex items-center gap-3 font-mono text-[11px] uppercase">
-        <input type="checkbox" checked={redactionEnabled} onChange={(event) => setRedactionEnabled(event.target.checked)} />
+        <input type="checkbox" checked={redactionEnabled} onChange={(event) => changeEnabled(event.target.checked)} />
         Redact sensitive values on ingest
       </label>
-      <div className="flex flex-wrap gap-2">
+      <p id="redaction-rules-label" className="font-mono text-[10px] uppercase text-[#8B93A1]">Redaction rules</p>
+      <div role="group" aria-labelledby="redaction-rules-label" className="flex flex-wrap gap-2">
         {DEFAULT_REDACTION_RULES.map((rule) => {
           const selected = redactionRules.includes(rule);
           return (
@@ -73,7 +86,7 @@ function PrivacyForm({ projectId, project }: { projectId: string; project: Priva
               type="button"
               key={rule}
               aria-pressed={selected}
-              onClick={() => setRedactionRules((current) => (selected ? current.filter((item) => item !== rule) : [...current, rule]))}
+              onClick={() => changeRules(selected ? redactionRules.filter((item) => item !== rule) : [...redactionRules, rule])}
               className={`border px-3 py-2 font-mono text-[10px] uppercase ${selected ? "border-[#F4D44D] text-[#F4D44D]" : "border-[#262C35] text-[#8B93A1]"}`}
             >
               {rule.replace("_", " ")}
@@ -81,15 +94,15 @@ function PrivacyForm({ projectId, project }: { projectId: string; project: Priva
           );
         })}
       </div>
-      <label className="grid max-w-xs gap-1.5 text-[11px]">
-        Retention (days)
-        <span className="text-[#8B93A1]">
+      <div className="grid max-w-xs gap-1.5 text-[11px]">
+        <label htmlFor="retention-days">Retention (days)</label>
+        <span id="retention-help" className="text-[#8B93A1]">
           {planDays === null
             ? "Your plan sets no limit; older data is removed after this many days."
             : `Your plan keeps data for ${planDays} days at most. Older data is removed every day.`}
         </span>
-        <input type="number" min={1} max={planDays ?? 3650} value={retentionDays} onChange={(event) => setRetentionDays(event.target.value)} className={field} />
-      </label>
+        <input id="retention-days" type="number" min={1} max={planDays ?? 3650} value={retentionDays} onChange={(event) => changeRetention(event.target.value)} aria-describedby="retention-help" className={field} />
+      </div>
       <div className="captured-settings-actions">
         <button type="button" disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : "Save changes"}</button>
       </div>

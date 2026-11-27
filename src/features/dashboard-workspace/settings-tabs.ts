@@ -22,6 +22,9 @@ export function validatePrivacySettings(values: {
 }):
   | { ok: true; value: { redactionEnabled: boolean; redactionRules: string[]; retentionDays: number } }
   | { ok: false; error: string } {
+  if (values.redactionEnabled && values.redactionRules.length === 0) {
+    return { ok: false, error: "Select at least one rule, or turn redaction off" };
+  }
   const retentionDays = Number(values.retentionDays);
   const planDays = planRetentionDays(values.planTier);
   if (!Number.isInteger(retentionDays) || retentionDays < 1 || retentionDays > 3650) {

@@ -5,6 +5,7 @@ import { answers } from "@/lib/answers";
 import { productFeatureSlugs } from "@/lib/product-features";
 import { glossaryTerms } from "@/lib/glossary";
 import { tools } from "@/lib/tools/registry";
+import { useCases } from "@/lib/use-cases";
 import type { MetadataRoute } from "next";
 
 // Baseline review date for static pages. Add route-specific dates below for pages changed later.
@@ -38,7 +39,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const useCases = ["research", "support", "automation", "tool-calling", "coding", "rag", "voice", "browser", "multi-agent", "mcp", "chatbot", "sales", "sql", "documents", "cost-control", "release", "copilot"];
   const documentation = getPublicDocs();
 
   return [
@@ -66,7 +66,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/glossary`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.7 },
     ...documentation.map((doc) => ({ url: `${baseUrl}/docs/${doc.slug}`, lastModified: docLastModified(doc.lastUpdated), changeFrequency: "monthly" as const, priority: 0.7 })),
     ...productFeatureSlugs.map((slug) => ({ url: `${baseUrl}/product/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.8 })),
-    ...useCases.map((slug) => ({ url: `${baseUrl}/use-cases/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
+    ...Object.keys(useCases).map((slug) => ({ url: `${baseUrl}/use-cases/${slug}`, lastModified: SITE_REVIEWED, changeFrequency: "monthly" as const, priority: 0.7 })),
     { url: `${baseUrl}/best-llm-observability-tools`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/compare`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/switch`, lastModified: SITE_REVIEWED, changeFrequency: "monthly", priority: 0.8 },

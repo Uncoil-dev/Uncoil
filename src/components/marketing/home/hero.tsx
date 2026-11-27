@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CREAM, PALE, YELLOW, flag, pines, rebuild, type Scene } from "./pixels";
 import { ease } from "./math";
 import { HURRY, breakTarget, focusStep, heroState, scanAt, type HeroPhase } from "./hero-clock";
-import { brackets, bridgeArt, brokenPlank, gantrySign, groundArt, robotInFront, stem, stoneSign } from "./hero-art";
+import { brackets, bridgeArt, brokenPlank, gantrySign, groundArt, robotInFront, stem, stoneSign, trailMarker } from "./hero-art";
 import { useGridCanvas, type Frame } from "./use-grid";
 import { CopyPromptButton } from "./copy-prompt";
 import { clearStars, landscapeUnder, placeCallout, toBuffer, useCopyBoxes } from "./sky";
@@ -129,10 +129,17 @@ export function HeroWorld() {
       if (st.phase === "fail") brokenPlank(px, plankX, groundY + jolt, st.local > 0.15, shake ? 0 : (st.local - 0.45) / 0.55);
       if (tracing) brokenPlank(px, plankX, groundY, true, 1);
 
-      // Every step carries its number on a board: 01 to 05 on signposts on their stones, 06 on the
-      // bridge's gantry. 04 turns yellow once the scan has found it; 06 is red while it is failing.
+      // Only the two steps the story is about carry a number board: 04 on a signpost on its stone,
+      // 06 on the bridge's gantry. The other steps get a low trail marker, so the path still reads
+      // as a run of steps without a row of numbers competing with them. 04 turns yellow once the
+      // scan has found it; 06 is red while it is failing.
       const found = st.phase === "mark" || st.phase === "repair" || passed || (st.phase === "trace" && k >= 1);
-      const boards = stones.map((x, i) => (x < 1 ? null : stoneSign(px, i + 1, x, groundY, i === 3 && found ? "lit" : "plain")));
+      const boards = stones.map((x, i) => {
+        if (x < 1) return null;
+        if (i === 3) return stoneSign(px, 4, x, groundY, found ? "lit" : "plain");
+        trailMarker(px, x, groundY, read(x) ? PALE : CREAM);
+        return null;
+      });
       const six = gantrySign(px, plankX, gap1, groundY, passed ? "lit" : st.phase === "walk" ? "plain" : "failed", jolt);
       const four4 = boards[3];
       if (tracing && four4) {

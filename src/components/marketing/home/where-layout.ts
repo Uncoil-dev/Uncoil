@@ -67,3 +67,16 @@ export function ropeCells(l: WhereLayout) {
   return { cells, snap };
 }
 
+
+/** The loose end of the rope off step 06 on wide screens: out of the plate's far side, then down. */
+const TAIL_ACROSS = [[1, 0], [2, 0], [3, 1], [3, 2], [3, 3], [4, 4], [4, 5], [4, 6], [3, 7], [3, 8], [2, 9]] as const;
+/** On phones the rope runs down the page, so its loose end simply hangs on below the plate. */
+const TAIL_DOWN = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [1, 6], [0, 7], [0, 8], [-1, 9], [1, 9]] as const;
+
+/** Cells of the loose rope end hanging off step 06, as [x, y]. */
+export function tailCells(l: WhereLayout): [number, number][] {
+  const c = l.centers[5];
+  const h = PLATE >> 1;
+  if (l.vertical) return TAIL_DOWN.map(([dx, dy]) => [c.x + dx, c.y + h + dy]);
+  return TAIL_ACROSS.map(([dx, dy]) => [c.x + h + dx, c.y + dy]);
+}

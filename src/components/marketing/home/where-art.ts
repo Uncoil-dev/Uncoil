@@ -4,7 +4,7 @@
 
 import { CREAM, INK, RED, YELLOW, type Px } from "./pixels";
 import { board } from "./steps-art";
-import { PLATE, boardBox, ropeCells, type WhereLayout } from "./where-layout";
+import { PLATE, boardBox, ropeCells, tailCells, type WhereLayout } from "./where-layout";
 
 /** 7x7 icons, one per step kind, drawn in ink on the plate. */
 export const ICONS = {
@@ -22,9 +22,6 @@ export const ICONS = {
   coin: ["..###..", ".#...#.", "#..#..#", "#..#..#", "#..#..#", ".#...#.", "..###.."],
 } as const;
 export type IconName = keyof typeof ICONS;
-
-/** The loose end of the rope, hanging off step 06 (offsets from the plate's far edge). */
-const TAIL = [[1, 0], [2, 0], [3, 1], [3, 2], [3, 3], [4, 4], [4, 5], [4, 6], [3, 7], [3, 8], [2, 9]] as const;
 
 export type WhereState = {
   /** Seconds since the figure came into view: the rope draws in, then the plates land. */
@@ -92,9 +89,7 @@ export function drawWhere(px: Px, l: WhereLayout, icons: readonly IconName[], { 
   });
 
   if (t >= ENTER.tail) {
-    const ox = l.vertical ? c6.x : c6.x + (PLATE >> 1);
-    const oy = l.vertical ? c6.y + (PLATE >> 1) : c6.y;
-    for (const [a, b] of TAIL) px.set(l.vertical ? ox + b : ox + a, l.vertical ? oy + a : oy + b, RED);
+    for (const [x, y] of tailCells(l)) px.set(x, y, RED);
   }
 
   // Uncoil's scan: yellow brackets on an ink shadow, closing in on step 04 when it gets there.

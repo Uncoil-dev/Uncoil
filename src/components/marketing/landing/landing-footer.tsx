@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { ArrowRight, ArrowUp, ArrowUpRight } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { MotionConfig, motion, useReducedMotion } from "framer-motion";
 import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
 import { PixelWordmark } from "@/components/marketing/landing/pixel-wordmark";
 import { appHref } from "@/lib/app-links";
@@ -26,7 +26,6 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 /** Links laid out as one trace: a root spine, one span per column, one step per link. */
 function TraceMap() {
-  const reduce = useReducedMotion();
   const mapRef = useRef<HTMLDivElement>(null);
   const [lit, setLit] = useState<number | null>(null);
   // The lit stretch of the root line: from the row's first node to the hovered column's node.
@@ -57,7 +56,7 @@ function TraceMap() {
       <div ref={mapRef} className="relative px-4 pb-8 pt-10 sm:px-6">
         {/* Root spine across the columns, desktop only. */}
         <div className="pointer-events-none absolute left-4 right-4 top-10 hidden h-px xl:left-6 xl:right-6 xl:block" aria-hidden="true">
-          <motion.div className="h-px origin-left bg-white/20" initial={reduce ? false : { scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 1.1, ease }} />
+          <motion.div className="h-px origin-left bg-white/20" initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 1.1, ease }} />
         </div>
         <div className="pointer-events-none absolute z-10 h-px bg-[#f4d44d] transition-[width,opacity] duration-300 motion-reduce:transition-none" style={{ left: litBox.left, top: litBox.top, width: lit === null ? 0 : litBox.width, opacity: lit === null ? 0 : 1 }} aria-hidden="true" />
 
@@ -66,7 +65,7 @@ function TraceMap() {
             <div key={title} data-trace-col className="relative pl-5" onMouseEnter={(e) => light(i, e.currentTarget)} onMouseLeave={() => { light(null); setReach(null); }} onFocus={(e) => light(i, e.currentTarget)} onBlur={() => { light(null); setReach(null); }}>
               <motion.span
                 className={`absolute -left-[3.5px] -top-[3.5px] size-2 transition-colors ${lit === i ? "bg-[#f4d44d] shadow-[0_0_12px_#f4d44d]" : "bg-white/60"}`}
-                initial={reduce ? false : { scale: 0 }}
+                initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 + i * 0.12, duration: 0.3 }}
@@ -75,7 +74,7 @@ function TraceMap() {
               {/* Below desktop the columns wrap into rows: link each node to the next one in its row and to the one above it. */}
               <motion.span
                 className={`pointer-events-none absolute left-0 top-0 h-px w-[calc(100%+1.5rem)] origin-left bg-white/20 xl:hidden ${i % 2 === 0 ? "block" : "hidden"} ${i % 3 === 2 ? "md:hidden" : "md:block"}`}
-                initial={reduce ? false : { scaleX: 0 }}
+                initial={{ scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 + i * 0.12, duration: 0.8, ease }}
@@ -89,7 +88,7 @@ function TraceMap() {
               )}
               <motion.span
                 className="absolute bottom-1 left-0 top-0 w-px origin-top bg-white/15"
-                initial={reduce ? false : { scaleY: 0 }}
+                initial={{ scaleY: 0 }}
                 whileInView={{ scaleY: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 + i * 0.12, duration: 0.8, ease }}
@@ -114,7 +113,7 @@ function TraceMap() {
                   <motion.li
                     key={href}
                     className="relative"
-                    initial={reduce ? false : { opacity: 0, x: -6 }}
+                    initial={{ opacity: 0, x: -6 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.45 + i * 0.12 + j * 0.03, duration: 0.35 }}
@@ -184,7 +183,12 @@ export function LandingFooter() {
           </div>
         </div>
 
-        <TraceMap />
+        {/* The server cannot know the visitor's motion setting, so the map's pieces start from the
+            same state on the server and in the browser, and MotionConfig skips the movement for
+            visitors who ask for reduced motion. */}
+        <MotionConfig reducedMotion="user">
+          <TraceMap />
+        </MotionConfig>
 
         <PixelWordmark className="mt-12 mb-8" />
 

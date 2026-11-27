@@ -10,8 +10,9 @@ import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanA
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
 import { promptFor } from "./prompt.ts";
 import { snapCell, targetCell } from "./grid.ts";
-import { PLATE, boardBox, ropeCells, whereLayout } from "./where-layout.ts";
+import { PLATE, boardBox, ropeCells, tailCells, whereLayout } from "./where-layout.ts";
 import { pebbles } from "./soil.ts";
+import { PLANK_LEFT, PLANK_STUB, spriteCells } from "./plank.ts";
 import { callCost, getModel } from "../../../lib/tools/models.ts";
 
 test("a section edge is solid at the bottom, open at the top and thins out as it rises", () => {
@@ -166,4 +167,36 @@ test("pebbles in the soil keep clear of the chasm", () => {
     assert.ok(x < gap[0] - 6 || x >= gap[1] + 6, `pebble at ${x},${y} sits on the chasm edge`);
     assert.ok(y > 110 + 4);
   }
+});
+
+test("the snapped plank hangs at an angle, so it never reads as a post", () => {
+  for (const rows of [PLANK_LEFT.at(-1)!, PLANK_STUB]) {
+    const cells = spriteCells(rows);
+    // Every row starts further right than the one above it, or level with it.
+    const starts = rows.map((row) => row.search(/[^.]/));
+    starts.slice(1).forEach((x, i) => assert.ok(x >= starts[i], `row ${i + 1} steps back left`));
+    // No column is filled for more than three rows in a row.
+    for (let x = 0; x < rows[0].length; x++) {
+      const run = cells.filter(([cx]) => cx === x).length;
+      assert.ok(run <= 3, `column ${x} is a post of ${run} cells`);
+    }
+  }
+  // It hangs lower than the flat plank and is wider than it is a post.
+  const hanging = PLANK_LEFT.at(-1)!;
+  assert.ok(hanging.length > 3 && hanging[0].length >= 5);
+});
+
+test("the loose rope end under step 06 hangs down on phones instead of curling sideways", () => {
+  const l = whereLayout(80, true);
+  const c = l.centers[5];
+  const tail = tailCells(l);
+  // It starts under the plate, only ever goes down, and stays within a cell of the plate's middle.
+  assert.ok(tail.every(([, y]) => y > c.y + (PLATE >> 1)));
+  tail.slice(1).forEach(([, y], i) => assert.ok(y >= tail[i][1], "the tail climbs back up"));
+  assert.ok(tail.every(([x]) => Math.abs(x - c.x) <= 1));
+  // It stays clear of step 06's number board, which sits to the right of the plate.
+  const b = boardBox(l, 5);
+  assert.ok(tail.every(([x]) => x < b.x));
+  // And it fits inside the figure.
+  assert.ok(tail.every(([, y]) => y < l.rows));
 });

@@ -4,6 +4,7 @@
 
 import { CREAM, INK, LEGS, RED, ROBOT_TOP, YELLOW, dith, type Px, type Scene } from "./pixels";
 import { hash } from "./math";
+import { PLANK_LEFT, PLANK_STUB } from "./plank";
 import { BOARD, board } from "./steps-art";
 import { pebbles } from "./soil";
 
@@ -83,6 +84,16 @@ export function stoneSign(px: Px, n: number, stoneX: number, groundY: number, to
   return { x: bx, y: by, w: BOARD.w, h: BOARD.h };
 }
 
+/** A step without a board: a short post at the back of its stone with a small cap, like a trail marker. */
+export function trailMarker(px: Px, stoneX: number, groundY: number, color = CREAM) {
+  const top = stoneTop(stoneX, groundY);
+  // A one-cell ink outline keeps the marker apart from the ridge line behind it.
+  px.rect(stoneX + 3, top - 6, 5, 3, INK);
+  px.rect(stoneX + 4, top - 3, 3, 3, INK);
+  px.rect(stoneX + 5, top - 4, 1, 4, color);
+  px.rect(stoneX + 4, top - 5, 3, 1, color);
+}
+
 /**
  * Step 06's sign: the bridge's own name board, hung from a gantry on the far post so the robot
  * walks under it. `sway` nudges the board one cell while the plank under it breaks.
@@ -102,17 +113,13 @@ export function gantrySign(px: Px, plankX: number, gap1: number, groundY: number
 
 // ── The broken plank ─────────────────────────────────────────────────────────────────────────
 
-// Each half of the plank swings down on its rope end: flat, half-way, hanging.
-const HALF = [
-  ["RRRRR", "RRRRR", "RRRRR"],
-  ["RR...", "RRR..", ".RRR.", "..RRR", "...RR"],
-  ["RRR", "RRR", "RRR", "RRR", "RRR"],
-] as const;
 const MAP = { R: RED, C: CREAM, K: INK, Y: YELLOW } as Record<string, number>;
 
 /**
- * Step 06's plank breaking: a crack opens in the middle while it shakes, then both halves swing
- * down and hang from the rope, and three red crumbs drop out of sight. `fall` runs 0..1.
+ * Step 06's plank breaking: a crack opens in the middle while it shakes, then the plank snaps.
+ * The left half stays nailed on and swings down from its end, with a splintered tip; the right
+ * half tears off, leaving a jagged stub on the far nail, and falls into the chasm with a few
+ * crumbs. Pieces stay diagonal so they read as a snapped plank, not as posts. `fall` runs 0..1.
  */
 export function brokenPlank(px: Px, x: number, groundY: number, crack: boolean, fall: number) {
   const y = groundY - 2;
@@ -125,12 +132,15 @@ export function brokenPlank(px: Px, x: number, groundY: number, crack: boolean, 
     }
     return;
   }
-  const f = Math.min(2, Math.floor(fall * 4));
-  px.sprite(HALF[f], x, y, MAP);
-  px.sprite(HALF[f], x + 11 - HALF[f][0].length, y, MAP, true);
+  const f = Math.min(PLANK_LEFT.length - 1, Math.floor(fall * 4));
+  px.sprite(PLANK_LEFT[f], x, y, MAP);
+  px.sprite(PLANK_STUB, x + 11 - PLANK_STUB[0].length, y, MAP);
+  // The torn-off half tumbles down the chasm and is gone by the time the scan starts.
+  const drop = Math.floor(fall * 70);
+  if (drop < 40) px.sprite(drop % 8 < 4 ? ["RRRR", ".RR."] : [".RR", "RRR", "RR."], x + 6, y + 3 + drop, MAP);
   for (let i = 0; i < 3; i++) {
-    const drop = Math.floor(fall * 60) - i * 4;
-    if (drop > 0) px.set(x + 4 + i, y + 3 + drop, RED);
+    const d = Math.floor(fall * 60) - i * 4;
+    if (d > 0 && d < 40) px.set(x + 4 + i * 2, y + 3 + d, RED);
   }
 }
 

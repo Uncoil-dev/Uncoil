@@ -43,7 +43,7 @@ export function AuthScene({ mode, band = false, reserve = 0, sceneRef, onActive,
       const groundY = band ? px.h - 7 : px.h - Math.ceil(reserve / scale);
       const s: Scene = { px, cam: 0, groundY, t: seconds };
       const words = band ? [] : toBuffer(copy.current, scale, 6);
-      landscapeUnder(s, band && mode === "sign-up" ? 0.72 : band ? 0.9 : 0.8, band ? 0.5 : 0.75, words);
+      landscapeUnder(s, band && mode === "sign-up" ? 0.44 : band ? 0.9 : 0.8, band ? 0.5 : 0.75, words);
       clearStars(px, words);
 
       if (mode === "sign-up") {

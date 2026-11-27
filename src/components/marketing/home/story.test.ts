@@ -9,9 +9,11 @@ import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanA
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
 import { promptFor } from "./prompt.ts";
 import { snapCell, targetCell } from "./grid.ts";
-import { placeSun } from "./sun.ts";
+import { flagKeepOut, placeSun, skySun } from "./sun.ts";
+import { CARRY_FROM, carrierX, exitProgress, riseOf, standingX } from "./handoff.ts";
+import { compare } from "./compare.ts";
 import { drawGround } from "./morning.ts";
-import { PALE, INK, Px } from "./pixels.ts";
+import { PALE, INK, YELLOW, Px } from "./pixels.ts";
 import { PLATE, boardBox, ropeCells, scanReach, scanStop, scanStopIndex, scanStops, tailCells, whereLayout } from "./where-layout.ts";
 import { pebbles } from "./soil.ts";
 import { PLANK_LEFT, PLANK_STUB, spriteCells } from "./plank.ts";
@@ -356,14 +358,88 @@ test("the cause plate's board hangs below it, so the robot standing on it covers
 });
 
 test("the morning strips draw only ink and first light, and the light is gone when asked for none", () => {
-  for (const spec of [{ glow: 0.9, hills: 0.35, stones: true }, { glow: 0.45, hills: 0.6 }, { glow: 0, hills: 0.6 }]) {
-    const px = new Px(120, 8);
+  for (const spec of [{ glow: 0.9, hills: 0.35, stones: true }, { glow: 0.45, hills: 0.6 }, { glow: 0, hills: 0.6 }, { glow: 0.45, hills: 0.8, pines: true, sun: true }]) {
+    const px = new Px(120, 11);
     drawGround(px, spec);
-    const [ink, pale] = [INK >>> 0, PALE >>> 0];
+    const [ink, pale, yellow] = [INK >>> 0, PALE >>> 0, YELLOW >>> 0];
     const colours = new Set(px.buf);
-    for (const c of colours) assert.ok(c === 0 || c === ink || c === pale, `unexpected colour ${c}`);
+    for (const c of colours) assert.ok(c === 0 || c === ink || c === pale || (spec.sun && c === yellow), `unexpected colour ${c}`);
     assert.equal(colours.has(pale), spec.glow > 0, `glow ${spec.glow}`);
     // The ground line is two solid ink rows along the whole strip.
-    for (let x = 0; x < 120; x++) assert.equal(px.buf[6 * 120 + x] === ink && px.buf[7 * 120 + x] === ink, true);
+    const h = px.h;
+    for (let x = 0; x < 120; x++) assert.equal(px.buf[(h - 2) * 120 + x] === ink && px.buf[(h - 1) * 120 + x] === ink, true);
+    assert.equal(colours.has(yellow), Boolean(spec.sun), "the sun is yellow and drawn only when asked for");
+  }
+});
+
+test("the sun keeps at least four cells clear of the flag and its pole at every width from 360 to 2560 px", () => {
+  const CLOTH = 10;
+  for (const [goalAt, label] of [[0.93, "hero"], [0.8, "closing"], [0.86, "closing, narrow"]] as const) {
+    for (let vw = 360; vw <= 2560; vw += 8) {
+      const cell = targetCell(vw);
+      const w = Math.ceil(vw / cell);
+      const frac = label === "hero" ? goalAt : w < 140 ? 0.86 : 0.8;
+      if (label === "closing, narrow" ? w >= 140 : label === "closing" && w < 140) continue;
+      const goal = Math.round(w * frac);
+      const r0 = Math.min(Math.round(w * 0.11), 30);
+      const sun = placeSun(w, r0, [flagKeepOut(goal)], w * 0.8);
+      assert.ok(sun, `${vw}px: no place for the sun`);
+      const left = sun.cx - sun.r;
+      const right = sun.cx + sun.r;
+      assert.ok(left >= 0 && right < w, `${vw}px: the sun leaves the screen`);
+      const gap = right < goal ? goal - right : left - (goal + CLOTH);
+      assert.ok(gap >= 4, `${vw}px ${label}: only ${gap} cells between the sun and the flag`);
+    }
+  }
+});
+
+test("one robot at a time: the one under the trace board has left before the carrier walks on", () => {
+  const w = 240;
+  assert.equal(standingX(40, w, 0), 40, "it stands still until the strip scrolls in");
+  for (let i = 0; i <= 1000; i++) {
+    const rise = i / 1000;
+    const carrier = carrierX(w, rise);
+    // The standing robot spans 7 cells either side of its centre, outline included.
+    const standing = standingX(40, w, rise) - 7 < w;
+    assert.ok(!(standing && carrier !== null), `rise ${rise}: both robots are in the scene`);
+  }
+  assert.ok(exitProgress(CARRY_FROM) === 1 && carrierX(w, CARRY_FROM - 0.001) === null);
+  assert.ok(carrierX(w, CARRY_FROM)! <= -5 && carrierX(w, 1)! > w, "the carrier crosses the whole strip");
+  // The rise is 0 as the strip's top meets the bottom of the screen and 1 as its bottom leaves the top.
+  assert.equal(riseOf(900, 204, 900), 0);
+  assert.equal(riseOf(-204, 204, 900), 1);
+});
+
+test("the Compare line counts the differing rows of the two runs it shows, in every case", () => {
+  for (const c of CASES) {
+    const { rows, differ, ta, tb } = compare(c);
+    const matched = rows.filter((r) => r.a && r.b).length;
+    assert.equal(rows.length, c.run.length + c.fix.after.length - matched, `${c.id}: rows are not the two runs lined up`);
+    assert.equal(differ, rows.filter((r) => r.kind === "onlyA" || r.kind === "onlyB" || r.kind === "changed").length);
+    assert.ok(differ >= Math.abs(c.run.length - c.fix.after.length), `${c.id}: fewer differing rows than steps added or removed`);
+    assert.equal(ta.steps, c.run.length);
+    assert.equal(tb.steps, c.fix.after.length);
+  }
+});
+
+test("the fix label never contradicts the headline number: the retries are part of the run's total", () => {
+  for (const c of CASES.filter((k) => /^\d+ retries/.test(k.fix.why))) {
+    const part = Number(/\$(\d+\.\d+)/.exec(c.fix.why)![1]);
+    const total = Number(c.fix.before.slice(1));
+    assert.ok(part <= total + 1e-9, `${c.id}: ${c.fix.why} is more than ${c.fix.before}`);
+    assert.match(c.fix.why, /of it$/, `${c.id}: the label must say it is part of the total`);
+  }
+});
+
+test("a sky sun between the copy and the flag never touches either, and gives way when the gap is too small", () => {
+  for (let copyEnd = 100; copyEnd < 160; copyEnd += 3) {
+    const flagTop = 150;
+    const sun = skySun(copyEnd, flagTop, 10);
+    if (!sun) {
+      assert.ok(flagTop - 4 - (copyEnd + 3) < 10, `copy ends at ${copyEnd}: a sun of 5 would have fitted`);
+      continue;
+    }
+    assert.ok(sun.cy - sun.r >= copyEnd + 3 && sun.cy + sun.r <= flagTop - 4, `copy ends at ${copyEnd}: the sun leaves the gap`);
+    assert.ok(sun.r <= 10 && sun.r >= 5);
   }
 });

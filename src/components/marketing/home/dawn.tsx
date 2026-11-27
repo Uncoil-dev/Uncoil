@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { CREAM, INK, PALE, YELLOW, Px, dith } from "./pixels";
 import { robotInFront } from "./hero-art";
+import { carrierX, riseOf } from "./handoff";
 import { hash } from "./math";
 import { snapCell, targetCell } from "./grid";
 import { useCalm } from "./use-calm";
@@ -16,9 +17,6 @@ export const DAWN_ROWS = 34;
  * dark top, and the sun climbs from the horizon at the bottom edge, its bands thinning as it rises.
  * Pure, so the tests can check that nothing is drawn off the grid or through the copy below.
  */
-/** Where the robot stands in the strip, in cells: it crosses from the left edge to the right as the strip scrolls by. */
-export const carryX = (w: number, rise: number) => Math.round(-6 + (w + 12) * Math.min(1, Math.max(0, rise)));
-
 export function drawDawn(px: Px, rise: number) {
   const { w, h } = px;
   px.clear(INK);
@@ -50,9 +48,10 @@ export function drawDawn(px: Px, rise: number) {
   }
   // The horizon: two solid cream rows that run on into the section below.
   px.rect(0, h - 2, w, 2, CREAM);
-  // The robot carries the yellow plank across the strip, a step for every two cells it moves.
-  const x = carryX(w, rise);
-  robotInFront(px, x, h - 2, Math.floor(x / 2) % 4, false, false, { swap: true, plank: true });
+  // The robot carries the yellow plank across the strip, a step for every two cells it moves. It
+  // walks on once the robot under the trace board has left, so only one is ever in view.
+  const x = carrierX(w, rise);
+  if (x !== null) robotInFront(px, x, h - 2, Math.floor(x / 2) % 4, false, false, { swap: true, plank: true, solid: true });
 }
 
 /**
@@ -80,9 +79,9 @@ export function Dawn() {
       const w = Math.ceil(box.clientWidth / cell);
       const rect = box.getBoundingClientRect();
       const vh = window.innerHeight;
-      const rise = calm ? 0.5 : Math.min(1, Math.max(0, (vh - rect.top) / (vh + rect.height)));
+      const rise = calm ? 0.5 : riseOf(rect.top, rect.height, vh);
       // Redrawn for every whole cell the robot moves.
-      const step = carryX(w, rise);
+      const step = carrierX(w, rise) ?? "none";
       const next = `${w}:${cell}:${step}`;
       if (next === key) return;
       key = next;

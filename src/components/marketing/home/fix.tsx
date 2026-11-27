@@ -71,9 +71,9 @@ export function Fix() {
           </div>
 
           <div ref={ref} className="min-w-0">
-            <div className={`flex items-baseline justify-between gap-4 text-black/60 ${LABEL}`}>
+            <div className={`flex flex-col gap-1 text-black/60 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 ${LABEL}`}>
               <span className="shrink-0 whitespace-nowrap">{c.fix.metric}</span>
-              <span className="min-w-0 truncate text-right">{after ? "after the fix" : `before: ${c.fix.why}`}</span>
+              <span className="min-w-0 sm:truncate sm:text-right">{after ? "after the fix" : `before: ${c.fix.why}`}</span>
             </div>
             {/* Two screen pixels per dissolve pixel on wide screens, so every pixel of the number is the same size. */}
             <div className="mt-2 max-w-[480px]">

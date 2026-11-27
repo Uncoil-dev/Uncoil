@@ -4,7 +4,8 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { TraceTimeline, type ViewSpan } from "@/components/dashboard/tracing/trace-views";
 import { compactNumber, formatCost, formatDuration } from "@/components/dashboard/tracing/format";
 import { buildSpanTree, type SpanTreeNode } from "@/lib/uncoil-ports/treeBuilding";
-import { alignSteps, isFailed as diffFailed, stepName, stepType, totals, type AlignedRow, type DiffSpan } from "@/lib/trace-diff";
+import { isFailed as diffFailed, stepName, stepType, totals, type AlignedRow, type DiffSpan } from "@/lib/trace-diff";
+import { compare } from "./compare";
 import { totalCost, tokens, usd, type ExampleSpan } from "./run-data";
 import type { Case } from "./cases";
 
@@ -26,6 +27,7 @@ const SKIN = `
 .uc-frame .border-\\[\\#171B21\\]{border-color:rgba(236,234,227,.08)}
 .uc-frame .rounded-\\[3px\\],.uc-frame .rounded-md,.uc-frame .rounded{border-radius:0}
 @media (max-width:767px){
+.uc-frame{--tl-name:112px}
 .uc-frame ol[aria-label="Timeline"]>li>button{height:44px}
 .uc-frame ol[aria-label="Timeline"]>li>button>span>span{top:12px}
 .uc-frame [aria-label="Zoom"] button{min-width:44px;min-height:44px}
@@ -73,16 +75,19 @@ function useRun(run: readonly ExampleSpan[], folded: ReadonlySet<string>) {
 
 const failed = (s: ViewSpan) => Boolean(s.errorType);
 
-function TitleBar({ crumbs, status, bad }: { crumbs: string; status: string; bad?: boolean }) {
+function TitleBar({ root, crumbs, status, bad }: { root: string; crumbs: string; status: string; bad?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-[#eceae3]/15 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#eceae3]/60">
-      <span className="flex min-w-0 items-center gap-2">
+    <div className="flex flex-col items-start gap-1.5 border-b border-[#eceae3]/15 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#eceae3]/60 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+      <span className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
         <span aria-hidden="true" className="flex gap-1">
           <span className="size-2 bg-[#eceae3]/30" />
           <span className="size-2 bg-[#eceae3]/30" />
           <span className="size-2 bg-[#eceae3]/30" />
         </span>
-        <span className="truncate">{crumbs}</span>
+        <span className="truncate">
+          <span className="hidden sm:inline">{root} › </span>
+          {crumbs}
+        </span>
       </span>
       <span className={`flex shrink-0 items-center gap-2 ${bad ? "text-[#eceae3]" : "text-[#f4d44d]"}`}>
         <span className={`size-2 ${bad ? "bg-[#ff4d3d]" : "bg-[#f4d44d]"}`} aria-hidden="true" />
@@ -127,14 +132,15 @@ export function TraceWindow({ c }: { c: Case }) {
         ["Cost · latency", `${formatCost(step.costUsd)} · ${formatDuration(step.latencyMs)}`],
       ];
   const bad = run.some((s) => s.errorType);
-  const timelineH = 34 + 25 + rows.length * (phone ? 44 : 28) + 6;
+  // The timeline's toolbar is taller on phones, where its buttons are 44px touch targets.
+  const timelineH = (phone ? 53 : 34) + 25 + rows.length * (phone ? 44 : 28) + 6;
   // The step panel beside (or under) the timeline keeps one height for every example run, so
   // switching runs never moves the page; its tallest content is the loop group with its button.
 
   return (
     <div className="uc-frame border-2 border-[#eceae3] bg-[#090909] text-[#eceae3]">
       <style>{SKIN}</style>
-      <TitleBar crumbs={`Tracing › ${c.agent} › ${c.runId}`} status={`${bad ? "Failed" : "Passed"} · ${usd(totalCost(run))} · ${formatDuration(totalMs)}`} bad={bad} />
+      <TitleBar root="Tracing" crumbs={`${c.agent} › ${c.runId}`} status={`${bad ? "Failed" : "Passed"} · ${usd(totalCost(run))} · ${formatDuration(totalMs)}`} bad={bad} />
       <div className="grid lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <div className="min-w-0 border-b border-[#eceae3]/15 lg:border-b-0 lg:border-r" style={{ height: timelineH }}>
           <TraceTimeline rows={rows} spans={spans} totalMs={totalMs} selectedId={selected} isFailed={failed} onSelect={setSelected} />
@@ -168,20 +174,6 @@ export function TraceWindow({ c }: { c: Case }) {
       </div>
     </div>
   );
-}
-
-const asDiff = (run: readonly ExampleSpan[]): DiffSpan[] => run.map((s) => ({ ...s }));
-// Both runs are fixed example data, so each case's comparison is worked out once.
-const compared = new Map<string, { ta: ReturnType<typeof totals>; tb: ReturnType<typeof totals>; rows: AlignedRow[] }>();
-function compare(c: Case) {
-  let hit = compared.get(c.id);
-  if (!hit) {
-    const a = asDiff(c.run);
-    const b = asDiff(c.fix.after);
-    hit = { ta: totals(a), tb: totals(b), rows: alignSteps(a, b) };
-    compared.set(c.id, hit);
-  }
-  return hit;
 }
 
 const TOTALS: { label: string; pick: (t: ReturnType<typeof totals>) => number; show: (n: number) => string }[] = [
@@ -226,13 +218,13 @@ function StepRow({ row }: { row: AlignedRow }) {
  * own comparison code from the two example runs.
  */
 export function CompareWindow({ c, rows: room }: { c: Case; rows: number }) {
-  const { ta, tb, rows } = compare(c);
+  const { ta, tb, rows, differ } = compare(c);
   return (
     <div className="uc-frame border-2 border-[#eceae3] bg-[#090909] text-[#eceae3]">
-      <TitleBar crumbs="Compare › two runs" status={`Run B passed · ${usd(totalCost(c.fix.after))}`} />
+      <TitleBar root="Compare" crumbs="two runs" status={`Run B passed · ${usd(totalCost(c.fix.after))}`} />
       <div className="grid grid-cols-2 gap-3 border-b border-[#eceae3]/15 px-3 py-2.5 font-mono text-[10px] uppercase tracking-[0.12em]">
-        <span className="min-w-0 truncate"><span className="bg-[#f4d44d] px-1.5 text-black">Run A</span> {c.runId} · failed</span>
-        <span className="min-w-0 truncate"><span className="bg-[#eceae3] px-1.5 text-black">Run B</span> {c.fix.afterId} · after the fix</span>
+        <span className="min-w-0 sm:truncate"><span className="bg-[#f4d44d] px-1.5 text-black">Run A</span> {c.runId} · failed</span>
+        <span className="min-w-0 sm:truncate"><span className="bg-[#eceae3] px-1.5 text-black">Run B</span> {c.fix.afterId} · after the fix</span>
       </div>
       <dl aria-label="Totals" className="grid grid-cols-2 gap-px border-b border-[#eceae3]/15 bg-[#eceae3]/15 sm:grid-cols-5">
         {TOTALS.map(({ label, pick, show }) => {
@@ -253,7 +245,7 @@ export function CompareWindow({ c, rows: room }: { c: Case; rows: number }) {
       <div className="flex items-center gap-3 border-b border-[#eceae3]/15 px-3 py-2">
         <p className="text-xs font-medium">Steps side by side</p>
         <p className="font-mono text-[11px] text-[#eceae3]/60">
-          {rows.filter((r) => r.kind !== "same").length} of {rows.length} differ
+          {differ} of {rows.length} differ
         </p>
       </div>
       {/* A fixed window onto the steps, so switching cases never moves the page; long runs scroll inside it. */}

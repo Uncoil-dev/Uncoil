@@ -15,6 +15,7 @@ import { NIGHT, clearStars, fitSun, landscapeUnder, placeCallout, sunBox, toBuff
 import { causeStone, stepStones } from "./steps-art";
 import { DUR, EASE, HERO, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
+import { flagKeepOut } from "./sun";
 import { topSteps, two, type Case } from "./cases";
 import { useCase, usePicks } from "./case-state";
 import { CasePicker } from "./case-picker";
@@ -142,13 +143,15 @@ export function HeroWorld() {
       const rx = Math.round(start + track(st.phase, st.local, edge) * (goal - 8 - start));
 
       // The sun stands clear of the bridge's gantry and the goal flag, and of the copy.
-      const sunSpot = fitSun(px.w, px.h, groundY, NIGHT, px.w * 0.8, [[plankX - 2, gap1 + 2], [goal - 2, goal + 12]], toBuffer(copy.current, scale, 3));
+      const sunSpot = fitSun(px.w, px.h, groundY, NIGHT, px.w * 0.8, [[plankX - 2, gap1 + 2], flagKeepOut(goal)], toBuffer(copy.current, scale, 3));
       const sunX = sunSpot.cx / px.w;
       // No star ever sits behind a word, and the far ridge never climbs into the copy: if it
       // would, the hills are drawn a little lower.
       const words = toBuffer(copy.current, scale, 6);
       landscapeUnder(s, sunX, px.w < 200 ? 0.8 : 0.6, words, NIGHT, sunSpot.r);
-      clearStars(px, toBuffer(copy.current, scale, 10));
+      // Every row a line of copy occupies is clear of stars from the left edge to the end of the
+      // copy, so no lone pair floats in the margin beside the headline on a wide screen.
+      clearStars(px, toBuffer(copy.current, scale, 10).map((b) => ({ ...b, x: 0, w: b.x + b.w })));
       pines(s, [[stones[2] - 20, gap1 + 4], [goal - 10, goal + 30]], 1);
 
       const passed = st.phase === "cross" || st.phase === "goal";
@@ -188,7 +191,9 @@ export function HeroWorld() {
         trailMarker(px, x, groundY, read(x) ? PALE : CREAM);
         return null;
       });
-      const six = gantrySign(px, plankX, gap1, groundY, passed || (home && fixed) ? "lit" : st.phase === "walk" ? "plain" : "failed", jolt);
+      // Once the run is fixed the board counts the re-run's steps, which may be fewer than six.
+      const rerun = passed || (home && fixed);
+      const six = gantrySign(px, plankX, gap1, groundY, rerun ? "lit" : st.phase === "walk" ? "plain" : "failed", jolt, rerun ? done(run) : 6);
       const back = boards[reachAt];
       if (tracing && back) {
         const box = { x: Math.round(six.x + (back.x - six.x) * k), y: Math.round(six.y + (back.y - six.y) * k), w: six.w, h: six.h };

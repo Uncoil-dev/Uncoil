@@ -165,7 +165,34 @@ export function brackets(px: Px, box: { x: number; y: number; w: number; h: numb
 // ── The robot ────────────────────────────────────────────────────────────────────────────────
 
 /** How the robot is drawn: `swap` for a light ground, `plank` to carry the yellow plank overhead. */
-export type RobotLook = { swap?: boolean; plank?: boolean };
+export type RobotLook = { swap?: boolean; plank?: boolean; solid?: boolean };
+
+/**
+ * A solid backing for the robot over a busy ground: every row of the body is filled from its
+ * leftmost to its rightmost cell, then the whole shape grows one cell all round, so nothing of the
+ * sky shows through or around it. Cells are relative to the robot's `x`, in page rows.
+ */
+function silhouette(plank: boolean, legs: readonly string[], top: number, legsY: number) {
+  const cells = new Set<string>();
+  const row = (line: string, y: number, fill: boolean) => {
+    const xs = [...line].flatMap((c, i) => (c === "." ? [] : [i - 5]));
+    if (!xs.length) return;
+    if (fill) for (let x = Math.min(...xs); x <= Math.max(...xs); x++) cells.add(`${x},${y}`);
+    else xs.forEach((x) => cells.add(`${x},${y}`));
+  };
+  ROBOT_TOP.forEach((line, j) => row(line, top + j, true));
+  legs.forEach((line, j) => row(line, legsY + j, false));
+  if (plank) {
+    for (let y = top - 5; y < top; y++) for (let x = -7; x <= 6; x++) cells.add(`${x},${y}`);
+    for (let y = top + 1; y <= top + 9; y++) for (const x of [-6, 5]) cells.add(`${x},${y}`);
+  }
+  const out = new Set(cells);
+  for (const key of cells) {
+    const [x, y] = key.split(",").map(Number);
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) out.add(`${x + dx},${y + dy}`);
+  }
+  return [...out].map((k) => k.split(",").map(Number) as [number, number]);
+}
 
 /**
  * The robot with a one-cell ink outline on its sides and top, so it reads in front of a sign or
@@ -178,9 +205,10 @@ export function robotInFront(px: Px, x: number, groundY: number, frame: number, 
   const map = look.swap ? { ...MAP, C: INK, K: CREAM } : MAP;
   const edge = look.swap ? CREAM : INK;
   const top = groundY - ROBOT_TOP.length - 2 - bob;
+  const legsY = groundY - 2;
+  if (look.solid) for (const [dx, y] of silhouette(Boolean(look.plank), LEGS[f], top, legsY)) px.set(x + dx, y, edge);
   const rows = [...ROBOT_TOP, ...LEGS[f]];
   const at = (i: number, j: number) => j >= 0 && j < rows.length && i >= 0 && i < 10 && rows[j][i] !== ".";
-  const legsY = groundY - 2;
   const yOf = (j: number) => (j < ROBOT_TOP.length ? top + j : legsY + j - ROBOT_TOP.length);
   for (let j = 0; j < rows.length; j++)
     for (let i = 0; i < 10; i++) {

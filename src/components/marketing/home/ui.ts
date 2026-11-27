@@ -3,7 +3,7 @@
 // one section rhythm, two rule strengths and two button styles.
 
 /** The hero and the closing line. */
-export const HERO = "font-pixel normal-case text-[clamp(2.9rem,min(8.6vw,13svh),8.5rem)] leading-[0.88] tracking-[-0.07em]";
+export const HERO = "font-pixel normal-case text-[clamp(2.9rem,min(8.6vw,13svh),8rem)] leading-[0.88] tracking-[-0.07em]";
 /** Every section headline. */
 export const H2 = "font-pixel normal-case text-[clamp(2.6rem,5.8vw,5.75rem)] leading-[0.9] tracking-[-0.07em] text-balance";
 /** Sub-headlines inside a section: panels, the line under a big figure, plan names. */

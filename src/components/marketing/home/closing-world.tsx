@@ -16,6 +16,7 @@ import { topSteps } from "./cases";
 import { causeStone, stepStones } from "./steps-art";
 import { BODY, HERO, LABEL, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
+import { flagKeepOut, skySun } from "./sun";
 
 /**
  * The closing scene pays off the journey in full morning: the sky is cream, the sun stands high
@@ -65,10 +66,21 @@ export function ClosingWorld() {
       }
       // The sun keeps clear of the gantry, the flag, the cause's sign and the copy.
       const cause = c.cause < 6 ? stepStones(gap0)[c.cause - 1] : -1;
-      const posts: [number, number][] = [[gap0 + 11, gap1 + 1], [goal - 1, goal + 12]];
+      const posts: [number, number][] = [[gap0 + 11, gap1 + 1], flagKeepOut(goal)];
       if (cause > 2) posts.push([cause - 2, cause + 12]);
       const sunSpot = fitSun(px.w, px.h, groundY, day, Math.min(px.w - r - 2, Math.max(px.w * (narrow ? 0.78 : 0.8), right + r + 4)), posts, toBuffer(copy.current, scale, 2));
-      landscapeUnder(s, sunSpot.cx / px.w, narrow ? 0.45 : 0.7, words, day, sunSpot.r);
+      // Where no room is left beside the flag the sun stands above its top instead, under the copy.
+      const flagTop = groundY - 3 - 29;
+      let spot = sunSpot;
+      const lowest = sunDisc(px.w, px.h, groundY, spot.cx / px.w, day, 0, spot.r).cy + spot.r + 3;
+      if (lowest > flagTop && posts.some(([a, b]) => spot.cx + spot.r + 3 > a && spot.cx - spot.r - 3 < b)) {
+        const sky = skySun(copyEnd, flagTop, spot.r);
+        if (sky) {
+          day = { ...day, sun: (groundY - px.h * 0.08 - sky.cy) / (px.h * 0.12 + sky.r * 0.6) };
+          spot = { cx: Math.min(px.w - sky.r - 3, Math.round(px.w * 0.8)), r: sky.r };
+        } else day = { ...day, sun: -1 };
+      }
+      landscapeUnder(s, spot.cx / px.w, narrow ? 0.45 : 0.7, words, day, spot.r);
       clearStars(px, toBuffer(copy.current, scale, 10));
       pines(s, [[gap0 - 30, gap1 + 4], [goal - 14, goal + 30]], 1);
       groundArt(s, [[gap0, gap1]], (wx) => (wx >= start && wx < rx + 6 ? YELLOW : undefined));

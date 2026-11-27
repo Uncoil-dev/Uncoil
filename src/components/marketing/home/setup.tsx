@@ -135,8 +135,8 @@ export function Setup() {
         </div>
         </div>
       </div>
-      {/* A thin landscape between setup and price: the ridge with the last of the early light. */}
-      <MorningGround rows={8} glow={0.45} hills={0.8} pines className="-mx-5 mt-3 md:-mx-10" />
+      {/* A thin landscape between setup and price: the ridge and pines with a low yellow sun behind it. */}
+      <MorningGround rows={16} glow={0.45} hills={0.8} pines sun className="-mx-5 mt-3 md:-mx-10" />
     </section>
   );
 }

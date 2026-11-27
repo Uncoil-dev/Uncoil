@@ -12,6 +12,8 @@ import { logLines } from "./logs";
 import { PREDAWN, clearStars, landscapeUnder, toBuffer, useCopyBoxes } from "./sky";
 import { BODY, H2, LABEL } from "./ui";
 import { useCalm } from "./use-calm";
+import { riseOf, standingX } from "./handoff";
+import { DAWN_ROWS } from "./dawn";
 
 // The real trace view ships in its own chunk, so it never holds up the hero. It is still
 // rendered on the server, so the section never shows an empty frame while it loads.
@@ -86,8 +88,14 @@ export function Product() {
         px.rect(x - 3, groundY - 3, 7, 3, CREAM);
       }
       px.rect(postL, bBottom + 4, postR - postL, 1, CREAM);
-      // The robot stands under the board between the posts; the section keeps room for it below the board.
-      robotInFront(px, postL + 18, groundY - 3, calm ? 0 : Math.floor(seconds * 1.2) % 2);
+      // The robot stands under the board; as the dawn strip scrolls in it walks off to the right,
+      // so the carrier on the strip is the only robot in view. With reduced motion the carrier
+      // stands on the strip, so this one is not drawn.
+      if (!calm) {
+        const rise = riseOf(sr.bottom, DAWN_ROWS * scale, window.innerHeight);
+        const x = standingX(postL + 18, px.w, rise);
+        robotInFront(px, x, groundY - 3, x === postL + 18 ? Math.floor(seconds * 1.2) % 2 : Math.floor(x / 2) % 4);
+      }
     },
     { still: calm, redraw: c.id },
   );
@@ -113,7 +121,7 @@ export function Product() {
           <span data-clear className="inline-block max-w-[22ch]">Your logs say it failed. Uncoil says why.</span>
         </h2>
 
-        <div ref={boardRef} data-clear className="mt-8 md:mt-10">
+        <div ref={boardRef} data-clear className="mt-8 min-w-0 md:mt-10">
           <div role="tablist" aria-label="Read the run in" className="grid grid-cols-2 border-2 border-b-0 border-[#eceae3] sm:w-fit">
             {VIEWS.map((v, i) => (
               <button
@@ -135,11 +143,11 @@ export function Product() {
               </button>
             ))}
           </div>
-          <div id="trace-panel" role="tabpanel" aria-labelledby={`trace-tab-${view}`} className="grid">
-            <div className={`[grid-area:1/1] ${view === 0 ? "" : "invisible"}`}>
+          <div id="trace-panel" role="tabpanel" aria-labelledby={`trace-tab-${view}`} className="grid grid-cols-[minmax(0,1fr)]">
+            <div className={`min-w-0 [grid-area:1/1] ${view === 0 ? "" : "invisible"}`}>
               <TraceWindow key={c.id} c={c} />
             </div>
-            <div className={`[grid-area:1/1] ${view === 1 ? "" : "invisible"}`}>
+            <div className={`min-w-0 [grid-area:1/1] ${view === 1 ? "" : "invisible"}`}>
               <Logs c={c} />
             </div>
           </div>

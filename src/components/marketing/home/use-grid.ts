@@ -40,10 +40,12 @@ export function useCell() {
  * Fits a low-resolution pixel buffer to the canvas parent on the page grid and redraws it every
  * animation frame while it is on screen. With `still` set it draws once per resize. Each buffer
  * pixel covers a whole number of device pixels, so the browser's nearest-neighbour upscale never
- * has to split one.
+ * has to split one. A still canvas draws again whenever `redraw` changes.
  */
-export function useGridCanvas(canvasRef: RefObject<HTMLCanvasElement | null>, draw: (f: Frame) => void, { still }: { still: boolean }) {
+export function useGridCanvas(canvasRef: RefObject<HTMLCanvasElement | null>, draw: (f: Frame) => void, { still, redraw }: { still: boolean; redraw?: string | number }) {
   const drawRef = useRef(draw);
+  // A running canvas picks up changes on its next frame; only a still one needs a fresh draw.
+  const again = still ? redraw : 0;
   useEffect(() => {
     drawRef.current = draw;
   });
@@ -100,5 +102,5 @@ export function useGridCanvas(canvasRef: RefObject<HTMLCanvasElement | null>, dr
       offDensity();
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [canvasRef, still]);
+  }, [canvasRef, still, again]);
 }

@@ -1,37 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EDGE, cellsPath, edgeCells, horizonRow, promptLines } from "./story.ts";
-import { RUN_A, RUN_B, PLAN_CALL, modelCalls, totalCost, type ExampleSpan } from "./run-data.ts";
-import { CASES } from "./cases.ts";
+import { promptLines } from "./story.ts";
+import { RUN_A, RUN_B, PLAN_CALL, modelCalls, tokens, totalCost, type ExampleSpan } from "./run-data.ts";
+import { CASES, topSteps } from "./cases.ts";
 import { logLines } from "./logs.ts";
-import { chapterAt } from "./rail-logic.ts";
-import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanAt, type HeroPhase } from "./hero-clock.ts";
+import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanAt, scanPath, type HeroPhase } from "./hero-clock.ts";
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
 import { promptFor } from "./prompt.ts";
 import { snapCell, targetCell } from "./grid.ts";
-import { PLATE, boardBox, ropeCells, scanStop, tailCells, whereLayout } from "./where-layout.ts";
+import { flagKeepOut, placeSun, skySun } from "./sun.ts";
+import { CARRY_FROM, carrierX, exitProgress, riseOf, standingX } from "./handoff.ts";
+import { compare } from "./compare.ts";
+import { drawGround } from "./morning.ts";
+import { PALE, INK, YELLOW, Px } from "./pixels.ts";
+import { PLATE, boardBox, ropeCells, scanReach, scanStop, scanStopIndex, scanStops, tailCells, whereLayout } from "./where-layout.ts";
 import { pebbles } from "./soil.ts";
 import { PLANK_LEFT, PLANK_STUB, spriteCells } from "./plank.ts";
 import { callCost, getModel } from "../../../lib/tools/models.ts";
-
-test("a section edge is solid at the bottom, open at the top and thins out as it rises", () => {
-  for (const shape of ["hills", "flat"] as const) {
-    const { solid, dither, loose } = edgeCells(shape, 4);
-    const solidAt = new Set(solid.map(([c, r]) => `${c},${r}`));
-    for (let c = 0; c < EDGE.cols; c++) {
-      assert.ok(solidAt.has(`${c},${EDGE.rows - 1}`), `${shape}: column ${c} has no ground`);
-      assert.ok(horizonRow(c, shape, 4) > 0, `${shape}: column ${c} fills the top row`);
-    }
-    const perRow = (r: number) => dither.filter(([, y]) => y === r).length + loose.filter(([, y]) => y === r).length;
-    const flatTop = horizonRow(0, "flat", 4);
-    if (shape === "flat") assert.ok(perRow(flatTop - 1) > perRow(flatTop - 12) * 2);
-  }
-});
-
-test("cell paths merge horizontal runs into one rectangle", () => {
-  assert.equal(cellsPath([[0, 0], [1, 0], [2, 0], [5, 1]], 8), "M0 0h24v8h-24zM40 8h8v8h-8z");
-});
 
 test("every inventory item has a square 12-cell sprite drawn only in cream and yellow", () => {
   assert.equal(new Set(KIT.map((k) => k.id)).size, KIT.length);
@@ -51,7 +37,7 @@ test("the setup prompt keeps its own step numbers and gains no second numbering"
 });
 
 test("every model call is priced from its tokens with the repo's price table", () => {
-  const runs: [string, readonly ExampleSpan[]][] = [["run A", RUN_A], ["run B", RUN_B], ...CASES.map((c): [string, readonly ExampleSpan[]] => [c.id, c.run])];
+  const runs: [string, readonly ExampleSpan[]][] = [["run A", RUN_A], ["run B", RUN_B], ...CASES.flatMap((c): [string, readonly ExampleSpan[]][] => [[c.id, c.run], [`${c.id} fixed`, c.fix.after]])];
   for (const [name, run] of runs) {
     for (const s of run) {
       if (s.spanType !== "llm_call") {
@@ -74,7 +60,7 @@ test("every model call is priced from its tokens with the repo's price table", (
 test("the example runs nest properly and fail only where the page says", () => {
   assert.deepEqual(RUN_A.filter((s) => s.errorType).map((s) => s.name), ["refund.issue"]);
   assert.equal(RUN_B.some((s) => s.errorType), false);
-  for (const run of [RUN_A, RUN_B, ...CASES.map((c) => c.run)]) {
+  for (const run of [RUN_A, RUN_B, ...CASES.flatMap((c) => [c.run, c.fix.after])]) {
     const byId = new Map(run.map((s) => [s.spanId, s]));
     for (const s of run) {
       const parent = byId.get(s.parentSpanId);
@@ -84,7 +70,26 @@ test("the example runs nest properly and fail only where the page says", () => {
       assert.ok(start >= pStart && start + s.latencyMs <= pStart + parent.latencyMs, `${s.spanId} spills out of ${parent.spanId}`);
     }
   }
-  for (const c of CASES) assert.ok(c.run.some((s) => s.spanId === c.cause), `${c.id}: the cause is not in its run`);
+});
+
+test("every case tells one six-step run: the page's steps are the run's steps, it fails at 06 and the cause is where the page says", () => {
+  assert.deepEqual(CASES.map((c) => c.id), ["empty", "loop", "timeout", "wrong"]);
+  for (const c of CASES) {
+    const root = c.run.find((s) => !s.parentSpanId)!;
+    const top = [root, ...c.run.filter((s) => s.parentSpanId === root.spanId)];
+    assert.deepEqual(c.steps.map((s) => s.name), top.map((s) => s.name), `${c.id}: steps differ from the run`);
+    assert.equal(root.name, c.agent);
+    assert.deepEqual(c.run.filter((s) => s.errorType).map((s) => s.spanId), [top[5].spanId], `${c.id}: fails somewhere other than step 06`);
+    assert.equal(top[c.cause - 1].spanId, c.causeSpan, `${c.id}: the trace opens on another step than the cause`);
+    assert.equal(c.fix.after.some((s) => s.errorType), false, `${c.id}: the fixed run still fails`);
+    // A model step's note quotes its own tokens and latency.
+    for (const [i, s] of c.steps.entries()) {
+      const m = /^([\d,]+) tok · (\d+) ms$/.exec(s.note);
+      if (m) assert.deepEqual([Number(m[1].replace(",", "")), Number(m[2])], [tokens(top[i]), top[i].latencyMs], `${c.id}: step ${i + 1} note`);
+    }
+  }
+  // The figures the fix quotes for each case.
+  assert.deepEqual(CASES.map((c) => [c.fix.before, c.fix.afterValue]), [["$0.42", "$0.06"], ["$0.37", "$0.04"], ["31.9s", "2.5s"], ["409", "200"]]);
 });
 
 test("the log tail is the same run, with the empty search as an ordinary info line", () => {
@@ -105,12 +110,24 @@ test("the hero fails at 06, walks back to 04, fixes it, and only then crosses", 
     if (order.at(-1) !== phase) order.push(phase);
   }
   assert.deepEqual(order, ["walk", "fail", "trace", "mark", "repair", "cross", "goal"]);
-  assert.equal(focusStep("fail"), 6);
-  assert.equal(focusStep("mark"), 4);
-  assert.equal(focusStep("repair"), 4);
+  assert.equal(focusStep("fail", 4), 6);
+  assert.equal(focusStep("mark", 4), 4);
+  assert.equal(focusStep("repair", 3), 3);
   assert.equal(scanAt({ phase: "trace", local: 0 }), 0);
   assert.equal(scanAt({ phase: "trace", local: 1 }), 1);
   assert.ok(scanAt({ phase: "trace", local: 0.5 }) > 0 && scanAt({ phase: "trace", local: 0.5 }) < 1);
+});
+
+test("when step 06 is its own cause the scan reads back, finds nothing and comes home to 06", () => {
+  const path = Array.from({ length: 101 }, (_, i) => scanPath({ phase: "trace", local: i / 100 }, true));
+  const far = path.indexOf(Math.max(...path));
+  assert.ok(path[far] > 0.99, "it reaches the furthest step");
+  assert.ok(far > 0 && far < 100);
+  path.slice(1, far + 1).forEach((v, i) => assert.ok(v >= path[i], "it turns back early"));
+  path.slice(far + 1).forEach((v, i) => assert.ok(v <= path[far + i], "it heads out again"));
+  assert.ok(path[100] < 1e-9);
+  assert.equal(scanPath({ phase: "mark", local: 0.5 }, true), 0);
+  assert.equal(scanPath({ phase: "mark", local: 0.5 }, false), 1);
 });
 
 test("breaking the hero step hurries to the next failure and never interrupts one in progress", () => {
@@ -120,12 +137,6 @@ test("breaking the hero step hurries to the next failure and never interrupts on
   const late = FIXED_AT + 0.3;
   assert.ok(Math.abs(breakTarget(late) - (HERO_LOOP + BREAK_AT)) < 1e-9);
   assert.equal(heroState(breakTarget(late) + 0.001).phase, "fail");
-});
-
-test("the rail marks the last chapter whose top has passed the reading line", () => {
-  assert.equal(chapterAt([500, 900, 1300], 360), -1);
-  assert.equal(chapterAt([-400, 120, 900], 360), 1);
-  assert.equal(chapterAt([-900, -500, -100], 360), 2);
 });
 
 test("a page cell always covers a whole number of device pixels", () => {
@@ -201,17 +212,29 @@ test("the loose rope end under step 06 hangs down on phones instead of curling s
   assert.ok(tail.every(([, y]) => y < l.rows));
 });
 
-test("the scan frame only ever sits on a step: 06, then 05, then 04", () => {
-  const stops = Array.from({ length: 101 }, (_, i) => scanStop(i / 100));
-  assert.deepEqual([...new Set(stops)], [5, 4, 3]);
-  assert.equal(scanStop(0), 5);
-  assert.equal(scanStop(1), 3);
+test("the scan frame only ever sits on a step, walking back from 06 to each case's cause", () => {
+  const visits = (cause: number) => {
+    const seen: number[] = [];
+    for (let i = 0; i <= 100; i++) {
+      const at = scanStop(i / 100, cause);
+      if (seen.at(-1) !== at) seen.push(at);
+    }
+    return seen;
+  };
+  assert.deepEqual(visits(4), [5, 4, 3]);
+  assert.deepEqual(visits(3), [5, 4, 3, 2]);
+  assert.deepEqual(visits(5), [5, 4]);
+  // Step 06 as its own cause: back to 04, nothing there, home to 06.
+  assert.deepEqual(visits(6), [5, 4, 3, 5]);
+  for (const c of CASES) assert.equal(scanStop(0.92, c.cause), c.cause - 1, `${c.id}: the frame ends off the cause`);
+  assert.equal(scanReach(0.92, 4), 1);
+  assert.equal(scanReach(0, 6), 0);
 });
 
 test("the scan frame fits inside the figure on every step it visits", () => {
   for (const vertical of [true, false]) {
     const l = whereLayout(vertical ? 80 : 240, vertical);
-    for (const i of [3, 4, 5]) {
+    for (const i of [2, 3, 4, 5]) {
       const c = l.centers[i];
       const b = boardBox(l, i);
       const half = PLATE >> 1;
@@ -219,5 +242,204 @@ test("the scan frame fits inside the figure on every step it visits", () => {
       assert.ok(Math.min(c.y - half, b.y) - 3 >= 0, `top edge, step ${i + 1}`);
       assert.ok(Math.max(c.y + half, b.y + b.h - 1) + 3 < l.rows, `bottom edge, step ${i + 1}`);
     }
+  }
+});
+
+// ── What the page says about each example case ──────────────────────────────────────────────
+
+/** Step numbers a line names: "step 4", "steps 02 to 05", "06 · llm.chat". */
+const named = (text: string) => [...text.matchAll(/\bsteps?\s+0?(\d)(?:\s+to\s+0?(\d))?|\b0(\d)\b/gi)].flatMap((m) => [m[1], m[2], m[3]].filter(Boolean).map(Number));
+
+test("a fixed run has no error output, and no leftover empty result", () => {
+  for (const c of CASES) {
+    for (const s of c.fix.after) {
+      assert.doesNotMatch(s.detail.output, /error|fail|refus|\b[45]\d\d\b|\[\s?\]|timed out/i, `${c.id} fixed ${s.spanId}: ${s.detail.output}`);
+      assert.equal(s.errorType, undefined);
+    }
+  }
+});
+
+test("the copy only names steps that exist in the run it describes", () => {
+  for (const c of CASES) {
+    const before = topSteps(c.run).length;
+    const after = topSteps(c.fix.after).length;
+    for (const line of [c.brokeAt, ...c.reading, c.shows, c.fix.answer]) for (const n of named(line)) assert.ok(n <= before, `${c.id}: "${line}" names step ${n} of ${before}`);
+    for (const n of named(c.fix.passes)) assert.ok(n <= after, `${c.id}: "${c.fix.passes}" names step ${n} but the fixed run has ${after}`);
+    assert.doesNotMatch(c.fix.passes, /step 0?6/i, `${c.id}: the fixed run is ${after} steps`);
+    assert.equal(c.fix.metric.includes("Step"), false, `${c.id}: name the tool, not a step number`);
+  }
+});
+
+test("every scan stop has its own caption, and the caption names the step the frame is on", () => {
+  for (const c of CASES) {
+    const stops = scanStops(c.cause);
+    assert.equal(c.reading.length, stops.length, `${c.id}: one caption per stop`);
+    stops.forEach((stop, i) => {
+      assert.match(c.reading[i], new RegExp(`^${String(stop + 1).padStart(2, "0")} · `), `${c.id}: caption ${i} is about another step`);
+      assert.ok(c.reading[i].includes(c.steps[stop].name.split(" ")[0]), `${c.id}: caption ${i} does not name ${c.steps[stop].name}`);
+    });
+    for (let k = 0; k <= 100; k++) assert.equal(stops[scanStopIndex(k / 100, c.cause)], scanStop(k / 100, c.cause));
+    assert.equal(scanStopIndex(0.92, c.cause), stops.length - 1);
+  }
+});
+
+test("when step 06 is the cause, the copy walks the steps the frame visits", () => {
+  const c = CASES.find((x) => x.cause === 6)!;
+  assert.deepEqual(scanStops(6), [5, 4, 3, 5]);
+  assert.doesNotMatch(c.reading.join(" "), /05 to 01/);
+  assert.match(c.fix.answer, /idempotency/i);
+  assert.doesNotMatch(c.causeShort + c.shows + c.fix.answer, /no timeout set|had no timeout/i, "the call timed out after the client's default");
+});
+
+test("the wrong-tool case names the pick as its cause, the same step everywhere", () => {
+  const c = CASES.find((x) => x.id === "wrong")!;
+  assert.equal(c.cause, 4);
+  assert.equal(c.causeSpan, "w-pick");
+  assert.equal(c.brokeAt, "step 4.");
+  assert.notEqual(c.runId.replace("run_", ""), "7730", "the run id is not the order id");
+  assert.notEqual(c.fix.afterId.replace("run_", ""), "7731");
+});
+
+test("the empty-search failure is causal: the guessed refund is refused for the window it missed", () => {
+  const c = CASES.find((x) => x.id === "empty")!;
+  const fail = c.run.find((s) => s.errorType)!;
+  assert.match(fail.errorMessage!, /^422/);
+  assert.match(fail.detail.output, /refund window/);
+  assert.doesNotMatch(c.reading.join(" ") + c.failShort + c.fix.answer, /502/);
+});
+
+test("the log tail is the run as the app would log it: no annotations, no invented fields", () => {
+  for (const c of CASES) {
+    for (const l of logLines(c.run, c.runId)) {
+      assert.doesNotMatch(l.text, / · /, `${c.id}: "${l.text}" carries an annotation`);
+      assert.doesNotMatch(l.text, /channel=/);
+      assert.equal((l.text.match(/\(/g) ?? []).length, (l.text.match(/\)/g) ?? []).length, `${c.id}: unbalanced "${l.text}"`);
+    }
+  }
+});
+
+test("the fixed loop run drafts with its sources, and the post-fix step counts are the real ones", () => {
+  const loop = CASES.find((x) => x.id === "loop")!;
+  const draft = loop.fix.after.find((s) => s.spanId === "lb-draft")!;
+  assert.doesNotMatch(draft.detail.output, /"sources": \[\]/);
+  assert.deepEqual(CASES.map((c) => topSteps(c.fix.after).length), [5, 5, 6, 5]);
+  assert.equal(topSteps(CASES[0].run).length, 6);
+});
+
+test("the sun is placed clear of every post and pole at any width, shrinking only when it has to", () => {
+  for (let w = 90; w <= 450; w += 3) {
+    const posts: [number, number][] = [[Math.round(w * 0.58) + 11, Math.round(w * 0.58) + 37], [Math.round(w * 0.93) - 1, Math.round(w * 0.93) + 12]];
+    const r0 = Math.min(Math.round(w * 0.11), 26);
+    const sun = placeSun(w, r0, posts, w * 0.8);
+    if (!sun) continue;
+    assert.ok(sun.cx - sun.r >= 0 && sun.cx + sun.r < w, `${w}: the sun leaves the screen`);
+    for (const [a, b] of posts) assert.ok(sun.cx + sun.r + 3 <= a || sun.cx - sun.r - 3 >= b, `${w}: a post crosses the sun (${sun.cx}±${sun.r} vs ${a}-${b})`);
+    if (sun.r < r0) assert.equal(placeSun(w, sun.r + 1, posts, w * 0.8), null, `${w}: a larger sun would have fitted`);
+  }
+  // 1440 wide (240 cells): the sun keeps off the gantry and the flag, in the gap between them.
+  const sun = placeSun(240, 26, [[0, 108], [150, 176], [222, 235]], 192)!;
+  assert.ok(sun.r >= 18 && sun.cx > 176 && sun.cx < 222);
+});
+
+test("the cause plate's board hangs below it, so the robot standing on it covers nothing", () => {
+  for (const c of CASES) {
+    for (const [cols, vertical] of [[240, false], [137, false], [87, true]] as const) {
+      const l = whereLayout(cols, vertical, c.cause);
+      assert.equal(l.above[c.cause - 1], false, `${c.id}: the cause's board is above its plate`);
+      l.above.slice(1).forEach((a, i) => assert.notEqual(a, l.above[i], `${c.id}: neighbouring boards on the same side`));
+      if (!vertical) {
+        const b = boardBox(l, c.cause - 1);
+        assert.ok(b.y > l.centers[c.cause - 1].y, "the board is under the plate");
+        // Room above the plate for the 13-row robot, its landing hop and the frame's rim.
+        assert.ok(l.centers[c.cause - 1].y - (PLATE >> 1) - 2 - 13 >= 0, `${c.id}: no room above the cause plate`);
+      }
+    }
+  }
+});
+
+test("the morning strips draw only ink and first light, and the light is gone when asked for none", () => {
+  for (const spec of [{ glow: 0.9, hills: 0.35, stones: true }, { glow: 0.45, hills: 0.6 }, { glow: 0, hills: 0.6 }, { glow: 0.45, hills: 0.8, pines: true, sun: true }]) {
+    const px = new Px(120, 11);
+    drawGround(px, spec);
+    const [ink, pale, yellow] = [INK >>> 0, PALE >>> 0, YELLOW >>> 0];
+    const colours = new Set(px.buf);
+    for (const c of colours) assert.ok(c === 0 || c === ink || c === pale || (spec.sun && c === yellow), `unexpected colour ${c}`);
+    assert.equal(colours.has(pale), spec.glow > 0, `glow ${spec.glow}`);
+    // The ground line is two solid ink rows along the whole strip.
+    const h = px.h;
+    for (let x = 0; x < 120; x++) assert.equal(px.buf[(h - 2) * 120 + x] === ink && px.buf[(h - 1) * 120 + x] === ink, true);
+    assert.equal(colours.has(yellow), Boolean(spec.sun), "the sun is yellow and drawn only when asked for");
+  }
+});
+
+test("the sun keeps at least four cells clear of the flag and its pole at every width from 360 to 2560 px", () => {
+  const CLOTH = 10;
+  for (const [goalAt, label] of [[0.93, "hero"], [0.8, "closing"], [0.86, "closing, narrow"]] as const) {
+    for (let vw = 360; vw <= 2560; vw += 8) {
+      const cell = targetCell(vw);
+      const w = Math.ceil(vw / cell);
+      const frac = label === "hero" ? goalAt : w < 140 ? 0.86 : 0.8;
+      if (label === "closing, narrow" ? w >= 140 : label === "closing" && w < 140) continue;
+      const goal = Math.round(w * frac);
+      const r0 = Math.min(Math.round(w * 0.11), 30);
+      const sun = placeSun(w, r0, [flagKeepOut(goal)], w * 0.8);
+      assert.ok(sun, `${vw}px: no place for the sun`);
+      const left = sun.cx - sun.r;
+      const right = sun.cx + sun.r;
+      assert.ok(left >= 0 && right < w, `${vw}px: the sun leaves the screen`);
+      const gap = right < goal ? goal - right : left - (goal + CLOTH);
+      assert.ok(gap >= 4, `${vw}px ${label}: only ${gap} cells between the sun and the flag`);
+    }
+  }
+});
+
+test("one robot at a time: the one under the trace board has left before the carrier walks on", () => {
+  const w = 240;
+  assert.equal(standingX(40, w, 0), 40, "it stands still until the strip scrolls in");
+  for (let i = 0; i <= 1000; i++) {
+    const rise = i / 1000;
+    const carrier = carrierX(w, rise);
+    // The standing robot spans 7 cells either side of its centre, outline included.
+    const standing = standingX(40, w, rise) - 7 < w;
+    assert.ok(!(standing && carrier !== null), `rise ${rise}: both robots are in the scene`);
+  }
+  assert.ok(exitProgress(CARRY_FROM) === 1 && carrierX(w, CARRY_FROM - 0.001) === null);
+  assert.ok(carrierX(w, CARRY_FROM)! <= -5 && carrierX(w, 1)! > w, "the carrier crosses the whole strip");
+  // The rise is 0 as the strip's top meets the bottom of the screen and 1 as its bottom leaves the top.
+  assert.equal(riseOf(900, 204, 900), 0);
+  assert.equal(riseOf(-204, 204, 900), 1);
+});
+
+test("the Compare line counts the differing rows of the two runs it shows, in every case", () => {
+  for (const c of CASES) {
+    const { rows, differ, ta, tb } = compare(c);
+    const matched = rows.filter((r) => r.a && r.b).length;
+    assert.equal(rows.length, c.run.length + c.fix.after.length - matched, `${c.id}: rows are not the two runs lined up`);
+    assert.equal(differ, rows.filter((r) => r.kind === "onlyA" || r.kind === "onlyB" || r.kind === "changed").length);
+    assert.ok(differ >= Math.abs(c.run.length - c.fix.after.length), `${c.id}: fewer differing rows than steps added or removed`);
+    assert.equal(ta.steps, c.run.length);
+    assert.equal(tb.steps, c.fix.after.length);
+  }
+});
+
+test("the fix label never contradicts the headline number: the retries are part of the run's total", () => {
+  for (const c of CASES.filter((k) => /^\d+ retries/.test(k.fix.why))) {
+    const part = Number(/\$(\d+\.\d+)/.exec(c.fix.why)![1]);
+    const total = Number(c.fix.before.slice(1));
+    assert.ok(part <= total + 1e-9, `${c.id}: ${c.fix.why} is more than ${c.fix.before}`);
+    assert.match(c.fix.why, /of it$/, `${c.id}: the label must say it is part of the total`);
+  }
+});
+
+test("a sky sun between the copy and the flag never touches either, and gives way when the gap is too small", () => {
+  for (let copyEnd = 100; copyEnd < 160; copyEnd += 3) {
+    const flagTop = 150;
+    const sun = skySun(copyEnd, flagTop, 10);
+    if (!sun) {
+      assert.ok(flagTop - 4 - (copyEnd + 3) < 10, `copy ends at ${copyEnd}: a sun of 5 would have fitted`);
+      continue;
+    }
+    assert.ok(sun.cy - sun.r >= copyEnd + 3 && sun.cy + sun.r <= flagTop - 4, `copy ends at ${copyEnd}: the sun leaves the gap`);
+    assert.ok(sun.r <= 10 && sun.r >= 5);
   }
 });

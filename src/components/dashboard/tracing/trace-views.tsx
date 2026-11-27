@@ -150,6 +150,8 @@ export function useWheelZoom(ref: RefObject<HTMLElement | null>, zoom: number, s
 
 const timelineZooms = (event: WheelEvent) => event.ctrlKey || event.metaKey;
 const NAME_COL = 190;
+/** The name column's width as CSS, so a narrow frame can set `--tl-name` to give the bars more room. */
+const NAME_W = `var(--tl-name, ${NAME_COL}px)`;
 
 /**
  * Every step as a bar on one time axis, in tree order: overlapping bars show parallel work, gaps show waiting.
@@ -174,7 +176,7 @@ export function TraceTimeline({ rows, spans, totalMs, selectedId, isFailed, onSe
   const step = tickStep(totalMs / zoom);
   const ticks: number[] = [];
   for (let at = 0; at < totalMs * 0.98; at += step) ticks.push(at);
-  const width = zoom === 1 ? "100%" : `calc(${NAME_COL}px + ${zoom} * (100% - ${NAME_COL}px))`;
+  const width = zoom === 1 ? "100%" : `calc(${NAME_W} + ${zoom} * (100% - ${NAME_W}))`;
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex shrink-0 items-center justify-between border-b border-[#1F242C] px-2 py-1">
@@ -185,12 +187,12 @@ export function TraceTimeline({ rows, spans, totalMs, selectedId, isFailed, onSe
       <div ref={scroller} className="relative min-h-0 flex-1 cursor-grab select-none overflow-auto" onMouseLeave={() => setHover(null)}>
         <div className="relative min-w-full" style={{ width }}>
           <div className="sticky top-0 z-20 flex h-6 border-b border-[#1F242C] bg-[#0E1115] font-mono text-[10px] text-[#6B7380]" aria-hidden="true">
-            <span className="sticky left-0 z-10 shrink-0 border-r border-[#1F242C] bg-[#0E1115]" style={{ width: NAME_COL }} />
+            <span className="sticky left-0 z-10 shrink-0 border-r border-[#1F242C] bg-[#0E1115]" style={{ width: NAME_W }} />
             <span className="relative flex-1 overflow-hidden">
               {ticks.map((at) => <span key={at} className="absolute top-1.5 whitespace-nowrap pl-1" style={{ left: `${(at / totalMs) * 100}%` }}>{at === 0 ? "0" : formatDuration(at)}</span>)}
             </span>
           </div>
-          <div className="pointer-events-none absolute bottom-0 top-6" style={{ left: NAME_COL, right: 0 }} aria-hidden="true">
+          <div className="pointer-events-none absolute bottom-0 top-6" style={{ left: NAME_W, right: 0 }} aria-hidden="true">
             {ticks.map((at) => <span key={at} className="absolute inset-y-0 border-l border-[#171B21]" style={{ left: `${(at / totalMs) * 100}%` }} />)}
           </div>
           <ol aria-label="Timeline" className="relative">
@@ -215,7 +217,7 @@ export function TraceTimeline({ rows, spans, totalMs, selectedId, isFailed, onSe
                     }}
                     className={`group flex h-7 w-full items-center text-left ${selected ? "bg-[#161B22]" : "hover:bg-[#12161C]"}`}>
                     <span className={`sticky left-0 z-10 flex h-full shrink-0 items-center gap-1.5 border-r border-[#1F242C] pr-2 text-xs ${selected ? "bg-[#161B22] shadow-[inset_3px_0_0_#F4D44D]" : "bg-[#0E1115] group-hover:bg-[#12161C]"} ${failed ? "text-[#FF8A8A]" : "text-[#C9CED6]"}`}
-                      style={{ width: NAME_COL, paddingLeft: 8 + Math.min(node.depth, 8) * 12 }}>
+                      style={{ width: NAME_W, paddingLeft: 8 + Math.min(node.depth, 8) * 12 }}>
                       <TypeIcon type={span.spanType} failed={failed} size={12} /><span className="truncate">{node.name}</span>
                     </span>
                     <span className="relative h-full min-w-0 flex-1">
@@ -224,8 +226,8 @@ export function TraceTimeline({ rows, spans, totalMs, selectedId, isFailed, onSe
                         {inside ? <span className="truncate">{label}</span> : null}
                       </span>
                       {!inside ? (
-                        <span className="absolute top-1 flex h-5 items-center whitespace-nowrap px-1.5 font-mono text-[10px] text-[#8B93A1]"
-                          style={labelBefore ? { right: `calc(${100 - left}% + 2px)` } : { left: `calc(${left + barWidth}% + 5px)` }}>{label}</span>
+                        <span className="absolute top-1 flex h-5 items-center overflow-hidden text-ellipsis whitespace-nowrap px-1.5 font-mono text-[10px] text-[#8B93A1]"
+                          style={labelBefore ? { right: `calc(${100 - left}% + 2px)`, maxWidth: `calc(${left}% - 2px)` } : { left: `calc(${left + barWidth}% + 5px)`, maxWidth: `calc(${100 - left - barWidth}% - 5px)` }}>{label}</span>
                       ) : null}
                     </span>
                   </button>

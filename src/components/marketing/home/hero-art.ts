@@ -2,7 +2,7 @@
 // landscape and the closing scene). Everything here draws in whole buffer pixels on the page grid:
 // one-cell lines, sprites from strings, no sub-pixel motion and no free-floating noise near labels.
 
-import { CREAM, INK, LEGS, RED, ROBOT_TOP, YELLOW, dith, type Px, type Scene } from "./pixels";
+import { CREAM, INK, LEGS, PALE, RED, ROBOT_TOP, YELLOW, dith, type Px, type Scene } from "./pixels";
 import { hash } from "./math";
 import { PLANK_LEFT, PLANK_STUB } from "./plank";
 import { BOARD, board } from "./steps-art";
@@ -64,11 +64,13 @@ export function bridgeArt(px: Px, x0: number, x1: number, groundY: number, skip:
 
 // ── Number boards ────────────────────────────────────────────────────────────────────────────
 
-export type BoardTone = "plain" | "lit" | "failed";
+export type BoardTone = "plain" | "lit" | "failed" | "lit-swapped";
 const TONES: Record<BoardTone, { rim: number; fill: number; ink: number }> = {
   plain: { rim: CREAM, fill: INK, ink: CREAM },
   lit: { rim: CREAM, fill: YELLOW, ink: INK },
   failed: { rim: CREAM, fill: RED, ink: CREAM },
+  // For a scene that is drawn at night and then swapped to morning: ink digits once swapped.
+  "lit-swapped": { rim: CREAM, fill: YELLOW, ink: CREAM },
 };
 
 /** A step's signpost planted on its stone: the board on a short pole. Returns the board box. */
@@ -98,7 +100,7 @@ export function trailMarker(px: Px, stoneX: number, groundY: number, color = CRE
  * Step 06's sign: the bridge's own name board, hung from a gantry on the far post so the robot
  * walks under it. `sway` nudges the board one cell while the plank under it breaks.
  */
-export function gantrySign(px: Px, plankX: number, gap1: number, groundY: number, tone: BoardTone, sway = 0) {
+export function gantrySign(px: Px, plankX: number, gap1: number, groundY: number, tone: BoardTone, sway = 0, n = 6) {
   const arm = groundY - 31;
   px.rect(gap1, arm, 1, groundY - 10 - arm, CREAM);
   px.rect(plankX - 1, arm, gap1 - plankX + 2, 1, CREAM);
@@ -107,7 +109,7 @@ export function gantrySign(px: Px, plankX: number, gap1: number, groundY: number
   px.rect(bx - 1, arm + 1, BOARD.w + 2, BOARD.h + 2, INK);
   px.set(bx + 1, arm + 1, CREAM);
   px.set(bx + 9, arm + 1, CREAM);
-  board(px, 6, bx, arm + 2, TONES[tone]);
+  board(px, n, bx, arm + 2, TONES[tone]);
   return { x: bx, y: arm + 2, w: BOARD.w, h: BOARD.h, top: arm };
 }
 
@@ -162,24 +164,70 @@ export function brackets(px: Px, box: { x: number; y: number; w: number; h: numb
 
 // ── The robot ────────────────────────────────────────────────────────────────────────────────
 
+/** How the robot is drawn: `swap` for a light ground, `plank` to carry the yellow plank overhead. */
+export type RobotLook = { swap?: boolean; plank?: boolean; solid?: boolean };
+
+/**
+ * A solid backing for the robot over a busy ground: every row of the body is filled from its
+ * leftmost to its rightmost cell, then the whole shape grows one cell all round, so nothing of the
+ * sky shows through or around it. Cells are relative to the robot's `x`, in page rows.
+ */
+function silhouette(plank: boolean, legs: readonly string[], top: number, legsY: number) {
+  const cells = new Set<string>();
+  const row = (line: string, y: number, fill: boolean) => {
+    const xs = [...line].flatMap((c, i) => (c === "." ? [] : [i - 5]));
+    if (!xs.length) return;
+    if (fill) for (let x = Math.min(...xs); x <= Math.max(...xs); x++) cells.add(`${x},${y}`);
+    else xs.forEach((x) => cells.add(`${x},${y}`));
+  };
+  ROBOT_TOP.forEach((line, j) => row(line, top + j, true));
+  legs.forEach((line, j) => row(line, legsY + j, false));
+  if (plank) {
+    for (let y = top - 5; y < top; y++) for (let x = -7; x <= 6; x++) cells.add(`${x},${y}`);
+    for (let y = top + 1; y <= top + 9; y++) for (const x of [-6, 5]) cells.add(`${x},${y}`);
+  }
+  const out = new Set(cells);
+  for (const key of cells) {
+    const [x, y] = key.split(",").map(Number);
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) out.add(`${x + dx},${y + dy}`);
+  }
+  return [...out].map((k) => k.split(",").map(Number) as [number, number]);
+}
+
 /**
  * The robot with a one-cell ink outline on its sides and top, so it reads in front of a sign or
  * stone behind it. `alert` adds the "!" bubble over its head, on its left when `bubbleLeft`.
  */
-export function robotInFront(px: Px, x: number, groundY: number, frame: number, alert = false, bubbleLeft = false) {
-  const bob = frame % 2;
+export function robotInFront(px: Px, x: number, groundY: number, frame: number, alert = false, bubbleLeft = false, look: RobotLook = {}) {
+  const f = ((frame % 4) + 4) % 4;
+  const bob = f % 2;
+  // On a light ground the robot is drawn in ink with a cream outline: the same sprite, swapped.
+  const map = look.swap ? { ...MAP, C: INK, K: CREAM } : MAP;
+  const edge = look.swap ? CREAM : INK;
   const top = groundY - ROBOT_TOP.length - 2 - bob;
-  const rows = [...ROBOT_TOP, ...LEGS[frame % 4]];
-  const at = (i: number, j: number) => j >= 0 && j < rows.length && i >= 0 && i < 10 && rows[j][i] !== ".";
   const legsY = groundY - 2;
+  if (look.solid) for (const [dx, y] of silhouette(Boolean(look.plank), LEGS[f], top, legsY)) px.set(x + dx, y, edge);
+  const rows = [...ROBOT_TOP, ...LEGS[f]];
+  const at = (i: number, j: number) => j >= 0 && j < rows.length && i >= 0 && i < 10 && rows[j][i] !== ".";
   const yOf = (j: number) => (j < ROBOT_TOP.length ? top + j : legsY + j - ROBOT_TOP.length);
   for (let j = 0; j < rows.length; j++)
     for (let i = 0; i < 10; i++) {
       if (!at(i, j)) continue;
-      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1]] as const) if (!at(i + dx, j + dy)) px.set(x - 5 + i + dx, yOf(j) + dy, INK);
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1]] as const) if (!at(i + dx, j + dy)) px.set(x - 5 + i + dx, yOf(j) + dy, edge);
     }
-  px.sprite(ROBOT_TOP, x - 5, top, MAP);
-  px.sprite(LEGS[frame % 4], x - 5, legsY, MAP);
+  px.sprite(ROBOT_TOP, x - 5, top, map);
+  px.sprite(LEGS[f], x - 5, legsY, map);
+  if (look.plank) {
+    // Arms up, holding a yellow plank over its head.
+    const body = look.swap ? INK : CREAM;
+    px.rect(x - 7, top - 5, 14, 5, edge);
+    px.rect(x - 6, top + 1, 1, 9, edge);
+    px.rect(x + 5, top + 1, 1, 9, edge);
+    px.rect(x - 5, top - 1, 1, 10, body);
+    px.rect(x + 4, top - 1, 1, 10, body);
+    px.rect(x - 6, top - 4, 12, 3, YELLOW);
+    px.rect(x - 6, top - 4, 12, 1, PALE);
+  }
   if (alert) {
     const bx = bubbleLeft ? x - 12 : x + 3;
     px.rect(bx, top - 11, 9, 10, INK);

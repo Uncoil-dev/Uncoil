@@ -7,20 +7,29 @@ export const BOARD = { w: 11, h: 9 } as const;
 export const PLATE = 11;
 
 type Pt = { x: number; y: number };
-export type WhereLayout = { vertical: boolean; cols: number; rows: number; centers: Pt[] };
+export type WhereLayout = {
+  vertical: boolean;
+  cols: number;
+  rows: number;
+  centers: Pt[];
+  /** Per step on wide screens: its number board hangs above the plate. The cause plate always has its board below, so its top stays free. */
+  above: boolean[];
+};
 
 /** Rows the figure needs: a fixed band on wide screens, a column of steps on phones. */
 export const WHERE_ROWS = { horizontal: 60, vertical: 168 } as const;
 
 /** Plate centres in cells. Step 06 hangs two cells low: its rope has snapped. */
-export function whereLayout(cols: number, vertical: boolean): WhereLayout {
+export function whereLayout(cols: number, vertical: boolean, cause = 4): WhereLayout {
   const rows = vertical ? WHERE_ROWS.vertical : WHERE_ROWS.horizontal;
   const centers = Array.from({ length: 6 }, (_, i) => {
     const wave = Math.round(Math.sin(i * 1.1) * (vertical ? 2 : 3));
     const drop = i === 5 ? 2 : 0;
     return vertical ? { x: 11 + wave + drop, y: 10 + i * 28 } : { x: 10 + Math.round((i * (cols - 32)) / 5), y: 29 + wave + drop };
   });
-  return { vertical, cols, rows, centers };
+  // Boards alternate above and below so neighbouring labels never meet; the cause is one of the "below" ones.
+  const above = centers.map((_, i) => (i - (Math.min(6, cause) - 1)) % 2 !== 0);
+  return { vertical, cols, rows, centers, above };
 }
 
 /** Where a step's number board goes, beside its plate on the side away from the rope. */
@@ -28,7 +37,7 @@ export function boardBox(l: WhereLayout, i: number) {
   const c = l.centers[i];
   const h = PLATE >> 1;
   if (l.vertical) return { x: c.x + h + 3, y: c.y - (BOARD.h >> 1), w: BOARD.w, h: BOARD.h };
-  const above = i % 2 === 0;
+  const above = l.above[i];
   return { x: c.x - (BOARD.w >> 1), y: above ? c.y - h - 2 - BOARD.h : c.y + h + 3, w: BOARD.w, h: BOARD.h };
 }
 
@@ -81,7 +90,29 @@ export function tailCells(l: WhereLayout): [number, number][] {
   return TAIL_ACROSS.map(([dx, dy]) => [c.x + h + dx, c.y + dy]);
 }
 
-/** Which plate (as an index into the steps) the scan frame sits on for a given scan progress. */
-export function scanStop(scan: number): 3 | 4 | 5 {
-  return scan < 0.35 ? 5 : scan < 0.92 ? 4 : 3;
+/**
+ * The plates the scan frame visits, as indexes into the steps: from step 06 back to the cause.
+ * When step 06 is its own cause, the frame checks back to step 04 and returns to 06.
+ */
+export function scanStops(cause: number): number[] {
+  if (cause >= 6) return [5, 4, 3, 5];
+  return Array.from({ length: 7 - cause }, (_, i) => 5 - i);
+}
+
+/** Which of the scan's stops (an index into `scanStops`) the frame is on; the last is reached at 0.92. */
+export function scanStopIndex(scan: number, cause = 4): number {
+  const stops = scanStops(cause);
+  return Math.min(stops.length - 1, Math.floor((Math.max(0, scan) / 0.92) * (stops.length - 1) + 1e-9));
+}
+
+/** Which plate the scan frame sits on for a given scan progress; it lands on the last stop at 0.92. */
+export function scanStop(scan: number, cause = 4): number {
+  return scanStops(cause)[scanStopIndex(scan, cause)];
+}
+
+/** 0..1: how far back along the rope the scan has read, toward the furthest plate it visits. */
+export function scanReach(scan: number, cause = 4) {
+  const stops = scanStops(cause);
+  const out = cause >= 6 ? stops.length - 1 : stops.length;
+  return Math.min(1, Math.max(0, scan) / ((0.92 * (out - 1)) / (stops.length - 1)));
 }

@@ -61,13 +61,13 @@ export const PLAN_CALL: ExampleSpan = {
 
 /** Run A: the failing run, read in the trace view. */
 export const RUN_A: readonly ExampleSpan[] = [
-  { spanId: "a-root", parentSpanId: "", spanType: "agent", name: "support-agent", createdAt: at(0), latencyMs: 11_160, costUsd: 0, detail: { input: "Customer asks for a refund on order 4821.", output: "502 from refund.issue after 5000 ms" } },
+  { spanId: "a-root", parentSpanId: "", spanType: "agent", name: "support-agent", createdAt: at(0), latencyMs: 6400, costUsd: 0, detail: { input: "Customer asks for a refund on order 4821.", output: "422 from refund.issue: order outside the refund window" } },
   PLAN_CALL,
   { spanId: "a-order", parentSpanId: "a-root", spanType: "tool_call", name: "order.lookup", toolName: "order.lookup", createdAt: at(860), latencyMs: 140, costUsd: 0, detail: { input: 'order.lookup("4821")', output: "$64 · delivered 9 days ago" } },
   { spanId: "a-search", parentSpanId: "a-root", spanType: "tool_call", name: "docs.search", toolName: "docs.search", createdAt: at(1040), latencyMs: 210, costUsd: 0, detail: { input: 'docs.search("refund window, delivered orders")', output: "[ ] · 0 results" } },
   { spanId: "a-loop", parentSpanId: "a-root", spanType: "agent", name: "llm.chat · retry", createdAt: at(1280), latencyMs: 4600, costUsd: 0, detail: { input: "Seven attempts to answer without a policy.", output: "Guessed: refund approved." } },
   ...RETRIES,
-  { spanId: "a-refund", parentSpanId: "a-root", spanType: "tool_call", name: "refund.issue", toolName: "refund.issue", createdAt: at(6140), latencyMs: 5000, costUsd: 0, errorType: "HTTPError", errorMessage: "502 Bad Gateway", detail: { input: 'refund.issue({ order: "4821", amount: 64 })', output: "502 Bad Gateway · hung 5000 ms" } },
+  { spanId: "a-refund", parentSpanId: "a-root", spanType: "tool_call", name: "refund.issue", toolName: "refund.issue", createdAt: at(6140), latencyMs: 240, costUsd: 0, errorType: "HTTPError", errorMessage: "422 Unprocessable Entity", detail: { input: 'refund.issue({ order: "4821", amount: 64 })', output: "422 · order 4821 is outside the 7-day refund window" } },
 ];
 
 /** Run B: the same request after the search was fixed. */

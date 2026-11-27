@@ -1,36 +1,64 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { appHref } from "@/lib/app-links";
 import { CREAM, pines, type Scene } from "./pixels";
 import { groundArt, robotInFront } from "./hero-art";
 import { useGridCanvas } from "./use-grid";
-import { CASES } from "./cases";
-import { clearStars, landscapeUnder, toBuffer, useCopyBoxes } from "./sky";
+import { useCase } from "./case-state";
+import type { Case } from "./cases";
+import { logLines } from "./logs";
+import { PREDAWN, clearStars, landscapeUnder, toBuffer, useCopyBoxes } from "./sky";
 import { BODY, H2, LABEL } from "./ui";
 import { useCalm } from "./use-calm";
+import { riseOf, standingX } from "./handoff";
+import { DAWN_ROWS } from "./dawn";
 
 // The real trace view ships in its own chunk, so it never holds up the hero. It is still
 // rendered on the server, so the section never shows an empty frame while it loads.
 const TraceWindow = dynamic(() => import("./product-view").then((m) => m.TraceWindow));
 
-const ROOM = { desk: 13, phone: 6 };
+const LEVEL: Record<string, string> = { DEBUG: "text-[#eceae3]/40", INFO: "text-[#eceae3]/60", WARN: "text-[#eceae3]", ERROR: "text-[#eceae3]" };
+
+/** The picked run as an ordinary log tail, generated from the same spans the trace view draws. */
+function Logs({ c }: { c: Case }) {
+  const lines = useMemo(() => logLines(c.run, c.runId), [c]);
+  return (
+    <div className="flex h-full min-w-0 flex-col border-2 border-[#eceae3]/40 bg-[#090909]">
+      <p className={`border-b border-[#eceae3]/20 px-4 py-2.5 text-[#eceae3]/55 ${LABEL}`}>$ tail -f agent.log · {c.runId}</p>
+      <pre className="flex min-h-0 min-w-0 flex-1 flex-col justify-end overflow-hidden px-4 py-3 font-mono text-[10.5px] leading-[1.6] sm:text-[11.5px]">
+        {lines.map((l, i) => (
+          <span key={i} className={`block truncate ${LEVEL[l.level]}`}>
+            <span className="text-[#eceae3]/30">{l.time} </span>
+            <span className="inline-block w-[5ch]">{l.level}</span> {l.text}
+          </span>
+        ))}
+      </pre>
+      <p className={`border-t border-[#eceae3]/20 px-4 py-2.5 text-[#eceae3]/55 ${LABEL}`}>
+        {lines.length} lines · the cause is in here, unmarked
+      </p>
+    </div>
+  );
+}
+
+const VIEWS = ["Uncoil", "Your logs"] as const;
 
 /**
- * "What broke?": the real trace view standing in the pixel world like a signboard on two posts,
- * with the robot waiting beside it. The visitor picks the failure that looks like theirs and the
- * board shows that run, opened on the step that explains it.
+ * The same run two ways, standing in the pixel world like a signboard on two posts: the trace
+ * view opened on the step that explains the failure, or the log tail you would have read
+ * instead. Both views always tell the failure picked in the hero. The two views share one frame
+ * sized for the taller one, so flipping between them never moves the page.
  */
 export function Product() {
+  const c = useCase();
   const calm = useCalm();
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const copy = useCopyBoxes(sectionRef);
-  const [pick, setPick] = useState(0);
+  const [view, setView] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
-  const c = CASES[pick];
 
   useGridCanvas(
     canvasRef,
@@ -46,9 +74,10 @@ export function Product() {
       const bBottom = Math.round((br.bottom - sr.top) / scale);
       const s: Scene = { px, cam: 0, groundY, t: seconds };
       const words = toBuffer(copy.current, scale, 4);
-      // No sun here: the board stands where it would be, so the scene is lit only by the stars.
-      landscapeUnder(s, 1.5, 0.5, words);
-      clearStars(px, words);
+      // Before dawn: fewer stars, and first light along the horizon where the sun will come up.
+      landscapeUnder(s, 1.5, 0.5, words, PREDAWN);
+      // A star is never left in the band a line of text runs along, even beside it.
+      clearStars(px, toBuffer(copy.current, scale, 8).map((b) => ({ ...b, x: 0, w: px.w })));
       const postL = bx0 + Math.round((bx1 - bx0) * 0.12);
       const postR = bx1 - Math.round((bx1 - bx0) * 0.12);
       pines(s, [[postL - 40, postL + 20], [postR - 20, postR + 20]], 1);
@@ -59,64 +88,71 @@ export function Product() {
         px.rect(x - 3, groundY - 3, 7, 3, CREAM);
       }
       px.rect(postL, bBottom + 4, postR - postL, 1, CREAM);
-      robotInFront(px, postL - 12, groundY - 3, calm ? 0 : Math.floor(seconds * 1.2) % 2 === 0 ? 0 : 1);
+      // The robot stands under the board; as the dawn strip scrolls in it walks off to the right,
+      // so the carrier on the strip is the only robot in view. With reduced motion the carrier
+      // stands on the strip, so this one is not drawn.
+      if (!calm) {
+        const rise = riseOf(sr.bottom, DAWN_ROWS * scale, window.innerHeight);
+        const x = standingX(postL + 18, px.w, rise);
+        robotInFront(px, x, groundY - 3, x === postL + 18 ? Math.floor(seconds * 1.2) % 2 : Math.floor(x / 2) % 4);
+      }
     },
-    { still: calm },
+    { still: calm, redraw: c.id },
   );
 
-  const onKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-    const next = e.key === "ArrowRight" || e.key === "ArrowDown" ? i + 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? CASES.length - 1 : null;
-    if (next === null) return;
+  const onKey = (e: KeyboardEvent<HTMLButtonElement>) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
     e.preventDefault();
-    const n = (next + CASES.length) % CASES.length;
-    setPick(n);
+    const n = e.key === "Home" ? 0 : e.key === "End" ? 1 : 1 - view;
+    setView(n);
     tabs.current[n]?.focus();
   };
 
   return (
-    <section ref={sectionRef} id="trace" className="relative isolate scroll-mt-16 overflow-hidden bg-[#090909] px-5 pb-40 pt-14 text-[#eceae3] md:px-10 md:pb-44 md:pt-16" aria-labelledby="mix-trace-title">
+    <section ref={sectionRef} id="trace" className="relative isolate scroll-mt-16 overflow-hidden bg-[#090909] px-5 pb-[calc(58px+22*var(--c))] pt-8 text-[#eceae3] [--c:4px] min-[640px]:[--c:5px] min-[1100px]:[--c:6px] md:px-10 md:pt-10" aria-labelledby="mix-trace-title">
+      {/* Older links to the logs chapter land here: the comparison now lives on this board. */}
+      <span id="logs" aria-hidden="true" className="absolute top-0 scroll-mt-16" />
       <div className="absolute inset-0 -z-10" aria-hidden="true">
         <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
       </div>
       <div className="mx-auto w-full max-w-[1280px]">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-end lg:gap-12">
-          <div>
-            <p data-clear className={`w-fit text-[#eceae3]/60 ${LABEL}`}>03 · In the trace view</p>
-            <h2 id="mix-trace-title" className={`mt-5 ${H2}`}>
-              <span data-clear className="inline-block">What broke? Pick yours.</span>
-            </h2>
-          </div>
-          <div data-clear role="tablist" aria-label="Pick a failure" className="grid gap-2 sm:grid-cols-2">
-            {CASES.map((k, i) => {
-              const on = i === pick;
-              return (
-                <button
-                  key={k.id}
-                  ref={(el) => {
-                    tabs.current[i] = el;
-                  }}
-                  type="button"
-                  role="tab"
-                  id={`case-tab-${k.id}`}
-                  aria-selected={on}
-                  aria-controls="case-panel"
-                  tabIndex={on ? 0 : -1}
-                  onClick={() => setPick(i)}
-                  onKeyDown={(e) => onKey(e, i)}
-                  className={`flex min-h-12 items-center gap-3 border-2 px-3 py-2 text-left font-mono text-[11px] uppercase tracking-[0.1em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f4d44d] ${on ? "border-[#f4d44d] bg-[#f4d44d] text-black" : "border-[#eceae3]/40 bg-[#090909] text-[#eceae3] hover:border-[#eceae3]"}`}
-                >
-                  <span className={`shrink-0 tabular-nums ${on ? "text-black/60" : "text-[#eceae3]/50"}`}>{String(i + 1).padStart(2, "0")}</span>
-                  {k.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <p data-clear className={`w-fit text-[#eceae3]/60 ${LABEL}`}>02 · The same run, two ways</p>
+        <h2 id="mix-trace-title" className={`mt-5 ${H2}`}>
+          <span data-clear className="inline-block max-w-[22ch]">Your logs say it failed. Uncoil says why.</span>
+        </h2>
 
-        <div ref={boardRef} data-clear id="case-panel" role="tabpanel" aria-labelledby={`case-tab-${c.id}`} className="mt-10 md:mt-12">
-          <TraceWindow key={c.id} c={c} rows={ROOM} />
+        <div ref={boardRef} data-clear className="mt-8 min-w-0 md:mt-10">
+          <div role="tablist" aria-label="Read the run in" className="grid grid-cols-2 border-2 border-b-0 border-[#eceae3] sm:w-fit">
+            {VIEWS.map((v, i) => (
+              <button
+                key={v}
+                ref={(el) => {
+                  tabs.current[i] = el;
+                }}
+                type="button"
+                role="tab"
+                id={`trace-tab-${i}`}
+                aria-selected={view === i}
+                aria-controls="trace-panel"
+                tabIndex={view === i ? 0 : -1}
+                onClick={() => setView(i)}
+                onKeyDown={onKey}
+                className={`min-h-12 px-5 font-mono text-[11px] uppercase tracking-[0.14em] focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-[#f4d44d] ${view === i ? (i === 0 ? "bg-[#f4d44d] text-black" : "bg-[#eceae3] text-black") : "bg-[#090909] text-[#eceae3]/70 hover:text-[#eceae3]"}`}
+              >
+                {i === 0 ? "Uncoil" : "Your logs"}
+              </button>
+            ))}
+          </div>
+          <div id="trace-panel" role="tabpanel" aria-labelledby={`trace-tab-${view}`} className="grid grid-cols-[minmax(0,1fr)]">
+            <div className={`min-w-0 [grid-area:1/1] ${view === 0 ? "" : "invisible"}`}>
+              <TraceWindow key={c.id} c={c} />
+            </div>
+            <div className={`min-w-0 [grid-area:1/1] ${view === 1 ? "" : "invisible"}`}>
+              <Logs c={c} />
+            </div>
+          </div>
           <div className="flex flex-col gap-3 border-2 border-t-0 border-[#eceae3] bg-[#090909] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className={`max-w-3xl text-[#eceae3]/85 ${BODY}`}>{c.shows}</p>
+            <p className={`min-h-28 max-w-3xl text-[#eceae3]/85 sm:min-h-14 md:min-h-16 ${BODY}`}>{c.shows}</p>
             <a href={appHref("/demo/project")} className={`inline-flex min-h-11 shrink-0 items-center gap-2 border-b border-[#eceae3] hover:text-[#f4d44d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#eceae3] ${LABEL}`}>
               Open the live demo <span aria-hidden="true">→</span>
             </a>

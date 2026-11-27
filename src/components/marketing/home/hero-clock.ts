@@ -41,9 +41,9 @@ export const FIXED_AT = phaseStart("cross");
 /** How much faster the scene runs while it hurries to the step the visitor asked to break. */
 export const HURRY = 5;
 
-/** Which step the scene is pointing at: 06 where the run failed, 04 once Uncoil has found the cause. */
-export function focusStep(phase: HeroPhase): 4 | 6 {
-  return phase === "mark" || phase === "repair" ? 4 : 6;
+/** Which step the scene is pointing at: 06 where the run failed, the cause once Uncoil has found it. */
+export function focusStep(phase: HeroPhase, cause: number): number {
+  return phase === "mark" || phase === "repair" ? cause : 6;
 }
 
 /** Where Uncoil's scan sits between step 06 (0) and step 04 (1) while it walks the run back. */
@@ -51,6 +51,19 @@ export function scanAt({ phase, local }: { phase: HeroPhase; local: number }) {
   if (phase === "fail" || phase === "walk") return 0;
   if (phase === "trace") return local < 0.15 ? 0 : 1 - Math.pow(1 - (local - 0.15) / 0.85, 3);
   return 1;
+}
+
+/**
+ * Where the scan sits between step 06 (0) and the furthest step it reads back to (1). When the
+ * failing step is its own cause, the scan reads back, finds every earlier step fine and returns to
+ * step 06 before the cause is marked there.
+ */
+export function scanPath(st: { phase: HeroPhase; local: number }, returns: boolean) {
+  if (!returns) return scanAt(st);
+  if (st.phase !== "trace") return 0;
+  const OUT = 0.6;
+  if (st.local < OUT) return scanAt({ phase: "trace", local: st.local / OUT });
+  return Math.pow(1 - (st.local - OUT) / (1 - OUT), 3);
 }
 
 /**

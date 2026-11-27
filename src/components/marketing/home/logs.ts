@@ -12,7 +12,7 @@ export function logLines(run: readonly ExampleSpan[], runId: string): LogLine[] 
   const root = run.find((s) => !s.parentSpanId)!;
   const out: (LogLine & { at: number })[] = [];
   const push = (iso: string, plus: number, level: LogLine["level"], text: string) => out.push({ at: Date.parse(iso) + plus, time: clock(iso, plus), level, text });
-  push(root.createdAt, 0, "INFO", `${root.name} start run=${runId} channel=email`);
+  push(root.createdAt, 0, "INFO", `${root.name} start run=${runId}`);
   for (const s of run) {
     if (s.spanType === "llm_call") {
       push(s.createdAt, 0, "DEBUG", `openai POST /v1/chat/completions model=${s.modelId}`);

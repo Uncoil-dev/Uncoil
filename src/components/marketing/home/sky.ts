@@ -3,6 +3,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { CREAM, INK, PALE, YELLOW, dith, type Px, type Scene } from "./pixels";
 import { hash, noise } from "./math";
+import { placeSun } from "./sun";
 
 /** A rectangle in buffer pixels. */
 export type Box = { x: number; y: number; w: number; h: number };
@@ -105,12 +106,53 @@ export function placeCallout(px: Px, stemX: number, below: number, size: { w: nu
 }
 
 /**
+ * The time of day a scene is drawn at. The page starts at night and ends in the morning: the stars
+ * thin out, the sun climbs and loses its bands, and by morning the sky itself is cream.
+ */
+export type Daylight = {
+  /** How many of the 70 stars are out. */
+  stars: number;
+  /** How high the sun stands: 0 sits on the far ridge, 1 well clear of it. Below 0, no sun. */
+  sun: number;
+  /** 1 cuts the full set of bands through the sun's lower half, 0 leaves it whole. */
+  bands: number;
+  /** First light: a pale dither along the horizon. */
+  glow?: boolean;
+};
+
+export const NIGHT: Daylight = { stars: 70, sun: 0.1, bands: 1 };
+export const PREDAWN: Daylight = { stars: 26, sun: -1, bands: 0, glow: true };
+export const MORNING: Daylight = { stars: 0, sun: 1.25, bands: 0 };
+
+/** The sun's radius and centre in buffer pixels for a scene of this size and time of day. */
+export function sunDisc(w: number, h: number, groundY: number, sunX: number, day: Daylight, cam = 0, fitR?: number) {
+  const r = fitR ?? Math.round(Math.min(w * 0.11, h * 0.2));
+  const cx = Math.round(w * sunX - cam * 0.14);
+  // At 0 the centre sits on the far ridge, so the hills cover the lower part of the sun.
+  const cy = Math.round(groundY - h * 0.08 - (h * 0.12 + r * 0.6) * day.sun);
+  return { r, cx, cy };
+}
+
+/** The sun's place for a scene: clear of the given posts and of any copy box in its band. */
+export function fitSun(w: number, h: number, groundY: number, day: Daylight, prefer: number, posts: readonly (readonly [number, number])[], copy: readonly Box[]) {
+  const { r, cy } = sunDisc(w, h, groundY, prefer / w, day);
+  const behind = copy.filter((b) => b.y < cy + r + 3 && b.y + b.h > cy - r - 3).map((b): [number, number] => [b.x, b.x + b.w]);
+  return placeSun(w, r, [...posts, ...behind], prefer) ?? { cx: Math.round(prefer), r };
+}
+
+/** The sun's box, grown by 3 pixels, so labels can keep clear of it. */
+export function sunBox(w: number, h: number, groundY: number, sunX: number, day: Daylight, fitR?: number): Box {
+  const { r, cx, cy } = sunDisc(w, h, groundY, sunX, day, 0, fitR);
+  return { x: cx - r - 3, y: cy - r - 3, w: 2 * r + 6, h: 2 * r + 6 };
+}
+
+/**
  * The landscape (sky, stars, sun, two ridges) with the hills settled under the copy.
  * Where a ridge would climb into a copy box its height is scaled down, and it rises back to full
  * height over a few dozen columns, so the hills keep rolling everywhere else and the ridge line
  * stays one continuous stroke.
  */
-export function landscapeUnder({ px, cam, groundY, t }: Scene, sunX: number, relief: number, boxes: readonly Box[]) {
+export function landscapeUnder({ px, cam, groundY, t }: Scene, sunX: number, relief: number, boxes: readonly Box[], day: Daylight = NIGHT, sunR?: number) {
   const { w, h } = px;
   const shape = (off: number, freq: number, seed: number) => (x: number) => {
     const wx = x + Math.round(off);
@@ -141,26 +183,50 @@ export function landscapeUnder({ px, cam, groundY, t }: Scene, sunX: number, rel
   }
 
   px.clear();
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < day.stars; i++) {
     const sx = Math.floor((((hash(i, 3) * (w + 400) - cam * 0.05) % (w + 40)) + w + 40) % (w + 40)) - 20;
     const sy = Math.floor(hash(i, 7) * groundY * 0.62);
     const tw = hash(i + Math.floor(t * 1.5), 11) > 0.93;
     if (!tw) px.set(sx, sy, hash(i, 13) > 0.8 ? PALE : CREAM);
   }
-  const r = Math.round(Math.min(w * 0.11, h * 0.2));
-  const cx = Math.round(w * sunX - cam * 0.14);
-  const cy = Math.round(groundY - h * 0.2 - r * 0.6);
-  for (let y = -r; y <= r; y++) {
-    const band = y > -r * 0.15 && (y + r) % 5 < 1 + Math.floor(((y + r * 0.15) / r) * 3);
-    if (band) continue;
-    for (let x = -r; x <= r; x++) {
-      const d = Math.sqrt(x * x + y * y) / r;
-      if (d > 1) continue;
-      px.set(cx + x, cy + y, d > 0.86 && dith(cx + x, cy + y, 0.5) ? PALE : YELLOW);
+  if (day.sun >= 0) {
+    const { r, cx, cy } = sunDisc(w, h, groundY, sunX, day, cam, sunR);
+    for (let y = -r; y <= r; y++) {
+      const band = day.bands > 0 && y > r * (1 - 1.15 * day.bands) && (y + r) % 5 < 1 + Math.floor(((y + r * 0.15) / r) * 3);
+      if (band) continue;
+      for (let x = -r; x <= r; x++) {
+        const d = Math.sqrt(x * x + y * y) / r;
+        if (d > 1) continue;
+        px.set(cx + x, cy + y, d > 0.86 && dith(cx + x, cy + y, 0.5) ? PALE : YELLOW);
+      }
     }
   }
   ridge(px, cam * 0.2, (x) => groundY - h * 0.1 * relief * m[x], (x) => h * 0.24 * relief * m[x], far, 0.1, 21);
   ridge(px, cam * 0.5, () => groundY - 3, (x) => h * 0.17 * relief * m[x], near, 0.22, 5);
+  if (day.glow) horizonGlow(px, groundY);
+}
+
+/** First light: pale pixels thinning upwards from the far ridge's crest, brightest on the right. */
+function horizonGlow(px: Px, groundY: number) {
+  const { w, buf } = px;
+  for (let x = 0; x < w; x++) {
+    let crest = -1;
+    // The crest is the first lit pixel with a lit neighbour beside it; stars stand alone.
+    for (let y = 0; y < groundY; y++) {
+      const i = y * w + x;
+      if (buf[i] !== DARK && ((x > 0 && buf[i - 1] !== DARK) || (x < w - 1 && buf[i + 1] !== DARK))) {
+        crest = y;
+        break;
+      }
+    }
+    if (crest < 0) continue;
+    const k = Math.pow(x / w, 1.6);
+    for (let d = 1; d <= 10; d++) {
+      const y = crest - d;
+      if (y < 0 || buf[y * w + x] !== DARK) continue;
+      if (dith(x, y, k * (1 - d / 11) * 0.7)) buf[y * w + x] = PALE;
+    }
+  }
 }
 
 function ridge(px: Px, off: number, base: (x: number) => number, amp: (x: number) => number, n: (x: number) => number, dens: number, seed: number) {

@@ -33,7 +33,7 @@ function Row({ items, reverse, lit, calm }: { items: readonly string[]; reverse?
       <motion.div
         className="flex w-max items-center gap-[0.55em] whitespace-nowrap font-pixel text-[clamp(2rem,4.4vw,4rem)] leading-none tracking-[-0.06em]"
         animate={calm ? undefined : { x: reverse ? ["-50%", "0%"] : ["0%", "-50%"] }}
-        transition={{ duration: reverse ? 46 : 38, ease: "linear", repeat: Infinity }}
+        transition={{ duration: reverse ? 46 : 72, ease: "linear", repeat: Infinity }}
       >
         {run.map((name, i) => (
           <span key={`${name}-${i}`} className={`flex items-center gap-[0.55em] ${lit ? "text-[#090909]" : ""}`}>
@@ -51,7 +51,7 @@ export function Tools() {
   const [paused, setPaused] = useState(false);
   const calm = reduce || paused;
   return (
-    <section className="relative bg-[#090909] pb-2 pt-8 text-[#eceae3] md:pt-10" aria-labelledby="mix-tools-title">
+    <section className="relative bg-[#090909] pt-4 text-[#eceae3] md:pt-5" aria-labelledby="mix-tools-title">
       <div className={`mx-auto flex max-w-[1360px] items-center gap-4 px-5 md:px-10 ${LABEL}`}>
         <h2 id="mix-tools-title">Works with what you already use</h2>
         <span className="h-px flex-1 bg-[#eceae3]" />
@@ -66,13 +66,9 @@ export function Tools() {
           <li key={n}>{n}</li>
         ))}
       </ul>
-      <div aria-hidden="true" className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 md:mt-8">
-        <div className="py-2">
-          <Row items={MODELS} calm={calm} />
-        </div>
-        <div className="bg-[#f4d44d] py-3">
-          <Row items={WIRES} reverse lit calm={calm} />
-        </div>
+      {/* One strip: a single line between the hero and the story, not a section of its own. */}
+      <div aria-hidden="true" className="mt-4 bg-[#f4d44d] py-3 md:mt-5">
+        <Row items={[...MODELS, ...WIRES]} lit calm={calm} />
       </div>
     </section>
   );

@@ -100,6 +100,8 @@ Feedback and typed scores need the project id. The client reads `UNCOIL_PROJECT_
 
 ```python
 client = UncoilClient(project_id="your-project-id")
+run_agent("Where is my order?")   # a function decorated with @uncoil.trace_agent
+run_id = uncoil.last_run_id()     # the run that call just recorded
 client.feedback(run_id, True, kind="thumb", comment="Helpful answer")
 client.score(run_id, "answer_quality", 0.92, data_type="numeric")
 ```

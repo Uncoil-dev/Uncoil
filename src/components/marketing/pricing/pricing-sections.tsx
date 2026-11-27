@@ -5,8 +5,68 @@ import { Reveal } from "@/components/marketing/landing/reveal";
 import { appHref } from "@/lib/app-links";
 import { getCopy, type Locale } from "@/lib/i18n";
 import { pricingFaqEntries } from "@/lib/pricing-faq";
+import { exampleBills, limitRows, type LimitRow } from "@/lib/pricing-examples";
+import { formatPrice } from "@/lib/pricing-plans";
+import { PAID_GRACE } from "@/lib/plan-limits";
 
 // Static pricing sections rendered on the server, so their markup and copy ship as HTML without client JS or hydration work.
+
+const number = (n: number) => n.toLocaleString("en-US");
+const buffer = `${Math.round(PAID_GRACE * 100)}%`;
+
+/** Example bills and the limits table, computed from the shared plan list so the page cannot drift from ingest. English only, like the pricing page route. */
+export function PricingLimits() {
+  const bills = exampleBills();
+  const rows = limitRows();
+  const paid = rows.filter((row) => row.plan.monthly > 0);
+  const cells: [string, (row: LimitRow) => string][] = [
+    ["Data kept for", (row) => `${row.retentionDays} days`],
+    ["Spans per day", (row) => (row.daily === null ? "No daily cap" : number(row.daily))],
+    ["Spans per month", (row) => number(row.included)],
+    ["Monthly limit applies at", (row) => number(row.stopsAt)],
+  ];
+  return (
+    <section className="border-t-2 border-black bg-[#eceae3] px-5 py-14 text-black md:px-10 md:py-16" aria-labelledby="limits-title">
+      <div className="mx-auto max-w-[1320px]">
+        <Reveal>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/50">Real bills and real limits</p>
+          <h2 id="limits-title" className="mt-5 font-pixel mk-h2 leading-[0.92] tracking-[-0.07em]">What a month costs, and what a limit does.</h2>
+        </Reveal>
+        <ul className="mt-10 grid gap-[2px] border-2 border-black bg-black md:grid-cols-3">
+          {bills.map((bill) => (
+            <li key={bill.label} className="flex flex-col bg-[#eceae3] p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-black/55">{bill.label}</p>
+              <p className="mt-3 font-pixel text-5xl leading-none tracking-[-0.07em]">{formatPrice(bill.monthly)}<span className="ml-2 font-mono text-[10px] uppercase tracking-normal text-black/55">/ mo on {bill.plan.name}</span></p>
+              <p className="mt-3 text-sm leading-6 text-black/70">{number(bill.runs)} runs of {bill.steps} steps is {number(bill.spans)} spans a month, {bill.what}.{bill.annual > 0 ? ` ${formatPrice(bill.annual)} a month if you pay yearly.` : ""}</p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8 overflow-x-auto border-2 border-black">
+          <table className="w-full border-collapse text-left min-w-[560px]">
+            <caption className="sr-only">Retention and span limits per plan</caption>
+            <thead>
+              <tr className="bg-black text-[#eceae3]">
+                <th scope="col" className="p-2.5 font-mono text-[9px] font-normal uppercase tracking-[0.1em] text-white/55 md:px-5 md:py-3.5 md:text-[10px]">Limit</th>
+                {rows.map(({ plan }) => <th key={plan.id} scope="col" className="border-l border-white/20 p-2.5 font-mono text-[10px] font-normal uppercase tracking-[0.1em] md:px-5 md:py-3.5">{plan.name}</th>)}
+              </tr>
+            </thead>
+            <tbody className="font-mono text-[10px] md:text-xs">
+              {cells.map(([label, cell]) => (
+                <tr key={label} className="border-t border-black/25">
+                  <th scope="row" className="p-2.5 text-left text-xs font-medium md:px-5 md:py-3.5 md:text-sm">{label}</th>
+                  {rows.map((row) => <td key={row.plan.id} className="border-l border-black/25 p-2.5 md:px-5 md:py-3.5">{cell(row)}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-6 max-w-3xl text-sm leading-6 text-black/70">
+          When a limit is hit, new spans are not saved and the request gets a 429 error: <span className="font-mono text-xs">plan_limit_reached</span> at the monthly limit, <span className="font-mono text-xs">daily_limit_reached</span> on Free at the daily cap. Everything already saved stays until its retention time is up. Counts reset at the start of each UTC month, or at midnight UTC for the daily cap. {paid.map((row) => row.plan.name).join(" and ")} get a {buffer} buffer above the included spans before the monthly limit applies. Going over never adds a charge: you are never billed extra, and data already saved stays. A batch that would cross the limit is refused as a whole.
+        </p>
+      </div>
+    </section>
+  );
+}
 
 export function PricingFaq({ locale = "en", founding = false }: { locale?: Locale; founding?: boolean }) {
   const t = getCopy(locale).pricing;

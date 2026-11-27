@@ -78,3 +78,25 @@ test("planForSpans picks the smallest covering plan", () => {
 test("planForSpans returns null above the largest plan", () => {
   assert.equal(planForSpans(2_000_001), null);
 });
+
+test("example bills are priced from the plan list and each plan is the smallest that covers the usage", async () => {
+  const { exampleBills } = await import("./pricing-examples.ts");
+  const bills = exampleBills();
+  assert.equal(bills.length, 3);
+  for (const bill of bills) {
+    assert.equal(bill.spans, bill.runs * bill.steps);
+    assert.equal(bill.plan.id, planForSpans(bill.spans)?.id);
+    assert.equal(bill.monthly, bill.plan.monthly);
+    assert.equal(bill.annual, monthlyPrice(bill.plan, "annual"));
+  }
+  assert.deepEqual(bills.map((bill) => bill.plan.id), ["free", "pro", "team"]);
+});
+
+test("limit rows match what ingest enforces and how long the retention job keeps data", async () => {
+  const { limitRows } = await import("./pricing-examples.ts");
+  const rows = limitRows();
+  assert.deepEqual(rows.map((row) => row.plan.id), ["free", "pro", "team"]);
+  assert.deepEqual(rows.map((row) => row.stopsAt), [10_000, 550_000, 2_200_000]);
+  assert.deepEqual(rows.map((row) => row.daily), [2_000, null, null]);
+  assert.deepEqual(rows.map((row) => row.retentionDays), [7, 30, 90]);
+});

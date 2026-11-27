@@ -4,7 +4,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { getCopy } from "@/lib/i18n";
-import { PricingClose, PricingFaq } from "./pricing-sections";
+import { exampleBills } from "@/lib/pricing-examples";
+import { PricingClose, PricingFaq, PricingLimits } from "./pricing-sections";
 
 const t = getCopy("en").pricing;
 
@@ -22,5 +23,15 @@ describe("pricing page server sections", () => {
     expect(html).toContain(t.closeTitle);
     expect(html).toMatch(/href="[^"]*\/sign-up"/);
     expect(html).toContain('href="/contact"');
+  });
+
+  it("renders each example bill with its computed price and the limit error codes", () => {
+    const html = renderToStaticMarkup(createElement(PricingLimits));
+    for (const bill of exampleBills()) {
+      expect(html).toContain(bill.label);
+      expect(html).toContain(`${bill.spans.toLocaleString("en-US")} spans`);
+    }
+    expect(html).toContain("plan_limit_reached");
+    expect(html).toContain("daily_limit_reached");
   });
 });

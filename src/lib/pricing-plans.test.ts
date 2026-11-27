@@ -78,3 +78,31 @@ test("planForSpans picks the smallest covering plan", () => {
 test("planForSpans returns null above the largest plan", () => {
   assert.equal(planForSpans(2_000_001), null);
 });
+
+test("example bills are priced from the plan list and each plan is the smallest that covers the usage", async () => {
+  const { exampleBills } = await import("./pricing-examples.ts");
+  const bills = exampleBills();
+  assert.equal(bills.length, 3);
+  for (const bill of bills) {
+    assert.equal(bill.spans, bill.runs * bill.steps);
+    assert.equal(bill.plan.id, planForSpans(bill.spans)?.id);
+    assert.equal(bill.monthly, bill.plan.monthly);
+    assert.equal(bill.annual, monthlyPrice(bill.plan, "annual"));
+  }
+  assert.deepEqual(bills.map((bill) => bill.plan.id), ["free", "pro", "team"]);
+});
+
+test("limit rows match what ingest enforces and how long the retention job keeps data", async () => {
+  const { limitRows } = await import("./pricing-examples.ts");
+  const { enforcedSpanLimit, dailySpanLimit } = await import("./plan-limits.ts");
+  const { planRetentionDays } = await import("./retention.ts");
+  const rows = limitRows();
+  assert.deepEqual(rows.map((row) => row.plan.id), plans.map((plan) => plan.id));
+  for (const row of rows) {
+    assert.equal(row.included, row.plan.spanLimit);
+    assert.equal(row.stopsAt, enforcedSpanLimit(row.plan.id));
+    assert.equal(row.daily, dailySpanLimit(row.plan.id));
+    assert.equal(row.retentionDays, planRetentionDays(row.plan.id));
+    assert.equal(`${row.retentionDays} days`, row.plan.retention);
+  }
+});

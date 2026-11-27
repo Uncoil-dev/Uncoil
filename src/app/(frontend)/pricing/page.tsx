@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PricingPage } from "@/components/marketing/pricing/pricing-page";
-import { PricingClose, PricingFaq } from "@/components/marketing/pricing/pricing-sections";
+import { PricingClose, PricingFaq, PricingLimits } from "@/components/marketing/pricing/pricing-sections";
 import { breadcrumbJsonLd, faqJsonLd, jsonLdString, productJsonLd } from "@/lib/seo";
 import { pricingFaqItems } from "@/lib/pricing-faq";
 import { getCopy } from "@/lib/i18n";
@@ -22,6 +22,7 @@ export default function Page() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString([breadcrumbJsonLd([{ name: "Uncoil", path: "/" }, { name: "Pricing", path: "/pricing" }]), productJsonLd({ name: "Uncoil pricing", description: "Free, Pro, Team and Enterprise plans for AI agent tracing, cost tracking and evaluation.", path: "/pricing" }), faqJsonLd(items)]) }} />
       <PricingPage founding={founding}>
+        <PricingLimits />
         <PricingFaq founding={founding} />
         <PricingClose />
       </PricingPage>

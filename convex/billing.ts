@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { canAccessProject } from "./projects";
+import { trialDaysFor } from "../src/lib/checkout-trial";
 
 function requireSyncSecret(value: string) {
   const expected = process.env.STRIPE_SYNC_SECRET;
@@ -77,6 +78,6 @@ export const getMonthlyUsage = query({
       .take(USAGE_RUN_SCAN_LIMIT + 1);
     const truncated = runs.length > USAGE_RUN_SCAN_LIMIT;
     const spans = runs.slice(0, USAGE_RUN_SCAN_LIMIT).reduce((sum, run) => sum + run.spanCount, 0);
-    return { spans, truncated, planTier: project.planTier ?? "free" };
+    return { spans, truncated, planTier: project.planTier ?? "free", trialAvailable: trialDaysFor(project) > 0 };
   },
 });

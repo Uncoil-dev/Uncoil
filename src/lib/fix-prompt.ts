@@ -54,3 +54,8 @@ export function buildFixPrompt(spans: FixPromptSpan[]): string | null {
 
   return clip(sections.join("\n\n"), FIX_PROMPT_MAX_CHARS);
 }
+
+/** The prompt to offer for a run: only failed runs with a failing step get one. */
+export function fixPromptForRun(status: string, spans: FixPromptSpan[]): string | null {
+  return status === "failed" ? buildFixPrompt(spans) : null;
+}

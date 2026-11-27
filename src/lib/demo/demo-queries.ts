@@ -1,6 +1,6 @@
 import { groupReleases } from "@/lib/error-group-release";
 import { FACET_KEYS, TOPIC_TRACE_LIMIT, activityTimeZone, type ActivityDay, type ErrorGroup, type FacetCounts, type FacetKey, type HistogramBucket, type TraceListFilters, type TraceStats } from "@/lib/tinybird";
-import { groupTraceTopics, topicRunIds } from "@/lib/trace-topics";
+import { groupTraceTopics, mergeTopicsByName, topicRunIds } from "@/lib/trace-topics";
 import { flowGraph, flowPairId, type FlowStep } from "@/lib/trace-flow";
 import { validTraceSort } from "@/lib/trace-sort";
 import type { GroupFilters, GroupKind } from "@/lib/group-filters";
@@ -197,10 +197,32 @@ export function demoErrorGroups(runs: DemoRun[]) {
   return { total: sorted.length, groups: sorted.slice(0, 20) };
 }
 
+/** Readable topic names for the demo questions, like the ones a project with its own key gets. */
+const DEMO_TOPIC_NAMES: Array<[RegExp, string]> = [
+  [/tracking link/, "Track an order"], [/where is my order|check the status|shipped yet/, "Order status"], [/delivered but nothing/, "Delivered, not received"],
+  [/arrived broken/, "Item arrived broken"], [/wrong size/, "Wrong size"], [/never showed up/, "Item never arrived"], [/changed my mind/, "Changed my mind"], [/charged twice/, "Charged twice"],
+  [/email address/, "Change account email"], [/annual plan/, "Annual plan"], [/teammate/, "Add a teammate"], [/invoices/, "Find invoices"], [/after i cancel/, "Data after cancelling"],
+  [/csv/, "Export data"], [/two-factor/, "Two-factor sign in"], [/monthly limit/, "Monthly limit"], [/slack/, "Connect Slack"], [/key is invalid/, "Invalid API key"],
+  [/resetting my password/, "Sign-in problem"], [/shipping address/, "Change address"], [/cancel my subscription/, "Cancel subscription"], [/charged after cancelling/, "Charged after cancelling"],
+  [/speak to a person|third time/, "Talk to a person"], [/answer was wrong/, "Wrong answer"], [/outage credit/, "Outage credit"],
+  [/first trace/, "Send a first trace"], [/which sdk/, "Pick an SDK"], [/api key/, "Where to put the key"], [/first run shows/, "First run delay"],
+];
+
 /** Topics of the demo runs, grouped by what each run was asked to do. */
 export function demoTopics(runs: DemoRun[]) {
   const traces = [...runs].sort((a, b) => b.startMs - a.startMs).slice(0, TOPIC_TRACE_LIMIT);
-  return { ...groupTraceTopics(traces.map((run) => ({ runId: run.runId, input: run.input, hasError: run.errorCount > 0, timedOut: run.timeouts > 0 }))), sampled: runs.length > traces.length };
+  const inputs = new Map(traces.map((run) => [run.runId, run.input.toLowerCase()]));
+  const grouped = groupTraceTopics(traces.map((run) => ({ runId: run.runId, input: run.input, hasError: run.errorCount > 0, timedOut: run.timeouts > 0 })));
+  const topics = grouped.topics.map((topic) => {
+    const votes = new Map<string, number>();
+    for (const runId of topic.runIds) {
+      const name = DEMO_TOPIC_NAMES.find(([pattern]) => pattern.test(inputs.get(runId) ?? ""))?.[1];
+      if (name) votes.set(name, (votes.get(name) ?? 0) + 1);
+    }
+    const best = [...votes].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0];
+    return topic.id === "other" || !best ? topic : { ...topic, name: best };
+  });
+  return { ...grouped, topics: mergeTopicsByName(topics), sampled: runs.length > traces.length };
 }
 
 export function demoActivity(filters: TraceListFilters, timeZone: string, nowMs = Date.now()): ActivityDay[] {

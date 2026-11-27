@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { groupTraceTopics, isTopicId, normalizeTopicText, topicRunIds, type TopicTrace } from "./trace-topics.ts";
+import { groupTraceTopics, isTopicId, mergeTopicsByName, normalizeTopicText, topicRunIds, type TopicTrace } from "./trace-topics.ts";
 
 const t = (runId: string, input: string, hasError = false): TopicTrace => ({ runId, input, hasError });
 
@@ -22,7 +22,7 @@ test("similar requests share a topic and unrelated ones do not", () => {
   assert.deepEqual([...refund.sampleRunIds].sort(), ["a", "b", "c"]);
   assert.equal(refund.count, 3);
   assert.equal(Math.round(refund.errorRate * 100), 33);
-  assert.match(refund.name, /refund/);
+  assert.match(refund.name, /refund/i);
 });
 
 test("topic ids are stable across runs and input order", () => {
@@ -111,4 +111,25 @@ test("a topic id selects exactly that topic's runs and an unknown id selects non
 test("topic ids are only accepted in the shape groupTraceTopics produces", () => {
   for (const ok of ["0a1b2c3d", "0a1b2c3d-2", "other"]) assert.ok(isTopicId(ok), ok);
   for (const bad of ["", "OTHER", "0a1b2c3", "0a1b2c3d-", "x'; DROP", "0a1b2c3d-1-2"]) assert.ok(!isTopicId(bad), bad);
+});
+
+test("leftovers of ids are not words and topics get short, capitalized names", () => {
+  const { topics } = groupTraceTopics([
+    t("a", "Where is ORD-10234 tracking link?"), t("b", "Need tracking link for ORD-55321"), t("c", "ORD-9911 tracking link please"),
+  ], { minSize: 2 });
+  assert.equal(topics.length, 1);
+  assert.ok(!topics[0].terms.includes("ord"));
+  assert.match(topics[0].name, /^[A-Z][a-z]+ [a-z]+$/);
+  assert.equal(topics[0].name, "Tracking link");
+});
+
+test("topics with the same name merge: counts add up and the failure rate is recomputed", () => {
+  const base = { terms: [], sampleRunIds: [], runIds: [], outcome: { succeeded: 0, failed: 0, timedOut: 0 }, issues: [], silentFailures: 0 };
+  const merged = mergeTopicsByName([
+    { ...base, id: "aaaaaaaa", name: "Order status", count: 20, errorRate: 0, runIds: ["a"] },
+    { ...base, id: "bbbbbbbb", name: "Order status", count: 20, errorRate: 0.5, runIds: ["b"] },
+    { ...base, id: "other", name: "Other", count: 5, errorRate: 0 },
+  ]);
+  assert.deepEqual(merged.map((x) => [x.id, x.count, x.errorRate]), [["aaaaaaaa", 40, 0.25], ["other", 5, 0]]);
+  assert.deepEqual(merged[0].runIds, ["a", "b"]);
 });

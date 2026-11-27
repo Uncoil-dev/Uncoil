@@ -923,3 +923,7 @@ body:has(.uncoil-cloud-shell) [role="menu"] [class*="border-black"]{border-color
 @media(max-width:700px){.uncoil-page-hero{padding:12px 16px 4px}}
 .uncoil-page-title{display:inline-flex;align-items:center;gap:8px;margin:0!important;font-family:var(--font-geist-pixel),monospace;font-weight:400;font-size:22px;line-height:1;letter-spacing:-.04em;text-transform:uppercase;color:#f4f3ee}
 .uncoil-page-title::before{content:"";width:6px;height:16px;background:#f4d44d;flex:none}
+@keyframes topic-tile-in{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.topic-tile{animation:topic-tile-in .45s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0)*45ms);transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .18s,border-color .18s}
+.topic-tile:hover,.topic-tile:focus-visible{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.55)}
+@media (prefers-reduced-motion:reduce){.topic-tile{animation:none;transition:none}.topic-tile:hover,.topic-tile:focus-visible{transform:none}}

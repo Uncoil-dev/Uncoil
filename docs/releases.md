@@ -8,6 +8,7 @@ Every pull request description has a Changelog section: one ticked category and 
 
 ### Features
 - Error groups show the release they started in and, when different, the latest release they were seen in. Groups without release data look the same as before. The public demo shows it too.
+- Very large step inputs and outputs (over 20,000 characters) open collapsed in the run view, with a preview and the size. Show all reveals the full text, and Copy still copies all of it.
 - The TypeScript and Python SDKs now fill in the release when none is set: from `UNCOIL_RELEASE`, then the commit variable of Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions or GitLab CI, then the local git commit. An explicit `release` option still wins.
 - Pro and Team plan cards, the in-app upgrade card and the usage banner now show the free trial: 7 days free, once per project.
 - New topics endpoint, `GET /api/projects/{projectId}/topics`, groups the traces matching the traces-list filters by what they were asked to do, with error rates and example traces. The public demo shows topics too.

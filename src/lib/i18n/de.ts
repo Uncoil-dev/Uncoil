@@ -80,6 +80,7 @@ export const de: Copy = {
     },
     unlimited: "Unbegrenzt",
     enterprise: { name: "Enterprise", line: "Für größere Rollouts.", price: "Individuell", spans: "Unbegrenzte Spans", features: ["Individuelle Aufbewahrung", "SSO (SAML / OIDC)", "Betrieb auf eigenen Servern", "Unterstützung beim Rollout"], cta: "Sprich mit uns" },
+    howWeWork: "So arbeiten wir",
     spanEyebrow: "Wofür du zahlst",
     spanTitle: "Ein Schritt, eine Span.",
     spanBody: "Jeder Modellaufruf, Tool-Aufruf und jede Abfrage deines Agenten ist eine Span. Ein Lauf mit sechs Schritten sind sechs Spans, Wiederholungen und Fehler eingeschlossen. Das ist der ganze Zähler. Kein Labyrinth aus Plätzen und Funktionen, keine Überraschung pro Trace.",

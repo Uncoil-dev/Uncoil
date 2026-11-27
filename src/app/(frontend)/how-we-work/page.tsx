@@ -2,7 +2,7 @@ import Link from "next/link";
 import { appHref } from "@/lib/app-links";
 import { pageMetadata, breadcrumbJsonLd, jsonLdString } from "@/lib/seo";
 import { PageHeader } from "@/components/marketing/page-header";
-import { ClosingBand, CreamBand, Eyebrow, HeaderAction } from "@/components/marketing/company/blocks";
+import { ClosingBand, CreamBand, HeaderAction } from "@/components/marketing/company/blocks";
 import { notDoing, sections, type Statement } from "@/lib/how-we-work";
 
 export const metadata = pageMetadata({
@@ -16,6 +16,10 @@ function Proof({ proof }: Pick<Statement, "proof">) {
   return proof.href.startsWith("/")
     ? <Link href={proof.href} className={className}>{proof.label}</Link>
     : <a href={proof.href} rel="noopener" className={className}>{proof.label}</a>;
+}
+
+function SectionHeading({ children }: { children: string }) {
+  return <h2 className="font-mono text-[10px] font-normal uppercase tracking-[0.18em] text-black/50">{children}</h2>;
 }
 
 function List({ items }: { items: readonly Statement[] }) {
@@ -45,12 +49,12 @@ export default function HowWeWorkPage() {
         <div className="max-w-3xl space-y-12">
           {sections.map((section) => (
             <div key={section.title}>
-              <Eyebrow dark={false}>{section.title}</Eyebrow>
+              <SectionHeading>{section.title}</SectionHeading>
               <List items={section.items} />
             </div>
           ))}
           <div>
-            <Eyebrow dark={false}>What Uncoil does not do</Eyebrow>
+            <SectionHeading>What Uncoil does not do</SectionHeading>
             <List items={notDoing} />
           </div>
         </div>

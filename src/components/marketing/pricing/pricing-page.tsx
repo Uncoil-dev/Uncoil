@@ -331,7 +331,7 @@ function Compare({ interval, recommended, t }: { interval: BillingInterval; reco
         <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.12em] text-black/55">
           {t.enterprise.name}: <Link href="/contact" className="underline underline-offset-4 hover:text-black">{t.enterprise.cta}</Link>
           {" / "}
-          <Link href="/how-we-work" className="underline underline-offset-4 hover:text-black">How we work</Link>
+          <Link href="/how-we-work" className="underline underline-offset-4 hover:text-black">{t.howWeWork}</Link>
         </p>
       </div>
     </section>

@@ -80,6 +80,7 @@ export const no: Copy = {
     },
     unlimited: "Ubegrenset",
     enterprise: { name: "Enterprise", line: "For større utrullinger.", price: "Tilpasset", spans: "Ubegrenset antall spans", features: ["Tilpasset lagring", "SSO (SAML / OIDC)", "Drift på egne servere", "Hjelp med utrulling"], cta: "Snakk med oss" },
+    howWeWork: "Slik jobber vi",
     spanEyebrow: "Det du betaler for",
     spanTitle: "Ett steg, én span.",
     spanBody: "Hvert modellkall, verktøykall og oppslag agenten din gjør er én span. En kjøring med seks steg er seks spans, med nye forsøk og feil inkludert. Det er hele telleren. Ingen labyrint av seter og funksjoner, ingen overraskelser per spor.",

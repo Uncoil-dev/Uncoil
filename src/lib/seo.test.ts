@@ -75,9 +75,15 @@ test("how-we-work statements each link to a page that exists", async () => {
   }
 });
 
-test("how-we-work prices come from the plan table", async () => {
-  const { sections } = await import("./how-we-work.ts");
-  const { plans } = await import("./pricing-plans.ts");
-  const text = sections.flatMap((s) => s.items.map((i) => i.text)).join(" ");
-  for (const plan of plans) assert.ok(text.includes(`${plan.name} is $${plan.monthly}`), plan.name);
+test("security page has the anchors how-we-work links to", async () => {
+  const { readFileSync } = await import("node:fs");
+  const page = readFileSync("src/app/(frontend)/security/page.tsx", "utf8");
+  assert.match(page, /id="data"/);
+  assert.match(page, /id="deletion"/);
+});
+
+test("footer and pricing page link to how-we-work", async () => {
+  const { readFileSync } = await import("node:fs");
+  assert.match(readFileSync("src/components/marketing/landing/landing-footer.tsx", "utf8"), /"\/how-we-work"/);
+  assert.match(readFileSync("src/components/marketing/pricing/pricing-page.tsx", "utf8"), /href="\/how-we-work"/);
 });

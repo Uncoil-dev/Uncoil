@@ -26,18 +26,18 @@ Use the documentation for implementation details and the blog for explanatory gu
 ## Compare and learn
 
 - [Compare Uncoil with other tools](https://www.uncoil.dev/compare): Uncoil vs Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust and others.
-- [Free tools for AI agent builders](https://www.uncoil.dev/tools): Browser tools, no sign-up.
+- [Free tools for AI agent builders](https://www.uncoil.dev/tools): Browser-based tools, no sign-up.
 - [Agent log checker](https://www.uncoil.dev/tools/agent-log-checker): Find the first failure, slow steps and wasted tokens in a pasted log.
 - [Token counter](https://www.uncoil.dev/tools/token-counter): Token counts and prices for GPT, Claude, Gemini and more (exact for OpenAI, estimates for others).
 - [Model price comparison](https://www.uncoil.dev/tools/llm-price-comparison): List prices for every major LLM API and a monthly cost calculator.
 - [Prompt cost checker](https://www.uncoil.dev/tools/prompt-cost-checker): Shorten a prompt safely and see the cost per call.
 - [Context window checker](https://www.uncoil.dev/tools/context-window-checker): See which models can fit a document in their context window.
-- [Tool definition checker](https://www.uncoil.dev/tools/tool-definition-checker): Find mistakes in tool definitions.
+- [Tool definition checker](https://www.uncoil.dev/tools/tool-definition-checker): Find mistakes in OpenAI, Anthropic, MCP and Gemini tool definitions.
 - [AI API status](https://www.uncoil.dev/tools/ai-api-status): Live status of OpenAI, Anthropic, Gemini and other AI providers.
 - [JSON fixer](https://www.uncoil.dev/tools/json-fixer): Repair broken JSON from language models.
 - [Prompt caching calculator](https://www.uncoil.dev/tools/prompt-caching-calculator): Monthly savings from prompt caching on GPT, Claude, Gemini and more.
 - [Rate limit calculator](https://www.uncoil.dev/tools/rate-limit-calculator): How many users an app can serve within its provider's rate limits.
-- [Tracing bill calculator](https://www.uncoil.dev/tools/ai-observability-cost-calculator): Compare monthly tracing bills.
+- [Tracing bill calculator](https://www.uncoil.dev/tools/ai-observability-cost-calculator): Compare monthly bills on Langfuse, LangSmith, Helicone and Uncoil.
 - [Switch to Uncoil](https://www.uncoil.dev/switch): Move agent tracing from Langfuse, LangSmith, Helicone or OpenTelemetry.
 - [Free AI agent cost estimator](https://www.uncoil.dev/tools/ai-cost-estimator): Estimate cost per run, task and month.
 - [Best LLM observability tools](https://www.uncoil.dev/best-llm-observability-tools): How to choose a tool, and who each option fits.
@@ -46,14 +46,13 @@ Use the documentation for implementation details and the blog for explanatory gu
 - [Tracking AI agent costs](https://www.uncoil.dev/answers/track-ai-agent-costs): Record tokens, retries and tool calls per run, then rank spend by model and tool.
 - [Debugging a failing AI agent run](https://www.uncoil.dev/answers/debug-failing-ai-agent-run): Find the first failing step, inspect tool inputs and compare with a passing run.
 - [What is AI agent observability?](https://www.uncoil.dev/answers/what-is-ai-agent-observability): Two-sentence definition, how it differs from logging, and the signals it covers.
-- [Finding the costliest call in an agent](https://www.uncoil.dev/answers/find-costliest-tool-or-model-call): Rank model calls by cost, with an example.
+- [Finding the costliest call in an agent](https://www.uncoil.dev/answers/find-costliest-tool-or-model-call): Rank model-call spans by cost, with a worked example.
 - [Adding tracing to an OpenAI or LangGraph agent](https://www.uncoil.dev/answers/add-tracing-to-openai-or-langgraph-agent): Wrap the OpenAI client or pass the LangGraph handler.
 - [Free and open-source AI agent monitoring](https://www.uncoil.dev/answers/free-open-source-ai-agent-monitoring): Free plan limits, the MIT license and where self-hosting is documented.
 - [Getting alerted when an agent spends too much](https://www.uncoil.dev/answers/alert-when-ai-agent-spends-too-much): Create a Cost alert rule with a dollar limit, a window and email, Slack or webhook.
 - [About Uncoil](https://www.uncoil.dev/about): What Uncoil is, and where to find its code and SDKs.
-- [How we work](https://www.uncoil.dev/how-we-work): Pricing, license, data location, export, support.
 - [Glossary](https://www.uncoil.dev/glossary): Short definitions of agent observability terms, one page per term.
-- [Trace OpenAI calls](https://www.uncoil.dev/integrations/openai), [Anthropic](https://www.uncoil.dev/integrations/anthropic), [LangGraph](https://www.uncoil.dev/integrations/langgraph), [OpenTelemetry](https://www.uncoil.dev/integrations/opentelemetry): Setup pages. More: [LangChain](https://www.uncoil.dev/integrations/langchain), [Pydantic AI](https://www.uncoil.dev/integrations/pydantic-ai), [Mastra](https://www.uncoil.dev/integrations/mastra), [Google Gemini](https://www.uncoil.dev/integrations/google-gemini), [Azure OpenAI](https://www.uncoil.dev/integrations/azure-openai), [AWS Bedrock](https://www.uncoil.dev/integrations/aws-bedrock), [Groq](https://www.uncoil.dev/integrations/groq), [Ollama](https://www.uncoil.dev/integrations/ollama), [LiteLLM](https://www.uncoil.dev/integrations/litellm), [OpenRouter](https://www.uncoil.dev/integrations/openrouter), [Mistral](https://www.uncoil.dev/integrations/mistral), [DSPy](https://www.uncoil.dev/integrations/dspy), [Haystack](https://www.uncoil.dev/integrations/haystack), [Semantic Kernel](https://www.uncoil.dev/integrations/semantic-kernel), [smolagents](https://www.uncoil.dev/integrations/smolagents), [Next.js](https://www.uncoil.dev/integrations/nextjs).
+- [Trace OpenAI calls](https://www.uncoil.dev/integrations/openai), [Anthropic](https://www.uncoil.dev/integrations/anthropic), [LangGraph](https://www.uncoil.dev/integrations/langgraph), [OpenTelemetry](https://www.uncoil.dev/integrations/opentelemetry): Setup pages per integration. More: [LangChain](https://www.uncoil.dev/integrations/langchain), [Pydantic AI](https://www.uncoil.dev/integrations/pydantic-ai), [Mastra](https://www.uncoil.dev/integrations/mastra), [Google Gemini](https://www.uncoil.dev/integrations/google-gemini), [Azure OpenAI](https://www.uncoil.dev/integrations/azure-openai), [AWS Bedrock](https://www.uncoil.dev/integrations/aws-bedrock), [Groq](https://www.uncoil.dev/integrations/groq), [Ollama](https://www.uncoil.dev/integrations/ollama), [LiteLLM](https://www.uncoil.dev/integrations/litellm), [OpenRouter](https://www.uncoil.dev/integrations/openrouter), [Mistral](https://www.uncoil.dev/integrations/mistral), [DSPy](https://www.uncoil.dev/integrations/dspy), [Haystack](https://www.uncoil.dev/integrations/haystack), [Semantic Kernel](https://www.uncoil.dev/integrations/semantic-kernel), [smolagents](https://www.uncoil.dev/integrations/smolagents), [Next.js](https://www.uncoil.dev/integrations/nextjs).
 - [Full text for AI](https://www.uncoil.dev/llms-full.txt): Docs, glossary, comparisons and integrations as one plain-text file.
 
 ## Product

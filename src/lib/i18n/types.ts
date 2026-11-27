@@ -53,6 +53,7 @@ export type Copy = {
     plans: Record<"free" | "pro" | "team", { line: string; features: readonly string[] }>;
     unlimited: string;
     enterprise: { name: string; line: string; price: string; spans: string; features: readonly string[]; cta: string };
+    howWeWork: string;
     spanEyebrow: string;
     spanTitle: string;
     spanBody: string;

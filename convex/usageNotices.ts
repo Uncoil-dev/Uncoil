@@ -3,15 +3,15 @@ import { components, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { escapeHtml, sendEmail } from "./notify";
-import { monthKey, shouldWarnAboutUsage } from "../src/lib/plan-limits";
+import { monthKey, shouldWarnAboutUsage, usageLevel } from "../src/lib/plan-limits";
 import { planById } from "../src/lib/pricing-plans";
 
 const RUN_SCAN_LIMIT = 20_000;
 
-type Due = { projectId: Id<"projects">; name: string; ownerId: string; spans: number };
+type Due = { projectId: Id<"projects">; name: string; ownerId: string; spans: number; kind: "warn" | "paused" };
 type Page = { due: Due[]; month: string; continueCursor: string | null };
 
-/** One page of projects; returns the Free ones that passed 80% of the month's spans and were not warned yet. */
+/** One page of projects; returns the Free ones that passed 80% of the month's spans or hit the limit, and were not told yet. */
 export const pageToCheck = internalQuery({
   args: { cursor: v.union(v.string(), v.null()) },
   handler: async (ctx, { cursor }): Promise<Page> => {
@@ -22,13 +22,14 @@ export const pageToCheck = internalQuery({
     const due: Due[] = [];
     for (const project of page.page) {
       const ownerId = project.ownerId ?? project.clerkUserId;
-      if (!ownerId || (project.planTier ?? "free") !== "free" || project.usageWarnedMonth === month) continue;
+      if (!ownerId || (project.planTier ?? "free") !== "free" || project.usagePausedMonth === month) continue;
       const runs = await ctx.db
         .query("agentRuns")
         .withIndex("by_projectId_createdAt", (q) => q.eq("projectId", project._id).gte("createdAt", monthStart))
         .take(RUN_SCAN_LIMIT);
       const spans = runs.reduce((sum, run) => sum + run.spanCount, 0);
-      if (shouldWarnAboutUsage(spans, project.planTier, project.usageWarnedMonth, month)) due.push({ projectId: project._id, name: project.name, ownerId, spans });
+      if (usageLevel(spans, project.planTier) === "blocked") due.push({ projectId: project._id, name: project.name, ownerId, spans, kind: "paused" });
+      else if (shouldWarnAboutUsage(spans, project.planTier, project.usageWarnedMonth, month)) due.push({ projectId: project._id, name: project.name, ownerId, spans, kind: "warn" });
     }
     return { due, month, continueCursor: page.isDone ? null : page.continueCursor };
   },
@@ -41,6 +42,17 @@ export const markWarned = internalMutation({
     const project = await ctx.db.get(projectId);
     if (!project || project.usageWarnedMonth === month) return false;
     await ctx.db.patch(projectId, { usageWarnedMonth: month });
+    return true;
+  },
+});
+
+/** Marks the month as paused-notified, and as warned so no 80% email follows the paused one. */
+export const markPaused = internalMutation({
+  args: { projectId: v.id("projects"), month: v.string() },
+  handler: async (ctx, { projectId, month }) => {
+    const project = await ctx.db.get(projectId);
+    if (!project || project.usagePausedMonth === month) return false;
+    await ctx.db.patch(projectId, { usagePausedMonth: month, usageWarnedMonth: month });
     return true;
   },
 });
@@ -62,7 +74,21 @@ export function usageWarningEmail(item: { name: string; projectId: string; spans
   };
 }
 
-/** Emails the owner of each Free project that has used 80% of its monthly spans. Once per project per month. */
+/** The email sent when a Free project hits its span limit and new data is paused. */
+export function usagePausedEmail(item: { name: string; projectId: string }) {
+  const free = planById("free");
+  const pro = planById("pro");
+  const billingUrl = `${SITE}/dashboard/${item.projectId}/billing`;
+  const headline = `"${item.name}" has used all ${free.spans} free spans this month, so new data is paused.`;
+  const detail = `Runs sent from now on are not saved until the month resets. Pro is $${pro.monthly} a month for ${pro.spans} spans and saves new data straight away.`;
+  return {
+    subject: `New data for "${item.name}" is paused until next month`,
+    text: `${headline}\n\n${detail}\n${billingUrl}`,
+    html: `<p>${escapeHtml(headline)}</p><p>${escapeHtml(detail)} <a href="${billingUrl}">See plans for this project</a>.</p>`,
+  };
+}
+
+/** Emails the owner of each Free project at 80% of its monthly spans, and again when new data is paused. Each email once per project per month. */
 export const checkAll = internalAction({
   args: {},
   handler: async (ctx) => {
@@ -73,7 +99,12 @@ export const checkAll = internalAction({
         try {
           const owner = (await ctx.runQuery(components.betterAuth.adapter.findOne, { model: "user", where: [{ field: "id", value: item.ownerId }] })) as { email?: string } | null;
           if (!owner?.email) continue;
-          if (!(await ctx.runMutation(internal.usageNotices.markWarned, { projectId: item.projectId, month: result.month }))) continue;
+          const marker = item.kind === "paused" ? internal.usageNotices.markPaused : internal.usageNotices.markWarned;
+          if (!(await ctx.runMutation(marker, { projectId: item.projectId, month: result.month }))) continue;
+          if (item.kind === "paused") {
+            await sendEmail({ to: [owner.email], ...usagePausedEmail(item), idempotencyKey: `usage-paused-${item.projectId}-${result.month}` });
+            continue;
+          }
           await sendEmail({ to: [owner.email], ...usageWarningEmail(item), idempotencyKey: `usage-warn-${item.projectId}-${result.month}` });
         } catch (error) {
           console.error("[usage-notices] failed", item.projectId, error);

@@ -84,6 +84,12 @@ export function previewText(raw: string | null | undefined) {
   return text.replace(/\s+/g, " ").trim().slice(0, 160);
 }
 
+/** True when the SDK left message content out on purpose (UNCOIL_CAPTURE_CONTENT=false marks span metadata with contentRecorded: false). */
+export function contentNotRecorded(metadata: string | object | null | undefined): boolean {
+  const parsed = typeof metadata === "string" ? parsePayload(metadata) : metadata;
+  return typeof parsed === "object" && parsed !== null && (parsed as { contentRecorded?: unknown }).contentRecorded === false;
+}
+
 export function parsePayload(raw: string | null | undefined): unknown {
   if (raw === null || raw === undefined || raw === "") return "";
   try {

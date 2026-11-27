@@ -1,8 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { resolveCaptureContent, stripFeedbackContent, stripSpanContent } from "./privacy";
 import { resolveRelease } from "./release";
+import { loadUncoilEnv } from "./login";
 
 export interface UncoilConfig {
   apiKey?: string;
@@ -284,15 +283,6 @@ function isRetryableError(error: unknown, retryableErrors: string[]): boolean {
   return false;
 }
 
-/** True when .env.local in the working folder sets UNCOIL_API_KEY; `login` saves the key there, but plain Node does not read the file. */
-function envLocalSetsKey(): boolean {
-  try {
-    return /^\s*(?:export\s+)?UNCOIL_API_KEY\s*=\s*\S/m.test(readFileSync(resolve(process.cwd(), ".env.local"), "utf8"));
-  } catch {
-    return false;
-  }
-}
-
 const pendingSends = new Set<Promise<unknown>>();
 
 async function waitFor(sends: Set<Promise<unknown>>, timeoutMs: number): Promise<boolean> {
@@ -343,6 +333,7 @@ export class UncoilClient {
   private pending = new Set<Promise<unknown>>();
 
   constructor(config: UncoilConfig = {}) {
+    if (!config.apiKey && !(process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY)) loadUncoilEnv(process.cwd());
     this.apiKey = (config.apiKey || (process.env.UNCOIL_API_KEY ?? process.env.TRACIFY_API_KEY) || '').trim();
     this.onError = config.onError;
     this.captureContent = resolveCaptureContent(config.captureContent);
@@ -353,10 +344,7 @@ export class UncoilClient {
     this.keepErrors = config.keepErrors ?? true;
     this.redactor = buildRedactor(config.redact);
     if (!this.apiKey) {
-      const hint = envLocalSetsKey()
-        ? "Your .env.local sets UNCOIL_API_KEY, but this app did not load it. Run it with node --env-file=.env.local (for example node --env-file=.env.local app.js), or load the file with dotenv."
-        : "Pass { apiKey } to the client or set the UNCOIL_API_KEY environment variable. You can create a key on the API keys page of your dashboard.";
-      this.report(new UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", hint));
+      this.report(new UncoilError("missing_key", "No Uncoil API key was found, so nothing will be recorded.", "Pass { apiKey } to the client, set the UNCOIL_API_KEY environment variable, or add it to .env or .env.local. You can create a key on the API keys page of your dashboard."));
     } else if (!/^(uncoil|tracify)_sk_/.test(this.apiKey)) {
       this.report(new UncoilError("odd_key", "That API key does not look like an Uncoil key (they start with uncoil_sk_).", "Copy the key again from the API keys page of your dashboard; make sure no other service's key was pasted by mistake."));
     }

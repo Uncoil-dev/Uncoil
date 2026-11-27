@@ -20,7 +20,7 @@ yarn add @uncoil.dev/sdk
 npx @uncoil.dev/sdk login
 ```
 
-   Next.js loads `.env.local` for you, so the key is picked up there. Plain Node does not, so start your app with `node --env-file=.env.local app.js` (Node 20.6 or later) or load the file with dotenv.
+   When `UNCOIL_API_KEY` is not set in the environment, the client reads `UNCOIL_*` lines from `.env.local` and then `.env` in the current folder. Values already in the environment always win.
 
 2. Or copy a key from the [API keys page](https://www.uncoil.dev/dashboard/api-keys) and set it as an environment variable:
 

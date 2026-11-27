@@ -62,34 +62,41 @@ describe("client config validation", () => {
     expect(seen).toEqual(["missing_key"]);
   });
 
-  function missingKeyMessage(envLocal?: string) {
+  function clientInFolder(files: Record<string, string>, env: Record<string, string> = {}) {
     const dir = mkdtempSync(join(tmpdir(), "uncoil-env-"));
-    if (envLocal !== undefined) writeFileSync(join(dir, ".env.local"), envLocal);
+    for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text);
     const cwd = vi.spyOn(process, "cwd").mockReturnValue(dir);
-    const saved = process.env.UNCOIL_API_KEY;
-    delete process.env.UNCOIL_API_KEY;
+    const names = ["UNCOIL_API_KEY", "TRACIFY_API_KEY", "UNCOIL_PROJECT_ID"];
+    const saved = names.map((n) => process.env[n]);
+    for (const n of names) delete process.env[n];
+    Object.assign(process.env, env);
     const seen: UncoilError[] = [];
     try {
-      new UncoilClient({ onError: (e) => seen.push(e) });
+      const client = new UncoilClient({ onError: (e) => seen.push(e) });
+      return { key: (client as unknown as { apiKey: string }).apiKey, seen };
     } finally {
       cwd.mockRestore();
       rmSync(dir, { recursive: true, force: true });
-      if (saved !== undefined) process.env.UNCOIL_API_KEY = saved;
+      names.forEach((n, i) => { if (saved[i] === undefined) delete process.env[n]; else process.env[n] = saved[i]; });
     }
-    return seen[0];
   }
+  const fileKey = "uncoil_sk_live_" + "f".repeat(32);
+  const envKey = "uncoil_sk_live_" + "e".repeat(32);
 
-  it("names .env.local when that file sets the key but the app did not load it", () => {
-    const error = missingKeyMessage("UNCOIL_PROJECT_ID=p1\nUNCOIL_API_KEY=uncoil_sk_live_eu_abc\n");
-    expect(error.code).toBe("missing_key");
-    expect(error.message).toContain(".env.local");
-    expect(error.message).toContain("node --env-file=.env.local");
+  it("reads the key from .env when the environment has none", () => {
+    const { key, seen } = clientInFolder({ ".env": `OTHER=1\nUNCOIL_API_KEY=${fileKey}\n` });
+    expect(key).toBe(fileKey);
+    expect(seen).toEqual([]);
   });
 
-  it("keeps the plain missing-key message when .env.local does not set the key", () => {
-    const plain = missingKeyMessage().message;
-    expect(plain).not.toContain(".env.local");
-    expect(missingKeyMessage("OTHER=1\n").message).toBe(plain);
+  it("prefers .env.local over .env", () => {
+    const { key } = clientInFolder({ ".env": `UNCOIL_API_KEY=${envKey}\n`, ".env.local": `UNCOIL_API_KEY=${fileKey}\n` });
+    expect(key).toBe(fileKey);
+  });
+
+  it("keeps the environment value over file values", () => {
+    const { key } = clientInFolder({ ".env.local": `UNCOIL_API_KEY=${fileKey}\n` }, { UNCOIL_API_KEY: envKey });
+    expect(key).toBe(envKey);
   });
 
   it("reports an unrecognised key format", () => {

@@ -13,7 +13,7 @@ pip install uncoil-sdk
 ## Quickstart
 
 1. Create an API key on the [API keys page](https://www.uncoil.dev/dashboard/api-keys) of the dashboard. New to Uncoil? [Sign up](https://www.uncoil.dev/sign-up) first.
-2. Set it as an environment variable:
+2. Set it as an environment variable (or add `UNCOIL_API_KEY=...` to `.env.local` or `.env` in the working folder; the client reads those when the variable is unset, and real environment values always win):
 
 ```bash
 export UNCOIL_API_KEY=uncoil_sk_live_...
@@ -234,4 +234,4 @@ Not seeing traces? One command checks your key, region and network, then sends a
 uncoil doctor            # or: uncoil-doctor, or python -m uncoil doctor
 ```
 
-It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. If the key is missing from the environment but `.env.local` or `.env` in the current folder sets it, the check names that file so you can export the variable or load the file (for example with python-dotenv). It never prints the key. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan. It also tells you which project traces will land in (`Traces will land in: <name>`).
+It reads `UNCOIL_API_KEY` (and `UNCOIL_REGION` / `UNCOIL_HOST` if set), tells you in plain words what is wrong and how to fix it, and exits with code 1 if anything fails. If the key is missing from the environment, the check reads it from `.env.local` or `.env` in the current folder, the same as the client. It never prints the key. Options: `--key`, `--region eu|us`, `--host`, `--no-send` (skip the test trace) and `--json`. The test trace is named "Uncoil setup check" and tagged `uncoil-doctor`; it counts as one trace on your plan. It also tells you which project traces will land in (`Traces will land in: <name>`).

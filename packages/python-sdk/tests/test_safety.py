@@ -29,6 +29,31 @@ def test_missing_key_explains_the_fix(monkeypatch):
     assert isinstance(seen[0], ValueError)  # older code catching ValueError keeps working
 
 
+FILE_KEY = "uncoil_sk_live_" + "f" * 32
+ENV_KEY = "uncoil_sk_live_" + "e" * 32
+
+
+def test_key_is_read_from_env_files(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("UNCOIL_API_KEY", "")  # registers cleanup for the value the env file loads
+    monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
+    monkeypatch.delenv("TRACIFY_API_KEY", raising=False)
+    (tmp_path / ".env").write_text(f"OTHER=1\nUNCOIL_API_KEY={ENV_KEY}\n")
+    seen = []
+    assert UncoilClient(on_error=seen.append).api_key == ENV_KEY
+    assert seen == []
+    (tmp_path / ".env.local").write_text(f'export UNCOIL_API_KEY="{FILE_KEY}"\n')
+    monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
+    assert UncoilClient(on_error=seen.append).api_key == FILE_KEY
+
+
+def test_environment_key_wins_over_env_files(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("UNCOIL_API_KEY", ENV_KEY)
+    (tmp_path / ".env.local").write_text(f"UNCOIL_API_KEY={FILE_KEY}\n")
+    assert UncoilClient(on_error=lambda e: None).api_key == ENV_KEY
+
+
 def test_traced_function_runs_without_a_key(monkeypatch, capsys):
     monkeypatch.delenv("UNCOIL_API_KEY", raising=False)
     posts = []

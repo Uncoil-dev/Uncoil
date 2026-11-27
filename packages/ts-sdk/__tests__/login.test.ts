@@ -81,6 +81,11 @@ describe("login flow", () => {
     expect(lines[0]).toContain("Code: BCDF-GHJK");
     expect(opened).toHaveLength(1);
   });
+  it("prints the next step after connecting", async () => {
+    server("approved");
+    const { lines } = await run(tmp());
+    expect(lines.at(-1)).toBe("Next: call init() once at startup, then run `npx @uncoil.dev/sdk doctor` to send a test trace.");
+  });
   it("does not open a browser with --no-browser", async () => {
     server("approved");
     const { opened } = await run(tmp(), { browser: false });
@@ -110,6 +115,7 @@ describe("login flow", () => {
     const { lines } = await run(tmp(), { json: true });
     expect(JSON.parse(lines[0])).toMatchObject({ event: "waiting", code: "BCDF-GHJK" });
     expect(JSON.parse(lines[1])).toMatchObject({ event: "connected", projectId: "proj123" });
+    expect(lines).toHaveLength(2);
   });
   it("decrypts only with the matching private key", () => {
     const a = generateKeyPairSync("rsa", { modulusLength: 2048 });

@@ -6,6 +6,7 @@ import { productFeatureSlugs } from "@/lib/product-features";
 import robots from "./robots";
 import sitemap from "./(frontend)/sitemap";
 import nextConfig from "../../next.config";
+import { useCases } from "@/lib/use-cases";
 
 const BASE = "https://www.uncoil.dev";
 
@@ -35,6 +36,11 @@ describe("sitemap crawlability", () => {
     expect(paths.filter((p) => redirected.has(p))).toEqual([]);
 
     expect(entries.every((e) => e.url.startsWith(`${BASE}/`) || e.url === BASE)).toBe(true);
+  });
+
+  it("lists every use-case page from the shared use-case map", async () => {
+    const pages = (await sitemap()).map((e) => e.url).filter((url) => url.startsWith(`${BASE}/use-cases/`));
+    expect(pages).toEqual(Object.keys(useCases).map((slug) => `${BASE}/use-cases/${slug}`));
   });
 });
 

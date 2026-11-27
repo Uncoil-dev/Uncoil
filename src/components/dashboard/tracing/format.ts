@@ -130,3 +130,17 @@ export function stepKind(type: string) {
 export function traceRowLabel(row: { traceName: string; runId: string; errorCount: number; startedAt: string }) {
   return `${row.traceName || row.runId.slice(0, 12)}, ${Number(row.errorCount) > 0 ? "failed" : "succeeded"}, ${formatTime(row.startedAt)}`;
 }
+
+
+export type EmptyTraces = { kind: "setup" } | { kind: "filtered" } | { kind: "range"; title: string };
+
+/**
+ * Picks the empty state for a trace list with no rows. The setup guide only shows when the
+ * widest range (90 days) is empty, so a quiet short range never looks like a project with no data.
+ */
+export function emptyTracesState({ filtered, range, rangeLabel, custom }: { filtered: boolean; range?: string; rangeLabel?: string; custom: boolean }): EmptyTraces {
+  if (filtered) return { kind: "filtered" };
+  if (custom || !rangeLabel) return { kind: "range", title: "No traces in this time window" };
+  if (range === "90d") return { kind: "setup" };
+  return { kind: "range", title: `No traces in the ${rangeLabel.toLowerCase()}` };
+}

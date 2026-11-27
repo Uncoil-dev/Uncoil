@@ -5,6 +5,7 @@ import {
 } from "@/components/onboarding/onboarding-progress";
 import { OnboardingEscapeLink } from "@/components/onboarding/onboarding-escape-link";
 import { OnboardingBackButton } from "@/components/onboarding/onboarding-back-button";
+import { OnboardingStepViewed } from "@/components/onboarding/onboarding-step-viewed";
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,6 +51,7 @@ export function OnboardingShell({
         <Suspense fallback={null}>
           <OnboardingEscapeLink currentStep={currentStep} />
         </Suspense>
+        <OnboardingStepViewed step={currentStep} />
         <DitherField vivid />
         <PixelStepper activeIndex={activeIndex} />
         <div className="mx-auto mt-10 flex w-full max-w-[680px] flex-1 flex-col justify-center">

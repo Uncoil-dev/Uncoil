@@ -13,3 +13,47 @@ export function trialLine(): string {
 export function trialDaysFor(project: { stripeSubscriptionId?: string | null } | null): number {
   return project?.stripeSubscriptionId ? 0 : TRIAL_DAYS;
 }
+
+export type CheckoutPanelInput = {
+  status?: string | null;
+  planTier?: string | null;
+  /** Epoch ms; while trialing this is when the first charge happens. */
+  periodEnd?: number | null;
+};
+
+export type CheckoutPanelCopy = {
+  eyebrow: string;
+  heading: string;
+  detail: string;
+  steps: { title: string; body: string; href: string }[];
+};
+
+/** Wording and next-step links for the panel shown after checkout, for trial vs paid subscriptions. */
+export function checkoutPanelCopy(input: CheckoutPanelInput, base: string): CheckoutPanelCopy {
+  const trialing = input.status === "trialing";
+  const plan = input.planTier === "team" ? "Team" : "Pro";
+  const steps = [
+    { title: "Set an alert", body: "Get told when a run fails or costs spike.", href: `${base}/alerts` },
+    { title: "Ask AI about a run", body: "Open a run and ask what went wrong.", href: `${base}/runs` },
+    { title: "Create an evaluation", body: "Score your agent's answers automatically.", href: `${base}/evaluation` },
+  ];
+  if (!trialing) {
+    return {
+      eyebrow: "Payment received",
+      heading: "Thank you. You're all set.",
+      detail: "Higher limits are live now. Stripe emailed your receipt; you can also manage your plan below.",
+      steps,
+    };
+  }
+  const chargeDate = input.periodEnd
+    ? new Date(input.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })
+    : null;
+  return {
+    eyebrow: "Trial started",
+    heading: `Your ${TRIAL_DAYS}-day ${plan} trial is on`,
+    detail: chargeDate
+      ? `Your first charge is on ${chargeDate}. Cancel before then and you pay nothing.`
+      : "Cancel before the trial ends and you pay nothing.",
+    steps,
+  };
+}

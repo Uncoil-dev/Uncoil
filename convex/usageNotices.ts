@@ -3,7 +3,7 @@ import { components, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { escapeHtml, sendEmail } from "./notify";
-import { UPGRADE_URL, monthKey, shouldWarnAboutUsage } from "../src/lib/plan-limits";
+import { monthKey, shouldWarnAboutUsage } from "../src/lib/plan-limits";
 import { planById } from "../src/lib/pricing-plans";
 
 const RUN_SCAN_LIMIT = 20_000;
@@ -45,12 +45,27 @@ export const markWarned = internalMutation({
   },
 });
 
+const SITE = process.env.SITE_URL || "https://www.uncoil.dev";
+
+/** The 80% email. Upgrade links go to the project's billing page, so the upgrade lands on the right project. */
+export function usageWarningEmail(item: { name: string; projectId: string; spans: number }) {
+  const free = planById("free");
+  const pro = planById("pro");
+  const billingUrl = `${SITE}/dashboard/${item.projectId}/billing`;
+  const percent = Math.min(999, Math.round((item.spans / free.spanLimit) * 100));
+  const headline = `"${item.name}" has used ${percent}% of this month's ${free.spans} free spans.`;
+  const detail = `When it reaches 100%, new data is not saved until the month resets. Pro is $${pro.monthly} a month for ${pro.spans} spans.`;
+  return {
+    subject: `Your Uncoil project "${item.name}" is at ${percent}% of the free limit`,
+    text: `${headline}\n\n${detail}\n${billingUrl}\n\nNothing to do if you are fine with the limit.`,
+    html: `<p>${escapeHtml(headline)}</p><p>${escapeHtml(detail)} <a href="${billingUrl}">See plans for this project</a>.</p><p>Nothing to do if you are fine with the limit.</p>`,
+  };
+}
+
 /** Emails the owner of each Free project that has used 80% of its monthly spans. Once per project per month. */
 export const checkAll = internalAction({
   args: {},
   handler: async (ctx) => {
-    const free = planById("free");
-    const pro = planById("pro");
     let cursor: string | null = null;
     do {
       const result: Page = await ctx.runQuery(internal.usageNotices.pageToCheck, { cursor });
@@ -59,16 +74,7 @@ export const checkAll = internalAction({
           const owner = (await ctx.runQuery(components.betterAuth.adapter.findOne, { model: "user", where: [{ field: "id", value: item.ownerId }] })) as { email?: string } | null;
           if (!owner?.email) continue;
           if (!(await ctx.runMutation(internal.usageNotices.markWarned, { projectId: item.projectId, month: result.month }))) continue;
-          const percent = Math.min(999, Math.round((item.spans / free.spanLimit) * 100));
-          const headline = `"${item.name}" has used ${percent}% of this month's ${free.spans} free spans.`;
-          const detail = `When it reaches 100%, new data is not saved until the month resets. Pro is $${pro.monthly} a month for ${pro.spans} spans.`;
-          await sendEmail({
-            to: [owner.email],
-            subject: `Your Uncoil project "${item.name}" is at ${percent}% of the free limit`,
-            text: `${headline}\n\n${detail}\n${UPGRADE_URL}\n\nNothing to do if you are fine with the limit.`,
-            html: `<p>${escapeHtml(headline)}</p><p>${escapeHtml(detail)} <a href="${UPGRADE_URL}">See plans</a>.</p><p>Nothing to do if you are fine with the limit.</p>`,
-            idempotencyKey: `usage-warn-${item.projectId}-${result.month}`,
-          });
+          await sendEmail({ to: [owner.email], ...usageWarningEmail(item), idempotencyKey: `usage-warn-${item.projectId}-${result.month}` });
         } catch (error) {
           console.error("[usage-notices] failed", item.projectId, error);
         }

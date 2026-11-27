@@ -1,6 +1,7 @@
 import { convexTest } from "convex-test";
 import { expect, test } from "vitest";
 import { internal } from "./_generated/api";
+import { usageWarningEmail } from "./usageNotices";
 import schema from "./schema";
 const modules = import.meta.glob("./**/*.ts");
 
@@ -23,4 +24,11 @@ test("only Free projects at 80% or more are due, and only once per month", async
   expect(await t.mutation(internal.usageNotices.markWarned, { projectId: busy, month: first.month })).toBe(false);
   const second = await t.query(internal.usageNotices.pageToCheck, { cursor: null });
   expect(second.due).toEqual([]);
+});
+
+test("the usage email links to the project's own billing page", () => {
+  const email = usageWarningEmail({ name: "busy", projectId: "p123", spans: 8_500 });
+  expect(email.html).toContain('href="https://www.uncoil.dev/dashboard/p123/billing"');
+  expect(email.text).toContain("https://www.uncoil.dev/dashboard/p123/billing");
+  expect(email.subject).toContain("85%");
 });

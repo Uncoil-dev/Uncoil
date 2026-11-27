@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveSettingsTab } from "./settings-tabs";
+import { resolveSettingsTab, SETTINGS_TAB_GROUPS, validatePrivacySettings } from "./settings-tabs";
 
 const tabs = ["General", "Members", "Data", "API Keys", "Audit log"];
 
@@ -13,5 +13,36 @@ describe("resolveSettingsTab", () => {
   it("falls back to General for a missing or unknown tab", () => {
     expect(resolveSettingsTab(null, tabs)).toBe("General");
     expect(resolveSettingsTab("billing", tabs)).toBe("General");
+  });
+});
+
+describe("project settings tabs", () => {
+  it("lists Privacy under Project so redaction and retention are reachable", () => {
+    const project = SETTINGS_TAB_GROUPS.find((group) => group.label === "Project");
+    expect(project?.items).toContain("Privacy");
+    expect(resolveSettingsTab("privacy", SETTINGS_TAB_GROUPS.flatMap((group) => group.items))).toBe("Privacy");
+  });
+});
+
+describe("validatePrivacySettings", () => {
+  it("rejects retention beyond the plan limit", () => {
+    expect(validatePrivacySettings({ redactionEnabled: true, redactionRules: ["email"], retentionDays: "30", planTier: "free" }).ok).toBe(false);
+  });
+
+  it("returns the values to save for a valid form", () => {
+    expect(validatePrivacySettings({ redactionEnabled: false, redactionRules: ["email"], retentionDays: "5", planTier: "free" })).toEqual({
+      ok: true,
+      value: { redactionEnabled: false, redactionRules: ["email"], retentionDays: 5 },
+    });
+  });
+
+  it("rejects an empty rule list while redaction is on, but allows it when off", () => {
+    const on = validatePrivacySettings({ redactionEnabled: true, redactionRules: [], retentionDays: "5", planTier: "free" });
+    expect(on).toEqual({ ok: false, error: "Select at least one rule, or turn redaction off" });
+    expect(validatePrivacySettings({ redactionEnabled: false, redactionRules: [], retentionDays: "5", planTier: "free" }).ok).toBe(true);
+  });
+
+  it.each(["", "0", "1.5", "abc", "3651"])("rejects retention %j", (retentionDays) => {
+    expect(validatePrivacySettings({ redactionEnabled: true, redactionRules: ["email"], retentionDays, planTier: "enterprise" }).ok).toBe(false);
   });
 });

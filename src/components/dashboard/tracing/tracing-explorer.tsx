@@ -95,6 +95,8 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
   const [data, setData] = useState<ListResponse | null>(null);
   const [facets, setFacets] = useState<FacetCounts>({});
   const [settledKey, setSettledKey] = useState<string | null>(null);
+  // Bumped after resolving a group so the list reloads even when the time window is fixed.
+  const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [searchDraft, setSearchDraft] = useState(query.q ?? "");
   const [searchError, setSearchError] = useState("");
@@ -203,7 +205,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
         setError(reason instanceof Error ? reason.message : "Could not load traces");
         setSettledKey(requestKey);
       });
-  }, [listParams, projectId, requestKey]);
+  }, [listParams, projectId, requestKey, refreshKey]);
 
   // Live updates: for relative ranges, quietly refetch the list with the window moved forward so new traces
   // appear without pressing Refresh. Skipped while paused, for fixed from/to windows, hidden tabs, and while a
@@ -445,7 +447,7 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
 
           {chartMode ? null : (
             <GroupsPanel projectId={projectId} data={data ? data.errorGroups : undefined} open={errorsOpen} loading={loading} active={query.errorGroup} clock={clock}
-              showResolved={query.showResolved === "1"} onResolved={() => setNow(Date.now())} onToggleShowResolved={() => update({ showResolved: query.showResolved === "1" ? "" : "1" })}
+              showResolved={query.showResolved === "1"} onResolved={() => setRefreshKey((key) => key + 1)} onToggleShowResolved={() => update({ showResolved: query.showResolved === "1" ? "" : "1" })}
               onToggle={toggleErrors} onSuggest={(group) => { if (!group.sampleRunId) return; setFix({ runId: group.sampleRunId, question: fixQuestion(group) }); update({ trace: group.sampleRunId }, false); }} onSelect={(group) => { setPickedGroup({ id: group.id, label: errorGroupLabel(group) }); update({ errorGroup: query.errorGroup === group.id ? "" : group.id }); }} />
           )}
 

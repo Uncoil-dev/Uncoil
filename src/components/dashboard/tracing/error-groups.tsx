@@ -57,7 +57,7 @@ function ResolveButton({ onResolve }: { onResolve: () => void | Promise<void> })
     try { await onResolve(); setState("idle"); } catch { setState("failed"); }
   }
   return (
-    <button type="button" disabled={state === "busy"} onClick={() => void resolve()} className="mb-1.5 ml-2 rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#C9CED6] hover:border-[#4A5260] disabled:opacity-60">
+    <button type="button" role={state === "failed" ? "alert" : undefined} disabled={state === "busy"} onClick={() => void resolve()} className="mb-1.5 ml-2 rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#C9CED6] hover:border-[#4A5260] disabled:opacity-60">
       {state === "failed" ? "Could not resolve" : "Resolve"}
     </button>
   );
@@ -80,7 +80,7 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, showResol
           <span className="ml-auto hidden sm:inline">similar errors grouped (ids, emails, links and values ignored) · click to filter</span>
         </button>
       </h2>
-      {open && onToggleShowResolved ? (
+      {open && onResolve && onToggleShowResolved ? (
         <div className="border-t border-[#1F242C] px-3 py-1.5">
           <button type="button" aria-pressed={showResolved} onClick={onToggleShowResolved} className="rounded border border-[#262C35] px-2 py-0.5 text-[11px] text-[#C9CED6] hover:border-[#4A5260]">
             {showResolved ? "Hide resolved" : "Show resolved"}

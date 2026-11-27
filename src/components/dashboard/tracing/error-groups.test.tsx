@@ -43,4 +43,11 @@ describe("ErrorGroupsPanel", () => {
     expect(rowFor(html, "back")).toContain(">Came back<");
     expect(rowFor(html, "plain")).not.toContain(">Came back<");
   });
+
+  it("is read-only without onResolve: no Resolve button and no Show resolved toggle", () => {
+    const html = render([{ ...group("open", "2026-11-20 01:00:00"), resolved: false }], { onToggleShowResolved: () => {} });
+    expect(html).toContain("limit open");
+    expect(html).not.toContain(">Resolve<");
+    expect(html).not.toContain("Show resolved");
+  });
 });

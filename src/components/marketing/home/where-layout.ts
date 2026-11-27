@@ -81,7 +81,25 @@ export function tailCells(l: WhereLayout): [number, number][] {
   return TAIL_ACROSS.map(([dx, dy]) => [c.x + h + dx, c.y + dy]);
 }
 
-/** Which plate (as an index into the steps) the scan frame sits on for a given scan progress. */
-export function scanStop(scan: number): 3 | 4 | 5 {
-  return scan < 0.35 ? 5 : scan < 0.92 ? 4 : 3;
+/**
+ * The plates the scan frame visits, as indexes into the steps: from step 06 back to the cause.
+ * When step 06 is its own cause, the frame checks back to step 04 and returns to 06.
+ */
+export function scanStops(cause: number): number[] {
+  if (cause >= 6) return [5, 4, 3, 5];
+  return Array.from({ length: 7 - cause }, (_, i) => 5 - i);
+}
+
+/** Which plate the scan frame sits on for a given scan progress; it lands on the last stop at 0.92. */
+export function scanStop(scan: number, cause = 4): number {
+  const stops = scanStops(cause);
+  const i = Math.min(stops.length - 1, Math.floor((Math.max(0, scan) / 0.92) * (stops.length - 1) + 1e-9));
+  return stops[i];
+}
+
+/** 0..1: how far back along the rope the scan has read, toward the furthest plate it visits. */
+export function scanReach(scan: number, cause = 4) {
+  const stops = scanStops(cause);
+  const out = cause >= 6 ? stops.length - 1 : stops.length;
+  return Math.min(1, Math.max(0, scan) / ((0.92 * (out - 1)) / (stops.length - 1)));
 }

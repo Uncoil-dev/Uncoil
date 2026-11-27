@@ -5,7 +5,7 @@ import { TraceTimeline, type ViewSpan } from "@/components/dashboard/tracing/tra
 import { compactNumber, formatCost, formatDuration } from "@/components/dashboard/tracing/format";
 import { buildSpanTree, type SpanTreeNode } from "@/lib/uncoil-ports/treeBuilding";
 import { alignSteps, isFailed as diffFailed, stepName, stepType, totals, type AlignedRow, type DiffSpan } from "@/lib/trace-diff";
-import { RUN_A, RUN_B, totalCost, tokens, usd, type ExampleSpan } from "./run-data";
+import { totalCost, tokens, usd, type ExampleSpan } from "./run-data";
 import type { Case } from "./cases";
 
 // The product's trace view draws in the dashboard's own greys and step colours. Inside this
@@ -107,12 +107,12 @@ export function TraceWindow({ c, rows: room }: { c: Case; rows: { desk: number; 
   const folded = useMemo(() => (c.fold && !groupOpen ? new Set([c.fold]) : NO_FOLD), [c.fold, groupOpen]);
   const run = c.run;
   const { rows, spans, byId, cost, kids, totalMs } = useRun(run, folded);
-  const [selected, setSelected] = useState(c.cause);
-  const step = byId.get(selected) ?? byId.get(c.cause)!;
+  const [selected, setSelected] = useState(c.causeSpan);
+  const step = byId.get(selected) ?? byId.get(c.causeSpan)!;
   const children = kids.get(step.spanId) ?? [];
   const isGroup = children.length > 0;
   const calls = children.filter((k) => k.modelId).length;
-  const hot = step.spanId === c.cause;
+  const hot = step.spanId === c.causeSpan;
   const fields: [string, string, boolean?][] = isGroup
     ? [
         ["Kind", `Group · ${children.length} steps${calls ? ` · ${calls} model calls` : ""}`],
@@ -128,16 +128,18 @@ export function TraceWindow({ c, rows: room }: { c: Case; rows: { desk: number; 
       ];
   const bad = run.some((s) => s.errorType);
   const timelineH = 34 + 25 + (phone ? room.phone * 44 : room.desk * 28) + 6;
+  // The step panel beside (or under) the timeline keeps one height for every example run, so
+  // switching runs never moves the page; its tallest content is the loop group with its button.
 
   return (
     <div className="uc-frame border-2 border-[#eceae3] bg-[#090909] text-[#eceae3]">
       <style>{SKIN}</style>
-      <TitleBar crumbs={`Tracing › ${c.crumbs}`} status={`${bad ? "Failed" : "Passed"} · ${usd(totalCost(run))} · ${formatDuration(totalMs)}`} bad={bad} />
+      <TitleBar crumbs={`Tracing › ${c.agent} › ${c.runId}`} status={`${bad ? "Failed" : "Passed"} · ${usd(totalCost(run))} · ${formatDuration(totalMs)}`} bad={bad} />
       <div className="grid lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <div className="min-w-0 border-b border-[#eceae3]/15 lg:border-b-0 lg:border-r" style={{ height: timelineH }}>
           <TraceTimeline rows={rows} spans={spans} totalMs={totalMs} selectedId={selected} isFailed={failed} onSelect={setSelected} />
         </div>
-        <div className="min-w-0 p-4 md:p-5">
+        <div className="min-h-[25rem] min-w-0 p-4 md:p-5 lg:min-h-0">
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#eceae3]/55">Selected step</p>
           <p className={`mt-2 font-mono text-base ${step.errorType ? "text-[#ff4d3d]" : ""}`}>{step.name}</p>
           <dl className="mt-4 border-t border-[#eceae3]/25 font-mono text-[11px]">
@@ -169,12 +171,18 @@ export function TraceWindow({ c, rows: room }: { c: Case; rows: { desk: number; 
 }
 
 const asDiff = (run: readonly ExampleSpan[]): DiffSpan[] => run.map((s) => ({ ...s }));
-// Both runs are fixed example data, so the comparison is worked out once.
-const COMPARE = (() => {
-  const a = asDiff(RUN_A);
-  const b = asDiff(RUN_B);
-  return { ta: totals(a), tb: totals(b), rows: alignSteps(a, b) };
-})();
+// Both runs are fixed example data, so each case's comparison is worked out once.
+const compared = new Map<string, { ta: ReturnType<typeof totals>; tb: ReturnType<typeof totals>; rows: AlignedRow[] }>();
+function compare(c: Case) {
+  let hit = compared.get(c.id);
+  if (!hit) {
+    const a = asDiff(c.run);
+    const b = asDiff(c.fix.after);
+    hit = { ta: totals(a), tb: totals(b), rows: alignSteps(a, b) };
+    compared.set(c.id, hit);
+  }
+  return hit;
+}
 
 const TOTALS: { label: string; pick: (t: ReturnType<typeof totals>) => number; show: (n: number) => string }[] = [
   { label: "Latency", pick: (t) => t.durationMs, show: formatDuration },
@@ -217,14 +225,14 @@ function StepRow({ row }: { row: AlignedRow }) {
  * every step lined up side by side with the rows that differ marked. Computed with the product's
  * own comparison code from the two example runs.
  */
-export function CompareWindow() {
-  const { ta, tb, rows } = COMPARE;
+export function CompareWindow({ c, rows: room }: { c: Case; rows: number }) {
+  const { ta, tb, rows } = compare(c);
   return (
     <div className="uc-frame border-2 border-[#eceae3] bg-[#090909] text-[#eceae3]">
-      <TitleBar crumbs="Compare › two runs" status={`Run B passed · ${usd(totalCost(RUN_B))}`} />
+      <TitleBar crumbs="Compare › two runs" status={`Run B passed · ${usd(totalCost(c.fix.after))}`} />
       <div className="grid grid-cols-2 gap-3 border-b border-[#eceae3]/15 px-3 py-2.5 font-mono text-[10px] uppercase tracking-[0.12em]">
-        <span className="min-w-0 truncate"><span className="bg-[#f4d44d] px-1.5 text-black">Run A</span> run_9f3a · failed</span>
-        <span className="min-w-0 truncate"><span className="bg-[#eceae3] px-1.5 text-black">Run B</span> run_b27e · after the fix</span>
+        <span className="min-w-0 truncate"><span className="bg-[#f4d44d] px-1.5 text-black">Run A</span> {c.runId} · failed</span>
+        <span className="min-w-0 truncate"><span className="bg-[#eceae3] px-1.5 text-black">Run B</span> {c.fix.afterId} · after the fix</span>
       </div>
       <dl aria-label="Totals" className="grid grid-cols-2 gap-px border-b border-[#eceae3]/15 bg-[#eceae3]/15 sm:grid-cols-5">
         {TOTALS.map(({ label, pick, show }) => {
@@ -248,7 +256,8 @@ export function CompareWindow() {
           {rows.filter((r) => r.kind !== "same").length} of {rows.length} differ
         </p>
       </div>
-      <ul aria-label="Steps side by side">
+      {/* A fixed window onto the steps, so switching cases never moves the page; long runs scroll inside it. */}
+      <ul aria-label="Steps side by side" tabIndex={0} className="overflow-y-auto overscroll-contain focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#f4d44d]" style={{ height: room * 30 }}>
         {rows.map((row, i) => (
           <StepRow key={i} row={row} />
         ))}

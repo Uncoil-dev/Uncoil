@@ -1,37 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EDGE, cellsPath, edgeCells, horizonRow, promptLines } from "./story.ts";
-import { RUN_A, RUN_B, PLAN_CALL, modelCalls, totalCost, type ExampleSpan } from "./run-data.ts";
+import { promptLines } from "./story.ts";
+import { RUN_A, RUN_B, PLAN_CALL, modelCalls, tokens, totalCost, type ExampleSpan } from "./run-data.ts";
 import { CASES } from "./cases.ts";
 import { logLines } from "./logs.ts";
-import { chapterAt } from "./rail-logic.ts";
-import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanAt, type HeroPhase } from "./hero-clock.ts";
+import { ROBOT_W, feetRow, progressAt, railLeft, railStops, rightGutter, robotRows } from "./companion-art.ts";
+import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanAt, scanPath, type HeroPhase } from "./hero-clock.ts";
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
 import { promptFor } from "./prompt.ts";
 import { snapCell, targetCell } from "./grid.ts";
-import { PLATE, boardBox, ropeCells, scanStop, tailCells, whereLayout } from "./where-layout.ts";
+import { PLATE, boardBox, ropeCells, scanReach, scanStop, tailCells, whereLayout } from "./where-layout.ts";
 import { pebbles } from "./soil.ts";
 import { PLANK_LEFT, PLANK_STUB, spriteCells } from "./plank.ts";
 import { callCost, getModel } from "../../../lib/tools/models.ts";
-
-test("a section edge is solid at the bottom, open at the top and thins out as it rises", () => {
-  for (const shape of ["hills", "flat"] as const) {
-    const { solid, dither, loose } = edgeCells(shape, 4);
-    const solidAt = new Set(solid.map(([c, r]) => `${c},${r}`));
-    for (let c = 0; c < EDGE.cols; c++) {
-      assert.ok(solidAt.has(`${c},${EDGE.rows - 1}`), `${shape}: column ${c} has no ground`);
-      assert.ok(horizonRow(c, shape, 4) > 0, `${shape}: column ${c} fills the top row`);
-    }
-    const perRow = (r: number) => dither.filter(([, y]) => y === r).length + loose.filter(([, y]) => y === r).length;
-    const flatTop = horizonRow(0, "flat", 4);
-    if (shape === "flat") assert.ok(perRow(flatTop - 1) > perRow(flatTop - 12) * 2);
-  }
-});
-
-test("cell paths merge horizontal runs into one rectangle", () => {
-  assert.equal(cellsPath([[0, 0], [1, 0], [2, 0], [5, 1]], 8), "M0 0h24v8h-24zM40 8h8v8h-8z");
-});
 
 test("every inventory item has a square 12-cell sprite drawn only in cream and yellow", () => {
   assert.equal(new Set(KIT.map((k) => k.id)).size, KIT.length);
@@ -51,7 +33,7 @@ test("the setup prompt keeps its own step numbers and gains no second numbering"
 });
 
 test("every model call is priced from its tokens with the repo's price table", () => {
-  const runs: [string, readonly ExampleSpan[]][] = [["run A", RUN_A], ["run B", RUN_B], ...CASES.map((c): [string, readonly ExampleSpan[]] => [c.id, c.run])];
+  const runs: [string, readonly ExampleSpan[]][] = [["run A", RUN_A], ["run B", RUN_B], ...CASES.flatMap((c): [string, readonly ExampleSpan[]][] => [[c.id, c.run], [`${c.id} fixed`, c.fix.after]])];
   for (const [name, run] of runs) {
     for (const s of run) {
       if (s.spanType !== "llm_call") {
@@ -74,7 +56,7 @@ test("every model call is priced from its tokens with the repo's price table", (
 test("the example runs nest properly and fail only where the page says", () => {
   assert.deepEqual(RUN_A.filter((s) => s.errorType).map((s) => s.name), ["refund.issue"]);
   assert.equal(RUN_B.some((s) => s.errorType), false);
-  for (const run of [RUN_A, RUN_B, ...CASES.map((c) => c.run)]) {
+  for (const run of [RUN_A, RUN_B, ...CASES.flatMap((c) => [c.run, c.fix.after])]) {
     const byId = new Map(run.map((s) => [s.spanId, s]));
     for (const s of run) {
       const parent = byId.get(s.parentSpanId);
@@ -84,7 +66,26 @@ test("the example runs nest properly and fail only where the page says", () => {
       assert.ok(start >= pStart && start + s.latencyMs <= pStart + parent.latencyMs, `${s.spanId} spills out of ${parent.spanId}`);
     }
   }
-  for (const c of CASES) assert.ok(c.run.some((s) => s.spanId === c.cause), `${c.id}: the cause is not in its run`);
+});
+
+test("every case tells one six-step run: the page's steps are the run's steps, it fails at 06 and the cause is where the page says", () => {
+  assert.deepEqual(CASES.map((c) => c.id), ["empty", "loop", "timeout", "wrong"]);
+  for (const c of CASES) {
+    const root = c.run.find((s) => !s.parentSpanId)!;
+    const top = [root, ...c.run.filter((s) => s.parentSpanId === root.spanId)];
+    assert.deepEqual(c.steps.map((s) => s.name), top.map((s) => s.name), `${c.id}: steps differ from the run`);
+    assert.equal(root.name, c.agent);
+    assert.deepEqual(c.run.filter((s) => s.errorType).map((s) => s.spanId), [top[5].spanId], `${c.id}: fails somewhere other than step 06`);
+    assert.equal(top[c.cause - 1].spanId, c.causeSpan, `${c.id}: the trace opens on another step than the cause`);
+    assert.equal(c.fix.after.some((s) => s.errorType), false, `${c.id}: the fixed run still fails`);
+    // A model step's note quotes its own tokens and latency.
+    for (const [i, s] of c.steps.entries()) {
+      const m = /^([\d,]+) tok · (\d+) ms$/.exec(s.note);
+      if (m) assert.deepEqual([Number(m[1].replace(",", "")), Number(m[2])], [tokens(top[i]), top[i].latencyMs], `${c.id}: step ${i + 1} note`);
+    }
+  }
+  // The figures the fix quotes for each case.
+  assert.deepEqual(CASES.map((c) => [c.fix.before, c.fix.afterValue]), [["$0.42", "$0.06"], ["$0.37", "$0.04"], ["31.9s", "2.5s"], ["409", "200"]]);
 });
 
 test("the log tail is the same run, with the empty search as an ordinary info line", () => {
@@ -105,12 +106,24 @@ test("the hero fails at 06, walks back to 04, fixes it, and only then crosses", 
     if (order.at(-1) !== phase) order.push(phase);
   }
   assert.deepEqual(order, ["walk", "fail", "trace", "mark", "repair", "cross", "goal"]);
-  assert.equal(focusStep("fail"), 6);
-  assert.equal(focusStep("mark"), 4);
-  assert.equal(focusStep("repair"), 4);
+  assert.equal(focusStep("fail", 4), 6);
+  assert.equal(focusStep("mark", 4), 4);
+  assert.equal(focusStep("repair", 3), 3);
   assert.equal(scanAt({ phase: "trace", local: 0 }), 0);
   assert.equal(scanAt({ phase: "trace", local: 1 }), 1);
   assert.ok(scanAt({ phase: "trace", local: 0.5 }) > 0 && scanAt({ phase: "trace", local: 0.5 }) < 1);
+});
+
+test("when step 06 is its own cause the scan reads back, finds nothing and comes home to 06", () => {
+  const path = Array.from({ length: 101 }, (_, i) => scanPath({ phase: "trace", local: i / 100 }, true));
+  const far = path.indexOf(Math.max(...path));
+  assert.ok(path[far] > 0.99, "it reaches the furthest step");
+  assert.ok(far > 0 && far < 100);
+  path.slice(1, far + 1).forEach((v, i) => assert.ok(v >= path[i], "it turns back early"));
+  path.slice(far + 1).forEach((v, i) => assert.ok(v <= path[far + i], "it heads out again"));
+  assert.ok(path[100] < 1e-9);
+  assert.equal(scanPath({ phase: "mark", local: 0.5 }, true), 0);
+  assert.equal(scanPath({ phase: "mark", local: 0.5 }, false), 1);
 });
 
 test("breaking the hero step hurries to the next failure and never interrupts one in progress", () => {
@@ -122,10 +135,32 @@ test("breaking the hero step hurries to the next failure and never interrupts on
   assert.equal(heroState(breakTarget(late) + 0.001).phase, "fail");
 });
 
-test("the rail marks the last chapter whose top has passed the reading line", () => {
-  assert.equal(chapterAt([500, 900, 1300], 360), -1);
-  assert.equal(chapterAt([-400, 120, 900], 360), 1);
-  assert.equal(chapterAt([-900, -500, -100], 360), 2);
+test("the companion reads progress through the chapters and walks the rail one stop per chapter", () => {
+  assert.equal(progressAt([500, 900, 1300], 360), -1);
+  assert.equal(progressAt([-400, 120, 900], 360), 1 + (360 - 120) / 780);
+  assert.equal(progressAt([-900, -500, -100], 360), 2);
+  const stops = railStops(80, 8);
+  assert.deepEqual([stops[0], stops[7]], [0, 79]);
+  assert.equal(feetRow(stops, 3, false), stops[3]);
+  assert.equal(feetRow(stops, 3.6, true), stops[3], "reduced motion stands on the stop");
+  assert.ok(feetRow(stops, 3.5, false) > stops[3] && feetRow(stops, 3.5, false) < stops[4]);
+});
+
+test("the companion stays in the page margin, clear of the text, at every width", () => {
+  for (let vw = 320; vw <= 2560; vw += 7) {
+    for (const dpr of [1, 1.25, 2]) {
+      const cell = snapCell(targetCell(vw), dpr);
+      const left = railLeft(vw, cell, dpr);
+      assert.ok(Math.abs(left * dpr - Math.round(left * dpr)) < 1e-9);
+      const right = left + ROBOT_W * cell;
+      if (vw < 768) assert.ok(right <= rightGutter(vw) - 2, `${vw}@${dpr}: the robot touches the text on the left`);
+      else {
+        assert.ok(left >= vw - rightGutter(vw) + 2, `${vw}@${dpr}: the robot reaches into the text`);
+        assert.ok(right <= vw - 2, `${vw}@${dpr}: the robot leaves the screen`);
+      }
+    }
+  }
+  for (const mood of ["alert", "search", "carry", "walk"] as const) for (const row of robotRows(mood, 1, 1)) assert.equal(row.length, ROBOT_W);
 });
 
 test("a page cell always covers a whole number of device pixels", () => {
@@ -201,17 +236,29 @@ test("the loose rope end under step 06 hangs down on phones instead of curling s
   assert.ok(tail.every(([, y]) => y < l.rows));
 });
 
-test("the scan frame only ever sits on a step: 06, then 05, then 04", () => {
-  const stops = Array.from({ length: 101 }, (_, i) => scanStop(i / 100));
-  assert.deepEqual([...new Set(stops)], [5, 4, 3]);
-  assert.equal(scanStop(0), 5);
-  assert.equal(scanStop(1), 3);
+test("the scan frame only ever sits on a step, walking back from 06 to each case's cause", () => {
+  const visits = (cause: number) => {
+    const seen: number[] = [];
+    for (let i = 0; i <= 100; i++) {
+      const at = scanStop(i / 100, cause);
+      if (seen.at(-1) !== at) seen.push(at);
+    }
+    return seen;
+  };
+  assert.deepEqual(visits(4), [5, 4, 3]);
+  assert.deepEqual(visits(3), [5, 4, 3, 2]);
+  assert.deepEqual(visits(5), [5, 4]);
+  // Step 06 as its own cause: back to 04, nothing there, home to 06.
+  assert.deepEqual(visits(6), [5, 4, 3, 5]);
+  for (const c of CASES) assert.equal(scanStop(0.92, c.cause), c.cause - 1, `${c.id}: the frame ends off the cause`);
+  assert.equal(scanReach(0.92, 4), 1);
+  assert.equal(scanReach(0, 6), 0);
 });
 
 test("the scan frame fits inside the figure on every step it visits", () => {
   for (const vertical of [true, false]) {
     const l = whereLayout(vertical ? 80 : 240, vertical);
-    for (const i of [3, 4, 5]) {
+    for (const i of [2, 3, 4, 5]) {
       const c = l.centers[i];
       const b = boardBox(l, i);
       const half = PLATE >> 1;

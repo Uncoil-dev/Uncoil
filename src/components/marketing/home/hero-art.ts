@@ -64,11 +64,13 @@ export function bridgeArt(px: Px, x0: number, x1: number, groundY: number, skip:
 
 // ── Number boards ────────────────────────────────────────────────────────────────────────────
 
-export type BoardTone = "plain" | "lit" | "failed";
+export type BoardTone = "plain" | "lit" | "failed" | "lit-swapped";
 const TONES: Record<BoardTone, { rim: number; fill: number; ink: number }> = {
   plain: { rim: CREAM, fill: INK, ink: CREAM },
   lit: { rim: CREAM, fill: YELLOW, ink: INK },
   failed: { rim: CREAM, fill: RED, ink: CREAM },
+  // For a scene that is drawn at night and then swapped to morning: ink digits once swapped.
+  "lit-swapped": { rim: CREAM, fill: YELLOW, ink: CREAM },
 };
 
 /** A step's signpost planted on its stone: the board on a short pole. Returns the board box. */

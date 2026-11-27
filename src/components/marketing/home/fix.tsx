@@ -5,7 +5,9 @@ import { useRef, useState } from "react";
 import { useMotionValue, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { SUGGESTED_QUESTIONS } from "@/lib/ask-ai";
 import { Eyebrow } from "./eyebrow";
-import { RUN_A, RUN_B, modelCalls, totalCost, usd } from "./run-data";
+import { modelCalls } from "./run-data";
+import { useCase } from "./case-state";
+import { two, type Case } from "./cases";
 import { AFTER_EYEBROW, BODY, H2, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
 import { segment } from "./math";
@@ -16,11 +18,16 @@ const CompareWindow = dynamic(() => import("./product-view").then((m) => m.Compa
 
 const W = 240;
 const H = 84;
-const BEFORE = usd(totalCost(RUN_A));
-const AFTER = usd(totalCost(RUN_B));
 
-function buildCost(family: string): { from: Pt[]; to: Pt[] } {
-  return { from: textPoints(BEFORE, W, H, family, 74), to: textPoints(AFTER, W, H, family, 74) };
+// One build per case, kept, so the dissolve only starts over when the case changes.
+const builds = new Map<string, (family: string) => { from: Pt[]; to: Pt[] }>();
+function buildFor(c: Case) {
+  let b = builds.get(c.id);
+  if (!b) {
+    b = (family: string) => ({ from: textPoints(c.fix.before, W, H, family, 74), to: textPoints(c.fix.afterValue, W, H, family, 74) });
+    builds.set(c.id, b);
+  }
+  return b;
 }
 
 /**
@@ -29,6 +36,7 @@ function buildCost(family: string): { from: Pt[]; to: Pt[] } {
  * view underneath to prove it step by step.
  */
 export function Fix() {
+  const c = useCase();
   const ref = useRef<HTMLDivElement>(null);
   const calm = useCalm();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "center 0.45"] });
@@ -41,33 +49,37 @@ export function Fix() {
   return (
     <section id="fix" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="ed-fix-title">
       <div className={WRAP}>
-        <Eyebrow n="04" on="cream">Fix and verify</Eyebrow>
+        <Eyebrow n="03" on="cream">Fix and verify</Eyebrow>
         <div className={`${AFTER_EYEBROW} grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14`}>
           <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-            <h2 id="ed-fix-title" className={H2}>
-              Fix step 4. The run drops to {AFTER}.
+            {/* Three lines held for every case, so a shorter headline never pulls the page up. */}
+            <h2 id="ed-fix-title" className={`min-h-[2.7em] ${H2}`}>
+              Fix step {c.cause}. {c.fix.result}
             </h2>
             <div className="mt-8 border-2 border-black bg-[#090909] p-4 text-[#eceae3] md:p-5">
-              <p className={`text-[#eceae3]/60 ${LABEL}`}>Ask AI · on run_9f3a</p>
+              <p className={`text-[#eceae3]/60 ${LABEL}`}>Ask AI · on {c.runId}</p>
               <p className="mt-3 w-fit bg-[#f4d44d] px-2 py-1 font-mono text-[11px] text-black">{SUGGESTED_QUESTIONS[0]}</p>
-              <p className="mt-4 border-l-4 border-[#f4d44d] pl-4 text-[15px] leading-7 text-[#eceae3]/90">
-                refund.issue failed at step 06, but the run went wrong at step 04: docs.search returned 0 results, so the model retried seven times without the refund policy and guessed. Fix the search first.
+              <p className="mt-4 min-h-[8.75rem] border-l-4 border-[#f4d44d] pl-4 text-[15px] leading-7 text-[#eceae3]/90 lg:min-h-0">
+                {c.fix.answer}
               </p>
               <p className={`mt-3 text-[#eceae3]/45 ${LABEL}`}>Example answer</p>
             </div>
-            <p className={`mt-6 max-w-xl text-black/75 ${BODY}`}>
-              You change one thing you can point at, here the search query, and run the agent again. Compare puts both runs side by side: {modelCalls(RUN_A)} model calls become {modelCalls(RUN_B)}, and the failed step is gone.
+            <p className={`mt-6 min-h-[7rem] max-w-xl text-black/75 lg:min-h-0 ${BODY}`}>
+              {c.fix.body} Compare puts both runs side by side: {modelCalls(c.run)} model {modelCalls(c.run) === 1 ? "call" : "calls"} {modelCalls(c.run) === modelCalls(c.fix.after) ? "stay" : "become"} {modelCalls(c.fix.after)}, and step {two(6)} passes.
             </p>
           </div>
 
           <div ref={ref} className="min-w-0">
             <div className={`flex items-baseline justify-between gap-4 text-black/60 ${LABEL}`}>
-              <span>Cost of this run</span>
-              <span className="text-right">{after ? "after the fix" : "before: retry loop × 7"}</span>
+              <span className="shrink-0 whitespace-nowrap">{c.fix.metric}</span>
+              <span className="min-w-0 truncate text-right">{after ? "after the fix" : `before: ${c.fix.why}`}</span>
             </div>
-            <DissolveCanvas width={W} height={H} build={buildCost} progress={calm ? done : scrolled} label={`Cost of the run fell from ${BEFORE} to ${AFTER} in this example.`} className="mt-2" />
+            {/* Two screen pixels per dissolve pixel on wide screens, so every pixel of the number is the same size. */}
+            <div className="mt-2 max-w-[480px]">
+              <DissolveCanvas width={W} height={H} build={buildFor(c)} progress={calm ? done : scrolled} label={`${c.fix.metric}: ${c.fix.before} before the fix, ${c.fix.afterValue} after, in this example.`} />
+            </div>
             <div className="mt-6">
-              <CompareWindow />
+              <CompareWindow c={c} rows={6} />
             </div>
             <p className={`mt-3 text-black/55 ${LABEL}`}>The Compare view, two runs · example data</p>
           </div>

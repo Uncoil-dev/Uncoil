@@ -51,6 +51,16 @@ export class Px {
       }
     });
   }
+  /** Swaps ink and cream everywhere, leaving yellow and red: night art turned into a morning scene. */
+  swap() {
+    const ink = INK >>> 0;
+    const cream = CREAM >>> 0;
+    const b = this.buf;
+    for (let i = 0; i < b.length; i++) {
+      if (b[i] === ink) b[i] = cream;
+      else if (b[i] === cream) b[i] = ink;
+    }
+  }
   blit(ctx: CanvasRenderingContext2D) {
     const img = ctx.createImageData(this.w, this.h);
     new Uint32Array(img.data.buffer).set(this.buf);

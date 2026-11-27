@@ -14,11 +14,11 @@ export const BODY = "text-base leading-7 md:text-lg md:leading-8";
 export const LABEL = "font-mono text-[10px] uppercase tracking-[0.16em]";
 
 /** Section rhythm: the pixel seams already give the space above, so the top pad is shorter. */
-export const SECTION = "px-5 pb-16 pt-8 md:px-10 md:pb-20 md:pt-12";
+export const SECTION = "px-5 pb-14 pt-8 md:px-10 md:pb-16 md:pt-10";
 export const WRAP = "mx-auto w-full max-w-[1280px]";
 /** Gap between the section eyebrow and its headline, and between the headline and its art. */
-export const AFTER_EYEBROW = "mt-10 md:mt-12";
-export const AFTER_HEADLINE = "mt-10 md:mt-14";
+export const AFTER_EYEBROW = "mt-8 md:mt-10";
+export const AFTER_HEADLINE = "mt-8 md:mt-12";
 
 const BUTTON = "group inline-flex min-h-14 items-center justify-center gap-3 px-7 font-mono text-[11px] font-medium uppercase tracking-[0.14em] transition-[transform,box-shadow,background-color,color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-xs";
 

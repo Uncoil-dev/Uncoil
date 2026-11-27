@@ -5,9 +5,13 @@ import { v } from "convex/values";
  * Tinybird retention should be configured separately at the datasource level;
  * this mutation keeps the dashboard's durable summaries aligned with it.
  */
-function isJobAuthorized(jobSecret: string | undefined) {
+export function isJobAuthorized(jobSecret: string | undefined) {
   const configured = (process.env.UNCOIL_RETENTION_SECRET ?? process.env.TRACIFY_RETENTION_SECRET);
-  return Boolean(configured && jobSecret && jobSecret === configured);
+  if (!configured || !jobSecret) return false;
+  // Compare every character so the time taken does not reveal how much of a guess was right.
+  let diff = configured.length ^ jobSecret.length;
+  for (let i = 0; i < configured.length; i++) diff |= configured.charCodeAt(i) ^ (jobSecret.charCodeAt(i) ?? 0);
+  return diff === 0;
 }
 
 /** One page of projects with the plan and own retention setting; the job works out the days (src/lib/retention.ts). */

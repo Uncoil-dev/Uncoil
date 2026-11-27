@@ -33,6 +33,8 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CancelRunButton } from "./cancel-run-button";
+import { CopyFixPromptButton } from "./copy-fix-prompt-button";
+import { fixPromptForRun } from "@/lib/fix-prompt";
 import { ShareTraceButton } from "./share-trace-button";
 import { ScoreRunButton } from "./scores/score-run-button";
 import { HighlightedText, SpanSearch } from "./span-search";
@@ -110,6 +112,7 @@ export function TraceViewer({ projectId, runId }: TraceViewerProps) {
   }, [run?.status, fetchSpans]);
 
   const safeSpans = useMemo(() => spans ?? [], [spans]);
+  const fixPrompt = useMemo(() => fixPromptForRun(run?.status ?? "", safeSpans), [run?.status, safeSpans]);
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!selectedSpanId || !safeSpans.length) return;
@@ -214,6 +217,7 @@ export function TraceViewer({ projectId, runId }: TraceViewerProps) {
             {run.status === "running" && (
               <CancelRunButton projectId={projectId} runId={run.runId} />
             )}
+            {fixPrompt && <CopyFixPromptButton prompt={fixPrompt} />}
             {firstErrorIndex >= 0 && (
               <button
                 type="button"

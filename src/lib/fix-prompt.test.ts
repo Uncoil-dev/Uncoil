@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFixPrompt, FIX_PROMPT_MAX_CHARS, type FixPromptSpan } from "./fix-prompt";
+import { buildFixPrompt, fixPromptForRun, FIX_PROMPT_MAX_CHARS, type FixPromptSpan } from "./fix-prompt";
 
 const FAKE_KEY = ["sk", "live", "abcdef123456"].join("_");
 
@@ -49,5 +49,15 @@ describe("buildFixPrompt", () => {
 
   it("returns null when nothing failed", () => {
     expect(buildFixPrompt(run.filter((s) => !s.errorType))).toBeNull();
+  });
+});
+
+describe("fixPromptForRun", () => {
+  it("offers a prompt only for failed runs that have a failing step", () => {
+    expect(fixPromptForRun("failed", run)).toBe(buildFixPrompt(run));
+    expect(fixPromptForRun("completed", run)).toBeNull();
+    expect(fixPromptForRun("running", run)).toBeNull();
+    expect(fixPromptForRun("failed", run.filter((s) => !s.errorType))).toBeNull();
+    expect(fixPromptForRun("failed", [])).toBeNull();
   });
 });

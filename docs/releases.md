@@ -7,6 +7,7 @@ Every pull request description has a Changelog section: one ticked category and 
 ## [Unreleased]
 
 ### Features
+- Failed runs have a Copy fix prompt button in the run header. It copies a ready-to-paste prompt for a coding agent with the first failing step, its error and input, with secrets redacted.
 - Steps sent with `UNCOIL_CAPTURE_CONTENT=false` show "Content not recorded" on the run page instead of an empty input and output.
 - Error groups have a Resolve button. Resolved groups are hidden from the list (Show resolved brings them back), and a group that errors again after it was resolved reappears with a Came back tag.
 - Error groups show the release they started in and, when different, the latest release they were seen in. Groups without release data look the same as before. The public demo shows it too.

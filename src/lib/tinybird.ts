@@ -3,6 +3,8 @@ import { DURATION_EXPR, ERROR_COUNT_EXPR, IS_ERROR, LEAN_AGGREGATE, inPageOrder,
 export { IS_ERROR };
 import { TYPE_ALIASES } from "@/components/dashboard/tracing/format";
 import { flowGraph, collapseFlowReturns, flowPairId, median, type FlowEdge, type FlowStep } from "./trace-flow";
+import { createHash } from "node:crypto";
+import { getJsonCache, setJsonCache } from "./redis-cache";
 import { topicRunIds } from "./trace-topics";
 /**
  * ClickHouse query client (the file name is historical).
@@ -365,6 +367,8 @@ export type TraceListFilters = {
   topic?: string;
   /** Internal: run ids of the chosen topic. */
   topicRunIds?: string[];
+  /** Internal: the topic was worked out from the newest traces only, because more matched than are read. */
+  topicSampled?: boolean;
   /** Traces containing this agent-map step ("tool:<name>" or "model:<id>"). */
   node?: string;
   /** Traces where step `to` ran directly after step `from` (agent-map arrow). */
@@ -539,14 +543,14 @@ export async function listTraces(projectId: string, filters: TraceListFilters, o
     ]);
     const runIds = ids.map((row) => row.runId);
     const full = runIds.length ? await tinybirdRows<TraceListRow>(pageRowsSql({ aggregate: TRACE_AGGREGATE, where, runIds, quote: sqlString })) : [];
-    return { rows: await withExtraColumns(projectId, filters, inPageOrder(runIds, full), options), total: Number(totals[0]?.total ?? 0), page, pageSize };
+    return { rows: await withExtraColumns(projectId, filters, inPageOrder(runIds, full), options), total: Number(totals[0]?.total ?? 0), page, pageSize, sampled: filters.topicSampled === true };
   }
   const grouped = `SELECT ${TRACE_AGGREGATE}${expression ? `, ${expression} AS sortValue` : ""} FROM spans WHERE ${where} GROUP BY runId ${having}`;
   const [rows, totals] = await Promise.all([
     tinybirdRows<TraceListRow>(`${grouped} ORDER BY ${sortColumn} ${direction}, runId LIMIT ${pageSize} OFFSET ${page * pageSize}`),
     tinybirdRows<{ total: number }>(`SELECT count() AS total FROM (${grouped})`),
   ]);
-  return { rows: await withExtraColumns(projectId, filters, rows, options), total: Number(totals[0]?.total ?? 0), page, pageSize };
+  return { rows: await withExtraColumns(projectId, filters, rows, options), total: Number(totals[0]?.total ?? 0), page, pageSize, sampled: filters.topicSampled === true };
 }
 
 async function withExtraColumns(projectId: string, filters: TraceListFilters, rows: TraceListRow[], options: ListOptions) {
@@ -747,6 +751,20 @@ async function* flowRuns(projectId: string, filters: TraceListFilters) {
   } finally { await reader.cancel(); }
 }
 
+const TOPIC_CACHE_TTL_SECONDS = 60;
+
+/** Run ids of a topic kept for a minute per project, filters and topic; computed directly when Redis is not configured. */
+async function cachedTopicMembers(projectId: string, filters: TraceListFilters, compute: () => Promise<{ runIds: string[]; sampled: boolean }>) {
+  // Paging and sorting do not change which traces belong to a topic.
+  const scope = { ...filters, page: undefined, pageSize: undefined, sort: undefined, direction: undefined };
+  const key = `topic-runs:${projectId}:${createHash("sha256").update(JSON.stringify(scope)).digest("hex")}`;
+  const hit = await getJsonCache<{ runIds: string[]; sampled: boolean; meta?: { updatedAt: number } }>(key);
+  if (hit && Array.isArray(hit.runIds)) return { runIds: hit.runIds, sampled: hit.sampled === true };
+  const value = await compute();
+  await setJsonCache(key, { ...value, meta: { updatedAt: Date.now() } }, TOPIC_CACHE_TTL_SECONDS);
+  return value;
+}
+
 /** Resolve an arrow to traces with the shared caller/return rules before list, facets and stats run. */
 export async function resolveTraceFlowFilters(projectId: string, filters: TraceListFilters): Promise<TraceListFilters> {
   let resolved = filters;
@@ -759,8 +777,11 @@ export async function resolveTraceFlowFilters(projectId: string, filters: TraceL
   }
   if (filters.topic) {
     // Topics are grouped over the traces matching every other filter, the same input the topics endpoint reads.
-    const { traces } = await traceTopicInputs(projectId, { ...resolved, topic: undefined });
-    resolved = { ...resolved, topicRunIds: topicRunIds(traces, filters.topic) };
+    const members = await cachedTopicMembers(projectId, resolved, async () => {
+      const { total, traces } = await traceTopicInputs(projectId, { ...resolved, topic: undefined });
+      return { runIds: topicRunIds(traces, filters.topic!), sampled: total > traces.length };
+    });
+    resolved = { ...resolved, topicRunIds: members.runIds, topicSampled: members.sampled };
   }
   return resolved;
 }

@@ -124,3 +124,20 @@ def test_run_id_falls_back_to_environment_outside_a_step(monkeypatch):
     monkeypatch.delenv("UNCOIL_CURRENT_RUN_ID")
     assert uncoil.current_run_id() == "unknown"
     assert uncoil.current_span_id() is None
+
+
+def test_last_run_id_names_the_run_a_traced_call_just_sent(client):
+    @uncoil.trace_agent(client=client)
+    def answer():
+        return "ok"
+
+    @uncoil.trace_agent(client=client)
+    async def answer_async():
+        return "ok"
+
+    answer()
+    assert uncoil.last_run_id() == client.sent[-1]["runId"]
+    async def check():
+        await answer_async()
+        return uncoil.last_run_id()
+    assert asyncio.run(check()) == client.sent[-1]["runId"] != client.sent[0]["runId"]

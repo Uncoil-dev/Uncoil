@@ -29,6 +29,7 @@ import requests as _requests_fallback
 # The current run and step for this thread or async task. Context variables keep concurrent runs apart, so
 # steps from two agents running at once never land in each other's trace.
 _current_run: "contextvars.ContextVar[Optional[str]]" = contextvars.ContextVar("uncoil_run", default=None)
+_last_run: "contextvars.ContextVar[Optional[str]]" = contextvars.ContextVar("uncoil_last_run", default=None)
 _current_span: "contextvars.ContextVar[Optional[str]]" = contextvars.ContextVar("uncoil_span", default=None)
 
 _current_client = contextvars.ContextVar("uncoil_client", default=None)
@@ -132,6 +133,11 @@ def _payload(value: Any) -> str:
 
 def current_run_id() -> str:
     return _current_run.get() or (os.environ.get("UNCOIL_CURRENT_RUN_ID") or os.environ.get("TRACIFY_CURRENT_RUN_ID")) or "unknown"
+
+
+def last_run_id() -> Optional[str]:
+    """The run id of the latest `trace_agent` call in this context, to attach feedback or scores to it."""
+    return _last_run.get()
 
 
 def current_span_id() -> Optional[str]:
@@ -878,7 +884,9 @@ def trace_agent(client: Optional[UncoilClient] = None, environment: Optional[str
         if asyncio.iscoroutinefunction(func):
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
-                with span(step_name, type="agent", client=make_client(), run_id=str(uuid.uuid4()), root=True) as step:
+                run_id = str(uuid.uuid4())
+                _last_run.set(run_id)
+                with span(step_name, type="agent", client=make_client(), run_id=run_id, root=True) as step:
                     result = await func(*args, **kwargs)
                     step.set_output(result)
                     return result
@@ -886,7 +894,9 @@ def trace_agent(client: Optional[UncoilClient] = None, environment: Optional[str
 
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
-            with span(step_name, type="agent", client=make_client(), run_id=str(uuid.uuid4()), root=True) as step:
+            run_id = str(uuid.uuid4())
+            _last_run.set(run_id)
+            with span(step_name, type="agent", client=make_client(), run_id=run_id, root=True) as step:
                 result = func(*args, **kwargs)
                 step.set_output(result)
                 return result

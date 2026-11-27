@@ -37,6 +37,7 @@ import { ShareTraceButton } from "./share-trace-button";
 import { ScoreRunButton } from "./scores/score-run-button";
 import { HighlightedText, SpanSearch } from "./span-search";
 import { RunNotes } from "./run-notes";
+import { CollapsiblePayload } from "./collapsible-payload";
 import { useNow } from "@/hooks/use-now";
 import { captureAnalytics } from "@/lib/analytics";
 import { criticalPath, type CriticalPathResult } from "@/lib/trace-critical-path";
@@ -739,9 +740,7 @@ function SpanCard({ span, index, projectId, replayActive, onSelect, search = "",
                       copied={copiedPayload === "input"}
                       onCopy={() => void handleCopyPayload("input")}
                     />
-                    <pre className="p-3 bg-[#050505] border border-black text-[11px] font-mono overflow-auto max-h-[300px] text-[#f4d44d]">
-                      {formatJson(span.input)}
-                    </pre>
+                    <CollapsiblePayload text={formatJson(span.input)} />
                   </div>
                   <div className="space-y-2">
                     <PayloadHeader
@@ -749,9 +748,7 @@ function SpanCard({ span, index, projectId, replayActive, onSelect, search = "",
                       copied={copiedPayload === "output"}
                       onCopy={() => void handleCopyPayload("output")}
                     />
-                    <pre className="p-3 bg-[#050505] border border-black text-[11px] font-mono overflow-auto max-h-[300px] text-[#f4d44d]">
-                      {formatJson(span.output)}
-                    </pre>
+                    <CollapsiblePayload text={formatJson(span.output)} />
                   </div>
                 </div>
                 <div aria-live="polite" className="sr-only">

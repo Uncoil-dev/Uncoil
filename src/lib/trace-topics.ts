@@ -23,6 +23,11 @@ const STOPWORDS = new Set(("the and for you your are was were with that this hav
   + "will just from what when where which who how why all any some more most very into onto about over than then them "
   + "they their there here its please want need like make get got let me my mine our ours we us "
   + "him her his hers she he of to in on at by is be am an a or as do does did so if it no yes ok okay hi hello thanks thank "
+  + "came come comes coming yet never ever one two three twice once again still also too ago now today yesterday tomorrow "
+  + "show shows showed shown look looks looked put puts keep keeps kept back until everything anything something nothing "
+  + "ask asks asked asking mean means meant happen happens happened happening say says said tell told give gave take took "
+  + "know knew think thought see saw seem seems try tried going gone went being been wait waiting arrive arrived tired wrong "
+  + "right new old good bad really actually maybe already always sometimes while after before because since "
   + "don't didn't doesn't isn't wasn't won't can't couldn't wouldn't shouldn't i've you're they're that's what's")
   .split(" ").map((word) => word.replace(/'/g, "")));
 
@@ -40,7 +45,8 @@ export function normalizeTopicText(value: string) {
 
 function tokens(text: string) {
   const out: string[] = [];
-  for (const word of text.replace(/<[a-z]+>/g, " ").replace(/['’]/g, "").split(/[^\p{L}]+/u)) {
+  // "ord-<n>" is what is left of an id like ORD-123; its letters are not a word.
+  for (const word of text.replace(/[a-z]+[-_#]<n>/g, " ").replace(/<[a-z]+>/g, " ").replace(/['’]/g, "").split(/[^\p{L}]+/u)) {
     const latin = /^[a-z]+$/.test(word);
     if (word.length < (latin ? 3 : 2) || STOPWORDS.has(word)) continue;
     out.push(latin && word.length > 4 && word.endsWith("s") && !/(ss|us|is)$/.test(word) ? word.slice(0, -1) : word);
@@ -83,6 +89,27 @@ function summarize(traces: TopicTrace[]) {
   }
   const issues = [...groups.values()].sort((a, b) => b.count - a.count || (a.message < b.message ? -1 : a.message > b.message ? 1 : 0)).slice(0, 3);
   return { outcome, issues, silentFailures };
+}
+
+/** Topics that ended up with the same name become one: counts add up, the failure rate is recomputed, and the first topic's id is kept. "Other" never merges. */
+export function mergeTopicsByName(topics: TraceTopic[], samples = 5): TraceTopic[] {
+  const merged = new Map<string, TraceTopic>();
+  for (const topic of topics) {
+    const key = topic.id === "other" ? "\0other" : topic.name;
+    const into = merged.get(key);
+    if (!into) { merged.set(key, { ...topic }); continue; }
+    const failed = into.errorRate * into.count + topic.errorRate * topic.count;
+    const issues = new Map<string, TopicIssue>();
+    for (const issue of [...into.issues, ...topic.issues]) issues.set(issue.id, { ...issue, count: (issues.get(issue.id)?.count ?? 0) + issue.count });
+    into.count += topic.count;
+    into.errorRate = failed / into.count;
+    into.runIds = [...into.runIds, ...topic.runIds];
+    into.sampleRunIds = into.runIds.slice(0, samples);
+    into.outcome = { succeeded: into.outcome.succeeded + topic.outcome.succeeded, failed: into.outcome.failed + topic.outcome.failed, timedOut: into.outcome.timedOut + topic.outcome.timedOut };
+    into.issues = [...issues.values()].sort((a, b) => b.count - a.count || (a.message < b.message ? -1 : 1)).slice(0, 3);
+    into.silentFailures += topic.silentFailures;
+  }
+  return [...merged.values()].sort((a, b) => (a.id === "other" ? 1 : b.id === "other" ? -1 : b.count - a.count || (a.id < b.id ? -1 : 1)));
 }
 
 export function groupTraceTopics(traces: TopicTrace[], options: TopicOptions = {}) {
@@ -143,11 +170,14 @@ export function groupTraceTopics(traces: TopicTrace[], options: TopicOptions = {
     const base = hash([...terms].sort().join(" "));
     const n = seen.get(base) ?? 0;
     seen.set(base, n + 1);
-    topics.push(toTopic(n ? `${base}-${n}` : base, terms.join(" · "), terms, group.members));
+    // Named from the two strongest words, in the order they first appear in the group's first request.
+    const first = group.members[0].words;
+    const name = terms.slice(0, 2).sort((a, b) => first.indexOf(a) - first.indexOf(b)).join(" ");
+    topics.push(toTopic(n ? `${base}-${n}` : base, name.charAt(0).toUpperCase() + name.slice(1), terms, group.members));
   }
   topics.sort((a, b) => b.count - a.count || cmp(a.id, b.id));
   if (leftovers.length) topics.push(toTopic("other", "Other", [], leftovers));
-  return { total: docs.length + leftovers.length, topics };
+  return { total: docs.length + leftovers.length, topics: mergeTopicsByName(topics, samples) };
 }
 
 /** Topic ids are an 8-digit hash (with a `-n` suffix on a repeat) or `other`. */

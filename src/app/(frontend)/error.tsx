@@ -13,7 +13,7 @@ export default function SiteError({ error, reset }: { error: Error & { digest?: 
   }, [error]);
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-[#eceae3] px-4 py-12 text-black sm:px-6" role="alert">
+    <main className="flex min-h-svh items-center justify-center bg-[#090909] px-4 py-12 text-[#eceae3] sm:px-6" role="alert">
       <StatusScene
         code="500"
         label="error"

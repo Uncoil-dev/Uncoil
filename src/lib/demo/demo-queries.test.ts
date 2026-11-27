@@ -18,6 +18,7 @@ const hooks = `
 register("data:text/javascript," + encodeURIComponent(hooks));
 
 const queries = await import("./demo-queries.ts");
+const { groupReleases, releaseFieldsFromRow } = await import("../error-group-release.ts");
 
 const NOW = Date.UTC(2026, 5, 15, 12, 0, 0);
 const DAY = 86_400_000;
@@ -117,6 +118,30 @@ test("demoErrorGroups groups errors by id, most frequent first", () => {
   const errorTotal = runs.reduce((sum, run) => sum + run.errors.length, 0);
   assert.ok(groups.reduce((sum, group) => sum + group.count, 0) <= errorTotal);
   assert.deepEqual(queries.demoErrorGroups([]), { total: 0, groups: [] });
+});
+
+test("groupReleases reports the first and latest release of a group seen across two releases", () => {
+  assert.deepEqual(
+    groupReleases([
+      { release: "v1.14.0", at: "2026-06-10 09:00:00" },
+      { release: "v1.13.2", at: "2026-06-08 09:00:00" },
+      { release: "", at: "2026-06-12 09:00:00" },
+    ]),
+    { firstRelease: "v1.13.2", lastRelease: "v1.14.0" },
+  );
+  assert.deepEqual(groupReleases([{ release: "", at: "2026-06-08 09:00:00" }]), {});
+  assert.deepEqual(releaseFieldsFromRow({ firstRelease: "", lastRelease: null }), {});
+});
+
+test("demoErrorGroups adds releases only for runs that carry one", () => {
+  const base = queries.demoFilter(WEEK, undefined, NOW).find((run) => run.errors.length > 0)!;
+  const error = base.errors[0]!;
+  const run = (runId: string, startMs: number, release: string) => ({ ...base, runId, startMs, release, errors: [error] });
+  const [two] = queries.demoErrorGroups([run("a", NOW - 3 * DAY, "v1.13.2"), run("b", NOW - DAY, "v1.14.0")]).groups;
+  assert.equal(two!.firstRelease, "v1.13.2");
+  assert.equal(two!.lastRelease, "v1.14.0");
+  const [none] = queries.demoErrorGroups([run("c", NOW - DAY, "")]).groups;
+  assert.ok(!("firstRelease" in none!) && !("lastRelease" in none!));
 });
 
 test("demoActivity returns sorted days that add up, and survives a bad time zone", () => {

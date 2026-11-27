@@ -6,6 +6,7 @@ import { compactNumber, formatTime, parseTime, relativeTime } from "./format";
 export type ErrorGroup = {
   id: string; tool: string; errorType: string; message: string; sample: string;
   count: number; traces: number; firstSeen: string; lastSeen: string; sampleRunId?: string;
+  firstRelease?: string; lastRelease?: string;
 };
 export type ErrorGroups = { total: number; groups: ErrorGroup[] };
 
@@ -26,6 +27,14 @@ export function fixQuestion(group: Pick<ErrorGroup, "tool" | "errorType" | "mess
 /** Text the Copy message button puts on the clipboard: the full sample error, or the grouped message when no sample was kept. */
 export function groupCopyText(group: Pick<ErrorGroup, "sample" | "message">) {
   return group.sample || group.message;
+}
+
+/** "Started in v1" and, when the latest sighting was in another release, "latest v2"; null without release data. */
+export function releaseLabel(group: Pick<ErrorGroup, "firstRelease" | "lastRelease">) {
+  if (!group.firstRelease) return null;
+  return group.lastRelease && group.lastRelease !== group.firstRelease
+    ? `Started in ${group.firstRelease} · latest ${group.lastRelease}`
+    : `Started in ${group.firstRelease}`;
 }
 
 function CopyMessage({ text }: { text: string }) {
@@ -75,6 +84,7 @@ export function ErrorGroupsPanel({ data, open, loading, active, clock, onToggle,
                     <span className="block truncate text-[13px]"><span className="text-[#8AB4FF]">{group.tool || "—"}</span>{group.errorType ? <span className="text-[#8B93A1]"> · {group.errorType}</span> : null}
                       {clock - parseTime(group.firstSeen) < NEW_GROUP_MS ? <span className="ml-2 rounded bg-[#F4D44D] px-1.5 py-px font-mono text-[10px] font-medium text-[#0B0D10]" title="First seen in the last 24 hours">New</span> : null}</span>
                     <span className="block truncate font-mono text-[11px] text-[#C9CED6]">{group.message || "No message recorded"}</span>
+                    {releaseLabel(group) ? <span className="block truncate font-mono text-[11px] text-[#8B93A1]">{releaseLabel(group)}</span> : null}
                   </span>
                   <span className="col-start-2 flex flex-wrap gap-x-3 font-mono text-[11px] text-[#8B93A1] sm:col-start-3 sm:row-start-1 sm:flex-col sm:items-end">
                     <span>{compactNumber(group.traces)} trace{group.traces === 1 ? "" : "s"}</span>

@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UncoilClient, UncoilError, buildRedactor, sampleBucket, uncoilMiddleware, traceTools, traceAgent, flush as flushAll } from "../src/index";
 
@@ -242,5 +244,14 @@ describe("flush", () => {
     const client = new UncoilClient({ apiKey: KEY });
     await client.ingest({ spanType: "llm_call", runId: "r1" });
     await expect(client.flush(20)).resolves.toBe(false);
+  });
+});
+
+describe("templates", () => {
+  it("lists every template in the templates README", () => {
+    const folder = join(__dirname, "..", "templates");
+    const readme = readFileSync(join(folder, "README.md"), "utf8");
+    const missing = readdirSync(folder).filter((name) => name.endsWith(".ts") && !readme.includes(`\`${name}\``));
+    expect(missing).toEqual([]);
   });
 });

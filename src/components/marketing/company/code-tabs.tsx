@@ -37,7 +37,7 @@ def answer(question):
     code: `curl -X POST https://eu.cloud.uncoil.dev/api/ingest \\
   -H "Authorization: Bearer $UNCOIL_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"spanId":"span_123","runId":"run_123","spanType":"llm","createdAt":"2026-01-01T12:00:00Z","latencyMs":420}'`,
+  -d '{"spanId":"span_123","runId":"run_123","spanType":"llm_call","createdAt":"2026-01-01T12:00:00Z","latencyMs":420,"input":"What is agent observability?","output":"Tracing every step an agent takes."}'`,
   },
   {
     id: "otlp",

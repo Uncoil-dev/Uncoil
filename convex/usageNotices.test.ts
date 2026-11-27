@@ -32,3 +32,29 @@ test("the usage email links to the project's own billing page", () => {
   expect(email.text).toContain("https://www.uncoil.dev/dashboard/p123/billing");
   expect(email.subject).toContain("85%");
 });
+
+test("a Free project gets one 80% notice and one paused notice per month", async () => {
+  const t = convexTest(schema, modules);
+  const projectId = await addProject(t, "near", "free", 8_500);
+  const warn = await t.query(internal.usageNotices.pageToCheck, { cursor: null });
+  expect(warn.due.map((item) => item.kind)).toEqual(["warn"]);
+  expect(await t.mutation(internal.usageNotices.markWarned, { projectId, month: warn.month })).toBe(true);
+
+  await t.run(async (ctx) => {
+    await ctx.db.insert("agentRuns", { runId: "r-more", status: "completed", spanCount: 2_000, totalCostUsd: 0, startedAt: new Date().toISOString(), createdAt: new Date().toISOString(), projectId });
+  });
+  const paused = await t.query(internal.usageNotices.pageToCheck, { cursor: null });
+  expect(paused.due.map((item) => item.kind)).toEqual(["paused"]);
+  expect(await t.mutation(internal.usageNotices.markPaused, { projectId, month: paused.month })).toBe(true);
+  expect(await t.mutation(internal.usageNotices.markPaused, { projectId, month: paused.month })).toBe(false);
+  expect((await t.query(internal.usageNotices.pageToCheck, { cursor: null })).due).toEqual([]);
+});
+
+test("a Free project that jumps straight to the limit gets only the paused notice", async () => {
+  const t = convexTest(schema, modules);
+  const projectId = await addProject(t, "spike", "free", 12_000);
+  const first = await t.query(internal.usageNotices.pageToCheck, { cursor: null });
+  expect(first.due.map((item) => item.kind)).toEqual(["paused"]);
+  await t.mutation(internal.usageNotices.markPaused, { projectId, month: first.month });
+  expect((await t.query(internal.usageNotices.pageToCheck, { cursor: null })).due).toEqual([]);
+});

@@ -211,6 +211,8 @@ uncoil.flush(timeout=5)  # waits for every client; client.flush() waits for one.
 
 Up to 1,000 spans can wait at once; past that, new spans are dropped and reported once through `on_error` (code `queue_full`).
 
+When a run wrapped in `trace_agent` fails, the SDK prints one line to stderr with the step that failed and a link to the run, for example `Uncoil: run failed at step "search_docs" -> https://eu.cloud.uncoil.dev/dashboard/<project>/tracing/<run>`. The link needs the project id (`project_id=` or `UNCOIL_PROJECT_ID`); without it the line shows the run id instead. Passing runs print nothing. The line is off when `environment` or `UNCOIL_ENVIRONMENT` is `"production"`; pass `failure_links=False` (or `True`) to choose yourself.
+
 ## Setup checker
 
 Not seeing traces? One command checks your key, region and network, then sends a test trace:

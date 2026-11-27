@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { formatCost } from "@/components/dashboard/tracing/format";
+import { TRIAL_DAYS } from "@/lib/checkout-trial";
 
 type ArrivedRun = {
   runId: string;
@@ -69,6 +70,13 @@ export function FirstRunPanel({
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <Link href={`/dashboard/${projectId}/runs/${encodeURIComponent(run.runId)}`} style={{ color: "#eceae3" }} className="inline-flex h-12 items-center justify-center border border-[#050505] bg-[#050505] px-6 font-mono text-[12px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80">Open your trace →</Link>
           <Link href={`/dashboard/${projectId}/tracing`} className="inline-flex h-12 items-center justify-center border border-[#050505] px-6 font-mono text-[12px] uppercase tracking-[0.1em] transition-colors hover:bg-[#fff4b5]">Go to dashboard</Link>
+        </div>
+        <div className="mt-5 flex flex-col gap-3 border-t border-black/25 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-black">Next: get told when costs spike</p>
+            <p className="mt-1 font-sans text-sm leading-6 text-black/70">{`Cost alerts are part of Pro, with a ${TRIAL_DAYS}-day free trial.`}</p>
+          </div>
+          <Link href={`/dashboard/${projectId}/alerts`} className="shrink-0 font-mono text-[12px] uppercase tracking-[0.1em] text-black underline decoration-black/30 underline-offset-4 transition-colors hover:decoration-black">Set a cost alert →</Link>
         </div>
       </div>
     );

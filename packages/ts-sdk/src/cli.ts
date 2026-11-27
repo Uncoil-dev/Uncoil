@@ -3,13 +3,16 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { formatReport, runDoctor, type DoctorOptions } from "./doctor";
 import { fetchTopics, formatTopics } from "./topics";
+import { detectProject, formatProject } from "./init/detect";
 import { loadUncoilEnv, runLogin, type LoginOptions } from "./login";
 
-const HELP = `Usage: uncoil login [options]
+const HELP = `Usage: uncoil init [options]
+       uncoil login [options]
        uncoil doctor [options]
        uncoil topics [options]
        uncoil --version
 
+init    Look at this project and say where tracing goes. Changes no files yet.
 login   Sign in through your browser and save the API key for this folder.
 doctor  Check your API key, region and network, then send one test trace.
 topics  List what your traces are about: topic names, counts and sample trace ids.
@@ -47,11 +50,11 @@ export function sdkVersion(): string {
 }
 
 /** Picks the command from the first argument. Doctor runs when there is none or only options. */
-export function parseCommand(argv: string[]): { command: "login" | "doctor" | "topics" | "version"; args: string[] } | { error: string } {
+export function parseCommand(argv: string[]): { command: "init" | "login" | "doctor" | "topics" | "version"; args: string[] } | { error: string } {
   const first = argv[0];
   if (first === "--version" || first === "-v") return { command: "version", args: [] };
-  if (first === "login" || first === "doctor" || first === "topics") return { command: first, args: argv.slice(1) };
-  if (first !== undefined && !first.startsWith("-")) return { error: `Unknown command "${first}". Use "login", "doctor" or "topics".` };
+  if (first === "init" || first === "login" || first === "doctor" || first === "topics") return { command: first, args: argv.slice(1) };
+  if (first !== undefined && !first.startsWith("-")) return { error: `Unknown command "${first}". Use "init", "login", "doctor" or "topics".` };
   return { command: "doctor", args: argv };
 }
 
@@ -84,6 +87,12 @@ async function main(argv: string[]) {
     else if (arg === "--env-file" && command === "login") options.envFile = value();
     else if (arg === "--json") json = true;
     else { console.error(`Unknown option ${arg}.\n\n${HELP}`); return 2; }
+  }
+  if (command === "init") {
+    const result = detectProject(process.cwd());
+    if (!result.ok) { console.error(json ? JSON.stringify({ ok: false, message: result.message }) : result.message); return 1; }
+    console.log(json ? JSON.stringify({ ok: true, ...result.project }) : `Found: ${formatProject(result.project)}`);
+    return 0;
   }
   if (command === "login") {
     const result = await runLogin({ ...options, newProject, json });

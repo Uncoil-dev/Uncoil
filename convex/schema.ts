@@ -34,6 +34,8 @@ export default defineSchema({
     apiKeyCreatedAt: v.optional(v.number()),
     // Month (UTC, "2026-11") for which the owner was already emailed about nearing the Free span limit.
     usageWarnedMonth: v.optional(v.string()),
+    // Month for which the owner was already emailed that new data is paused at the Free span limit.
+    usagePausedMonth: v.optional(v.string()),
     apiKeyLastUsedAt: v.optional(v.number()),
     onboardingStep: v.optional(v.union(v.literal("project"), v.literal("api-key"), v.literal("install"), v.literal("waiting"), v.literal("success"))),
     onboardingDismissedAt: v.optional(v.number()),

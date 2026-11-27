@@ -33,7 +33,8 @@ export function ProjectStep() {
   const createProject = useMutation(api.projects.createProject);
   const saveAnswer = useMutation(api.onboardingAnswers.submit);
   const [goal, setGoal] = useState("");
-  const [name, setName] = useState("");
+  // A ready name lets people press Enter straight away; it is selected on focus so typing replaces it.
+  const [name, setName] = useState("my-first-agent");
   const [error, setError] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
@@ -131,6 +132,8 @@ export function ProjectStep() {
       <input
         id="project-name"
         value={name}
+        autoFocus
+        onFocus={(event) => event.currentTarget.select()}
         onChange={(event) => { setName(event.target.value); publishOnboardingDraft({ name: event.target.value }); }}
         placeholder="research-agent-prod"
         className="h-14 w-full border border-black bg-[#f3f2ed] px-4 font-mono text-base text-black outline-none transition-colors placeholder:text-black/55 focus:bg-white focus:shadow-[4px_4px_0_#f4d44d]"

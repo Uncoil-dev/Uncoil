@@ -23,4 +23,15 @@ describe("FirstRunPanel", () => {
     expect(html).toContain("First run received.");
     expect(html).not.toContain("Your agent failed.");
   });
+
+  it("suggests a cost alert for the same project, marked as Pro with a 7-day trial", () => {
+    const html = render({ ...baseRun, status: "completed" });
+    expect(html).toContain('href="/dashboard/p1/alerts"');
+    expect(html).toContain("Pro");
+    expect(html).toContain("7-day free trial");
+  });
+
+  it("does not suggest alerts while still waiting", () => {
+    expect(render(null)).not.toContain("/alerts");
+  });
 });

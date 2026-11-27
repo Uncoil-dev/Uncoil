@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { answers } from "@/lib/answers";
+import { tools } from "@/lib/tools/registry";
 
 describe("llms-full.txt", () => {
   const originalCwd = process.cwd();
@@ -29,6 +30,14 @@ describe("llms-full.txt", () => {
     expect(text).toContain("## Answers\n");
     for (const a of answers) {
       expect(text).toContain(`### ${a.question}\n${a.answer}\nhttps://www.uncoil.dev/answers/${a.slug}`);
+    }
+  });
+
+  it("lists every free tool with its name, one line and URL", async () => {
+    const text = await render();
+    expect(text).toContain("## Free tools\n");
+    for (const t of tools) {
+      expect(text).toContain(`- [${t.name}](https://www.uncoil.dev/tools/${t.slug}): ${t.blurb}`);
     }
   });
 });

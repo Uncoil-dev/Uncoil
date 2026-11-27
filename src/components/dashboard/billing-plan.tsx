@@ -3,57 +3,59 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "convex/react";
-import { Check, BarChart3, Users, Shield } from "lucide-react";
+import { Check, BarChart3, Users, Shield, type LucideIcon } from "lucide-react";
 
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { Panel, StatTile, adminButton, adminButtonPrimary } from "@/components/dashboard/project-admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCurrency } from "@/lib/utils";
-import { planById } from "@/lib/pricing-plans";
+import type { BillingInterval } from "@/lib/billing-links";
+import { formatPrice, monthlyPrice, planById, plans } from "@/lib/pricing-plans";
 
-const PLANS = [
-  {
-    id: "free",
-    name: "Free",
-    price: "$0",
-    audience: "Experimenting with agents",
-    popular: false,
-    note: undefined,
-    icon: undefined,
-    features: ["10k spans / month", "7-day retention", "2 projects", "1 team member"],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "$19",
-    note: "/mo",
-    audience: "Production agents",
-    popular: true,
-    icon: BarChart3,
-    features: ["500k spans / month", "30-day retention", "3 projects", "5 team members", "Alerts (email + Slack)", "Ask AI, any question", "Evaluations + datasets"],
-  },
-  {
-    id: "team",
-    name: "Team",
-    price: "$39",
-    note: "/mo",
-    audience: "Shared agent operations",
-    popular: false,
-    icon: Users,
-    features: ["2M spans / month", "90-day retention", "Unlimited projects", "20 team members", "Release gates", "Priority support"],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "Custom",
-    audience: "Compliance, SSO, retention, deployment needs",
-    popular: false,
-    note: undefined,
-    icon: Shield,
-    features: ["Unlimited spans", "Custom retention", "SSO / SAML", "On-prem option", "Audit logs", "Dedicated engineer"],
-  },
-] as const;
+type PlanCardData = {
+  id: string;
+  name: string;
+  price: string;
+  note?: string;
+  audience: string;
+  popular: boolean;
+  icon?: LucideIcon;
+  features: readonly string[];
+};
+
+const PLAN_ICONS: Partial<Record<string, LucideIcon>> = { pro: BarChart3, team: Users };
+
+const ENTERPRISE_CARD: PlanCardData = {
+  id: "enterprise",
+  name: "Enterprise",
+  price: "Custom",
+  audience: "Compliance, SSO, retention, deployment needs",
+  popular: false,
+  icon: Shield,
+  features: ["Unlimited spans", "Custom retention", "SSO / SAML", "On-prem option", "Audit logs", "Dedicated engineer"],
+};
+
+/** Builds the Free, Pro and Team cards from the shared plan list, followed by Enterprise. */
+export function buildPlanCards(interval: BillingInterval): PlanCardData[] {
+  const shared = plans.map((plan): PlanCardData => ({
+    id: plan.id,
+    name: plan.name,
+    price: formatPrice(monthlyPrice(plan, interval)),
+    note: plan.monthly > 0 ? "/mo" : undefined,
+    audience: plan.line,
+    popular: plan.id === "pro",
+    icon: PLAN_ICONS[plan.id],
+    features: [
+      `${plan.spans} spans / month`,
+      `${plan.retention.replace(" days", "-day")} retention`,
+      plan.projects === "Unlimited" ? "Unlimited projects" : `${plan.projects} projects`,
+      `${plan.members} team ${plan.members === "1" ? "member" : "members"}`,
+      ...plan.features,
+    ],
+  }));
+  return [...shared, ENTERPRISE_CARD];
+}
 
 export function BillingPlan({ projectId }: { projectId: string }) {
   const [annual, setAnnual] = useState(false);
@@ -110,7 +112,7 @@ export function BillingPlan({ projectId }: { projectId: string }) {
         }
       >
         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-          {PLANS.map((plan) => (
+          {buildPlanCards(annual ? "annual" : "monthly").map((plan) => (
             <PlanCard
               key={plan.id}
               plan={plan}
@@ -133,18 +135,13 @@ function PlanCard({
   interval,
   hasSubscription,
 }: {
-  plan: (typeof PLANS)[number];
+  plan: PlanCardData;
   current: boolean;
   projectId: string;
   interval: "monthly" | "annual";
   hasSubscription: boolean;
 }) {
   const Icon = plan.icon;
-  const displayPrice = interval === "annual" && plan.id === "pro"
-    ? "$15"
-    : interval === "annual" && plan.id === "team"
-      ? "$31"
-      : plan.price;
   const footer = "mt-6 border border-[#262C35] px-3 py-2 text-center font-mono text-[10px] uppercase text-[#8B93A1]";
 
   return (
@@ -168,7 +165,7 @@ function PlanCard({
         ) : null}
       </div>
       <div className="mt-5 flex items-baseline gap-1.5">
-        <span className="font-mono text-2xl text-[#E6E9EE]">{displayPrice}</span>
+        <span className="font-mono text-2xl text-[#E6E9EE]">{plan.price}</span>
         {plan.note && <span className="font-mono text-[10px] text-[#8B93A1]">{plan.note}</span>}
         {interval === "annual" && (plan.id === "pro" || plan.id === "team") ? <span className="font-mono text-[9px] text-[#6B7380]">billed annually</span> : null}
       </div>

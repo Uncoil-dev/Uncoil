@@ -3,65 +3,19 @@
 import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { ArrowRight, ArrowUpRight, Menu } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import { DitherEmber } from "./dither-ember";
 import { traceReachY } from "./trace-reach";
+import { NAV_MENUS, NAV_PRICING } from "./nav-links";
+import { PhoneMenu } from "./phone-menu/phone-menu";
 
 const art = "[image-rendering:pixelated]";
 
-const menus = {
-  Product: {
-    img: "/images/landing/hero-graph.png",
-    feature: { title: "See the full loop.", body: "Trace a run, evaluate the output, compare changes, ship with evidence.", href: appHref("/demo/project"), label: "Open the demo" },
-    links: [
-      ["Observe", "Traces, sessions and costs", "/product/trace-viewer"],
-      ["Improve", "Evaluations, datasets, prompts", "/product/evaluation-engine"],
-      ["Release", "Experiments, gates, monitors", "/product/lifecycle"],
-      ["Operate", "Alerts, reports, integrations", "/integrations"],
-      ["Free tools", "Token counter, price and log checkers", "/tools"],
-      ["Live demo", "Explore a sample project", appHref("/demo/project")],
-    ],
-  },
-  Solutions: {
-    img: "/images/landing/uc-research.png",
-    feature: { title: "When an agent gets it wrong.", body: "Follow a bad answer back to the exact step, tool call and prompt.", href: "/use-cases/support", label: "Explore support" },
-    links: [
-      ["Support", "Find the decision behind every escalation", "/use-cases/support"],
-      ["Research", "Verify multi-step investigations", "/use-cases/research"],
-      ["Automation", "Debug workflows and retry chains", "/use-cases/automation"],
-      ["Tool calling", "Catch failed APIs and loops", "/use-cases/tool-calling"],
-      ["Compare", "Uncoil next to other tools", "/compare"],
-      ["Alternatives", "The best LLM observability tools", "/best-llm-observability-tools"],
-    ],
-  },
-  Developers: {
-    img: "/images/landing/span-anatomy.png",
-    feature: { title: "Your first trace.", body: "Install the SDK, send one run, and open it as a map.", href: "/docs", label: "Open the quickstart" },
-    links: [
-      ["Docs", "Install and send your first trace", "/docs"],
-      ["TypeScript SDK", "Trace Node and Next.js agents", "/docs/typescript"],
-      ["Python SDK", "Instrument with a decorator", "/docs/python"],
-      ["API reference", "Ingest from custom runtimes", "/docs/api"],
-      ["Integrations", "LlamaIndex, AutoGen, Mastra and more", "/integrations"],
-      ["Glossary", "Agent tracing terms, explained", "/glossary"],
-    ],
-  },
-  Company: {
-    img: "/images/landing/globe-orbits.png",
-    feature: { title: "Agent observability, explained.", body: "A field guide to traces, evaluations, cost and prompts.", href: "/blog/ai-agent-observability-complete-guide", label: "Read the guide" },
-    links: [
-      ["Blog", "Agent engineering notes", "/blog"],
-      ["Changelog", "What shipped lately", "/changelog"],
-      ["Roadmap", "What is shipping next", "/roadmap"],
-      ["Security", "How Uncoil handles data", "/security"],
-      ["Status", "Is everything running?", "/status"],
-      ["Contact", "Talk through your stack", "/contact"],
-    ],
-  },
-} as const;
+const menus = NAV_MENUS;
 
 type MenuName = keyof typeof menus;
 const names = Object.keys(menus) as MenuName[];
@@ -89,6 +43,8 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
   const [reach, setReach] = useState<{ col: number; x: number; y: number } | null>(null);
   const { scrollY } = useScroll();
   const { data: session } = authClient.useSession();
+  const pathname = usePathname();
+  const opener = useRef<HTMLButtonElement>(null);
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const prev = scrollY.getPrevious() ?? 0;
@@ -96,12 +52,24 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
     setHidden(y > 400 && y > prev && !active);
   });
 
+  // The phone menu closes on any navigation (a tap inside it, Back, a link elsewhere) and when
+  // the window grows to the desktop layout, where the navbar shows the menus itself.
+  const [shownFor, setShownFor] = useState(pathname);
+  if (shownFor !== pathname) {
+    setShownFor(pathname);
+    if (mobile) setMobile(false);
+  }
   useEffect(() => {
-    document.body.style.overflow = mobile ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    if (!mobile) return;
+    const desk = window.matchMedia("(min-width: 1024px)");
+    const onDesk = () => desk.matches && setMobile(false);
+    desk.addEventListener("change", onDesk);
+    return () => desk.removeEventListener("change", onDesk);
   }, [mobile]);
+  const closeMobile = useCallback(() => {
+    setMobile(false);
+    requestAnimationFrame(() => opener.current?.focus());
+  }, []);
 
   const menu = active ? menus[active] : null;
 
@@ -165,8 +133,8 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                 </li>
               ))}
               <li className="relative">
-                <Link href="/pricing" onMouseEnter={(e) => { setActive(null); reachItem(e.currentTarget); }} onFocus={(e) => { setActive(null); reachItem(e.currentTarget); }} className="flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-white/65 hover:text-white">
-                  <span className="text-[#f4d44d]">05</span> / Pricing
+                <Link href={NAV_PRICING.href} onMouseEnter={(e) => { setActive(null); reachItem(e.currentTarget); }} onFocus={(e) => { setActive(null); reachItem(e.currentTarget); }} className="flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-white/65 hover:text-white">
+                  <span className="text-[#f4d44d]">05</span> / {NAV_PRICING.label}
                 </Link>
               </li>
             </ul>
@@ -188,7 +156,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
                   </Link>
                 </>
               )}
-              <button type="button" onClick={() => setMobile(true)} aria-label="Open menu" className="flex size-10 items-center justify-center border border-white/25 text-white lg:hidden">
+              <button ref={opener} type="button" onClick={() => setMobile(true)} aria-label="Open menu" aria-expanded={mobile} aria-haspopup="dialog" className="flex size-10 items-center justify-center border border-white/25 text-white lg:hidden">
                 <Menu className="size-5" aria-hidden="true" />
               </button>
             </div>
@@ -285,65 +253,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
         </AnimatePresence>
       </motion.header>
 
-      <AnimatePresence>
-        {mobile && (
-          <motion.div
-            className="fixed inset-0 z-[60] overflow-y-auto bg-[#090909] text-[#eceae3] lg:hidden"
-            initial={reduce ? false : { clipPath: "circle(0% at 100% 0%)" }}
-            animate={{ clipPath: "circle(150% at 100% 0%)" }}
-            exit={{ clipPath: "circle(0% at 100% 0%)" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu"
-          >
-            <Image src="/images/landing/nav-tunnel.png" alt="" fill unoptimized sizes="100vw" className={`object-cover opacity-20 ${art}`} />
-            <DitherEmber className="!opacity-15" />
-            <div className="relative flex min-h-full flex-col px-5 pb-10">
-              <div className="flex h-[64px] items-center justify-between">
-                <Logo />
-                <button type="button" onClick={() => setMobile(false)} aria-label="Close menu" className="flex size-10 items-center justify-center bg-[#f4d44d] text-black">
-                  <X className="size-5" aria-hidden="true" />
-                </button>
-              </div>
-              <motion.div className="mt-8 grid gap-10" initial="hide" animate="show" variants={{ show: { transition: { staggerChildren: 0.06, delayChildren: 0.2 } } }}>
-                {names.map((name, i) => (
-                  <motion.div key={name} variants={{ hide: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } }} className="relative pl-5">
-                    <span className="absolute -left-[3.5px] -top-[3.5px] size-2 bg-white/60" aria-hidden="true" />
-                    <span className="absolute bottom-1 left-0 top-0 w-px bg-white/15" aria-hidden="true" />
-                    <p className="pt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">
-                      <span className="text-[#f4d44d]">0{i + 1}</span> / {name}
-                    </p>
-                    <ul className="mt-3 grid gap-1">
-                      {menus[name].links.map(([t, , href]) => (
-                        <li key={href}>
-                          <Link href={href} onClick={() => setMobile(false)} className="group flex items-center font-pixel text-4xl tracking-[-0.06em] hover:text-[#f4d44d]">
-                            <span className="-ml-5 mr-3 h-px w-3 shrink-0 bg-white/25 group-hover:bg-[#f4d44d]" aria-hidden="true" />
-                            {t}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                ))}
-                <motion.div variants={{ hide: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } }} className="grid gap-3 border-t border-white/20 pt-8">
-                  <Link href="/pricing" onClick={() => setMobile(false)} className="font-pixel text-4xl tracking-[-0.06em]">
-                    <span className="mr-3 font-mono text-[10px] tracking-[0.16em] text-[#f4d44d]">05 /</span>Pricing
-                  </Link>
-                  <Link href={session ? appHref("/dashboard") : appHref("/sign-up")} onClick={() => setMobile(false)} className="mt-4 flex items-center justify-between bg-[#f4d44d] px-5 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-black">
-                    {session ? "Dashboard" : "Start free"} <ArrowRight className="size-4" aria-hidden="true" />
-                  </Link>
-                  {!session && (
-                    <Link href="/cloud?next=/sign-in" onClick={() => setMobile(false)} className="flex items-center justify-between border border-white/30 px-5 py-4 font-mono text-[11px] uppercase tracking-[0.14em]">
-                      Sign in <ArrowRight className="size-4" aria-hidden="true" />
-                    </Link>
-                  )}
-                </motion.div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {mobile && <PhoneMenu currentPath={pathname} signedIn={!!session} onClose={closeMobile} />}
     </>
   );
 }

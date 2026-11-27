@@ -107,6 +107,7 @@ avoid sending anything else you would not want stored.
 - **Environment Aware:** Automatically picks up API keys from `process.env`.
 - **Lightweight:** Minimal dependencies. Runs on Node.js (it uses async context to keep concurrent runs apart), so use the Node.js runtime rather than the edge runtime.
 - **Session context:** Add `sessionId`, `endUserId`, `environment`, `release`, and `tags` to connect related traces.
+- **Automatic release:** When `release` is not set, the client uses `UNCOIL_RELEASE`, then the commit variable of the deploy platform (Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions, GitLab CI), then the short commit of the local git checkout. The local lookup runs once in Node, times out quickly and is skipped when git is missing or in edge and browser runtimes. It needs Node 20.16+ or 22.3+ (`process.getBuiltinModule`); on older Node it is skipped and the release stays empty.
 
 ## Feedback and evaluation scores
 
@@ -213,6 +214,16 @@ const uncoil = new UncoilClient({
   onError: (error) => log(error.message),            // problems come with a plain-language fix (error.hint)
 });
 ```
+
+### Keep message content out
+
+Set `UNCOIL_CAPTURE_CONTENT=false` (also `0`, `no` or `off`, any case) to record runs without any message text. Names, timings, token counts, cost, status and the error type are still sent; prompts, answers, tool inputs and outputs, error messages and feedback or score comments, stack traces and text score values are not. Metadata you attach yourself is still sent. Any other value, or no value, captures as before.
+
+```ts
+const client = new UncoilClient({ captureContent: false }); // overrides the environment variable
+```
+
+The variable is read when the client is created. Spans sent this way carry `contentRecorded: false` in their metadata.
 
 ### Short scripts and serverless functions
 

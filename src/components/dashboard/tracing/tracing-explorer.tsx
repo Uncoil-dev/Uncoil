@@ -21,7 +21,7 @@ import { ErrorGroupsPanel, errorGroupLabel, fixQuestion, type ErrorGroups } from
 import { FACETS, FacetGroup, decodeValues, encodeValues, type FacetCounts } from "./facet-filter";
 import { LiveToggle, useTracingLive } from "./live-toggle";
 import { TRACE_VIEWS, TracePanel, type TraceView } from "./trace-panel";
-import { compactNumber, downloadFile, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime, traceRowLabel } from "./format";
+import { compactNumber, downloadFile, emptyTracesState, formatCost, formatDuration, formatTime, parseTime, previewText, relativeTime, traceRowLabel } from "./format";
 import { EmptyNotice } from "../empty/empty-notice";
 import { loadErrorMessage, readJson } from "@/lib/safe-json";
 
@@ -333,6 +333,12 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
     ...(query.node ? [{ key: "node", label: `Step: ${stepLabel(query.node)}` }] : []),
     ...(query.edge ? [{ key: "edge", label: `Path: ${query.edge.split(EDGE_SEPARATOR).map(stepLabel).join(" → ")}` }] : []),
   ];
+  const emptyState = emptyTracesState({
+    filtered: activeFilters.length > 0 || Boolean(query.q),
+    range: query.range ?? "90d",
+    rangeLabel: RANGES.find((item) => item.id === (query.range ?? "90d"))?.label,
+    custom: Boolean(query.from || query.to),
+  });
 
   const costScale = useMemo(() => {
     const costs = rows.map((row) => Number(row.totalCostUsd) || 0).filter((cost) => cost > 0).sort((a, b) => a - b);
@@ -428,8 +434,11 @@ export function TracingExplorer({ projectId, initialQuery }: { projectId: string
               <LoadError message={error} onRetry={() => setNow(Date.now())} />
             ) : chartMode ? (
               <TraceCharts projectId={projectId} filterParams={activityParams} histogram={data?.histogram} range={data?.range} onZoom={(from, to) => update({ from: String(from), to: String(to) })} />
-            ) : !loading && rows.length === 0 && !activeFilters.length && !query.q && projectId !== DEMO_PROJECT_ID ? (
+            ) : !loading && rows.length === 0 && emptyState.kind === "setup" && projectId !== DEMO_PROJECT_ID ? (
               <FirstTraceEmpty projectId={projectId} title="Every run of your agent will land here" description="Each trace shows the steps, the model calls, what it cost and where it failed. Send one and this page fills in within seconds." />
+            ) : !loading && rows.length === 0 && emptyState.kind === "range" ? (
+              <div className="my-10"><EmptyNotice art="filtered" title={emptyState.title} description="Older traces may still be in this project. Widen the time range to see them."
+                action="Show 90 days" onClick={() => { setNow(Date.now()); update({ range: "90d", from: "", to: "" }); }} /></div>
             ) : !loading && rows.length === 0 ? (
               <div className="my-10"><EmptyNotice art="filtered" title="No traces in this range" description={activeFilters.length || query.q ? "Try removing a filter or widening the time range." : "Send traces with the Uncoil SDK and they appear here within seconds."}
                 {...(activeFilters.length || query.q

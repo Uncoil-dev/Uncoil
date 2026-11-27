@@ -93,6 +93,7 @@ avoid sending anything else you would not want stored.
 - **Cost Tracking:** Monitor your infrastructure spend in real-time.
 - **Asynchronous & Synchronous Support:** Works with `async/await` or standard functions.
 - **Session context:** Attach `session_id`, `end_user_id`, `environment`, `release`, and `tags` to connect related traces.
+- **Automatic release:** When `release` is not set, the client uses `UNCOIL_RELEASE`, then the commit variable of the deploy platform (Vercel, Railway, Render, Netlify, Cloudflare Pages, GitHub Actions, GitLab CI), then the short commit of the local git checkout. The local lookup runs once, times out quickly and is skipped when git is missing.
 
 ## Feedback and evaluation scores
 
@@ -201,6 +202,16 @@ If no API key is set, the client prints one warning and records nothing; decorat
 
 Spans that report an error are kept even when their run was not sampled (`keep_errors=False` turns that off). Secrets such as bearer tokens and API keys are always removed, and emails, phone numbers and card numbers are masked before anything leaves your app. To send them as they are, pass `redact={"pii": False}`.
 
+## Keep message content out
+
+Set `UNCOIL_CAPTURE_CONTENT=false` (also `0`, `no` or `off`, any case) to record runs without any message text. Names, timings, token counts, cost, status and the error type are still sent; prompts, answers, tool inputs and outputs, error messages and feedback or score comments, stack traces and text score values are not. Metadata you attach yourself is still sent. Any other value, or no value, captures as before.
+
+```python
+client = uncoil.UncoilClient(capture_content=False)  # overrides the environment variable
+```
+
+The variable is read when the client is created. Spans sent this way carry `contentRecorded: false` in their metadata.
+
 ## Sending spans in the background
 
 Spans are queued and sent from a background thread, so tracing never waits on the network. Spans still queued when the program exits get up to two seconds to send. In short scripts, serverless handlers or workers that are frozen between requests, call `flush()` before returning:
@@ -210,6 +221,8 @@ uncoil.flush(timeout=5)  # waits for every client; client.flush() waits for one.
 ```
 
 Up to 1,000 spans can wait at once; past that, new spans are dropped and reported once through `on_error` (code `queue_full`).
+
+When a project reaches its monthly or daily plan limit, `on_error` gets a `plan_limit_reached` or `daily_limit_reached` error that says when data is saved again and links to the plans page. A lower `sample_rate` does not lift a plan limit.
 
 When a run wrapped in `trace_agent` fails, the SDK prints one line to stderr with the step that failed and a link to the run, for example `Uncoil: run failed at step "search_docs" -> https://eu.cloud.uncoil.dev/dashboard/<project>/tracing/<run>`. The link needs the project id (`project_id=` or `UNCOIL_PROJECT_ID`); without it the line shows the run id instead. Passing runs print nothing. The line is off when `environment` or `UNCOIL_ENVIRONMENT` is `"production"`; pass `failure_links=False` (or `True`) to choose yourself.
 

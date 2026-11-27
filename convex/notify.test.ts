@@ -96,3 +96,12 @@ test("sendEmail without an email key sends nothing and says so", async () => {
   expect(await sendEmail(email)).toEqual({ ok: false, error: "Email is not set up" });
   expect(fetchMock).not.toHaveBeenCalled();
 });
+
+test("sendEmail asks the provider to send replies to the founder", async () => {
+  vi.stubEnv("RESEND_API_KEY", "re_test");
+  vi.stubEnv("EMAIL_REPLY_TO", "founder@example.com");
+  const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(reply(200, "{}"));
+  await sendEmail(email);
+  const sent = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+  expect(sent.reply_to).toBe("founder@example.com");
+});

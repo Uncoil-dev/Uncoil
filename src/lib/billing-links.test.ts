@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  checkoutPageHref,
   initialCheckoutProjectId,
   pricingCheckoutHref,
   type BillingInterval,
@@ -63,4 +64,12 @@ test("preselects the requested project only when the user owns it", () => {
   assert.equal(initialCheckoutProjectId(null, projects), "p1");
   assert.equal(initialCheckoutProjectId("p2", undefined), "");
   assert.equal(initialCheckoutProjectId("p2", []), "");
+});
+
+test("checkout page links keep the requested project across interval and sign-in links", () => {
+  assert.equal(
+    checkoutPageHref("pro", "annual", "p 1"),
+    "/pricing/checkout?plan=pro&interval=annual&project=p%201",
+  );
+  assert.equal(checkoutPageHref("pro", "annual", null), "/pricing/checkout?plan=pro&interval=annual");
 });

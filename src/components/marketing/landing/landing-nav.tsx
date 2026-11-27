@@ -3,48 +3,84 @@
 import { appHref } from "@/lib/app-links";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowRight, ArrowUpRight, Menu } from "lucide-react";
-import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
-import { DitherEmber } from "./dither-ember";
-import { traceReachY } from "./trace-reach";
+import { useCell } from "@/components/marketing/home/use-grid";
 import { NAV_MENUS, NAV_PRICING } from "./nav-links";
 import { PhoneMenu } from "./phone-menu/phone-menu";
-
-const art = "[image-rendering:pixelated]";
+import { buildTrace, findHere } from "./phone-menu/trace";
+import { ChromeScene } from "./chrome-scene";
+import { deviceShift, waterfallBar } from "./chrome-layout";
+import s from "./landing-nav.module.css";
 
 const menus = NAV_MENUS;
-
 type MenuName = keyof typeof menus;
 const names = Object.keys(menus) as MenuName[];
+const { sections: SECTIONS, total: PAGES } = buildTrace();
+const MARKS = SECTIONS.map((x) => x.start);
 
+const mono = "font-mono uppercase tracking-[0.14em]";
+// One focus ring for the whole bar: yellow on black, drawn inside so nothing clips it.
+const ring = "focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-2px] focus-visible:outline-[#f4d44d]";
+
+/**
+ * The Dissolve lockup at one logo pixel per CSS pixel, so it stays sharp. Between 1024 and 1179px
+ * wide the bar shows only its three bars, which frees the room the menu needs there.
+ */
 function Logo() {
   return (
-    <Link href="/" aria-label="Uncoil home" className="flex items-center">
-      {/* Pixel-snapped lockup: 1 logo pixel = 1 screen pixel, so it stays sharp */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logos/uncoil/uncoil-logo-crisp-on-dark.svg" alt="Uncoil" width={204} height={38} className="block h-[38px] w-[204px] max-w-none" />
+    <Link href="/" aria-label="Uncoil home" className={`flex h-11 shrink-0 items-center ${ring} outline-offset-4`}>
+      <span className="block w-[204px] overflow-hidden lg:max-[1179px]:w-[46px]">
+        <Image src="/logos/uncoil/uncoil-logo-crisp-on-dark.svg" alt="Uncoil" width={204} height={38} unoptimized loading="eager" className="block h-[38px] w-[204px] max-w-none" />
+      </span>
     </Link>
   );
 }
 
+/** A 5x3 pixel caret at two CSS px per pixel; turns to point up while its menu is open. */
+function Caret({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 5 3" width={10} height={6} shapeRendering="crispEdges" className={`${s.caret} shrink-0 ${open ? "rotate-180" : ""}`} aria-hidden="true">
+      <rect x="0" y="0" width="5" height="1" fill="currentColor" />
+      <rect x="1" y="1" width="3" height="1" fill="currentColor" />
+      <rect x="2" y="2" width="1" height="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** The menu button's icon: three bars stepping in, like the logo's and a trace's spans. */
+function BarsIcon() {
+  return (
+    <svg viewBox="0 0 10 10" width={20} height={20} shapeRendering="crispEdges" aria-hidden="true">
+      <rect x="0" y="1" width="10" height="2" fill="currentColor" />
+      <rect x="3" y="4" width="7" height="2" fill="#f4d44d" />
+      <rect x="5" y="7" width="5" height="2" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
-  const reduce = useReducedMotion();
   const [active, setActive] = useState<MenuName | null>(null);
+  const [swap, setSwap] = useState(false);
+  const [point, setPoint] = useState<number | null>(null);
   const [mobile, setMobile] = useState(false);
   const [solid, setSolid] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const barRef = useRef<HTMLDivElement>(null);
-  // The nav item the trace has reached, and the hovered step inside the open menu
-  // (x: how far the trace runs along the menu's top line before it drops into the column).
-  const [lit, setLit] = useState<{ left: number; width: number } | null>(null);
-  const [reach, setReach] = useState<{ col: number; x: number; y: number } | null>(null);
   const { scrollY } = useScroll();
   const { data: session } = authClient.useSession();
   const pathname = usePathname();
+  const cell = useCell();
   const opener = useRef<HTMLButtonElement>(null);
+  const header = useRef<HTMLElement>(null);
+  const triggers = useRef<Partial<Record<MenuName, HTMLButtonElement | null>>>({});
+  const pricing = useRef<HTMLAnchorElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const hoverAt = useRef(0);
+  const leaveTimer = useRef<number | undefined>(undefined);
+  const here = findHere(SECTIONS, pathname);
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const prev = scrollY.getPrevious() ?? 0;
@@ -58,6 +94,7 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
   if (shownFor !== pathname) {
     setShownFor(pathname);
     if (mobile) setMobile(false);
+    if (active) setActive(null);
   }
   useEffect(() => {
     if (!mobile) return;
@@ -71,189 +108,313 @@ export function LandingNav({ solidAlways = false }: { solidAlways?: boolean }) {
     requestAnimationFrame(() => opener.current?.focus());
   }, []);
 
+  const open = (name: MenuName | null) => {
+    setSwap(active !== null && name !== null);
+    setActive(name);
+    setPoint(null);
+  };
+  const close = (focusTrigger = false) => {
+    const was = active;
+    open(null);
+    if (focusTrigger && was) triggers.current[was]?.focus();
+  };
+
+  // Everything Tab and the arrow keys move between, in bar order.
+  const tops = () => [...names.map((n) => triggers.current[n] ?? null), pricing.current].filter((el): el is HTMLButtonElement | HTMLAnchorElement => !!el);
+  const panelLinks = () => [...(panel.current?.querySelectorAll<HTMLAnchorElement>("a[href]") ?? [])];
+
+  const onTriggerKey = (name: MenuName, e: KeyboardEvent<HTMLButtonElement>) => {
+    const list = tops();
+    const at = list.indexOf(e.currentTarget);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      open(name);
+      requestAnimationFrame(() => panelLinks()[0]?.focus());
+    } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      list[(at + (e.key === "ArrowRight" ? 1 : list.length - 1)) % list.length]?.focus();
+    } else if (e.key === "Escape" && active) {
+      e.preventDefault();
+      close(true);
+    } else if (e.key === "Tab" && !e.shiftKey && active === name) {
+      // The open panel's links come right after its button in the reading order.
+      const first = panelLinks()[0];
+      if (first) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
+
+  const onPanelKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!active) return;
+    const links = panelLinks();
+    const at = links.indexOf(document.activeElement as HTMLAnchorElement);
+    if (e.key === "Escape") {
+      e.preventDefault();
+      close(true);
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      links[(at + (e.key === "ArrowDown" ? 1 : links.length - 1)) % links.length]?.focus();
+    } else if (e.key === "Home" || e.key === "End") {
+      e.preventDefault();
+      links[e.key === "Home" ? 0 : links.length - 1]?.focus();
+    } else if (e.key === "Tab" && !e.shiftKey && at === links.length - 1) {
+      // Leaving the last link moves on to the next item in the bar and folds the panel.
+      const list = tops();
+      const next = list[list.indexOf(triggers.current[active] as HTMLButtonElement) + 1];
+      if (next) {
+        e.preventDefault();
+        open(null);
+        next.focus();
+      }
+    } else if (e.key === "Tab" && e.shiftKey && at === 0) {
+      e.preventDefault();
+      triggers.current[active]?.focus();
+    }
+  };
+
+  // Escape anywhere closes the open menu; focus leaving the header closes it too.
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape") close(header.current?.contains(document.activeElement));
+    };
+    const onFocus = (e: FocusEvent) => {
+      if (header.current && e.target instanceof Node && !header.current.contains(e.target)) open(null);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("focusin", onFocus);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocus);
+    };
+  });
+
+  useEffect(() => () => window.clearTimeout(leaveTimer.current), []);
+
+  const sectionIndex = active ? names.indexOf(active) : -1;
   const menu = active ? menus[active] : null;
-
-  const reachItem = (el: HTMLElement) => {
-    const bar = barRef.current?.getBoundingClientRect();
-    if (!bar) return;
-    const r = el.getBoundingClientRect();
-    setLit({ left: r.left - bar.left, width: r.width });
-  };
-
-  const reachStep = (c: number, el: HTMLElement) => {
-    const col = el.closest<HTMLElement>("[data-trace-col]");
-    setReach({ col: c, x: col ? Math.max(0, col.offsetLeft - 20) : 0, y: traceReachY(el) });
-  };
+  const section = sectionIndex >= 0 ? SECTIONS[sectionIndex] : null;
+  const hereInMenu = here && here.section === sectionIndex ? here.link : null;
+  const robotAt = section ? section.start + (point ?? hereInMenu ?? 0) : 0;
 
   return (
     <>
       <motion.header
+        ref={header}
         className="fixed inset-x-0 top-0 z-50"
         animate={{ y: hidden && !mobile ? -90 : 0 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        style={{ "--c": `${cell}px` } as CSSProperties}
+        onMouseEnter={() => window.clearTimeout(leaveTimer.current)}
         onMouseLeave={() => {
-          setActive(null);
-          setLit(null);
-          setReach(null);
+          window.clearTimeout(leaveTimer.current);
+          leaveTimer.current = window.setTimeout(() => open(null), 140);
         }}
       >
-        <div ref={barRef} className={`relative border-b transition-colors duration-300 ${solidAlways || solid || active ? "border-white/15 bg-[#090909]/90 backdrop-blur-md" : "border-transparent bg-transparent"}`}>
-          {/* The trace: a thin line runs in from the left along the bar, then thickens under the hovered item. */}
-          <div className="pointer-events-none absolute inset-x-0 -bottom-px hidden h-0.5 lg:block" aria-hidden="true" style={{ opacity: lit ? 1 : 0, transition: "opacity 300ms" }}>
-            <div
-              className="absolute bottom-0 left-0 h-px bg-[linear-gradient(to_right,rgba(244,212,77,0),rgba(244,212,77,0.85))] transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
-              style={{ width: lit?.left ?? 0 }}
-            />
-            <div
-              className="absolute bottom-0 h-0.5 bg-[#f4d44d] shadow-[0_0_10px_rgba(244,212,77,0.6)] transition-[left,width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
-              style={{ left: lit?.left ?? 0, width: lit?.width ?? 0 }}
-            />
-          </div>
-          <nav className="mx-auto flex h-[64px] max-w-[1440px] items-center justify-between px-5 md:px-8" aria-label="Main">
+        {/* The rule under the bar is an inset shadow, so the bar is exactly 64px tall, the height of the spacer under it. */}
+        <div className={`relative transition-colors duration-300 ${solidAlways || solid || active ? "bg-[#090909] shadow-[inset_0_-1px_0_rgb(236_234_227/0.15)]" : "bg-transparent"}`}>
+          <nav className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-5 md:px-8" aria-label="Main">
             <Logo />
-            <ul className="hidden h-full items-stretch border-x border-white/15 lg:flex">
-              {names.map((name, i) => (
-                <li key={name} className="relative border-r border-white/15 last:border-r-0">
-                  <button
-                    type="button"
-                    onMouseEnter={(e) => {
-                      setActive(name);
-                      reachItem(e.currentTarget);
-                    }}
-                    onFocus={(e) => {
-                      setActive(name);
-                      reachItem(e.currentTarget);
-                    }}
-                    onClick={() => setActive(active === name ? null : name)}
-                    aria-expanded={active === name}
-                    className={`relative flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${active === name ? "bg-white/[0.04] text-white" : "text-white/65 hover:text-white"}`}
-                  >
-                    <span className="text-[#f4d44d]">0{i + 1}</span> / {name}
-                  </button>
-                </li>
-              ))}
-              <li className="relative">
-                <Link href={NAV_PRICING.href} onMouseEnter={(e) => { setActive(null); reachItem(e.currentTarget); }} onFocus={(e) => { setActive(null); reachItem(e.currentTarget); }} className="flex h-full items-center gap-1.5 px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-white/65 hover:text-white">
-                  <span className="text-[#f4d44d]">05</span> / {NAV_PRICING.label}
+            <ul className="hidden h-full min-w-0 flex-1 items-stretch justify-center lg:flex">
+              {names.map((name, i) => {
+                const isOpen = active === name;
+                const isHere = here?.section === i;
+                return (
+                  <li key={name} className="relative flex">
+                    <button
+                      ref={(el) => {
+                        triggers.current[name] = el;
+                      }}
+                      type="button"
+                      onMouseEnter={() => {
+                        hoverAt.current = performance.now();
+                        open(name);
+                      }}
+                      onClick={() => {
+                        // A tap or click right after the pointer opened the menu keeps it open.
+                        if (isOpen && performance.now() - hoverAt.current < 500) return;
+                        open(isOpen ? null : name);
+                      }}
+                      onKeyDown={(e) => onTriggerKey(name, e)}
+                      onFocus={() => active && active !== name && open(null)}
+                      aria-expanded={isOpen}
+                      aria-controls="site-menu-panel"
+                      className={`group relative flex h-full items-center gap-2 whitespace-nowrap px-3.5 text-[11px] xl:px-5 ${mono} ${ring} ${isOpen ? "text-[#eceae3]" : "text-[#eceae3]/70 hover:text-[#eceae3]"}`}
+                    >
+                      <span className={isHere ? "bg-[#f4d44d] px-1 text-[#090909]" : "text-[#f4d44d]"}>0{i + 1}</span>
+                      {name}
+                      {isHere && <span className="sr-only">(current section)</span>}
+                      <Caret open={isOpen} />
+                      <span className={`${s.mark} pointer-events-none absolute inset-x-0 bottom-0 bg-[#f4d44d] ${isOpen ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} style={{ height: cell }} aria-hidden="true" />
+                    </button>
+                  </li>
+                );
+              })}
+              <li className="relative flex">
+                <Link
+                  ref={pricing}
+                  href={NAV_PRICING.href}
+                  onMouseEnter={() => open(null)}
+                  onFocus={() => active && open(null)}
+                  aria-current={here?.section === names.length ? "page" : undefined}
+                  className={`group relative flex h-full items-center gap-2 whitespace-nowrap px-3.5 text-[11px] text-[#eceae3]/70 hover:text-[#eceae3] xl:px-5 ${mono} ${ring}`}
+                >
+                  <span className={here?.section === names.length ? "bg-[#f4d44d] px-1 text-[#090909]" : "text-[#f4d44d]"}>0{names.length + 1}</span>
+                  {NAV_PRICING.label}
+                  <span className={`${s.mark} pointer-events-none absolute inset-x-0 bottom-0 scale-x-0 bg-[#f4d44d] group-hover:scale-x-100`} style={{ height: cell }} aria-hidden="true" />
                 </Link>
               </li>
             </ul>
-            <div className="flex items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
               {session ? (
-                <Link href={appHref("/dashboard")} className="hidden bg-[#f4d44d] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-black hover:bg-white sm:inline-flex">
+                <Link href={appHref("/dashboard")} className={`hidden h-11 items-center bg-[#f4d44d] px-4 text-[10px] text-[#090909] hover:bg-[#fff4b5] sm:inline-flex ${mono} focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[#eceae3]`}>
                   Dashboard
                 </Link>
               ) : (
                 <>
-                  <Link href="/cloud?next=/sign-in" className="hidden px-3 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-white/75 hover:text-white sm:inline-flex">
+                  <Link href="/cloud?next=/sign-in" className={`hidden h-11 items-center whitespace-nowrap px-3 text-[10px] text-[#eceae3]/75 hover:text-[#eceae3] sm:inline-flex ${mono} ${ring}`}>
                     Sign in
                   </Link>
-                  <Link href={appHref("/sign-up")} className="group relative hidden overflow-hidden bg-[#f4d44d] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-black sm:inline-flex">
-                    <span className="absolute inset-0 -translate-x-full bg-white transition-transform duration-300 group-hover:translate-x-0" />
-                    <span className="relative flex items-center gap-2">
-                      Start free <ArrowRight className="size-3.5" aria-hidden="true" />
-                    </span>
+                  <Link href={appHref("/sign-up")} className={`group hidden h-11 items-center gap-2 whitespace-nowrap bg-[#f4d44d] px-4 text-[10px] text-[#090909] hover:bg-[#fff4b5] min-[480px]:inline-flex ${mono} focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[#eceae3]`}>
+                    Start free <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden="true" />
                   </Link>
                 </>
               )}
-              <button ref={opener} type="button" onClick={() => setMobile(true)} aria-label="Open menu" aria-expanded={mobile} aria-haspopup="dialog" className="flex size-10 items-center justify-center border border-white/25 text-white lg:hidden">
-                <Menu className="size-5" aria-hidden="true" />
+              <button
+                ref={opener}
+                type="button"
+                onClick={() => setMobile(true)}
+                aria-label="Open menu"
+                aria-expanded={mobile}
+                aria-haspopup="dialog"
+                className={`flex size-11 items-center justify-center border border-[#eceae3]/30 text-[#eceae3] hover:border-[#eceae3] lg:hidden ${ring}`}
+              >
+                <BarsIcon />
               </button>
             </div>
           </nav>
-        </div>
 
-        <AnimatePresence>
-          {menu && active && (
-            <motion.div
-              key="panel"
-              initial={reduce ? false : { clipPath: "inset(0 0 100% 0)" }}
-              animate={{ clipPath: "inset(0 0 0% 0)" }}
-              exit={{ clipPath: "inset(0 0 100% 0)" }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="relative hidden overflow-hidden border-b border-white/15 bg-[#090909] text-[#eceae3] lg:block"
+          {menu && active && section && (
+            <div
+              ref={panel}
+              id="site-menu-panel"
+              role="region"
+              aria-label={`${active} menu`}
+              data-swap={swap}
+              onKeyDown={onPanelKey}
+              className={`${s.panel} absolute inset-x-0 top-full hidden border-b border-[#eceae3]/15 bg-[#090909] text-[#eceae3] lg:block`}
             >
-              <DitherEmber className="!opacity-40" />
-              <div className="relative mx-auto grid max-w-[1440px] grid-cols-[1.2fr_1fr] gap-6 px-8 py-8">
-                <div className="border border-white/15 bg-[#090909]/90">
-                  <div className="flex items-center justify-between border-b border-white/15 px-5 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
-                    <span className="flex items-center gap-2">
-                      <span className="size-1.5 animate-pulse bg-[#f4d44d]" aria-hidden="true" />
-                      trace · uncoil.dev/{active.toLowerCase()}
+              <MenuPanel name={active} index={sectionIndex} cell={cell} hereLink={hereInMenu} onPoint={setPoint} onPick={() => open(null)}>
+                <Link
+                  href={menu.feature.href}
+                  onClick={() => open(null)}
+                  onMouseEnter={() => setPoint(null)}
+                  onFocus={() => setPoint(null)}
+                  className={`group flex flex-col border border-[#eceae3]/15 hover:border-[#eceae3]/40 ${ring}`}
+                >
+                  <ChromeScene fill rows={26} pages={PAGES} marks={MARKS} lit={sectionIndex} target={robotAt} className="border-b border-[#eceae3]/15" />
+                  <span className="flex flex-col p-5">
+                    <span className={`${mono} text-[10px] text-[#eceae3]/55`}>
+                      Featured · step <span className="text-[#f4d44d]">0{sectionIndex + 1}</span> of 05
                     </span>
-                    <span>{menu.links.length} steps</span>
-                  </div>
-                  <motion.div key={active} className="relative grid grid-cols-2 gap-x-6 px-5 pb-5 pt-8" initial="hide" animate="show" variants={{ show: { transition: { staggerChildren: 0.05 } } }}>
-                    <div className="pointer-events-none absolute left-5 right-5 top-8 h-px bg-white/20" aria-hidden="true" />
-                    {/* Hovering the right column lights the top line first, so the trace runs 01-03 → 04-06. */}
-                    <div
-                      className="pointer-events-none absolute left-5 top-8 h-px bg-[#f4d44d] shadow-[0_0_8px_#f4d44d] transition-[width,opacity] duration-300 ease-out motion-reduce:transition-none"
-                      style={{ width: reach?.x ?? 0, opacity: reach && reach.x > 0 ? 1 : 0 }}
-                      aria-hidden="true"
-                    />
-                    {[menu.links.slice(0, 3), menu.links.slice(3)].map((col, c) => (
-                      <div key={c} data-trace-col className="relative pl-5" onMouseLeave={() => setReach(null)}>
-                        <span className={`absolute -left-[3.5px] -top-[3.5px] size-2 transition-colors ${reach && reach.col >= c ? "bg-[#f4d44d] shadow-[0_0_12px_#f4d44d]" : "bg-white/60"}`} aria-hidden="true" />
-                        <span className="absolute bottom-1 left-0 top-0 w-px bg-white/15" aria-hidden="true" />
-                        <span
-                          className="pointer-events-none absolute left-0 top-0 w-px bg-[#f4d44d] shadow-[0_0_8px_#f4d44d] transition-[height,opacity] duration-300 ease-out motion-reduce:transition-none"
-                          style={{ height: reach?.col === c ? reach.y : 0, opacity: reach?.col === c ? 1 : 0 }}
-                          aria-hidden="true"
-                        />
-                        <span
-                          className="pointer-events-none absolute -left-[2px] size-[5px] bg-[#f4d44d] transition-[top,opacity] duration-300 ease-out motion-reduce:transition-none"
-                          style={{ top: (reach?.col === c ? reach.y : 0) - 2.5, opacity: reach?.col === c ? 1 : 0 }}
-                          aria-hidden="true"
-                        />
-                        <ul className="grid gap-1 pt-3">
-                          {col.map(([t, b, href], j) => (
-                            <motion.li
-                              key={href}
-                              variants={{ hide: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}
-                              onMouseEnter={(e) => reachStep(c, e.currentTarget)}
-                              onFocus={(e) => reachStep(c, e.currentTarget)}
-                            >
-                              <Link href={href} onClick={() => setActive(null)} className="group flex items-start py-2.5">
-                                <span data-trace-tick className="-ml-5 mr-3 mt-3 h-px w-2.5 shrink-0 bg-white/20 transition-all group-hover:w-4 group-hover:bg-[#f4d44d]" aria-hidden="true" />
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex items-baseline gap-2">
-                                    <span className="font-mono text-[10px] text-[#f4d44d]">0{c * 3 + j + 1}</span>
-                                    <span className="font-pixel text-2xl tracking-[-0.05em] transition-colors group-hover:text-[#f4d44d]">{t}</span>
-                                  </span>
-                                  <span className="mt-0.5 block text-sm text-white/50 group-hover:text-white/75">{b}</span>
-                                </span>
-                                <ArrowUpRight className="mt-2 size-4 shrink-0 text-[#f4d44d] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
-                              </Link>
-                            </motion.li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </motion.div>
-                </div>
-                <Link href={menu.feature.href} onClick={() => setActive(null)} className="group relative min-h-[260px] overflow-hidden border border-white/15">
-                  <AnimatePresence mode="popLayout">
-                    <motion.div key={active} className="absolute inset-0" initial={reduce ? false : { opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-                      <Image src={menu.img} alt="" fill unoptimized sizes="40vw" className={`object-cover transition-transform duration-700 group-hover:scale-105 ${art}`} />
-                    </motion.div>
-                  </AnimatePresence>
-                  <div className="absolute inset-0 bg-[linear-gradient(to_top,#090909_0%,rgba(9,9,9,0.7)_40%,rgba(9,9,9,0)_75%)]" />
-                  <div className="absolute inset-x-0 bottom-0 p-6">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#f4d44d]">Featured</p>
-                    <p className="mt-2 font-pixel text-3xl tracking-[-0.05em]">{menu.feature.title}</p>
-                    <p className="mt-1 max-w-sm text-sm text-white/60">{menu.feature.body}</p>
-                    <span className="mt-4 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#f4d44d]">
-                      {menu.feature.label} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                    <span className="mt-2 font-pixel text-[26px] leading-[1.05] tracking-[-0.04em] group-hover:text-[#fff4b5]">{menu.feature.title}</span>
+                    <span className="mt-2 text-sm leading-5 text-[#eceae3]/65">{menu.feature.body}</span>
+                    <span className={`${mono} mt-4 inline-flex items-center gap-2 pt-4 text-[10px] text-[#f4d44d]`}>
+                      {menu.feature.label} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true" />
                     </span>
-                  </div>
+                  </span>
                 </Link>
-              </div>
-            </motion.div>
+              </MenuPanel>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </motion.header>
 
       {mobile && <PhoneMenu currentPath={pathname} signedIn={!!session} onClose={closeMobile} />}
     </>
+  );
+}
+
+/**
+ * One open menu: its six pages as a waterfall, one row per page. Each row is the page's number,
+ * title and one-line description, and its bar on the menu's run: page n starts where page n-1
+ * ended, so the bars step down to the right like spans in a trace.
+ */
+function MenuPanel({ name, index, cell, hereLink, onPoint, onPick, children }: {
+  name: MenuName;
+  index: number;
+  cell: number;
+  hereLink: number | null;
+  onPoint: (j: number | null) => void;
+  onPick: () => void;
+  children: React.ReactNode;
+}) {
+  const links = menus[name].links;
+  const lane = useRef<HTMLSpanElement>(null);
+  const [geo, setGeo] = useState({ cells: 0, shift: 0 });
+
+  useLayoutEffect(() => {
+    const el = lane.current;
+    if (!el) return;
+    const measure = () => setGeo({ cells: Math.floor(el.clientWidth / cell), shift: deviceShift(el.getBoundingClientRect().left, window.devicePixelRatio || 1) });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+    // The rows (and so the measured lane) are new elements for each menu.
+  }, [cell, name]);
+
+  return (
+    <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_minmax(300px,360px)] gap-8 px-8 pb-8 pt-5 xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-12">
+      <div onMouseLeave={() => onPoint(null)}>
+        <p className={`${mono} flex items-center justify-between gap-4 border-b border-[#eceae3]/15 pb-3 text-[10px] text-[#eceae3]/55`}>
+          <span>
+            <span className="text-[#f4d44d]">0{index + 1}</span> / {name} · {links.length} pages
+          </span>
+          <span className="normal-case tracking-[0.08em]">run · uncoil.dev/{name.toLowerCase()}</span>
+        </p>
+        <ul className="mt-1">
+          {links.map(([title, body, href], j) => {
+            const bar = waterfallBar(geo.cells, links.length, j);
+            const isHere = hereLink === j;
+            return (
+              <li key={href} className={s.row} style={{ "--d": `${j * 25}ms` } as CSSProperties}>
+                <Link
+                  href={href}
+                  onClick={onPick}
+                  onMouseEnter={() => onPoint(j)}
+                  onFocus={() => onPoint(j)}
+                  aria-current={isHere ? "page" : undefined}
+                  className={`group grid grid-cols-[2rem_minmax(0,19rem)_minmax(0,1fr)] items-center gap-4 py-2 ${ring} ${isHere ? "bg-[#eceae3]/[0.05]" : "hover:bg-[#eceae3]/[0.04] focus-visible:bg-[#eceae3]/[0.04]"}`}
+                >
+                  <span className={`${mono} pl-1 text-[10px] text-[#f4d44d]`}>0{j + 1}</span>
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="truncate font-pixel text-[21px] leading-7 tracking-[-0.04em] group-hover:text-[#fff4b5] group-focus-visible:text-[#fff4b5]">{title}</span>
+                      {isHere && <span className={`${mono} shrink-0 bg-[#f4d44d] px-1.5 py-1 text-[9px] leading-none text-[#090909]`}>You are here</span>}
+                    </span>
+                    <span className="block truncate text-[13px] leading-5 text-[#eceae3]/60 group-hover:text-[#eceae3]/80">{body}</span>
+                  </span>
+                  <span ref={j === 0 ? lane : undefined} className="relative block self-stretch" aria-hidden="true">
+                    {geo.cells > 0 && (
+                      <span className="absolute inset-y-0 left-0 right-0" style={{ transform: `translateX(${geo.shift}px)` }}>
+                        {bar.start > 0 && <span className={`${s.wait} absolute left-0`} style={{ top: `calc(50% - ${cell / 2}px)`, height: cell, width: (bar.start - 1) * cell }} />}
+                        <span
+                          className={`${s.bar} absolute ${isHere ? "bg-[#f4d44d] shadow-[inset_0_var(--c)_0_#fff4b5]" : "bg-[#eceae3] group-hover:bg-[#f4d44d] group-focus-visible:bg-[#f4d44d]"}`}
+                          style={{ left: bar.start * cell, width: bar.width * cell, top: `calc(50% - ${(3 * cell) / 2}px)`, height: 3 * cell, "--d": `${60 + j * 40}ms` } as CSSProperties}
+                        />
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      {children}
+    </div>
   );
 }

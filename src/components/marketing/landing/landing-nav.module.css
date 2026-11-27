@@ -1,0 +1,56 @@
+/* Motion for the desktop menus. The panel opens in four hard steps, top down, the way the phone
+   menu's bars draw in; rows rise a few cells in a short stagger; each bar draws in left to right.
+   Moving between menus swaps the rows without replaying the panel. All of it is off under reduced
+   motion. --c is the page's grid cell in CSS px. */
+
+.panel {
+  animation: open 160ms steps(4, end) both;
+}
+.panel[data-swap="true"] {
+  animation: none;
+}
+@keyframes open {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+.row {
+  animation: rise 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateX(calc(var(--c) * -2)); }
+  to { opacity: 1; transform: none; }
+}
+
+.bar {
+  animation: grow 180ms steps(3, end) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes grow {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* The dotted wait line from the start of the menu's run to a page that starts later. */
+.wait {
+  background: linear-gradient(to right, rgb(236 234 227 / 0.35) var(--c), transparent 0) 0 0 / calc(var(--c) * 2) var(--c) repeat-x;
+}
+
+/* The block under a menu item: grows from the left in two hard steps. */
+.mark {
+  transform-origin: left;
+  transition: transform 120ms steps(2, end);
+}
+
+.caret {
+  transition: transform 120ms steps(2, end);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .row,
+  .bar { animation: none; }
+  .mark,
+  .caret { transition: none; }
+}

@@ -57,6 +57,12 @@ export function reaches(sections: Section[], href: string) {
  */
 export const pitch = (cells: number, pages: number, reserve = 0) => Math.max(2, Math.floor((cells - reserve) / pages));
 
+/**
+ * Cells a step's bar spans: its pages at `p` cells each, less the one-cell seam at the end, but
+ * at least `min` cells as long as the lane has `room` for that.
+ */
+export const barCells = (pages: number, p: number, min: number, room: number) => Math.max(pages * p - 1, Math.min(min, room));
+
 /** The first line of the menu header: which page the trace is on, or none. */
 export function onLine(here: Here | null, path: string) {
   const p = clean(path.split(/[?#]/)[0] || "/");

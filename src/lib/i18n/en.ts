@@ -80,6 +80,7 @@ export const en: Copy = {
     },
     unlimited: "Unlimited",
     enterprise: { name: "Enterprise", line: "For larger rollouts.", price: "Custom", spans: "Unlimited spans", features: ["Custom retention", "SSO (SAML / OIDC)", "On-prem deployment", "Rollout support"], cta: "Talk to us" },
+    howWeWork: "How we work",
     spanEyebrow: "What you pay for",
     spanTitle: "One step, one span.",
     spanBody: "Every model call, tool call and retrieval your agent makes is one span. A run with six steps is six spans, retries and failures included. That is the whole meter. No seats-times-features maze, no per-trace surprise.",

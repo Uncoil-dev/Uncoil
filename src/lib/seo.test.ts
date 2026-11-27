@@ -57,3 +57,33 @@ test("share-card kicker follows the route prefix", () => {
   assert.equal(kickerForPath("/"), "AI agent observability");
   assert.equal(kickerForPath("/security"), "AI agent observability");
 });
+
+test("how-we-work statements each link to a page that exists", async () => {
+  const { existsSync } = await import("node:fs");
+  const { sections, notDoing } = await import("./how-we-work.ts");
+  const statements = [...sections.flatMap((s) => s.items), ...notDoing];
+  assert.ok(statements.length >= 8);
+  for (const item of statements) {
+    assert.ok(item.text.length > 0 && item.proof.label.length > 0);
+    if (!item.proof.href.startsWith("/")) {
+      assert.match(item.proof.href, /^https:\/\/github\.com\/Uncoil-dev\//);
+      continue;
+    }
+    const path = item.proof.href.split("#")[0].replace(/^\//, "");
+    const onDisk = path.startsWith("docs/") || existsSync(`src/app/(frontend)/${path}/page.tsx`);
+    assert.ok(onDisk, `no page for ${item.proof.href}`);
+  }
+});
+
+test("security page has the anchors how-we-work links to", async () => {
+  const { readFileSync } = await import("node:fs");
+  const page = readFileSync("src/app/(frontend)/security/page.tsx", "utf8");
+  assert.match(page, /id="data"/);
+  assert.match(page, /id="deletion"/);
+});
+
+test("footer and pricing page link to how-we-work", async () => {
+  const { readFileSync } = await import("node:fs");
+  assert.match(readFileSync("src/components/marketing/landing/landing-footer.tsx", "utf8"), /"\/how-we-work"/);
+  assert.match(readFileSync("src/components/marketing/pricing/pricing-page.tsx", "utf8"), /href="\/how-we-work"/);
+});

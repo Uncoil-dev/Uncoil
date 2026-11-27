@@ -46,4 +46,16 @@ describe("sitemap docs entries", () => {
       expect(entry?.lastModified, c.slug).toEqual(new Date(`${c.lastChecked}T00:00:00.000Z`));
     }
   });
+
+  it("lists the how-we-work page", async () => {
+    workspace = mkdtempSync(join(tmpdir(), "uncoil-sitemap-"));
+    mkdirSync(join(workspace, "content", "docs"), { recursive: true });
+    process.chdir(workspace);
+    vi.resetModules();
+
+    const { default: sitemap } = await import("./sitemap");
+    const urls = (await sitemap()).map((entry) => entry.url);
+
+    expect(urls).toContain("https://www.uncoil.dev/how-we-work");
+  });
 });

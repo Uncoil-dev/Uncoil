@@ -1,4 +1,4 @@
-import { PLAN_RETENTION_DAYS } from "@/lib/retention";
+import { PLAN_RETENTION_DAYS } from "./retention.ts";
 
 /**
  * Public "where your data lives" facts for the EU cloud. Every line here must stay true:

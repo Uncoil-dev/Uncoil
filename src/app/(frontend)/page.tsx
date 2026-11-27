@@ -1,5 +1,7 @@
+import { HomePage } from "@/components/marketing/home/home-page";
 import { LandingPage } from "@/components/marketing/landing/landing-page";
 import type { Metadata } from "next";
+import { HOME_DESIGN } from "@/lib/homepage";
 import { ogImageUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -11,11 +13,18 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
+  if (HOME_DESIGN === "classic") {
+    return (
+      <div className="min-h-screen bg-[#090909]">
+        <main id="main-content">
+          <LandingPage />
+        </main>
+      </div>
+    );
+  }
   return (
-    <div className="min-h-screen bg-[#090909]">
-      <main id="main-content">
-        <LandingPage />
-      </main>
-    </div>
+    <main id="main-content" className="min-h-screen bg-[#090909]">
+      <HomePage />
+    </main>
   );
 }

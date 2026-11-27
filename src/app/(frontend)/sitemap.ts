@@ -10,7 +10,7 @@ import type { MetadataRoute } from "next";
 // Baseline review date for static pages. Add route-specific dates below for pages changed later.
 const SITE_REVIEWED = new Date("2026-10-25T00:00:00.000Z");
 const PAGE_LAST_MODIFIED: Record<string, Date> = {
-  "/": new Date("2026-11-08T03:29:55.000Z"),
+  "/": new Date("2026-11-27T00:00:00.000Z"),
   "/pricing": new Date("2026-11-08T03:29:55.000Z"),
   "/about": new Date("2026-11-08T03:29:55.000Z"),
   "/contact": new Date("2026-11-08T03:29:55.000Z"),

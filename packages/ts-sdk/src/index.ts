@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { resolveRelease } from "./release";
 
 export interface UncoilConfig {
   apiKey?: string;
@@ -363,7 +364,7 @@ export class UncoilClient {
       throw new UncoilError("region_mismatch", `Uncoil API key region mismatch: this key belongs to ${keyRegion.toUpperCase()}, but the client is configured for ${selectedHostRegion.toUpperCase()}.`, `Set region: "${keyRegion}" (or UNCOIL_REGION=${keyRegion}), or create a key in the ${selectedHostRegion.toUpperCase()} region.`);
     }
     this.projectId = config.projectId;
-    this.release = config.release;
+    this.release = resolveRelease(config.release);
     this.environment = config.environment;
     this.deploymentId = config.deploymentId;
     this.sessionId = config.sessionId;

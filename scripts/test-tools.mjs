@@ -33,12 +33,20 @@ function otherRunners(root) {
   const workflows = join(root, ".github", "workflows");
   try {
     for (const name of readdirSync(workflows)) {
-      parts.push(readFileSync(join(workflows, name), "utf8"));
+      const text = readFileSync(join(workflows, name), "utf8");
+      parts.push(text.split("\n").filter((l) => !l.trimStart().startsWith("#")).join("\n"));
     }
   } catch {
     // No workflows directory: nothing else to account for.
   }
   return parts.join("\n");
+}
+
+// True when `file` appears as a whole token: bounded by the start of the text,
+// whitespace or a quote on both sides.
+function isNamedIn(text, file) {
+  const escaped = file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[\\s"'\`])${escaped}($|[\\s"'\`])`).test(text);
 }
 
 /** Repo-relative, forward-slash paths of the suites `test:tools` runs. */
@@ -50,13 +58,18 @@ export function discoverToolTests(root = ROOT) {
     .map((f) => relative(root, f).split(sep).join("/"))
     .filter((f) => !INTEGRATION_FILE.test(f))
     .filter((f) => NODE_TEST_IMPORT.test(readFileSync(join(root, f), "utf8")))
-    .filter((f) => !elsewhere.includes(f))
+    .filter((f) => !isNamedIn(elsewhere, f))
     .sort();
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   // node --test expands its arguments as globs; escape brackets in route folders.
-  const args = discoverToolTests().map((f) => f.replace(/\[/g, "[[]"));
+  const files = discoverToolTests();
+  if (files.length === 0) {
+    console.error("test-tools: no node:test files found under scripts, src or convex.");
+    process.exit(1);
+  }
+  const args = files.map((f) => f.replace(/\[/g, "[[]"));
   const result = spawnSync(
     process.execPath,
     ["--test", "--experimental-strip-types", ...args],

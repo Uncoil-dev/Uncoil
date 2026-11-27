@@ -9,6 +9,7 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useConvexAuthReadiness } from "@/hooks/use-convex-auth-readiness";
 import { pricingCheckoutHref } from "@/lib/billing-links";
+import { trialLine } from "@/lib/checkout-trial";
 import { usageLevel } from "@/lib/plan-limits";
 import { planById, type PlanId } from "@/lib/pricing-plans";
 
@@ -46,6 +47,7 @@ export function UpgradeBanner({ projectId }: { projectId: string }) {
           : over
             ? "New data will pause soon. Upgrade to keep everything coming in."
             : "Upgrade before you run out."}
+        {usage.planTier === "free" ? ` ${trialLine()}.` : ""}
       </span>
       <Link
         href={next ? pricingCheckoutHref(next, "monthly") : "/contact"}

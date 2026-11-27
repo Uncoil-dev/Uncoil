@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/marketing/page-header";
 import { Reveal } from "@/components/marketing/landing/reveal";
 import { pricingCheckoutHref, type BillingInterval } from "@/lib/billing-links";
 import { formatPrice, monthlyPrice, planForSpans, plans, type Plan } from "@/lib/pricing-plans";
+import { trialLine } from "@/lib/checkout-trial";
 import { getCopy, type Locale } from "@/lib/i18n";
 
 import { pricingFaqEntries } from "@/lib/pricing-faq";
@@ -77,6 +78,7 @@ function PlanCard({ plan, interval, featured, recommended, t }: { plan: Plan; in
         ))}
       </ul>
       {recommended && <p className={`mt-6 font-mono text-[9px] uppercase tracking-[0.14em] ${featured ? "text-[#f4d44d]" : "text-black"}`}>◼ {t.fits}</p>}
+      {plan.id !== "free" && <p className={`mt-6 font-mono text-[10px] uppercase tracking-[0.1em] ${featured ? "text-[#f4d44d]" : "text-black"}`}>{trialLine()}</p>}
       <Link
         href={plan.id === "free" ? appHref("/sign-up") : appHref(pricingCheckoutHref(plan.id, interval))}
         className={`mt-auto flex min-h-12 items-center justify-between px-4 font-mono text-[10px] uppercase tracking-[0.13em] ${featured ? "bg-[#f4d44d] text-black hover:bg-white" : "border-2 border-black hover:bg-black hover:text-white"}`}

@@ -14,7 +14,7 @@ const SECTIONS = [
 ] as const;
 type Section = (typeof SECTIONS)[number]["id"];
 
-export function AlertsSections({ projectId }: { projectId: string }) {
+export function AlertsSections({ projectId, startCreating = false }: { projectId: string; startCreating?: boolean }) {
   const [section, setSection] = useState<Section>("rules");
   return (
     <div className="flex min-h-svh flex-col bg-[#0B0D10]">
@@ -23,7 +23,7 @@ export function AlertsSections({ projectId }: { projectId: string }) {
           <button key={item.id} type="button" aria-current={section === item.id ? "page" : undefined} onClick={() => setSection(item.id)} className={`-mb-px border-b-2 px-3 py-2 ${section === item.id ? "border-[#F4D44D] text-[#F4D44D]" : "border-transparent text-[#8B93A1] hover:text-[#E6E9EE]"}`}>{item.label}</button>
         ))}
       </nav>
-      {section === "rules" ? <AlertsWorkspace projectId={projectId} /> : section === "history" ? <AlertHistory projectId={projectId} /> : section === "budgets" ? <BudgetsPanel projectId={projectId} /> : <WeeklySummaryPanel projectId={projectId} />}
+      {section === "rules" ? <AlertsWorkspace projectId={projectId} startCreating={startCreating} /> : section === "history" ? <AlertHistory projectId={projectId} /> : section === "budgets" ? <BudgetsPanel projectId={projectId} /> : <WeeklySummaryPanel projectId={projectId} />}
     </div>
   );
 }

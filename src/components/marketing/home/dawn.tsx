@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { CREAM, INK, PALE, YELLOW, Px, dith } from "./pixels";
+import { robotInFront } from "./hero-art";
 import { hash } from "./math";
 import { snapCell, targetCell } from "./grid";
 import { useCalm } from "./use-calm";
@@ -15,6 +16,9 @@ export const DAWN_ROWS = 34;
  * dark top, and the sun climbs from the horizon at the bottom edge, its bands thinning as it rises.
  * Pure, so the tests can check that nothing is drawn off the grid or through the copy below.
  */
+/** Where the robot stands in the strip, in cells: it crosses from the left edge to the right as the strip scrolls by. */
+export const carryX = (w: number, rise: number) => Math.round(-6 + (w + 12) * Math.min(1, Math.max(0, rise)));
+
 export function drawDawn(px: Px, rise: number) {
   const { w, h } = px;
   px.clear(INK);
@@ -31,8 +35,9 @@ export function drawDawn(px: Px, rise: number) {
   // The sun: the same size as in the scenes, its centre climbing as the strip scrolls by.
   const r = Math.round(Math.min(w * 0.11, 24));
   const cx = Math.round(w * 0.78);
-  const cy = Math.round(h - 2 + r * 0.15 - rise * r * 0.55);
-  const bands = 0.55 * (1 - rise);
+  const sunRise = Math.round(rise * 14) / 14;
+  const cy = Math.round(h - 2 + r * 0.15 - sunRise * r * 0.55);
+  const bands = 0.55 * (1 - sunRise);
   for (let y = -r; y <= r; y++) {
     if (cy + y >= h - 2) break;
     const band = bands > 0 && y > r * (1 - 1.15 * bands) && (y + r) % 5 < 1 + Math.floor(((y + r * 0.15) / r) * 3);
@@ -45,12 +50,15 @@ export function drawDawn(px: Px, rise: number) {
   }
   // The horizon: two solid cream rows that run on into the section below.
   px.rect(0, h - 2, w, 2, CREAM);
+  // The robot carries the yellow plank across the strip, a step for every two cells it moves.
+  const x = carryX(w, rise);
+  robotInFront(px, x, h - 2, Math.floor(x / 2) % 4, false, false, { swap: true, plank: true });
 }
 
 /**
  * Dawn, between the night half of the page and the morning half. The strip is drawn on the page
- * grid and redrawn only when the sun moves a whole cell, from scroll, inside an animation frame;
- * off screen it does nothing at all. With reduced motion the sun stands still halfway up.
+ * grid and redrawn only when the robot moves a whole cell, from scroll, inside an animation frame;
+ * off screen it does nothing at all. With reduced motion the sun and the robot stand still halfway.
  */
 export function Dawn() {
   const calm = useCalm();
@@ -73,8 +81,8 @@ export function Dawn() {
       const rect = box.getBoundingClientRect();
       const vh = window.innerHeight;
       const rise = calm ? 0.5 : Math.min(1, Math.max(0, (vh - rect.top) / (vh + rect.height)));
-      // Rounded to the step that moves the sun one whole cell.
-      const step = Math.round(rise * 14) / 14;
+      // Redrawn for every whole cell the robot moves.
+      const step = carryX(w, rise);
       const next = `${w}:${cell}:${step}`;
       if (next === key) return;
       key = next;
@@ -86,7 +94,7 @@ export function Dawn() {
       canvas.style.width = `${w * cell}px`;
       canvas.style.height = `${DAWN_ROWS * cell}px`;
       box.style.height = `${DAWN_ROWS * cell}px`;
-      drawDawn(px, step);
+      drawDawn(px, rise);
       px.blit(ctx);
     };
     const ask = () => {

@@ -96,10 +96,10 @@ const NO_FOLD: ReadonlySet<string> = new Set();
 
 /**
  * The trace view from the dashboard, drawing one example run and opened on the step that explains
- * it. Click any step to read it. `rows` is the row count the timeline makes room for, so switching
- * between runs never makes the page jump.
+ * it. Click any step to read it. The timeline is as tall as the run's own rows, so a short run
+ * leaves no empty space under it.
  */
-export function TraceWindow({ c, rows: room }: { c: Case; rows: { desk: number; phone: number } }) {
+export function TraceWindow({ c }: { c: Case }) {
   const phone = usePhone();
   // On phones a long group starts folded, so the run fits one screen; it opens from its panel.
   const [open, setOpen] = useState<boolean | null>(null);
@@ -127,7 +127,7 @@ export function TraceWindow({ c, rows: room }: { c: Case; rows: { desk: number; 
         ["Cost · latency", `${formatCost(step.costUsd)} · ${formatDuration(step.latencyMs)}`],
       ];
   const bad = run.some((s) => s.errorType);
-  const timelineH = 34 + 25 + (phone ? room.phone * 44 : room.desk * 28) + 6;
+  const timelineH = 34 + 25 + rows.length * (phone ? 44 : 28) + 6;
   // The step panel beside (or under) the timeline keeps one height for every example run, so
   // switching runs never moves the page; its tallest content is the loop group with its button.
 

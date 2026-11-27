@@ -25,6 +25,15 @@ function subscribe(cb: () => void) {
   return () => listeners.delete(cb);
 }
 
+/**
+ * Reads the address again: called when the page mounts, so a case kept in module state from an
+ * earlier visit never outlives its link. A missing or unknown `?case=` means the default story.
+ */
+export function syncCaseFromUrl() {
+  picked = null;
+  listeners.forEach((cb) => cb());
+}
+
 /** Picks a failure for the whole page and keeps it in the address without adding history. */
 export function pickCase(id: CaseId) {
   picks++;

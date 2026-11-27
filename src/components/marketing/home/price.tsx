@@ -16,7 +16,7 @@ const pro = plans.find((p) => p.id === FEATURED)!;
  */
 export function Price() {
   return (
-    <section id="price" className="scroll-mt-16 border-y-2 border-[#090909] bg-[#eceae3] px-5 py-8 text-[#090909] md:px-10 md:py-10" aria-labelledby="ed-price-title">
+    <section id="price" className="scroll-mt-16 border-b-2 border-[#090909] bg-[#eceae3] px-5 py-8 text-[#090909] md:px-10 md:py-10" aria-labelledby="ed-price-title">
       <div className={`${WRAP} grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)_auto] lg:items-center lg:gap-10`}>
         <div>
           <p className={`text-black/60 ${LABEL}`}>05 · The price</p>
@@ -46,6 +46,7 @@ export function Price() {
           <Link href={appHref("/sign-up")} className={primary("cream")}>
             Start free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
+          <p className={`text-black/60 ${LABEL}`}>Free needs no card</p>
           <Link href="/pricing" className={`inline-flex min-h-11 items-center gap-2 underline underline-offset-4 hover:text-black/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#090909] ${LABEL}`}>
             Compare every plan <ArrowRight className="size-3.5" aria-hidden="true" />
           </Link>

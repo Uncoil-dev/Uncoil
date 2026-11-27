@@ -4,6 +4,8 @@
 
 import { CREAM, INK, RED, YELLOW, type Px } from "./pixels";
 import { board } from "./steps-art";
+import { robotInFront } from "./hero-art";
+import { clamp01, ease } from "./math";
 import { PLATE, boardBox, ropeCells, scanReach, scanStop, tailCells, type WhereLayout } from "./where-layout";
 import type { StepIcon } from "./cases";
 
@@ -46,12 +48,17 @@ export type WhereState = {
   scan: number;
   /** The step (1-6) that caused the failure. */
   cause: number;
+  /** Seconds since the scan locked on the cause, or -1 while it has not: the robot lands on the cause plate then. */
+  since?: number;
 };
+
+/** Seconds the robot takes to land on the cause plate. */
+export const LAND = 0.5;
 
 /** When each part of the figure appears, in seconds after it comes into view. */
 export const ENTER = { rope: 1.4, plate: (i: number) => 0.25 + i * 0.18, tail: 1.6 } as const;
 
-export function drawWhere(px: Px, l: WhereLayout, icons: readonly IconName[], { t, scan, cause }: WhereState, pal: WherePalette = DAY_INK) {
+export function drawWhere(px: Px, l: WhereLayout, icons: readonly IconName[], { t, scan, cause, since = -1 }: WhereState, pal: WherePalette = DAY_INK) {
   const { bg, line } = pal;
   px.clear(bg);
   const { cells, snap } = ropeCells(l);
@@ -104,7 +111,7 @@ export function drawWhere(px: Px, l: WhereLayout, icons: readonly IconName[], { 
     // The post and the number board.
     const b = boardBox(l, i);
     if (l.vertical) px.rect(x + PLATE, c.y, b.x - x - PLATE, 1, line);
-    else if (i % 2 === 0) px.rect(c.x, b.y + b.h, 1, y - b.y - b.h, line);
+    else if (l.above[i]) px.rect(c.x, b.y + b.h, 1, y - b.y - b.h, line);
     else px.rect(c.x, y + PLATE, 1, b.y - y - PLATE, line);
     board(px, i + 1, b.x, b.y, failed ? { rim: line, fill: RED, ink: CREAM } : lit ? { rim: line, fill: YELLOW, ink: INK } : { rim: line, fill: INK, ink: CREAM });
   });
@@ -139,5 +146,13 @@ export function drawWhere(px: Px, l: WhereLayout, icons: readonly IconName[], { 
           px.set(cx, cy + sy * k, color);
         }
     }
+  }
+  // The robot lands on the cause plate once the scan has locked on it, standing on the frame's
+  // top edge. The cause's number board hangs below its plate, so nothing above it is covered.
+  if (since >= 0 && l.above[cause - 1] === false) {
+    const c = l.centers[cause - 1];
+    const top = c.y - (PLATE >> 1);
+    const drop = Math.round((1 - ease(clamp01(since / LAND))) * 9);
+    robotInFront(px, c.x, top - 1 - drop, 0, false, false);
   }
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { CREAM, INK, PALE, YELLOW, dith, type Px, type Scene } from "./pixels";
 import { hash, noise } from "./math";
+import { placeSun } from "./sun";
 
 /** A rectangle in buffer pixels. */
 export type Box = { x: number; y: number; w: number; h: number };
@@ -124,17 +125,24 @@ export const PREDAWN: Daylight = { stars: 26, sun: -1, bands: 0, glow: true };
 export const MORNING: Daylight = { stars: 0, sun: 1.25, bands: 0 };
 
 /** The sun's radius and centre in buffer pixels for a scene of this size and time of day. */
-export function sunDisc(w: number, h: number, groundY: number, sunX: number, day: Daylight, cam = 0) {
-  const r = Math.round(Math.min(w * 0.11, h * 0.2));
+export function sunDisc(w: number, h: number, groundY: number, sunX: number, day: Daylight, cam = 0, fitR?: number) {
+  const r = fitR ?? Math.round(Math.min(w * 0.11, h * 0.2));
   const cx = Math.round(w * sunX - cam * 0.14);
   // At 0 the centre sits on the far ridge, so the hills cover the lower part of the sun.
   const cy = Math.round(groundY - h * 0.08 - (h * 0.12 + r * 0.6) * day.sun);
   return { r, cx, cy };
 }
 
+/** The sun's place for a scene: clear of the given posts and of any copy box in its band. */
+export function fitSun(w: number, h: number, groundY: number, day: Daylight, prefer: number, posts: readonly (readonly [number, number])[], copy: readonly Box[]) {
+  const { r, cy } = sunDisc(w, h, groundY, prefer / w, day);
+  const behind = copy.filter((b) => b.y < cy + r + 3 && b.y + b.h > cy - r - 3).map((b): [number, number] => [b.x, b.x + b.w]);
+  return placeSun(w, r, [...posts, ...behind], prefer) ?? { cx: Math.round(prefer), r };
+}
+
 /** The sun's box, grown by 3 pixels, so labels can keep clear of it. */
-export function sunBox(w: number, h: number, groundY: number, sunX: number, day: Daylight): Box {
-  const { r, cx, cy } = sunDisc(w, h, groundY, sunX, day);
+export function sunBox(w: number, h: number, groundY: number, sunX: number, day: Daylight, fitR?: number): Box {
+  const { r, cx, cy } = sunDisc(w, h, groundY, sunX, day, 0, fitR);
   return { x: cx - r - 3, y: cy - r - 3, w: 2 * r + 6, h: 2 * r + 6 };
 }
 
@@ -144,7 +152,7 @@ export function sunBox(w: number, h: number, groundY: number, sunX: number, day:
  * height over a few dozen columns, so the hills keep rolling everywhere else and the ridge line
  * stays one continuous stroke.
  */
-export function landscapeUnder({ px, cam, groundY, t }: Scene, sunX: number, relief: number, boxes: readonly Box[], day: Daylight = NIGHT) {
+export function landscapeUnder({ px, cam, groundY, t }: Scene, sunX: number, relief: number, boxes: readonly Box[], day: Daylight = NIGHT, sunR?: number) {
   const { w, h } = px;
   const shape = (off: number, freq: number, seed: number) => (x: number) => {
     const wx = x + Math.round(off);
@@ -182,7 +190,7 @@ export function landscapeUnder({ px, cam, groundY, t }: Scene, sunX: number, rel
     if (!tw) px.set(sx, sy, hash(i, 13) > 0.8 ? PALE : CREAM);
   }
   if (day.sun >= 0) {
-    const { r, cx, cy } = sunDisc(w, h, groundY, sunX, day, cam);
+    const { r, cx, cy } = sunDisc(w, h, groundY, sunX, day, cam, sunR);
     for (let y = -r; y <= r; y++) {
       const band = day.bands > 0 && y > r * (1 - 1.15 * day.bands) && (y + r) % 5 < 1 + Math.floor(((y + r * 0.15) / r) * 3);
       if (band) continue;

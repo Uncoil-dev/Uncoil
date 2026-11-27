@@ -3,14 +3,16 @@ import test from "node:test";
 
 import { promptLines } from "./story.ts";
 import { RUN_A, RUN_B, PLAN_CALL, modelCalls, tokens, totalCost, type ExampleSpan } from "./run-data.ts";
-import { CASES } from "./cases.ts";
+import { CASES, topSteps } from "./cases.ts";
 import { logLines } from "./logs.ts";
-import { ROBOT_W, feetRow, progressAt, railLeft, railStops, rightGutter, robotRows } from "./companion-art.ts";
 import { BREAK_AT, FIXED_AT, HERO_LOOP, breakTarget, focusStep, heroState, scanAt, scanPath, type HeroPhase } from "./hero-clock.ts";
 import { KIT, SPRITE, spritePaths } from "./kit.ts";
 import { promptFor } from "./prompt.ts";
 import { snapCell, targetCell } from "./grid.ts";
-import { PLATE, boardBox, ropeCells, scanReach, scanStop, tailCells, whereLayout } from "./where-layout.ts";
+import { placeSun } from "./sun.ts";
+import { drawGround } from "./morning.ts";
+import { PALE, INK, Px } from "./pixels.ts";
+import { PLATE, boardBox, ropeCells, scanReach, scanStop, scanStopIndex, scanStops, tailCells, whereLayout } from "./where-layout.ts";
 import { pebbles } from "./soil.ts";
 import { PLANK_LEFT, PLANK_STUB, spriteCells } from "./plank.ts";
 import { callCost, getModel } from "../../../lib/tools/models.ts";
@@ -135,34 +137,6 @@ test("breaking the hero step hurries to the next failure and never interrupts on
   assert.equal(heroState(breakTarget(late) + 0.001).phase, "fail");
 });
 
-test("the companion reads progress through the chapters and walks the rail one stop per chapter", () => {
-  assert.equal(progressAt([500, 900, 1300], 360), -1);
-  assert.equal(progressAt([-400, 120, 900], 360), 1 + (360 - 120) / 780);
-  assert.equal(progressAt([-900, -500, -100], 360), 2);
-  const stops = railStops(80, 8);
-  assert.deepEqual([stops[0], stops[7]], [0, 79]);
-  assert.equal(feetRow(stops, 3, false), stops[3]);
-  assert.equal(feetRow(stops, 3.6, true), stops[3], "reduced motion stands on the stop");
-  assert.ok(feetRow(stops, 3.5, false) > stops[3] && feetRow(stops, 3.5, false) < stops[4]);
-});
-
-test("the companion stays in the page margin, clear of the text, at every width", () => {
-  for (let vw = 320; vw <= 2560; vw += 7) {
-    for (const dpr of [1, 1.25, 2]) {
-      const cell = snapCell(targetCell(vw), dpr);
-      const left = railLeft(vw, cell, dpr);
-      assert.ok(Math.abs(left * dpr - Math.round(left * dpr)) < 1e-9);
-      const right = left + ROBOT_W * cell;
-      if (vw < 768) assert.ok(right <= rightGutter(vw) - 2, `${vw}@${dpr}: the robot touches the text on the left`);
-      else {
-        assert.ok(left >= vw - rightGutter(vw) + 2, `${vw}@${dpr}: the robot reaches into the text`);
-        assert.ok(right <= vw - 2, `${vw}@${dpr}: the robot leaves the screen`);
-      }
-    }
-  }
-  for (const mood of ["alert", "search", "carry", "walk"] as const) for (const row of robotRows(mood, 1, 1)) assert.equal(row.length, ROBOT_W);
-});
-
 test("a page cell always covers a whole number of device pixels", () => {
   for (const dpr of [1, 1.25, 1.5, 2, 2.625, 3]) {
     for (const w of [390, 768, 1440]) {
@@ -266,5 +240,130 @@ test("the scan frame fits inside the figure on every step it visits", () => {
       assert.ok(Math.min(c.y - half, b.y) - 3 >= 0, `top edge, step ${i + 1}`);
       assert.ok(Math.max(c.y + half, b.y + b.h - 1) + 3 < l.rows, `bottom edge, step ${i + 1}`);
     }
+  }
+});
+
+// ── What the page says about each example case ──────────────────────────────────────────────
+
+/** Step numbers a line names: "step 4", "steps 02 to 05", "06 · llm.chat". */
+const named = (text: string) => [...text.matchAll(/\bsteps?\s+0?(\d)(?:\s+to\s+0?(\d))?|\b0(\d)\b/gi)].flatMap((m) => [m[1], m[2], m[3]].filter(Boolean).map(Number));
+
+test("a fixed run has no error output, and no leftover empty result", () => {
+  for (const c of CASES) {
+    for (const s of c.fix.after) {
+      assert.doesNotMatch(s.detail.output, /error|fail|refus|\b[45]\d\d\b|\[\s?\]|timed out/i, `${c.id} fixed ${s.spanId}: ${s.detail.output}`);
+      assert.equal(s.errorType, undefined);
+    }
+  }
+});
+
+test("the copy only names steps that exist in the run it describes", () => {
+  for (const c of CASES) {
+    const before = topSteps(c.run).length;
+    const after = topSteps(c.fix.after).length;
+    for (const line of [c.brokeAt, ...c.reading, c.shows, c.fix.answer]) for (const n of named(line)) assert.ok(n <= before, `${c.id}: "${line}" names step ${n} of ${before}`);
+    for (const n of named(c.fix.passes)) assert.ok(n <= after, `${c.id}: "${c.fix.passes}" names step ${n} but the fixed run has ${after}`);
+    assert.doesNotMatch(c.fix.passes, /step 0?6/i, `${c.id}: the fixed run is ${after} steps`);
+    assert.equal(c.fix.metric.includes("Step"), false, `${c.id}: name the tool, not a step number`);
+  }
+});
+
+test("every scan stop has its own caption, and the caption names the step the frame is on", () => {
+  for (const c of CASES) {
+    const stops = scanStops(c.cause);
+    assert.equal(c.reading.length, stops.length, `${c.id}: one caption per stop`);
+    stops.forEach((stop, i) => {
+      assert.match(c.reading[i], new RegExp(`^${String(stop + 1).padStart(2, "0")} · `), `${c.id}: caption ${i} is about another step`);
+      assert.ok(c.reading[i].includes(c.steps[stop].name.split(" ")[0]), `${c.id}: caption ${i} does not name ${c.steps[stop].name}`);
+    });
+    for (let k = 0; k <= 100; k++) assert.equal(stops[scanStopIndex(k / 100, c.cause)], scanStop(k / 100, c.cause));
+    assert.equal(scanStopIndex(0.92, c.cause), stops.length - 1);
+  }
+});
+
+test("when step 06 is the cause, the copy walks the steps the frame visits", () => {
+  const c = CASES.find((x) => x.cause === 6)!;
+  assert.deepEqual(scanStops(6), [5, 4, 3, 5]);
+  assert.doesNotMatch(c.reading.join(" "), /05 to 01/);
+  assert.match(c.fix.answer, /idempotency/i);
+  assert.doesNotMatch(c.causeShort + c.shows + c.fix.answer, /no timeout set|had no timeout/i, "the call timed out after the client's default");
+});
+
+test("the wrong-tool case names the pick as its cause, the same step everywhere", () => {
+  const c = CASES.find((x) => x.id === "wrong")!;
+  assert.equal(c.cause, 4);
+  assert.equal(c.causeSpan, "w-pick");
+  assert.equal(c.brokeAt, "step 4.");
+  assert.notEqual(c.runId.replace("run_", ""), "7730", "the run id is not the order id");
+  assert.notEqual(c.fix.afterId.replace("run_", ""), "7731");
+});
+
+test("the empty-search failure is causal: the guessed refund is refused for the window it missed", () => {
+  const c = CASES.find((x) => x.id === "empty")!;
+  const fail = c.run.find((s) => s.errorType)!;
+  assert.match(fail.errorMessage!, /^422/);
+  assert.match(fail.detail.output, /refund window/);
+  assert.doesNotMatch(c.reading.join(" ") + c.failShort + c.fix.answer, /502/);
+});
+
+test("the log tail is the run as the app would log it: no annotations, no invented fields", () => {
+  for (const c of CASES) {
+    for (const l of logLines(c.run, c.runId)) {
+      assert.doesNotMatch(l.text, / · /, `${c.id}: "${l.text}" carries an annotation`);
+      assert.doesNotMatch(l.text, /channel=/);
+      assert.equal((l.text.match(/\(/g) ?? []).length, (l.text.match(/\)/g) ?? []).length, `${c.id}: unbalanced "${l.text}"`);
+    }
+  }
+});
+
+test("the fixed loop run drafts with its sources, and the post-fix step counts are the real ones", () => {
+  const loop = CASES.find((x) => x.id === "loop")!;
+  const draft = loop.fix.after.find((s) => s.spanId === "lb-draft")!;
+  assert.doesNotMatch(draft.detail.output, /"sources": \[\]/);
+  assert.deepEqual(CASES.map((c) => topSteps(c.fix.after).length), [5, 5, 6, 5]);
+  assert.equal(topSteps(CASES[0].run).length, 6);
+});
+
+test("the sun is placed clear of every post and pole at any width, shrinking only when it has to", () => {
+  for (let w = 90; w <= 450; w += 3) {
+    const posts: [number, number][] = [[Math.round(w * 0.58) + 11, Math.round(w * 0.58) + 37], [Math.round(w * 0.93) - 1, Math.round(w * 0.93) + 12]];
+    const r0 = Math.min(Math.round(w * 0.11), 26);
+    const sun = placeSun(w, r0, posts, w * 0.8);
+    if (!sun) continue;
+    assert.ok(sun.cx - sun.r >= 0 && sun.cx + sun.r < w, `${w}: the sun leaves the screen`);
+    for (const [a, b] of posts) assert.ok(sun.cx + sun.r + 3 <= a || sun.cx - sun.r - 3 >= b, `${w}: a post crosses the sun (${sun.cx}±${sun.r} vs ${a}-${b})`);
+    if (sun.r < r0) assert.equal(placeSun(w, sun.r + 1, posts, w * 0.8), null, `${w}: a larger sun would have fitted`);
+  }
+  // 1440 wide (240 cells): the sun keeps off the gantry and the flag, in the gap between them.
+  const sun = placeSun(240, 26, [[0, 108], [150, 176], [222, 235]], 192)!;
+  assert.ok(sun.r >= 18 && sun.cx > 176 && sun.cx < 222);
+});
+
+test("the cause plate's board hangs below it, so the robot standing on it covers nothing", () => {
+  for (const c of CASES) {
+    for (const [cols, vertical] of [[240, false], [137, false], [87, true]] as const) {
+      const l = whereLayout(cols, vertical, c.cause);
+      assert.equal(l.above[c.cause - 1], false, `${c.id}: the cause's board is above its plate`);
+      l.above.slice(1).forEach((a, i) => assert.notEqual(a, l.above[i], `${c.id}: neighbouring boards on the same side`));
+      if (!vertical) {
+        const b = boardBox(l, c.cause - 1);
+        assert.ok(b.y > l.centers[c.cause - 1].y, "the board is under the plate");
+        // Room above the plate for the 13-row robot, its landing hop and the frame's rim.
+        assert.ok(l.centers[c.cause - 1].y - (PLATE >> 1) - 2 - 13 >= 0, `${c.id}: no room above the cause plate`);
+      }
+    }
+  }
+});
+
+test("the morning strips draw only ink and first light, and the light is gone when asked for none", () => {
+  for (const spec of [{ glow: 0.9, hills: 0.35, stones: true }, { glow: 0.45, hills: 0.6 }, { glow: 0, hills: 0.6 }]) {
+    const px = new Px(120, 8);
+    drawGround(px, spec);
+    const [ink, pale] = [INK >>> 0, PALE >>> 0];
+    const colours = new Set(px.buf);
+    for (const c of colours) assert.ok(c === 0 || c === ink || c === pale, `unexpected colour ${c}`);
+    assert.equal(colours.has(pale), spec.glow > 0, `glow ${spec.glow}`);
+    // The ground line is two solid ink rows along the whole strip.
+    for (let x = 0; x < 120; x++) assert.equal(px.buf[6 * 120 + x] === ink && px.buf[7 * 120 + x] === ink, true);
   }
 });

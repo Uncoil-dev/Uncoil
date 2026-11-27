@@ -1,7 +1,7 @@
 // A tiny software renderer for the page's pixel scenes. Everything is drawn into one low-resolution
 // buffer with solid brand colors and ordered dithering, then scaled up with crisp pixels.
 
-import { hash } from "./math";
+import { hash } from "./math.ts";
 
 const rgba = (hex: string) => {
   const n = parseInt(hex.slice(1), 16);
@@ -19,8 +19,12 @@ const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => 
 export const dith = (x: number, y: number, d: number) => d > BAYER[(y & 3) * 4 + (x & 3)];
 
 export class Px {
+  w: number;
+  h: number;
   buf: Uint32Array;
-  constructor(public w: number, public h: number) {
+  constructor(w: number, h: number) {
+    this.w = w;
+    this.h = h;
     this.buf = new Uint32Array(w * h);
   }
   clear(c = INK) {

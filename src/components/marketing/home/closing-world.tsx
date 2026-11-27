@@ -10,8 +10,9 @@ import { bridgeArt, gantrySign, groundArt, robotInFront, stoneSign } from "./her
 import { useGridCanvas } from "./use-grid";
 import { clamp01, ease } from "./math";
 import { CopyPromptButton } from "./copy-prompt";
-import { MORNING, clearStars, landscapeUnder, sunDisc, toBuffer, useCopyBoxes } from "./sky";
+import { MORNING, clearStars, fitSun, landscapeUnder, sunDisc, toBuffer, useCopyBoxes } from "./sky";
 import { useCase } from "./case-state";
+import { topSteps } from "./cases";
 import { causeStone, stepStones } from "./steps-art";
 import { BODY, HERO, LABEL, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
@@ -25,6 +26,7 @@ import { useCalm } from "./use-calm";
 export function ClosingWorld() {
   const reduce = useCalm();
   const c = useCase();
+  const steps = topSteps(c.fix.after).length;
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.35 });
@@ -61,19 +63,23 @@ export function ClosingWorld() {
         const room = (groundY - px.h * 0.08 - r - copyEnd - 3) / (px.h * 0.12 + r * 0.6);
         day = { ...MORNING, sun: Math.max(0.5, Math.min(MORNING.sun, room)) };
       }
-      const sunX = Math.min((px.w - r - 2) / px.w, Math.max(narrow ? 0.78 : 0.8, (right + r + 4) / px.w));
-      landscapeUnder(s, right + 2 * r + 6 > px.w ? 0.74 : sunX, narrow ? 0.45 : 0.7, words, day);
-      clearStars(px, words);
+      // The sun keeps clear of the gantry, the flag, the cause's sign and the copy.
+      const cause = c.cause < 6 ? stepStones(gap0)[c.cause - 1] : -1;
+      const posts: [number, number][] = [[gap0 + 11, gap1 + 1], [goal - 1, goal + 12]];
+      if (cause > 2) posts.push([cause - 2, cause + 12]);
+      const sunSpot = fitSun(px.w, px.h, groundY, day, Math.min(px.w - r - 2, Math.max(px.w * (narrow ? 0.78 : 0.8), right + r + 4)), posts, toBuffer(copy.current, scale, 2));
+      landscapeUnder(s, sunSpot.cx / px.w, narrow ? 0.45 : 0.7, words, day, sunSpot.r);
+      clearStars(px, toBuffer(copy.current, scale, 10));
       pines(s, [[gap0 - 30, gap1 + 4], [goal - 14, goal + 30]], 1);
       groundArt(s, [[gap0, gap1]], (wx) => (wx >= start && wx < rx + 6 ? YELLOW : undefined));
       bridgeArt(px, gap0, gap1, groundY, -1);
       // The run's marked steps, whole now: the cause fixed in yellow, step 06 passing.
-      const cause = c.cause < 6 ? stepStones(gap0)[c.cause - 1] : -1;
       if (cause > 2) {
         causeStone(px, cause, groundY, true);
         stoneSign(px, c.cause, cause, groundY, "lit-swapped");
       }
-      gantrySign(px, gap0 + 12, gap1, groundY, "lit-swapped");
+      // The bridge's board carries the re-run's last step number, which may be below 06.
+      gantrySign(px, gap0 + 12, gap1, groundY, "lit-swapped", 0, steps);
       flag(px, goal, groundY - 3, clamp01((t - 3) / 0.8));
       robotInFront(px, rx, groundY - 3, walk > 0 && walk < 1 ? Math.floor(seconds * 8) : 0);
       px.swap();
@@ -87,12 +93,12 @@ export function ClosingWorld() {
         <canvas ref={canvasRef} className="block [image-rendering:pixelated]" />
       </div>
       <div className="mx-auto w-full max-w-[1360px] px-5 pt-10 md:px-10 md:pt-12">
-        <p data-clear className={`w-fit text-black/60 ${LABEL}`}>Run passed · 6 / 6 · morning · your turn</p>
+        <p data-clear className={`w-fit text-black/60 ${LABEL}`}>Run passed · {steps} / {steps} · morning · your turn</p>
         <h2 id="mix-close-title" className={`mt-6 ${HERO}`}>
           <span data-clear className="block w-fit">Know which step broke.</span>
           <span data-clear className="block w-fit">Before your users do.</span>
         </h2>
-        <p data-clear className={`mt-6 max-w-xl text-black/80 ${BODY}`}>Every run recorded. When one fails, the step that caused it comes marked.</p>
+        <p data-clear className={`mt-6 max-w-xl text-balance text-black/80 ${BODY}`}>Every run recorded. When one fails, the step that caused it is marked.</p>
         <div data-clear className="mt-8 grid w-full gap-4 sm:flex sm:w-fit sm:flex-wrap">
           <Link href={appHref("/sign-up")} className={`w-full sm:w-auto ${primary("cream")}`}>
             Start tracing free <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />

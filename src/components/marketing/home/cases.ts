@@ -26,9 +26,11 @@ export type Case = {
   /** One-line notes the hero and the figure use: what step 06 did and what the cause did. */
   failShort: string;
   causeShort: string;
-  /** The "where it broke" headline's second line, and the figure's three reading lines. */
+  /** The "where it broke" headline's second line: "It broke at" + brokeAt, unless brokeLead replaces the lead. */
   brokeAt: string;
-  reading: readonly [string, string, string];
+  brokeLead?: string;
+  /** One caption per stop the scan frame visits, in order (see scanStops): each opens with that step's number. */
+  reading: readonly string[];
   /** One line under the trace: what Uncoil shows for it. */
   shows: string;
   run: readonly ExampleSpan[];
@@ -51,6 +53,8 @@ export type Case = {
     before: string;
     afterValue: string;
     why: string;
+    /** What is true of the fixed run in place of "step 06 passes": it may have fewer steps. */
+    passes: string;
   };
 };
 
@@ -63,7 +67,7 @@ const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 // It asks the model again eight times, then the save step rejects the summary anyway.
 
 const LOOP_PLAN: ExampleSpan = { spanId: "l-plan", parentSpanId: "l-root", spanType: "llm_call", name: "llm.chat", modelId: MODEL, createdAt: at(20), latencyMs: 700, inputTokens: 2000, outputTokens: 400, costUsd: 0.009, detail: { input: "Summarise this week's papers on retrieval, with sources.", output: "Search, draft the summary as JSON, save the report." } };
-const LOOP_DRAFT = (root: string, id: string): ExampleSpan => ({ spanId: id, parentSpanId: root, spanType: "llm_call", name: "llm.chat", modelId: MODEL, createdAt: at(1420), latencyMs: 1600, inputTokens: 9000, outputTokens: 900, costUsd: 0.0315, detail: { input: "Write the summary as JSON: title, points, sources.", output: id.startsWith("l") ? '{ "title": "…", "points": [ … ], "sources": [] }' : '{ "title": "…", "points": [ … ], "sources": [ 12 links ] }' } });
+const LOOP_DRAFT = (root: string, id: string, output: string): ExampleSpan => ({ spanId: id, parentSpanId: root, spanType: "llm_call", name: "llm.chat", modelId: MODEL, createdAt: at(1420), latencyMs: 1600, inputTokens: 9000, outputTokens: 900, costUsd: 0.0315, detail: { input: "Write the summary as JSON: title, points, sources.", output } });
 
 const LOOP_CALLS = Array.from({ length: 8 }, (_, i): ExampleSpan => ({
   spanId: `l-call-${i + 1}`,
@@ -84,7 +88,7 @@ const LOOP: readonly ExampleSpan[] = [
   { spanId: "l-root", parentSpanId: "", spanType: "agent", name: "research-agent", createdAt: at(0), latencyMs: 10_840, costUsd: 0, detail: { input: "Summarise this week's papers on retrieval, with sources.", output: "Failed: report.save rejected the summary." } },
   LOOP_PLAN,
   { spanId: "l-search", parentSpanId: "l-root", spanType: "tool_call", name: "web.search", toolName: "web.search", createdAt: at(760), latencyMs: 640, costUsd: 0, detail: { input: 'web.search("retrieval papers this week", { fields: ["title", "snippet"] })', output: "12 results · title and snippet, no links" } },
-  LOOP_DRAFT("l-root", "l-draft"),
+  LOOP_DRAFT("l-root", "l-draft", '{ "title": "…", "points": [ … ], "sources": [] }'),
   { spanId: "l-loop", parentSpanId: "l-root", spanType: "agent", name: "llm.chat · retry", createdAt: at(3040), latencyMs: 7600, costUsd: 0, detail: { input: "Eight attempts to fill sources.", output: "Gave up with sources still empty." } },
   ...LOOP_CALLS,
   { spanId: "l-save", parentSpanId: "l-root", spanType: "tool_call", name: "report.save", toolName: "report.save", createdAt: at(10_700), latencyMs: 120, costUsd: 0, errorType: "ValidationError", errorMessage: 'field "sources" must have at least 1 item', detail: { input: 'report.save({ title: "…", sources: [] })', output: 'ValidationError · "sources" must have at least 1 item' } },
@@ -94,13 +98,13 @@ const LOOP_FIXED: readonly ExampleSpan[] = [
   { spanId: "lb-root", parentSpanId: "", spanType: "agent", name: "research-agent", createdAt: at(0), latencyMs: 3200, costUsd: 0, detail: { input: "Summarise this week's papers on retrieval, with sources.", output: "Report saved with 12 sources." } },
   { ...LOOP_PLAN, spanId: "lb-plan", parentSpanId: "lb-root" },
   { spanId: "lb-search", parentSpanId: "lb-root", spanType: "tool_call", name: "web.search", toolName: "web.search", createdAt: at(760), latencyMs: 650, costUsd: 0, detail: { input: 'web.search("retrieval papers this week", { fields: ["title", "snippet", "url"] })', output: "12 results with links" } },
-  LOOP_DRAFT("lb-root", "lb-draft"),
+  LOOP_DRAFT("lb-root", "lb-draft", '{ "title": "…", "points": [ … ], "sources": [ 12 links ] }'),
   { spanId: "lb-save", parentSpanId: "lb-root", spanType: "tool_call", name: "report.save", toolName: "report.save", createdAt: at(3040), latencyMs: 130, costUsd: 0, detail: { input: 'report.save({ title: "…", sources: [ 12 ] })', output: "Saved" } },
 ];
 
 // ── A tool call that hangs ────────────────────────────────────────────────────────────────────
 // A booking agent's payment call never answers. Every step before it was quick, so the step that
-// failed is also the cause: the client waits with no timeout.
+// failed is also the cause: the client waits out its default 30 s timeout.
 
 const PAY_INPUT = 'payments.charge({ amount: 20, currency: "EUR" })';
 const TIMEOUT_HEAD = (root: string, p: string): ExampleSpan[] => [
@@ -113,13 +117,13 @@ const TIMEOUT_HEAD = (root: string, p: string): ExampleSpan[] => [
 const TIMEOUT: readonly ExampleSpan[] = [
   { spanId: "t-root", parentSpanId: "", spanType: "agent", name: "booking-agent", createdAt: at(0), latencyMs: 31_900, costUsd: 0, detail: { input: "Book a table for 4 on Friday at 19:00.", output: "Failed: payments.charge timed out." } },
   ...TIMEOUT_HEAD("t-root", "t"),
-  { spanId: "t-pay", parentSpanId: "t-root", spanType: "tool_call", name: "payments.charge", toolName: "payments.charge", createdAt: at(1880), latencyMs: 30_000, costUsd: 0, errorType: "TimeoutError", errorMessage: "no response after 30000 ms", detail: { input: `${PAY_INPUT} · no timeout set`, output: "TimeoutError · no response after 30000 ms" } },
+  { spanId: "t-pay", parentSpanId: "t-root", spanType: "tool_call", name: "payments.charge", toolName: "payments.charge", createdAt: at(1880), latencyMs: 30_000, costUsd: 0, errorType: "TimeoutError", errorMessage: "no response after 30000 ms", detail: { input: PAY_INPUT, output: "TimeoutError · no response after 30000 ms, the client's default timeout" } },
 ];
 
 const TIMEOUT_FIXED: readonly ExampleSpan[] = [
   { spanId: "tb-root", parentSpanId: "", spanType: "agent", name: "booking-agent", createdAt: at(0), latencyMs: 2540, costUsd: 0, detail: { input: "Book a table for 4 on Friday at 19:00.", output: "Booked table 12, deposit taken." } },
   ...TIMEOUT_HEAD("tb-root", "tb"),
-  { spanId: "tb-pay", parentSpanId: "tb-root", spanType: "tool_call", name: "payments.charge", toolName: "payments.charge", createdAt: at(1880), latencyMs: 640, costUsd: 0, detail: { input: `${PAY_INPUT} · timeout 5000 ms, 1 retry`, output: "Charged €20" } },
+  { spanId: "tb-pay", parentSpanId: "tb-root", spanType: "tool_call", name: "payments.charge", toolName: "payments.charge", createdAt: at(1880), latencyMs: 640, costUsd: 0, detail: { input: 'payments.charge({ amount: 20, currency: "EUR", timeoutMs: 5000, retries: 1, idempotencyKey: "bk_8f2" })', output: "Charged €20" } },
 ];
 
 // ── The wrong tool ────────────────────────────────────────────────────────────────────────────
@@ -136,7 +140,7 @@ const WRONG: readonly ExampleSpan[] = [
   ...WRONG_HEAD("w-root", "w"),
   { spanId: "w-pick", parentSpanId: "w-root", spanType: "llm_call", name: "llm.chat", modelId: MODEL, createdAt: at(1030), latencyMs: 700, inputTokens: 3400, outputTokens: 120, costUsd: 0.0097, detail: { input: "Tools: orders.cancel (change or cancel an order), orders.update_address.", output: 'Call orders.cancel({ order: "7730" })' } },
   { spanId: "w-cancel", parentSpanId: "w-root", spanType: "tool_call", name: "orders.cancel", toolName: "orders.cancel", createdAt: at(1740), latencyMs: 320, costUsd: 0, detail: { input: 'orders.cancel({ order: "7730" })', output: "Order 7730 cancelled" } },
-  { spanId: "w-address", parentSpanId: "w-root", spanType: "tool_call", name: "orders.update_address", toolName: "orders.update_address", createdAt: at(2080), latencyMs: 210, costUsd: 0, errorType: "HTTPError", errorMessage: "409 Conflict · order 7730 is cancelled", detail: { input: 'orders.update_address({ order: "7730", to: "new address" })', output: "409 Conflict · order 7730 is cancelled" } },
+  { spanId: "w-address", parentSpanId: "w-root", spanType: "tool_call", name: "orders.update_address", toolName: "orders.update_address", createdAt: at(2080), latencyMs: 210, costUsd: 0, errorType: "HTTPError", errorMessage: "409 Conflict", detail: { input: 'orders.update_address({ order: "7730", to: "new address" })', output: "409 Conflict · order 7730 is cancelled" } },
 ];
 
 const WRONG_FIXED: readonly ExampleSpan[] = [
@@ -159,14 +163,14 @@ export const CASES: readonly Case[] = [
       { name: "order.lookup", note: "140 ms", icon: "parcel" },
       { name: "docs.search", note: "0 results", icon: "search" },
       { name: "llm.chat · retry", note: "guessed the policy", icon: "retry" },
-      { name: "refund.issue", note: "502 · 5000 ms", icon: "coin" },
+      { name: "refund.issue", note: "422 · refused", icon: "coin" },
     ],
     cause: 4,
-    failShort: "502 · hung 5000 ms",
+    failShort: "422 · outside refund window",
     causeShort: "0 results",
     brokeAt: "step 4.",
-    reading: ["06 · refund.issue failed: 502 after 5000 ms", "05 · llm.chat retried 7 times, guessing the policy", "04 · docs.search returned 0 results: the cause"],
-    shows: "docs.search returned 0 results, so the model guessed and refund.issue failed two steps later.",
+    reading: ["06 · refund.issue refused: 422, order outside the refund window", "05 · llm.chat retried 7 times and guessed the policy", "04 · docs.search returned 0 results: the cause"],
+    shows: "docs.search returned 0 results, so the model guessed a refund was allowed and refund.issue refused it two steps later.",
     run: RUN_A,
     causeSpan: "a-search",
     fold: "a-loop",
@@ -176,12 +180,13 @@ export const CASES: readonly Case[] = [
       after: RUN_B,
       afterId: "run_b27e",
       result: `The run drops to ${usd(totalCost(RUN_B))}.`,
-      answer: "refund.issue failed at step 06, but the run went wrong at step 04: docs.search returned 0 results, so the model retried seven times without the refund policy and guessed. Fix the search first.",
+      answer: "refund.issue failed at step 06, but the run went wrong at step 04: docs.search returned 0 results, so the model retried seven times without the refund policy and guessed a refund was allowed. Fix the search first.",
       body: "You change one thing you can point at, here the search query, and run the agent again.",
       metric: "Cost of this run",
       before: usd(totalCost(RUN_A)),
       afterValue: usd(totalCost(RUN_B)),
-      why: `retry loop × 7 · ${usd(loopCost(RUN_A, "a-loop"))}`,
+      why: `7 retries · ${usd(loopCost(RUN_A, "a-loop"))}`,
+      passes: "the refund step is never called",
     },
   },
   {
@@ -200,7 +205,7 @@ export const CASES: readonly Case[] = [
     failShort: "sources is empty",
     causeShort: "no links",
     brokeAt: "step 3.",
-    reading: ["06 · report.save rejected it: sources is empty", `05 · llm.chat retried 8 times for ${usd(loopCost(LOOP, "l-loop"))}`, "03 · web.search never asked for links: the cause"],
+    reading: ["06 · report.save rejected it: sources is empty", `05 · llm.chat retried 8 times for ${usd(loopCost(LOOP, "l-loop"))}`, "04 · llm.chat wrote sources: [ ] with nothing to fill it from", "03 · web.search never asked for links: the cause"],
     shows: `web.search asked for no links, so sources stayed empty. Eight retries cost ${usd(loopCost(LOOP, "l-loop"))} and the save still failed.`,
     run: LOOP,
     causeSpan: "l-search",
@@ -216,7 +221,8 @@ export const CASES: readonly Case[] = [
       metric: "Cost of this run",
       before: usd(totalCost(LOOP)),
       afterValue: usd(totalCost(LOOP_FIXED)),
-      why: `retry loop × 8 · ${usd(loopCost(LOOP, "l-loop"))}`,
+      why: `8 retries · ${usd(loopCost(LOOP, "l-loop"))}`,
+      passes: "report.save accepts the summary",
     },
   },
   {
@@ -233,10 +239,11 @@ export const CASES: readonly Case[] = [
     ],
     cause: 6,
     failShort: "no answer in 30 s",
-    causeShort: "no timeout set",
-    brokeAt: "step 6.",
-    reading: ["06 · payments.charge got no answer for 30 s", "05 to 01 · every step answered in under a second", "06 · no timeout on the call: the cause"],
-    shows: "Steps 01 to 05 answered in under a second. payments.charge had no timeout and waited 30 s for nothing.",
+    causeShort: "waited out the default 30 s timeout",
+    brokeAt: "did.",
+    brokeLead: "Nothing before it",
+    reading: ["06 · payments.charge got no answer for 30 s", "05 · llm.chat answered in 600 ms", "04 · booking.hold answered in 240 ms", "06 · payments.charge waited out the client's default 30 s timeout: the cause"],
+    shows: "Steps 02 to 05 each answered in under a second. payments.charge waited out the client's default 30 s timeout for an answer that never came.",
     run: TIMEOUT,
     causeSpan: "t-pay",
     agent: "booking-agent",
@@ -245,12 +252,13 @@ export const CASES: readonly Case[] = [
       after: TIMEOUT_FIXED,
       afterId: "run_e93a",
       result: `The run takes ${secs(TIMEOUT_FIXED[0].latencyMs)}.`,
-      answer: "payments.charge failed at step 06, and the cause is the same step: the call has no timeout, so the run waited 30 s for an answer. Steps 01 to 05 took under a second. Add a 5 s timeout and one retry.",
-      body: "You set a timeout on the call that hung and run again. The charge answered in 640 ms.",
+      answer: "payments.charge failed at step 06, and the cause is the same step: the client's default timeout is 30 s, so the run waited that long for an answer. Steps 02 to 05 each took under a second. Set a 5 s timeout and one retry, with an idempotency key so a retry can never charge twice.",
+      body: "You set a timeout and an idempotency key on the call that hung, and run again. The charge answered in 640 ms.",
       metric: "Time of this run",
       before: secs(TIMEOUT[0].latencyMs),
       afterValue: secs(TIMEOUT_FIXED[0].latencyMs),
-      why: "waited 30 s · no timeout",
+      why: "waited 30 s",
+      passes: "payments.charge answers in 640 ms",
     },
   },
   {
@@ -261,33 +269,40 @@ export const CASES: readonly Case[] = [
       { name: "support-agent", note: "run started", icon: "agent" },
       { name: "llm.chat", note: "3,200 tok · 820 ms", icon: "chat" },
       { name: "orders.lookup", note: "not shipped yet", icon: "parcel" },
-      { name: "llm.chat", note: "picked a tool", icon: "chat" },
+      { name: "llm.chat", note: "picked orders.cancel", icon: "chat" },
       { name: "orders.cancel", note: "order cancelled", icon: "cross" },
       { name: "orders.update_address", note: "409 · cancelled", icon: "house" },
     ],
-    cause: 5,
+    cause: 4,
     failShort: "409 · order is cancelled",
-    causeShort: "cancelled the order",
-    brokeAt: "step 5.",
-    reading: ["06 · orders.update_address refused: 409", "05 · orders.cancel cancelled order 7730", "05 · the wrong tool, picked at step 04: the cause"],
-    shows: "No error until step 06. The trace shows the tool picked at step 05: cancel the order, not change the address.",
+    causeShort: "picked the wrong tool",
+    brokeAt: "step 4.",
+    reading: ["06 · orders.update_address refused: 409, the order is cancelled", "05 · orders.cancel cancelled order 7730", "04 · llm.chat picked orders.cancel to change an address: the cause"],
+    shows: "No error until step 06. The trace opens on step 04, where the model picked orders.cancel to change an address.",
     run: WRONG,
-    causeSpan: "w-cancel",
+    causeSpan: "w-pick",
     agent: "support-agent",
-    runId: "run_7730",
+    runId: "run_7c04",
     fix: {
       after: WRONG_FIXED,
-      afterId: "run_7731",
+      afterId: "run_7c1f",
       result: "The address changes.",
-      answer: "orders.update_address failed at step 06 because step 05 had already cancelled the order. The model picked orders.cancel at step 04: its description says it can change an order. Fix the description.",
+      answer: "orders.update_address failed at step 06 because step 05 had already cancelled the order. The cause is step 04: the model picked orders.cancel, whose description says it can change an order. Fix the description.",
       body: "You fix the tool description that misled the model and run the agent again.",
-      metric: "Step 06 answers",
+      metric: "update_address answers",
       before: "409",
       afterValue: "200",
-      why: "the order was cancelled first",
+      why: "order cancelled first",
+      passes: "orders.update_address answers 200 and the cancel step is gone",
     },
   },
 ];
+
+/** A run's top-level steps: the agent itself and everything directly under it, in time order. */
+export const topSteps = (run: readonly ExampleSpan[]) => {
+  const root = run.find((s) => !s.parentSpanId)!;
+  return [root, ...run.filter((s) => s.parentSpanId === root.spanId)];
+};
 
 export const DEFAULT_CASE: CaseId = "empty";
 export const caseById = (id: string | null | undefined) => CASES.find((c) => c.id === id) ?? CASES[0];

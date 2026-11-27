@@ -9,13 +9,13 @@ import { AFTER_EYEBROW, AFTER_HEADLINE, DUR, EASE, H2, LABEL, SECTION, WRAP } fr
 import { useCalm } from "./use-calm";
 import { useCell, useGridCanvas } from "./use-grid";
 import { ENTER, NIGHT_INK, drawWhere } from "./where-art";
-import { WHERE_ROWS, boardBox, scanStop, whereLayout } from "./where-layout";
+import { WHERE_ROWS, boardBox, scanStopIndex, scanStops, whereLayout } from "./where-layout";
 import { segment } from "./math";
 
 /**
  * One run on the page grid: six plates on a rope, each with its number board and its own icon.
  * The rope draws in when the figure comes into view; as it scrolls up the screen, Uncoil's scan
- * reads the rope back from step 06 to step 04 and the cause plate turns yellow when it gets there.
+ * reads the rope back from step 06 to the cause and the cause plate turns yellow when it gets there.
  */
 function Plate({ c, vertical, scan, className }: { c: Case; vertical: boolean; scan: MotionValue<number>; className: string }) {
   const calm = useCalm();
@@ -24,6 +24,7 @@ function Plate({ c, vertical, scan, className }: { c: Case; vertical: boolean; s
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inView = useInView(boxRef, { once: true, amount: 0.35 });
   const startedAt = useRef<number | null>(null);
+  const foundAt = useRef<number | null>(null);
   const [cols, setCols] = useState(0);
 
   useGridCanvas(
@@ -31,13 +32,18 @@ function Plate({ c, vertical, scan, className }: { c: Case; vertical: boolean; s
     ({ px, seconds }) => {
       if (inView && startedAt.current === null) startedAt.current = seconds;
       const t = calm ? 99 : startedAt.current === null ? 0 : seconds - startedAt.current;
-      drawWhere(px, whereLayout(px.w, vertical), c.steps.map((st) => st.icon), { t, scan: scan.get(), cause: c.cause }, NIGHT_INK);
+      const k = scan.get();
+      // The robot arrives on the cause plate when the scan locks on it, and stays.
+      if (k >= 0.92 && foundAt.current === null) foundAt.current = seconds;
+      if (k < 0.92) foundAt.current = null;
+      const since = calm ? 99 : foundAt.current === null ? -1 : seconds - foundAt.current;
+      drawWhere(px, whereLayout(px.w, vertical, c.cause), c.steps.map((st) => st.icon), { t, scan: k, cause: c.cause, since }, NIGHT_INK);
       if (px.w !== cols) setCols(px.w);
     },
     { still: calm, redraw: c.id },
   );
 
-  const l = cols ? whereLayout(cols, vertical) : null;
+  const l = cols ? whereLayout(cols, vertical, c.cause) : null;
   const rows = vertical ? WHERE_ROWS.vertical : WHERE_ROWS.horizontal;
   return (
     <div ref={boxRef} className={`relative overflow-hidden ${className}`} style={{ height: rows * cell }}>
@@ -48,7 +54,7 @@ function Plate({ c, vertical, scan, className }: { c: Case; vertical: boolean; s
         c.steps.map((s, i) => {
           const b = boardBox(l, i);
           const c = l.centers[i];
-          const above = !vertical && i % 2 === 0;
+          const above = !vertical && l.above[i];
           const style = vertical
             ? { left: (b.x + b.w + 5) * cell, top: (c.y + 0.5) * cell, transform: "translateY(-50%)" }
             : { left: (c.x + 0.5) * cell, top: (above ? b.y - 4 : b.y + b.h + 4) * cell, transform: above ? "translate(-50%,-100%)" : "translateX(-50%)" };
@@ -72,12 +78,6 @@ function Plate({ c, vertical, scan, className }: { c: Case; vertical: boolean; s
   );
 }
 
-/** The figure's caption line for a scan stop: what step 06 did, the steps between, then the cause. */
-function readingLine(stop: number, found: boolean): 0 | 1 | 2 {
-  if (found) return 2;
-  return stop === 5 ? 0 : 1;
-}
-
 export function Where() {
   const calm = useCalm();
   const c = useCase();
@@ -87,9 +87,13 @@ export function Where() {
   const still = useMotionValue(1);
   const scan = calm ? still : scrolled;
   // Only the caption's line is React state, and it changes a few times per pass, not every frame.
-  const [read, setRead] = useState<0 | 1 | 2>(0);
-  useMotionValueEvent(scrolled, "change", (k) => setRead(readingLine(scanStop(k, c.cause), k >= 0.92)));
-  const line = calm ? 2 : read;
+  const last = scanStops(c.cause).length - 1;
+  const [read, setRead] = useState({ cause: c.cause, stop: 0 });
+  useMotionValueEvent(scrolled, "change", (k) => setRead({ cause: c.cause, stop: scanStopIndex(k, c.cause) }));
+  // One caption per stop the frame visits, so the words always name the step the frame is on;
+  // after a new case is picked the stop is read from the scroll position again.
+  const stop = read.cause === c.cause ? read.stop : scanStopIndex(scrolled.get(), c.cause);
+  const line = calm ? last : Math.min(stop, last);
   const failed = c.steps[5];
   const cause = c.steps[c.cause - 1];
 
@@ -100,7 +104,7 @@ export function Where() {
         <h2 id="ed-break-title" className={`${AFTER_EYEBROW} ${H2}`}>
           It failed at step 6.
           <br />
-          It broke at{" "}
+          {c.brokeLead ?? "It broke at"}{" "}
           <span className="relative inline-block text-black">
             <span aria-hidden="true" className="absolute -inset-x-[0.06em] bottom-[0.02em] top-[0.14em] bg-[#f4d44d]" />
             <span className="relative">{c.brokeAt}</span>
@@ -114,7 +118,7 @@ export function Where() {
           </div>
           <figcaption className={`mt-6 flex flex-col gap-2 border-t border-[#eceae3]/25 pt-3 sm:flex-row sm:items-baseline sm:justify-between ${LABEL}`}>
             <span className="flex items-center gap-2 text-[#eceae3]">
-              <span aria-hidden="true" className={`size-2 shrink-0 ${line === 2 ? "bg-[#f4d44d]" : line === 0 ? "bg-[#ff4d3d]" : "bg-[#eceae3]"}`} />
+              <span aria-hidden="true" className={`size-2 shrink-0 ${line === last ? "bg-[#f4d44d]" : line === 0 ? "bg-[#ff4d3d]" : "bg-[#eceae3]"}`} />
               Reading back · {c.reading[line]}
             </span>
             <span className="text-[#eceae3]/55">Fig. 1 · one run, example data</span>

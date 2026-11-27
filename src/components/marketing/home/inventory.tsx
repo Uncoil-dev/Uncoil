@@ -9,7 +9,7 @@ import { useCell } from "./use-grid";
 const PICKS: readonly { id: string; line: string }[] = [
   { id: "steps", line: "Input, output, model, tokens, cost and latency for every model and tool call." },
   { id: "alerts", line: "On Pro, alerts on failed runs, spend and slow runs, by email or Slack." },
-  { id: "secrets", line: "Keys, tokens, JWTs and passwords are stripped before anything is sent." },
+  { id: "secrets", line: "The SDKs strip common key, token, JWT and password patterns before anything is sent." },
   { id: "search", line: "Filter runs by status, cost, latency or tokens. Exclude with a minus." },
 ];
 

@@ -15,6 +15,8 @@ export const LABEL = "font-mono text-[10px] uppercase tracking-[0.16em]";
 
 /** Section rhythm: the pixel seams already give the space above, so the top pad is shorter. */
 export const SECTION = "px-5 pb-14 pt-8 md:px-10 md:pb-16 md:pt-10";
+/** A section whose bottom edge is a strip of art: no bottom padding of its own. */
+export const SECTION_FLUSH = "px-5 pb-0 pt-8 md:px-10 md:pt-10";
 export const WRAP = "mx-auto w-full max-w-[1280px]";
 /** Gap between the section eyebrow and its headline, and between the headline and its art. */
 export const AFTER_EYEBROW = "mt-8 md:mt-10";

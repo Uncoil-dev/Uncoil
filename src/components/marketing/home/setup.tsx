@@ -6,7 +6,8 @@ import { ManualCopy, useCopy } from "./copy-prompt";
 import { Eyebrow } from "./eyebrow";
 import { promptLines } from "./story";
 import { AGENTS, BY_HAND, promptFor, type Agent } from "./prompt";
-import { AFTER_EYEBROW, BODY, H2, LABEL, SECTION, WRAP } from "./ui";
+import { AFTER_EYEBROW, BODY, H2, LABEL, SECTION_FLUSH, WRAP } from "./ui";
+import { MorningGround } from "./morning-ground";
 
 function ByHand() {
   const [lang, setLang] = useState<(typeof BY_HAND)[number]["id"]>("ts");
@@ -58,7 +59,7 @@ export function Setup() {
   };
 
   return (
-    <section id="pw-setup" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="mix-setup-title">
+    <section id="pw-setup" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION_FLUSH}`} aria-labelledby="mix-setup-title">
       <div className={WRAP}>
         <Eyebrow n="05" on="cream">Setup</Eyebrow>
         <div className={`${AFTER_EYEBROW} grid gap-8 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:gap-14`}>
@@ -134,6 +135,8 @@ export function Setup() {
         </div>
         </div>
       </div>
+      {/* A thin landscape between setup and price: the ridge with the last of the early light. */}
+      <MorningGround rows={8} glow={0.45} hills={0.8} pines className="-mx-5 mt-3 md:-mx-10" />
     </section>
   );
 }

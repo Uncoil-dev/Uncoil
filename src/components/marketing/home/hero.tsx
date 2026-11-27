@@ -11,11 +11,11 @@ import { BREAK_AT, HERO_LOOP, HURRY, breakTarget, focusStep, heroState, scanPath
 import { brackets, bridgeArt, brokenPlank, gantrySign, groundArt, robotInFront, stem, stoneSign, trailMarker } from "./hero-art";
 import { useGridCanvas, type Frame } from "./use-grid";
 import { CopyPromptButton } from "./copy-prompt";
-import { NIGHT, clearStars, landscapeUnder, placeCallout, sunBox, toBuffer, useCopyBoxes } from "./sky";
+import { NIGHT, clearStars, fitSun, landscapeUnder, placeCallout, sunBox, toBuffer, useCopyBoxes } from "./sky";
 import { causeStone, stepStones } from "./steps-art";
 import { DUR, EASE, HERO, primary, secondary } from "./ui";
 import { useCalm } from "./use-calm";
-import { two, type Case } from "./cases";
+import { topSteps, two, type Case } from "./cases";
 import { useCase, usePicks } from "./case-state";
 import { CasePicker } from "./case-picker";
 
@@ -38,6 +38,9 @@ function track(phase: HeroPhase, local: number, edge: number) {
   return edge;
 }
 
+/** Steps in the re-run after the fix: it may have fewer than the failed run. */
+const done = (c: Case) => topSteps(c.fix.after).length;
+
 /** The steps Uncoil reads back over, from 06 down to the cause: "06 → 05 → 04". */
 function readBack(c: Case) {
   if (c.cause === 6) return "06 → 04 → 06";
@@ -46,7 +49,7 @@ function readBack(c: Case) {
 
 function statusShort(c: Case, p: HeroPhase) {
   const n = two(c.cause);
-  return { walk: "Step 05", fail: "Failed · 06", trace: c.cause === 6 ? "Reading back" : `06 → ${n}`, mark: `Cause · ${n}`, repair: `Fixing ${n}`, cross: "Passed · 06", goal: "Passed · 6/6" }[p];
+  return { walk: "Step 05", fail: "Failed · 06", trace: c.cause === 6 ? "Reading back" : `06 → ${n}`, mark: `Cause · ${n}`, repair: `Fixing ${n}`, cross: "Re-run", goal: `Passed · ${done(c)}/${done(c)}` }[p];
 }
 
 function status(c: Case, p: HeroPhase) {
@@ -57,8 +60,8 @@ function status(c: Case, p: HeroPhase) {
     trace: `Reading back · ${readBack(c)}`,
     mark: `Cause · step ${n} · ${c.causeShort}`,
     repair: `Fixing step ${n} · re-run`,
-    cross: "Passed · step 06",
-    goal: "Run passed · 6 / 6",
+    cross: "Re-run passing",
+    goal: `Run passed · ${done(c)} / ${done(c)}`,
   }[p];
 }
 
@@ -72,8 +75,8 @@ function callout(c: Case, p: HeroPhase): [string, string] {
     trace: [six, "failed here. Reading back"],
     mark: [cause, `${c.causeShort} · the cause`],
     repair: [cause, "fixed · re-running"],
-    cross: [six, "passing again"],
-    goal: [six, "passing again"],
+    cross: [`Re-run · ${c.agent}`, "passing again"],
+    goal: [`Re-run · ${c.agent}`, `passed · ${done(c)} steps`],
   }[p] as [string, string];
 }
 
@@ -138,12 +141,14 @@ export function HeroWorld() {
       const edge = (gap0 + 5 - start) / (goal - 8 - start);
       const rx = Math.round(start + track(st.phase, st.local, edge) * (goal - 8 - start));
 
-      const sunX = 0.8;
+      // The sun stands clear of the bridge's gantry and the goal flag, and of the copy.
+      const sunSpot = fitSun(px.w, px.h, groundY, NIGHT, px.w * 0.8, [[plankX - 2, gap1 + 2], [goal - 2, goal + 12]], toBuffer(copy.current, scale, 3));
+      const sunX = sunSpot.cx / px.w;
       // No star ever sits behind a word, and the far ridge never climbs into the copy: if it
       // would, the hills are drawn a little lower.
       const words = toBuffer(copy.current, scale, 6);
-      landscapeUnder(s, sunX, px.w < 200 ? 0.8 : 0.6, words, NIGHT);
-      clearStars(px, words);
+      landscapeUnder(s, sunX, px.w < 200 ? 0.8 : 0.6, words, NIGHT, sunSpot.r);
+      clearStars(px, toBuffer(copy.current, scale, 10));
       pines(s, [[stones[2] - 20, gap1 + 4], [goal - 10, goal + 30]], 1);
 
       const passed = st.phase === "cross" || st.phase === "goal";
@@ -208,7 +213,7 @@ export function HeroWorld() {
       const el = tagRef.current;
       // scrollWidth, not offsetWidth: the label sits in a box sized for the previous line and may overflow it.
       const size = { w: Math.ceil((el?.scrollWidth ?? (px.w < 200 ? 196 : 216)) / scale) + 2, h: Math.ceil((el?.offsetHeight ?? 52) / scale) + 2 };
-      const sun = sunBox(px.w, px.h, groundY, sunX, NIGHT);
+      const sun = sunBox(px.w, px.h, groundY, sunX, NIGHT, sunSpot.r);
       const onCause = focusStep(st.phase, run.cause) < 6 && back;
       const stemX = onCause ? back.x + 5 : six.x + 5;
       const stemTo = onCause ? back.y - (st.phase === "mark" || st.phase === "repair" ? 2 : 0) : six.top;

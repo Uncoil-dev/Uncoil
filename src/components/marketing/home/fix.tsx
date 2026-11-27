@@ -7,12 +7,13 @@ import { SUGGESTED_QUESTIONS } from "@/lib/ask-ai";
 import { Eyebrow } from "./eyebrow";
 import { modelCalls } from "./run-data";
 import { useCase } from "./case-state";
-import { two, type Case } from "./cases";
+import { type Case } from "./cases";
 import { AFTER_EYEBROW, BODY, H2, LABEL, SECTION, WRAP } from "./ui";
 import { useCalm } from "./use-calm";
 import { segment } from "./math";
 import type { Pt } from "./dissolve";
 import { DissolveCanvas, textPoints } from "./dissolve-canvas";
+import { MorningGround } from "./morning-ground";
 
 const CompareWindow = dynamic(() => import("./product-view").then((m) => m.CompareWindow));
 
@@ -47,7 +48,7 @@ export function Fix() {
   const after = calm || passed;
 
   return (
-    <section id="fix" className={`scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="ed-fix-title">
+    <section id="fix" className={`relative scroll-mt-16 bg-[#eceae3] text-[#090909] ${SECTION}`} aria-labelledby="ed-fix-title">
       <div className={WRAP}>
         <Eyebrow n="03" on="cream">Fix and verify</Eyebrow>
         <div className={`${AFTER_EYEBROW} grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14`}>
@@ -65,7 +66,7 @@ export function Fix() {
               <p className={`mt-3 text-[#eceae3]/45 ${LABEL}`}>Example answer</p>
             </div>
             <p className={`mt-6 min-h-[7rem] max-w-xl text-black/75 lg:min-h-0 ${BODY}`}>
-              {c.fix.body} Compare puts both runs side by side: {modelCalls(c.run)} model {modelCalls(c.run) === 1 ? "call" : "calls"} {modelCalls(c.run) === modelCalls(c.fix.after) ? "stay" : "become"} {modelCalls(c.fix.after)}, and step {two(6)} passes.
+              {c.fix.body} Compare puts both runs side by side: {modelCalls(c.run)} model {modelCalls(c.run) === 1 ? "call" : "calls"} {modelCalls(c.run) === modelCalls(c.fix.after) ? "stay" : "become"} {modelCalls(c.fix.after)}, and {c.fix.passes}.
             </p>
           </div>
 
@@ -85,6 +86,8 @@ export function Fix() {
           </div>
         </div>
       </div>
+      {/* The horizon and ground line carry on under the fix, in the first light of morning. */}
+      <MorningGround rows={7} glow={0.9} hills={0.35} stones className="absolute inset-x-0 bottom-0" />
     </section>
   );
 }

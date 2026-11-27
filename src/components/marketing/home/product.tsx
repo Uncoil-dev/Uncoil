@@ -4,23 +4,18 @@ import dynamic from "next/dynamic";
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { appHref } from "@/lib/app-links";
 import { CREAM, pines, type Scene } from "./pixels";
-import { groundArt } from "./hero-art";
+import { groundArt, robotInFront } from "./hero-art";
 import { useGridCanvas } from "./use-grid";
 import { useCase } from "./case-state";
 import type { Case } from "./cases";
 import { logLines } from "./logs";
 import { PREDAWN, clearStars, landscapeUnder, toBuffer, useCopyBoxes } from "./sky";
 import { BODY, H2, LABEL } from "./ui";
+import { useCalm } from "./use-calm";
 
 // The real trace view ships in its own chunk, so it never holds up the hero. It is still
 // rendered on the server, so the section never shows an empty frame while it loads.
 const TraceWindow = dynamic(() => import("./product-view").then((m) => m.TraceWindow));
-
-/**
- * Timeline rows the trace view makes room for: on wide screens enough for the longest example run
- * and the tallest step panel beside it; on phones the folded run.
- */
-const ROOM = { desk: 19, phone: 6 };
 
 const LEVEL: Record<string, string> = { DEBUG: "text-[#eceae3]/40", INFO: "text-[#eceae3]/60", WARN: "text-[#eceae3]", ERROR: "text-[#eceae3]" };
 
@@ -55,6 +50,7 @@ const VIEWS = ["Uncoil", "Your logs"] as const;
  */
 export function Product() {
   const c = useCase();
+  const calm = useCalm();
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -78,7 +74,8 @@ export function Product() {
       const words = toBuffer(copy.current, scale, 4);
       // Before dawn: fewer stars, and first light along the horizon where the sun will come up.
       landscapeUnder(s, 1.5, 0.5, words, PREDAWN);
-      clearStars(px, words);
+      // A star is never left in the band a line of text runs along, even beside it.
+      clearStars(px, toBuffer(copy.current, scale, 8).map((b) => ({ ...b, x: 0, w: px.w })));
       const postL = bx0 + Math.round((bx1 - bx0) * 0.12);
       const postR = bx1 - Math.round((bx1 - bx0) * 0.12);
       pines(s, [[postL - 40, postL + 20], [postR - 20, postR + 20]], 1);
@@ -89,8 +86,10 @@ export function Product() {
         px.rect(x - 3, groundY - 3, 7, 3, CREAM);
       }
       px.rect(postL, bBottom + 4, postR - postL, 1, CREAM);
+      // The robot stands under the board between the posts; the section keeps room for it below the board.
+      robotInFront(px, postL + 18, groundY - 3, calm ? 0 : Math.floor(seconds * 1.2) % 2);
     },
-    { still: true, redraw: c.id },
+    { still: calm, redraw: c.id },
   );
 
   const onKey = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -102,7 +101,7 @@ export function Product() {
   };
 
   return (
-    <section ref={sectionRef} id="trace" className="relative isolate scroll-mt-16 overflow-hidden bg-[#090909] px-5 pb-24 pt-8 text-[#eceae3] md:px-10 md:pb-24 md:pt-10" aria-labelledby="mix-trace-title">
+    <section ref={sectionRef} id="trace" className="relative isolate scroll-mt-16 overflow-hidden bg-[#090909] px-5 pb-[calc(58px+22*var(--c))] pt-8 text-[#eceae3] [--c:4px] min-[640px]:[--c:5px] min-[1100px]:[--c:6px] md:px-10 md:pt-10" aria-labelledby="mix-trace-title">
       {/* Older links to the logs chapter land here: the comparison now lives on this board. */}
       <span id="logs" aria-hidden="true" className="absolute top-0 scroll-mt-16" />
       <div className="absolute inset-0 -z-10" aria-hidden="true">
@@ -138,7 +137,7 @@ export function Product() {
           </div>
           <div id="trace-panel" role="tabpanel" aria-labelledby={`trace-tab-${view}`} className="grid">
             <div className={`[grid-area:1/1] ${view === 0 ? "" : "invisible"}`}>
-              <TraceWindow key={c.id} c={c} rows={ROOM} />
+              <TraceWindow key={c.id} c={c} />
             </div>
             <div className={`[grid-area:1/1] ${view === 1 ? "" : "invisible"}`}>
               <Logs c={c} />
